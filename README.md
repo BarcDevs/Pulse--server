@@ -403,7 +403,7 @@ npm run prisma:studio
 
 ## 📊 Architecture Diagram
 
-*Coming Soon: System architecture diagram showing the complete flow from client to database*
+![Architecture](./docs/architecture.png)
 
 ---
 
