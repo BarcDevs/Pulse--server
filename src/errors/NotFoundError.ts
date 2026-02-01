@@ -1,5 +1,6 @@
-import { CustomError } from './CustomError'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+
+import { CustomError } from './CustomError'
 
 class NotFoundError extends CustomError {
     statusCode = HttpStatusCodes.NOT_FOUND

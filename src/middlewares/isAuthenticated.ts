@@ -4,6 +4,7 @@ import type {
     Response
 } from 'express'
 import jwt from 'jsonwebtoken'
+
 import { authConfig } from '../../config'
 import { errorFactory } from '../errors/factory'
 import type { UserType } from '../types/data/UserType'

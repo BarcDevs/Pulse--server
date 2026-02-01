@@ -2,9 +2,7 @@ import type { Request, Response } from 'express'
 
 import { errorFactory } from '../errors/factory'
 import { successResponse } from '../responses/success'
-
 import * as forumService from '../services/forumService'
-
 import type { NewPostType, PostType } from '../types/data/PostType'
 import type { NewReplyType, ReplyType } from '../types/data/ReplyType'
 

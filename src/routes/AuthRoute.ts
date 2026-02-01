@@ -1,4 +1,5 @@
 import { Router } from 'express'
+
 import {
     confirmEmail,
     forgotPassword,
@@ -9,13 +10,11 @@ import {
     resetPassword,
     signup
 } from '../controllers/AuthController'
-
 import { cacheMiddleware } from '../middlewares/cache'
 import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
-
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 
 const router = Router()

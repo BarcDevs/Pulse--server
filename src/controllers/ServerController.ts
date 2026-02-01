@@ -2,6 +2,7 @@ import type {
     Request,
     Response
 } from 'express'
+
 import { serverConfig } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 

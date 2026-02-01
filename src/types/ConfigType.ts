@@ -33,10 +33,9 @@ type AuthConfig = {
 }
 
 export type {
-    EnvConfig,
-    ServerConfig,
     AppConfig,
+    AuthConfig,
     DatabaseConfig,
     EmailConfig,
-    AuthConfig
-}
+    EnvConfig,
+    ServerConfig}

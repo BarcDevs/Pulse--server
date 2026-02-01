@@ -1,17 +1,17 @@
-import path from 'path'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import express, { Express } from 'express'
-
+import express, { type Express } from 'express'
 import helmet from 'helmet'
 import hpp from 'hpp'
 import morgan from 'morgan'
+import path from 'path'
+
+import { serverConfig } from '../../config'
+
 import { loggerMiddleware } from './loggerMiddleWare'
 import { rateLimiter } from './rate-limiting'
 import { sanitizeData } from './sanitaization'
-import { serverConfig } from '../../config'
 
 export const declareMiddlewares = (app: Express) => {
     // Middlewares

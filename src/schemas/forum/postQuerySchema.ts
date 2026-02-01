@@ -1,4 +1,5 @@
 import joi from 'joi'
+
 import type { PostQuery } from '../../types/query'
 
 export const postQuerySchema = joi.object<PostQuery>({

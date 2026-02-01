@@ -83,10 +83,10 @@ const deleteUser = (id: string): Promise<ServerUserType> =>
     }) as Promise<ServerUserType>
 
 export {
-    getUserById,
-    getUserByEmail,
     createUser,
-    updateUser,
-    disableUser,
     deleteUser,
+    disableUser,
+    getUserByEmail,
+    getUserById,
+    updateUser,
 }

@@ -1,9 +1,6 @@
 import { ErrorFactory, errorFactory } from '../errors/factory'
 import { getTagsByPostId } from '../models/ForumModel'
-
 import * as forumModel from '../models/ForumModel'
-
-
 import type { NewPostType, UpdatePostType } from '../types/data/PostType'
 import type { NewReplyType, UpdateReplyType } from '../types/data/ReplyType'
 import type { PostQuery, TagQuery } from '../types/query'

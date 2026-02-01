@@ -1,4 +1,5 @@
 import joi from 'joi'
+
 import type { TagQuery } from '../../types/query'
 
 export const tagQuerySchema = joi.object<TagQuery>({

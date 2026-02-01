@@ -4,8 +4,8 @@ import { serverConfig } from '../../../config'
 import { getServerStatus } from '../../controllers/ServerController'
 import { errorHandler } from '../../middlewares/errorHandler'
 import authRoute from '../AuthRoute'
-import forumRoute from '../ForumRoute'
 import bulkRoute from '../bukActionsRoute'
+import forumRoute from '../ForumRoute'
 
 declare module 'express-serve-static-core' {
     interface Request {
