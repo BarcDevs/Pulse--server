@@ -50,7 +50,7 @@ export default [
             ],
 
             /** Node.js specific */
-            'no-console': ['warn', { allow: ['warn', 'error'] }],
+            'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
             'no-process-exit': 'warn',
 
             /** Import rules */

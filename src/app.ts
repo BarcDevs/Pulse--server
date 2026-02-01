@@ -1,10 +1,12 @@
+import 'express-async-errors'
 import dotenv from 'dotenv'
 import express, { type Express } from 'express'
-import 'express-async-errors'
-import { declareMiddlewares } from './middlewares'
+
 import { appConfig, serverConfig } from '../config'
+
 import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
+import { declareMiddlewares } from './middlewares'
 
 dotenv.config()
 
@@ -37,7 +39,7 @@ app.listen(port, host, () => {
 
     const message = `${start.replace(/\{0}/g, serverUrl)}`
 
-    console.log(message)
+    console.info(message)
 })
 
 export default app

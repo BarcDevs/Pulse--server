@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+
 import { emailConfig } from '../../config'
 
 const transporter = nodemailer.createTransport({
@@ -24,7 +25,7 @@ const sendEmail = (email: string, subject: string, text: string) => {
         if (error) {
             throw new Error(error.message)
         } else {
-            console.log(`Email sent: ${info.response}`)
+            console.info(`Email sent: ${info.response}`)
         }
     })
 }
