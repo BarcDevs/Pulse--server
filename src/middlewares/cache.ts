@@ -24,7 +24,7 @@ export const cacheMiddleware = (
     const cachedData = cache.get(key)
 
     if (cachedData) {
-        console.log(`Cache hit for ${key}`)
+        console.info(`Cache hit for ${key}`)
 
         const parsedCacheData =
             JSON.parse(cachedData as string)
@@ -37,7 +37,7 @@ export const cacheMiddleware = (
     const originalSend = res.send
 
     res.send = (body: Send): Response => {
-        console.log(`Cache miss for ${key}`)
+        console.info(`Cache miss for ${key}`)
 
         cache.set(key, body)
 

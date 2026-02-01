@@ -28,6 +28,8 @@ export const isAuthenticated = (
     } catch (error) {
         res.clearCookie('accessToken')
 
+        console.error('Error authenticating user', error)
+
         throw errorFactory.auth.unauthorized()
     }
 }

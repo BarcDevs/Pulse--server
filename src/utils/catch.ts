@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 // export const catchModel = <T>(fn: (...args: any) => any, msgPrefix = '') : Promise<T> => {
 //     try {
 //         return fn()

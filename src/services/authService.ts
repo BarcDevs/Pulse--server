@@ -4,7 +4,7 @@ import type { CookieOptions } from 'express'
 import jwt from 'jsonwebtoken'
 import ms from 'ms'
 
-import { authConfig, env, serverConfig } from '../../config'
+import { authConfig, env } from '../../config'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
