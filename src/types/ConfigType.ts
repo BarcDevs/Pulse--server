@@ -13,6 +13,10 @@ type AppConfig = {
     start: string
 }
 
+type DatabaseConfig = {
+    url: string
+}
+
 type EmailConfig = {
     host: string
     service: string
@@ -28,4 +32,11 @@ type AuthConfig = {
     otp_expiration: number
 }
 
-export type { EnvConfig, EmailConfig, ServerConfig, AppConfig, AuthConfig }
+export type {
+    EnvConfig,
+    ServerConfig,
+    AppConfig,
+    DatabaseConfig,
+    EmailConfig,
+    AuthConfig
+}

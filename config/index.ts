@@ -2,6 +2,7 @@ import config from 'config'
 import type {
     AppConfig,
     AuthConfig,
+    DatabaseConfig,
     EmailConfig,
     EnvConfig,
     ServerConfig
@@ -28,6 +29,10 @@ const authConfig: AuthConfig = {
     otp_expiration: config.get<number>('auth.otp_expiration')
 }
 
+const databaseConfig: DatabaseConfig = {
+    url: config.get<string>('database.url')
+}
+
 const emailConfig: EmailConfig = {
     host: config.get<string>('email.host'),
     service: config.get<string>('email.service'),
@@ -37,4 +42,11 @@ const emailConfig: EmailConfig = {
     emailPass: config.get<string>('email.emailPass')
 }
 
-export {env, serverConfig, appConfig, emailConfig, authConfig}
+export {
+    env,
+    serverConfig,
+    appConfig,
+    authConfig,
+    databaseConfig,
+    emailConfig
+}
