@@ -3,13 +3,12 @@ import Csrf from 'csrf'
 import type { CookieOptions } from 'express'
 import jwt from 'jsonwebtoken'
 import ms from 'ms'
+
 import { authConfig, env, serverConfig } from '../../config'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
-
 import * as authModel from '../models/AuthModel'
-
 import type {
     NewUserType,
     ServerUserType,
@@ -163,18 +162,17 @@ const sanitizeUserData = (user: ServerUserType): UserType =>
     ) as UserType
 
 export {
-    getUser,
-    register,
-    login,
-    createToken,
-    sendEmailWithOTP,
-    verifyResetPasswordOTP,
-    resetPassword,
-    removeResetPasswordOTP,
-    hashPassword,
     comparePassword,
+    createToken,
     generateCSRFToken,
-    getCookiesOptions,
     generateRandomUsername,
-    sanitizeUserData
-}
+    getCookiesOptions,
+    getUser,
+    hashPassword,
+    login,
+    register,
+    removeResetPasswordOTP,
+    resetPassword,
+    sanitizeUserData,
+    sendEmailWithOTP,
+    verifyResetPasswordOTP}

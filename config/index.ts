@@ -1,4 +1,5 @@
 import config from 'config'
+
 import type {
     AppConfig,
     AuthConfig,
@@ -43,10 +44,9 @@ const emailConfig: EmailConfig = {
 }
 
 export {
-    env,
-    serverConfig,
     appConfig,
     authConfig,
     databaseConfig,
-    emailConfig
-}
+    emailConfig,
+    env,
+    serverConfig}

@@ -1,18 +1,15 @@
 import type { Request, Response } from 'express'
 
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import { ValidationError } from '../errors/ValidationError'
 import { errorFactory } from '../errors/factory'
+import { ValidationError } from '../errors/ValidationError'
 import { successResponse } from '../responses/success'
-
 import { confirmEmailSchema } from '../schemas/auth/confirmEmailSchema'
 import { forgetPasswordSchema } from '../schemas/auth/forgetPasswordSchema'
 import { loginSchema } from '../schemas/auth/loginSchema'
 import { resetPasswordSchema } from '../schemas/auth/resetPasswordSchema'
 import { signupSchema } from '../schemas/auth/signupSchema'
-
 import * as authServices from '../services/authService'
-
 import {
     generateCSRFToken,
     generateRandomUsername,
@@ -21,9 +18,6 @@ import {
     sendEmailWithOTP,
     verifyResetPasswordOTP
 } from '../services/authService'
-
-
-
 import type { ServerUserType, UserType } from '../types/data/UserType'
 
 
