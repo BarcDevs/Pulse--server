@@ -1,428 +1,482 @@
-<div align="center">
+# HealEase Backend
 
-# 🏥 HealEase Backend API
+Recovery tracking API with AI-powered behavioral insights and community features.
 
-### A modern, secure, and scalable RESTful API for a health and wellness community platform
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
-[![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Express](https://img.shields.io/badge/Express-4.18-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-7.x-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-
-[🌐 Live API](https://healease-server.onrender.com) • [📱 Frontend Repo](https://github.com/BarcDevs/HealEase--client) • [📖 API Docs](#api-documentation)
-
-</div>
+[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/HealEase--client)
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Tech Stack](#-tech-stack)
-- [Key Features](#-key-features)
-- [API Documentation](#-api-documentation)
-- [Security](#-security)
-- [Design Principles](#-design-principles)
-- [Local Development](#-local-development)
-- [Database Schema](#-database-schema)
-- [Roadmap](#-roadmap)
-- [Contact](#-contact)
-
----
-
-## 🎯 Overview
-
-HealEase Backend is a production-ready RESTful API built with modern technologies and best practices. It powers a health and wellness community platform where users can create posts, share experiences, engage in discussions, and connect with others through a secure and performant API.
-
-The project demonstrates expertise in:
-- **Backend Architecture** - Clean MVC pattern with separation of concerns
-- **Security** - JWT authentication, CSRF protection, input sanitization
-- **Database Design** - Optimized Prisma schema with PostgreSQL
-- **DevOps** - Cloud deployment, Docker containerization, CI/CD ready
-- **Type Safety** - Full TypeScript implementation with strict typing
-- **Scalability** - Stateless design, caching strategies, rate limiting
-
-**Current Status**: ✅ Production API deployed on Render | 🚧 NestJS migration planned for enhanced scalability
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Architecture](#architecture)
+- [Database Schema](#database-schema)
+- [Setup](#setup)
+- [API Endpoints](#api-endpoints)
+- [AI Features](#ai-features)
+- [Scripts](#scripts)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Security](#security)
+- [Monitoring](#monitoring)
+- [Development Guidelines](#development-guidelines)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Core Technologies
-```
-Backend Framework    │ Express.js 4.18 + TypeScript 5.3
-ORM                 │ Prisma 7.x
-Database            │ PostgreSQL 15 (Neon Serverless)
-Authentication      │ JWT (jsonwebtoken) + bcrypt
-Validation          │ Joi schemas
-```
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 18+ |
+| Framework | Express + TypeScript |
+| Database | Neon PostgreSQL |
+| ORM | Prisma |
+| Authentication | JWT + bcrypt |
+| AI | Google Gemini API |
+| Monitoring | Sentry |
+| Deployment | Render |
 
-### Security & Middleware
-```
-Security Headers    │ Helmet
-CSRF Protection     │ Custom CSRF middleware with HTTP-only cookies
-Rate Limiting       │ express-rate-limit
-Input Sanitization  │ DOMPurify + custom sanitization
-HPP Prevention      │ hpp (HTTP Parameter Pollution)
-CORS                │ Configured for trusted origins
-```
+---
 
-### DevOps & Infrastructure
-```
-Hosting             │ Render (Cloud Platform)
-Database Hosting    │ Neon (Serverless PostgreSQL)
-Containerization    │ Docker (Dockerfile ready)
-Logging             │ Winston + Morgan
-Process Management  │ Node.js with compression & clustering ready
-```
+## Project Structure
 
-### Development Tools
 ```
-Testing             │ Jest + Supertest
-Code Quality        │ ESLint + Prettier + Husky
-Build               │ TypeScript Compiler + Webpack
-Package Manager     │ npm
+backend/
+├── src/
+│   ├── config/
+│   │   ├── database.ts
+│   │   └── env.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   ├── errorHandler.ts
+│   │   └── validation.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── checkins.ts
+│   │   ├── posts.ts
+│   │   └── users.ts
+│   ├── controllers/
+│   │   ├── authController.ts
+│   │   ├── checkinController.ts
+│   │   ├── postController.ts
+│   │   └── userController.ts
+│   ├── services/
+│   │   ├── aiService.ts
+│   │   ├── authService.ts
+│   │   └── notificationService.ts
+│   ├── types/
+│   │   ├── express.d.ts
+│   │   └── index.ts
+│   └── server.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
 ---
 
-## ✨ Key Features
+## Architecture
 
-### 🔐 **Authentication & Authorization**
-- JWT-based authentication with secure token management
-- Password hashing using bcrypt (10 rounds)
-- Email verification with OTP (One-Time Password)
-- Password reset flow with time-limited tokens
-- Role-based access control (USER, ADMIN)
-- Protected routes with authentication middleware
+```mermaid
+graph TD
+  %% ── ACTORS ─────────────────────────────────────────────────────────────
+  PATIENT(["👤 Patient"])
+  THERAPIST(["🩺 Therapist / Admin"])
 
-### 🛡️ **Security Features**
-- CSRF protection with double-submit cookie pattern
-- HTTP-only secure cookies for token storage
-- Input validation and sanitization on all endpoints
-- SQL injection prevention via Prisma parameterized queries
-- Rate limiting to prevent brute-force attacks
-- Helmet.js security headers
-- HTTP Parameter Pollution (HPP) prevention
+  %% ── FRONTEND ────────────────────────────────────────────────────────────
+  subgraph FE["🖥️Frontend — React · TypeScript · Next.js"]
+      FE_CI["Daily Check-in Form"]
+      FE_FORUM["Forum — Posts & Replies"]
+      FE_PROFILE["Profile Settings"]
+      FE_INSIGHT["AI Insight Panel"]
+  end
 
-### 📝 **Forum & Community**
-- Create, read, update, delete posts (CRUD operations)
-- Nested replies system for discussions
-- Tag-based content organization
-- User profiles with activity tracking
-- Vote system (upvotes/downvotes) with JSON storage
-- View tracking for posts
-- Category filtering and search
+  %% ── AUTH ────────────────────────────────────────────────────────────────
+  subgraph AUTH["🔐 Auth — JWT · RBAC"]
+      JWT["JWT Middleware"]
+      RBAC["Role Guard<br/>Patient · Therapist · Admin"]
+  end
 
-### ⚡ **Performance & Scalability**
-- Response caching with custom middleware
-- Database query optimization with Prisma
-- Compression middleware for reduced payload size
-- Efficient indexing on frequently queried fields
-- Stateless API design for horizontal scaling
-- Connection pooling with Prisma
+  %% ── BACKEND ─────────────────────────────────────────────────────────────
+  subgraph BE["⚙️ Backend — Node.js · Express"]
+      API_CI["POST /check-in"]
+      API_FORUM["GET · POST /forum"]
+      API_PROFILE["PUT /profile"]
+      VALIDATE["Input Validation"]
+      JOB_QUEUE["Background Job Queue"]
+  end
 
-### 🔧 **Developer Experience**
-- Comprehensive error handling with custom error classes
-- Centralized error factory pattern
-- Structured logging with Winston
-- Type-safe API with TypeScript
-- RESTful endpoint design
-- Clear separation of concerns (MVC pattern)
+  %% ── REAL-TIME ───────────────────────────────────────────────────────────
+  subgraph RT["⚡ Real-time — Socket.io · Redis"]
+      SOCKET["Socket.io Server"]
+      REDIS["Redis Pub/Sub"]
+  end
+
+  %% ── DATABASE ────────────────────────────────────────────────────────────
+  subgraph DB["🗄️Database — PostgreSQL · Prisma"]
+      DB_USERS[("users")]
+      DB_CI[("check_ins")]
+      DB_FORUM[("posts / replies")]
+      DB_STREAK[("streaks")]
+  end
+
+  %% ── AI FEEDBACK LAYER ───────────────────────────────────────────────────
+  subgraph AI["🤖 AI Feedback Layer — OpenAI API"]
+      AI_LOGIC["Feedback Algorithm"]
+      STREAK_CHECK{"streak < threshold?"}
+      MOOD_CHECK{"mood falling<br/>3 days in a row?"}
+      MSG_MOT["💬 Motivational Message"]
+      MSG_ALERT["🚨 Alert — Flag for Therapist"]
+      MSG_SUM["📊 Weekly Activity Summary"]
+      OPENAI["OpenAI API Call"]
+      AI_OUT["Feedback Result"]
+  end
+
+  %% ── FLOWS ───────────────────────────────────────────────────────────────
+
+  %% Entry points
+  PATIENT --> FE_CI & FE_FORUM & FE_PROFILE
+  THERAPIST --> FE_FORUM
+
+  %% Auth gate
+  FE_CI & FE_FORUM & FE_PROFILE --> JWT --> RBAC
+  JWT -.->|"verify token"| DB_USERS
+
+  %% Flow 1: Daily Check-in
+  RBAC -->|"check-in request"| API_CI --> VALIDATE
+  VALIDATE -->|"❌ invalid"| FE_CI
+  VALIDATE -->|"✅ valid"| DB_CI
+  DB_CI --> DB_STREAK --> JOB_QUEUE
+
+  %% AI pipeline
+  JOB_QUEUE -->|"trigger AI job"| AI_LOGIC --> STREAK_CHECK
+  STREAK_CHECK -->|"Yes"| MSG_MOT
+  STREAK_CHECK -->|"No"| MOOD_CHECK
+  MOOD_CHECK -->|"Yes"| MSG_ALERT
+  MOOD_CHECK -->|"No"| MSG_SUM
+  MSG_MOT & MSG_ALERT & MSG_SUM --> OPENAI --> AI_OUT
+  AI_OUT -->|"display insight"| FE_INSIGHT
+  MSG_ALERT -->|"push alert"| SOCKET
+
+  %% Flow 2: Forum Engagement
+  RBAC -->|"forum request"| API_FORUM --> DB_FORUM
+  DB_FORUM -->|"new reply event"| SOCKET --> REDIS -->|"broadcast"| FE_FORUM
+  REDIS -->|"alert notification"| THERAPIST
+
+  %% Flow 3: Profile Management
+  RBAC -->|"profile update"| API_PROFILE --> DB_USERS
+```
+
+### Key Flows
+
+**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → background job triggers the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → result pushed to the AI Insight Panel. If a mood-decline pattern is detected, a real-time alert is also pushed to the therapist via Socket.io.
+
+**Forum Engagement** — Authenticated request passes the JWT + RBAC guard → post/reply written to `posts/replies` → a `new reply` event fires through Socket.io → Redis broadcasts the update to all subscribed clients in real time.
+
+**Profile Management** — Profile update passes auth → written directly to `users` table.
 
 ---
 
-## 📚 API Documentation
+## Database Schema
 
-### Base URL
-```
-Production: https://healease-server.onrender.com
-Local:      http://localhost:3000
-```
+### Users
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| email | String | Unique |
+| username | String | Unique |
+| passwordHash | String | |
+| fullName | String | |
+| notificationsEnabled | Boolean | |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
 
-### API Version
-```
-/api/v1
-```
+### Checkins
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| userId | UUID | FK → Users |
+| moodScore | Int | 1–10 |
+| painLevel | Int | 1–10 |
+| activities | String[] | |
+| notes | String | Optional |
+| aiFeedback | String | Optional, generated async |
+| createdAt | DateTime | |
 
-### Authentication Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/v1/auth/signup` | Register new user | ❌ |
-| `POST` | `/api/v1/auth/login` | User login (returns JWT) | ❌ |
-| `GET` | `/api/v1/auth/logout` | User logout | ❌ |
-| `GET` | `/api/v1/auth/me` | Get current user profile | ✅ |
-| `GET` | `/api/v1/auth/csrf` | Get CSRF token | ✅ |
-| `GET` | `/api/v1/auth/forget-password/:email` | Request password reset OTP | ❌ |
-| `POST` | `/api/v1/auth/confirm-email` | Verify email with OTP | ✅ CSRF |
-| `PUT` | `/api/v1/auth/reset-password` | Reset password with OTP | ✅ CSRF |
+### Posts
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| userId | UUID | FK → Users |
+| title | String | |
+| content | String | |
+| category | Enum | `recovery` · `support` · `tips` |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
 
-### Forum Endpoints
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/api/v1/forum/posts` | Get all posts (with pagination) | ❌ |
-| `POST` | `/api/v1/forum/posts` | Create new post | ✅ CSRF |
-| `GET` | `/api/v1/forum/posts/:postId` | Get single post by ID | ❌ |
-| `PUT` | `/api/v1/forum/posts/:postId` | Update post | ✅ CSRF |
-| `DELETE` | `/api/v1/forum/posts/:postId` | Delete post | ✅ CSRF |
-| `GET` | `/api/v1/forum/posts/:postId/reply` | Get all replies for post | ❌ |
-| `POST` | `/api/v1/forum/posts/:postId/reply` | Create reply on post | ✅ CSRF |
-| `PUT` | `/api/v1/forum/posts/:postId/reply/:replyId` | Update reply | ✅ CSRF |
-| `DELETE` | `/api/v1/forum/posts/:postId/reply/:replyId` | Delete reply | ✅ CSRF |
-| `GET` | `/api/v1/forum/tags` | Get all tags | ❌ |
-| `GET` | `/api/v1/forum/tags/:tagId` | Get single tag by ID | ❌ |
+### Replies
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| postId | UUID | FK → Posts |
+| userId | UUID | FK → Users |
+| content | String | |
+| createdAt | DateTime | |
 
-### Bulk Operations
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/v1/bulk/create-posts` | Bulk create posts | ✅ CSRF |
-| `POST` | `/api/v1/bulk/create-replies` | Bulk create replies | ✅ CSRF |
-
-### Server Status
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/api/v1/status` | Get server health status | ❌ |
-
----
-
-## 🔒 Security
-
-HealEase Backend implements multiple layers of security to protect user data and prevent common attacks:
-
-### Authentication Security
-- **JWT Tokens**: Secure token-based authentication with configurable expiration
-- **Password Hashing**: Bcrypt with 10 salt rounds (industry standard)
-- **Refresh Tokens**: Separate refresh token mechanism for extended sessions
-- **HTTP-Only Cookies**: Tokens stored in secure, HTTP-only cookies (not accessible via JavaScript)
-
-### Attack Prevention
-- **CSRF Protection**: Double-submit cookie pattern with custom middleware
-- **SQL Injection**: Prisma ORM with parameterized queries (zero raw SQL)
-- **XSS Prevention**: DOMPurify sanitization on all user inputs
-- **Rate Limiting**: Configurable rate limits to prevent brute-force attacks
-- **HPP Prevention**: HTTP Parameter Pollution middleware
-- **Security Headers**: Helmet.js with CSP, HSTS, and other security headers
-
-### Data Protection
-- **Input Validation**: Joi schemas validating all request data
-- **CORS Configuration**: Whitelist-based origin validation
-- **Environment Variables**: Sensitive data stored in environment variables
-- **Password Reset**: Time-limited OTP tokens for password recovery
-- **Secure Cookies**: SameSite and Secure flags on production cookies
-
-### Code Security
-- **TypeScript**: Compile-time type checking prevents runtime errors
-- **Error Handling**: No sensitive data exposed in error messages
-- **Logging**: Structured logging with Winston (no sensitive data logged)
-- **Dependencies**: Regular updates and vulnerability scanning
+### Notifications
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| userId | UUID | FK → Users |
+| type | Enum | `reply` · `mention` |
+| message | String | |
+| link | String | |
+| read | Boolean | |
+| createdAt | DateTime | |
 
 ---
 
-## 🏗️ Design Principles
-
-### Architecture Patterns
-- **MVC Pattern**: Clear separation between Models, Controllers, and Services
-- **SOLID Principles**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- **Repository Pattern**: Data access abstraction via Prisma models
-- **Factory Pattern**: Centralized error creation with factory classes
-- **Middleware Pattern**: Composable request processing pipeline
-
-### Code Quality Standards
-- **Type Safety**: Full TypeScript with strict mode enabled
-- **Error Handling**: Centralized error handling with custom error classes
-- **Code Reusability**: DRY principles with shared utilities and services
-- **Separation of Concerns**: Business logic in services, HTTP in controllers
-- **RESTful Design**: Resource-based URLs, proper HTTP methods, stateless operations
-
-### Best Practices
-- **Security First**: Security measures integrated at every layer
-- **Scalability**: Stateless design, horizontal scaling ready
-- **Maintainability**: Clean code, consistent naming, comprehensive documentation
-- **Testing Ready**: Modular design facilitating unit and integration testing
-- **Configuration Management**: Environment-based config with config package
-
----
-
-## 🚀 Local Development
+## Setup
 
 ### Prerequisites
-- **Node.js**: v20.x or higher
-- **PostgreSQL**: v15 or higher (or use Neon serverless)
-- **npm**: v10.x or higher
-- **Git**: Latest version
 
-### Quick Start
+- Node.js 18+
+- PostgreSQL or a [Neon](https://neon.tech) account
+- Google Gemini API key
 
-1. **Clone the repository**
+### Installation
+
+1. **Clone and install dependencies**
    ```bash
    git clone https://github.com/BarcDevs/HealEase--server.git
    cd HealEase--server
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
    ```
 
-3. **Set up environment variables**
-
-   Create a `.env` file in the root directory:
+2. **Create `.env` file**
    ```env
-   # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/healease"
-
-   # Server Configuration
    NODE_ENV=development
    PORT=3000
-   SERVER_HOST=localhost
-   SERVER_ORIGIN=http://localhost:5173
-   SERVER_PROTOCOL=http
-   SERVER_API_VERSION=v1
-
-   # Authentication
-   JWT_SECRET=your-super-secret-jwt-key-change-this
-   JWT_EXPIRES_IN=86400000
-   OTP_EXPIRATION=300000
-
-   # Email Configuration (for password reset)
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_SERVICE=gmail
-   EMAIL_PORT=587
-   EMAIL_SECURE=false
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
+   DATABASE_URL=postgresql://user:password@host/healease
+   JWT_SECRET=your-secret-key
+   GEMINI_API_KEY=your-gemini-api-key
+   SENTRY_DSN=your-sentry-dsn
    ```
 
-4. **Set up the database**
+3. **Set up the database**
    ```bash
-   # Generate Prisma Client
-   npm run prisma:generate
-
-   # Run database migrations
-   npm run prisma:migrate
-
-   # (Optional) Seed the database
-   npm run prisma:studio
+   npx prisma generate
+   npm run migrate
    ```
 
-5. **Start the development server**
+4. **Start the development server**
    ```bash
-   npm run start:dev
+   npm run dev
    ```
 
-6. **Verify the server is running**
-   ```bash
-   curl http://localhost:3000/api/v1/status
-   ```
+---
 
-### Available Scripts
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Create new user |
+| `POST` | `/api/auth/login` | Login and get JWT token |
+
+### Check-ins *(protected)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/checkins` | Create daily check-in |
+| `GET` | `/api/checkins` | Get user's check-ins (supports `?limit=`) |
+| `GET` | `/api/checkins/stats` | Get aggregated stats |
+
+### Forum Posts *(protected)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/posts` | Create new post |
+| `GET` | `/api/posts` | List posts (supports `?category=`) |
+| `GET` | `/api/posts/:id` | Get single post with replies |
+| `POST` | `/api/posts/:id/replies` | Add reply to post |
+
+### Users *(protected)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/users/me` | Get current user profile |
+| `PATCH` | `/api/users/me` | Update profile |
+| `PATCH` | `/api/users/me/settings` | Update notification preferences |
+
+### Notifications *(protected)*
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/notifications` | Get user notifications |
+| `PATCH` | `/api/notifications/:id/read` | Mark notification as read |
+
+---
+
+## AI Features
+
+Powered by **Google Gemini API** for personalized recovery insights.
+
+### How It Works
+
+| Property | Detail |
+|---|---|
+| Trigger | Automatically after check-in submission |
+| Processing | Async, non-blocking |
+| Context | Last 7 check-ins for trend analysis |
+| Fallback | Generic encouraging message if API fails |
+| Rate limiting | Implemented to respect free-tier limits |
+
+### Feedback Types
+
+1. **Daily Motivation** — Personalized encouragement based on today's scores
+2. **Trend Analysis** — Detects patterns in mood and pain over time
+3. **Activity Suggestions** — Recommendations derived from recent activity log
+
+---
+
+## Scripts
 
 ```bash
-npm run start:dev      # Start development server with nodemon
-npm run build          # Build for production
-npm run start          # Start production server
-npm run typecheck      # Run TypeScript type checking
-npm run lint:check     # Check code with ESLint
-npm run lint:fix       # Fix ESLint issues automatically
-npm test               # Run tests with Jest
-npm run prisma:studio  # Open Prisma Studio (database GUI)
+npm run dev      # Start with hot reload
+npm run build    # Compile TypeScript
+npm start        # Run compiled code
+npm run migrate  # Run Prisma migrations
+npm run seed     # Seed database with test data
 ```
 
-### Common Issues
+---
 
-**"Prisma Client not generated"**
+## Testing
+
+### Manual Testing
+
 ```bash
-npm run prisma:generate
-```
+# Register a new user
+curl -X POST http://localhost:3000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test@example.com","username":"testuser","password":"Password123","fullName":"Test User"}'
 
-**"Cannot connect to database"**
-- Verify DATABASE_URL is correct
-- Ensure PostgreSQL is running
-- Check firewall settings
-
-**"JWT authentication fails"**
-- Ensure JWT_SECRET is set in .env
-- Check token expiration settings
----
-
-## 🗄️ Database Schema
-
-The application uses **Prisma ORM** with **PostgreSQL** for robust and type-safe database operations.
-
-### Core Models
-- **User**: User accounts with authentication credentials, profile data, and role-based access
-- **Post**: Forum posts with title, body, votes, views, and category
-- **Reply**: Nested replies/comments on posts with voting system
-- **Tag**: Content tags for post organization and discovery
-
-### Key Features
-- UUID primary keys for security and scalability
-- Indexed fields for optimized query performance
-- JSON fields for flexible vote tracking
-- Timestamp tracking for audit trails
-- Soft delete capability with `deleted_at` field
-- Role-based access control (USER, ADMIN)
-
-### Prisma Schema Location
-```
-prisma/schema.prisma
-```
-
-View the complete schema with:
-```bash
-npm run prisma:studio
+# Create a check-in (replace <token> with JWT from login)
+curl -X POST http://localhost:3000/api/checkins \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <token>' \
+  -d '{"moodScore":7,"painLevel":3,"activities":["walking","stretching"],"notes":"Feeling better today"}'
 ```
 
 ---
 
-## 🗺️ Roadmap
+## Deployment
 
-### 🔄 Short-term (Q1 2025)
-- [ ] **NestJS Migration**: Migrate from Express to NestJS for enhanced modularity and scalability
-- [ ] **Swagger/OpenAPI**: Auto-generated API documentation with Swagger UI
-- [ ] **Comprehensive Testing**: Unit tests (80%+ coverage) and E2E tests
-- [ ] **Advanced Rate Limiting**: Redis-based distributed rate limiting
+Hosted on **Render**. Configuration:
 
-### 🚀 Medium-term (Q2 2025)
-- [ ] **GraphQL Layer**: GraphQL API alongside REST for flexible data fetching
-- [ ] **WebSocket Support**: Real-time notifications and live updates
-- [ ] **Redis Caching**: Distributed caching layer for improved performance
-- [ ] **File Uploads**: S3-compatible image/file upload system
-- [ ] **Search Engine**: Elasticsearch integration for advanced search
+| Property | Value |
+|---|---|
+| Build command | `npm install && npx prisma generate && npm run build` |
+| Start command | `npm start` |
 
-### 🌟 Long-term
-- [ ] **Microservices Architecture**: Break into smaller, independently deployable services
-- [ ] **Kubernetes Deployment**: Container orchestration with K8s
-- [ ] **Message Queue**: RabbitMQ/Kafka for async processing
-- [ ] **Monitoring & Observability**: Prometheus, Grafana, and distributed tracing
-- [ ] **Multi-tenancy**: Support for multiple organizations
+### Required Environment Variables
+
+```
+NODE_ENV
+PORT
+DATABASE_URL
+JWT_SECRET
+GEMINI_API_KEY
+SENTRY_DSN
+```
 
 ---
 
-## 📊 Architecture Diagram
+## Security
 
-![Architecture](./docs/architecture.png)
-
----
-
-## 🤝 Contact
-
-**Bar Cohen** | Full-Stack Developer | Open to Opportunities
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/barcohendev)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-FF5722?style=for-the-badge&logo=google-chrome&logoColor=white)](https://bardevs.com)
-[![Email](https://img.shields.io/badge/Email-Contact-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:barcprodevelopments@gmail.com)
+| Measure | Detail |
+|---|---|
+| Password hashing | bcrypt, 10 rounds |
+| JWT expiration | 7 days |
+| CSRF protection | Enabled |
+| Rate limiting | 100 requests / 15 min per IP |
+| Input validation | Zod schemas |
+| SQL injection | Prevented by Prisma parameterized queries |
 
 ---
 
-<div align="center">
+## Monitoring
 
-### ⭐ If you find this project helpful, please consider giving it a star!
+| Concern | Solution |
+|---|---|
+| Error tracking | Sentry integration |
+| Logging | Console in dev · structured JSON in production |
+| Health check | `GET /health` |
 
-**Built with ❤️ by Bar Cohen**
+---
 
-*Passionate about building scalable, secure, and user-friendly applications*
+## Development Guidelines
 
-</div>
+### Code Style
+
+- Arrow functions exclusively — never `function` declarations
+- No semicolons unless syntactically required
+- ESLint + Prettier enforced via pre-commit hooks
+- TypeScript strict mode enabled
+
+### Commit Convention
+
+```
+feat: add check-in streak calculation
+fix: handle missing aiFeedback gracefully
+chore: update Prisma schema for notifications
+```
+
+### Branch Strategy
+
+```
+main        # production-ready
+develop     # integration branch
+feature/*   # new features
+fix/*       # bug fixes
+```
+
+---
+
+## Troubleshooting
+
+**Database connection fails**
+- Verify `DATABASE_URL` is correct in `.env`
+- Confirm the Neon project is active and not paused
+- Check that `npx prisma generate` has been run after schema changes
+
+**AI feedback not generating**
+- Confirm `GEMINI_API_KEY` is valid and has quota remaining
+- Check server logs for Gemini API error responses
+- Feedback generation is async — allow a few seconds after check-in creation
+
+**JWT token invalid**
+- Ensure `JWT_SECRET` matches between token signing and verification
+- Check that the `Authorization` header uses the `Bearer <token>` format
+- Tokens expire after 7 days — request a fresh token via login
+
+---
+
+## License
+
+MIT © [Bar Cohen](https://bardevs.com)
+
+For support or questions: [barcprodevelopments@gmail.com](mailto:barcprodevelopments@gmail.com) · [LinkedIn](https://www.linkedin.com/in/barcohendev)
