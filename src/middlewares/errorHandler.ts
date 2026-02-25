@@ -31,7 +31,9 @@ const errorHandler = (
         error: err.message
     }
 
-    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json(response)
+    res.status(
+        HttpStatusCodes.INTERNAL_SERVER_ERROR
+    ).json(response)
 
     return next()
 }
