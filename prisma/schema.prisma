@@ -12,6 +12,12 @@ enum Role {
   ADMIN
 }
 
+enum InsightType {
+  DAILY_MOTIVATION
+  TREND_ANALYSIS
+  ACTIVITY_SUGGESTIONS
+}
+
 model User {
   id        String  @id() @default(uuid())
   firstName String
@@ -24,8 +30,7 @@ model User {
   posts        Post[]
   replies      Reply[]
   followedTags Tag[]
-  // followedCategories      String[]
-  // followedAuthors         User[]
+  checkIns     DailyCheckIn[]
 
   // excluded from client
   password                String
@@ -64,6 +69,29 @@ model Reply {
   votes     Json      @default("{\"upvotedBy\": [], \"downvotedBy\": [], \"upvotes\": 0, \"downvotes\": 0}")
   post      Post      @relation(fields: [postId], references: [id])
   postId    String
+}
+
+model DailyCheckIn {
+  id         String      @id() @default(uuid())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String
+  moodScore  Int
+  painLevel  Int
+  activities String[]
+  notes      String?
+  createdAt  DateTime    @default(now())
+  insights   AIInsight[]
+
+  @@index([userId, createdAt])
+}
+
+model AIInsight {
+  id          String       @id() @default(uuid())
+  checkIn     DailyCheckIn @relation(fields: [checkInId], references: [id])
+  checkInId   String
+  type        InsightType
+  content     String
+  createdAt   DateTime     @default(now())
 }
 
 model Tag {
