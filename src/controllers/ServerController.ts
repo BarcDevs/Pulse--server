@@ -3,7 +3,7 @@ import type {
     Response
 } from 'express'
 
-import { serverConfig } from '../../config'
+import { env, serverConfig } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
 export const getServerStatus = (
@@ -16,7 +16,7 @@ export const getServerStatus = (
             message: `Server is running! use /api/${serverConfig.apiVersion}/ for api requests`,
             config: {
                 CORS_Origin: serverConfig.origin,
-                NODE_ENV: process.env.NODE_ENV
+                NODE_ENV: env
             }
         })
 }
