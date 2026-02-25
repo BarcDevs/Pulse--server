@@ -52,35 +52,43 @@ Recovery tracking API with AI-powered behavioral insights and community features
 backend/
 ├── src/
 │   ├── config/
-│   │   ├── database.ts
-│   │   └── env.ts
+│   │   ├── database.ts          # Prisma client initialization and connection setup
+│   │   └── env.ts               # Environment variable loading and validation
+│   │
 │   ├── middleware/
-│   │   ├── auth.ts
-│   │   ├── errorHandler.ts
-│   │   └── validation.ts
+│   │   ├── auth.ts              # JWT verification; attaches user to request
+│   │   ├── errorHandler.ts      # Global error handler; formats and returns error responses
+│   │   └── validation.ts        # Zod schema validation for request bodies
+│   │
 │   ├── routes/
-│   │   ├── auth.ts
-│   │   ├── checkins.ts
-│   │   ├── posts.ts
-│   │   └── users.ts
+│   │   ├── auth.ts              # /api/auth — register, login
+│   │   ├── checkins.ts          # /api/checkins — create, list, stats
+│   │   ├── posts.ts             # /api/posts — post CRUD, replies, notifications
+│   │   └── users.ts             # /api/users — profile, settings
+│   │
 │   ├── controllers/
-│   │   ├── authController.ts
-│   │   ├── checkinController.ts
-│   │   ├── postController.ts
-│   │   └── userController.ts
+│   │   ├── authController.ts    # Handles register/login, issues JWT
+│   │   ├── checkinController.ts # Handles check-in submission and stats aggregation
+│   │   ├── postController.ts    # Handles post/reply creation and retrieval
+│   │   └── userController.ts    # Handles profile reads and updates
+│   │
 │   ├── services/
-│   │   ├── aiService.ts
-│   │   ├── authService.ts
-│   │   └── notificationService.ts
+│   │   ├── aiService.ts         # Gemini API integration; generates feedback from check-in history
+│   │   ├── authService.ts       # Password hashing, JWT signing, credential verification
+│   │   └── notificationService.ts # Creates and dispatches in-app notifications
+│   │
 │   ├── types/
-│   │   ├── express.d.ts
-│   │   └── index.ts
-│   └── server.ts
+│   │   ├── express.d.ts         # Extends Express Request with userId and other custom fields
+│   │   └── index.ts             # Shared domain types (User, Checkin, Post, etc.)
+│   │
+│   └── server.ts                # App entry point; registers middleware, routes, and starts server
+│
 ├── prisma/
-│   ├── schema.prisma
-│   └── migrations/
-├── package.json
-├── tsconfig.json
+│   ├── schema.prisma            # Database schema — models, relations, enums
+│   └── migrations/              # Auto-generated migration history
+│
+├── package.json                 # Dependencies and npm scripts
+├── tsconfig.json                # TypeScript compiler configuration
 └── README.md
 ```
 
