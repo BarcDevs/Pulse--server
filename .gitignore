@@ -6,6 +6,8 @@
 # generated
 package-lock.json
 prisma/generated
+prisma/*.db
+prisma/*.db-journal
 
 # testing
 /coverage
