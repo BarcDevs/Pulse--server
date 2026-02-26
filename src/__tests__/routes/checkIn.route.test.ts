@@ -205,8 +205,18 @@ describe('Check-in Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
             prismaMock.dailyCheckIn.findMany.mockResolvedValue([
-                { moodScore: 8, painLevel: 2, activities: ['walking', 'yoga'] },
-                { moodScore: 6, painLevel: 4, activities: ['walking', 'reading'] },
+                {
+                    moodScore: 8,
+                    painLevel: 2,
+                    activities: ['walking', 'yoga'],
+                    createdAt: new Date()
+                },
+                {
+                    moodScore: 6,
+                    painLevel: 4,
+                    activities: ['walking', 'reading'],
+                    createdAt: new Date()
+                },
             ])
 
             const response = await supertest(App)
@@ -219,6 +229,8 @@ describe('Check-in Routes', () => {
                 averageMoodScore: 7,
                 averagePainLevel: 3,
                 topActivities: expect.arrayContaining(['walking']),
+                currentStreak: expect.any(Number),
+                longestStreak: expect.any(Number),
             })
             expect(response.body.message).toBe('Check-in stats retrieved')
         })
@@ -238,6 +250,8 @@ describe('Check-in Routes', () => {
                 averageMoodScore: 0,
                 averagePainLevel: 0,
                 topActivities: [],
+                currentStreak: 0,
+                longestStreak: 0,
             })
         })
 

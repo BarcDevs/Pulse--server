@@ -1,4 +1,4 @@
-import type { InsightType } from '../../../prisma/generated/prisma/enums'
+import type {InsightType} from '../../../prisma/generated/prisma/enums'
 
 export type AIInsightType = {
     id: string
@@ -32,4 +32,6 @@ export type CheckInStatsType = {
     averageMoodScore: number
     averagePainLevel: number
     topActivities: string[]
+    currentStreak: number
+    longestStreak: number
 }
