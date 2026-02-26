@@ -20,3 +20,7 @@ export type TagQuery = {
     limit?: number
     page?: number
 }
+
+export type CheckInQuery = {
+    limit?: number
+}
