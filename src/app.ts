@@ -1,5 +1,5 @@
+import 'dotenv/config'
 import 'express-async-errors'
-import dotenv from 'dotenv'
 import express, { type Express } from 'express'
 
 import { appConfig, env, serverConfig } from '../config'
@@ -7,8 +7,6 @@ import { appConfig, env, serverConfig } from '../config'
 import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
 import { declareMiddlewares } from './middlewares'
-
-dotenv.config()
 
 const {
     protocol,

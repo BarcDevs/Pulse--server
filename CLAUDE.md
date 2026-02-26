@@ -80,3 +80,9 @@ import { authService } from '../services/authService'
 3. `npm test`
 4. Verify env vars accessed via config exports (not `process.env`)
 5. No commented-out code left behind
+
+## Git
+- Write clear commit messages (imperative, present tense)
+- Use branches for features/fixes
+- Use conventional commit format (feat, fix, docs, style, refactor, test, chore)
+- Avoid large commits; keep them focused and atomic (every commit should have one change or fix)
