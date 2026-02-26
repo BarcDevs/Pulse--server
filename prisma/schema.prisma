@@ -40,6 +40,7 @@ model User {
   created_at              DateTime  @default(now())
   active                  Boolean   @default(true)
   deleted_at              DateTime?
+  lastCheckInAt           DateTime?
 
   @@index([email, created_at, active])
 }
@@ -86,12 +87,12 @@ model DailyCheckIn {
 }
 
 model AIInsight {
-  id          String       @id() @default(uuid())
-  checkIn     DailyCheckIn @relation(fields: [checkInId], references: [id])
-  checkInId   String
-  type        InsightType
-  content     String
-  createdAt   DateTime     @default(now())
+  id        String       @id() @default(uuid())
+  checkIn   DailyCheckIn @relation(fields: [checkInId], references: [id])
+  checkInId String
+  type      InsightType
+  content   String
+  createdAt DateTime     @default(now())
 }
 
 model Tag {

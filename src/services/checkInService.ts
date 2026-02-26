@@ -63,8 +63,11 @@ export const getCheckIns = async (
 
 export const createCheckIn = async (
     data: NewCheckInType
-): Promise<CheckInType> =>
-    checkInModel.createCheckIn(data)
+): Promise<CheckInType> => {
+    const checkIn = await checkInModel.createCheckIn(data)
+    await checkInModel.updateUserLastCheckIn(data.userId)
+    return checkIn
+}
 
 export const getCheckInStats = async (
     userId: string

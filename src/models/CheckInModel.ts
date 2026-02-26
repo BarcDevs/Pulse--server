@@ -29,6 +29,13 @@ export const createCheckIn = async (
         })) as CheckInType
 }
 
+export const updateUserLastCheckIn = async (userId: string): Promise<void> => {
+    await Prisma.user.update({
+        where: {id: userId},
+        data: {lastCheckInAt: new Date()}
+    })
+}
+
 export const getCheckInsForStats = async (
     userId: string
 ): Promise<Pick<
