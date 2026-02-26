@@ -289,44 +289,44 @@ graph TD
 
 ## API Endpoints
 
+All endpoints are prefixed with `/api/v1`. Full interactive documentation is available at `/api-docs` in development.
+
 ### Authentication
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Create new user |
-| `POST` | `/api/auth/login` | Login and get JWT token |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/login` | — | Login and receive JWT cookie |
+| `POST` | `/api/v1/auth/signup` | — | Register new user |
+| `GET` | `/api/v1/auth/csrf` | — | Get CSRF token |
+| `GET` | `/api/v1/auth/logout` | Cookie | Logout and clear session |
+| `GET` | `/api/v1/auth/me` | Cookie | Get current user profile |
+| `GET` | `/api/v1/auth/forget-password/:email` | — | Send password reset email |
+| `POST` | `/api/v1/auth/confirm-email` | — | Confirm email address |
+| `PUT` | `/api/v1/auth/reset-password` | — | Reset password with token |
 
 ### Check-ins *(protected)*
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/checkins` | Create daily check-in |
-| `GET` | `/api/checkins` | Get user's check-ins (supports `?limit=`) |
-| `GET` | `/api/checkins/stats` | Get aggregated stats |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/check-in` | Cookie + CSRF | Get user's check-in history |
+| `POST` | `/api/v1/check-in` | Cookie + CSRF | Submit daily check-in |
+| `GET` | `/api/v1/check-in/stats` | Cookie + CSRF | Get aggregated check-in stats |
 
-### Forum Posts *(protected)*
+### Forum *(protected)*
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/posts` | Create new post |
-| `GET` | `/api/posts` | List posts (supports `?category=`) |
-| `GET` | `/api/posts/:id` | Get single post with replies |
-| `POST` | `/api/posts/:id/replies` | Add reply to post |
-
-### Users *(protected)*
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/users/me` | Get current user profile |
-| `PATCH` | `/api/users/me` | Update profile |
-| `PATCH` | `/api/users/me/settings` | Update notification preferences |
-
-### Notifications *(protected)*
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/notifications` | Get user notifications |
-| `PATCH` | `/api/notifications/:id/read` | Mark notification as read |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/forum/posts` | Cookie | List posts (supports `?tag=`) |
+| `POST` | `/api/v1/forum/posts` | Cookie + CSRF | Create new post |
+| `GET` | `/api/v1/forum/posts/:postId` | Cookie | Get single post |
+| `PUT` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Update post |
+| `DELETE` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Delete post |
+| `GET` | `/api/v1/forum/replies` | Cookie | List replies |
+| `POST` | `/api/v1/forum/replies` | Cookie + CSRF | Add reply to a post |
+| `PUT` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Update reply |
+| `DELETE` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Delete reply |
+| `GET` | `/api/v1/forum/tags` | Cookie | List all tags |
+| `GET` | `/api/v1/forum/votes` | Cookie + CSRF | Vote on a post or reply |
 
 ---
 

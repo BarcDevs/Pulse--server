@@ -20,8 +20,6 @@ import {
 } from '../services/authService'
 import type { ServerUserType, UserType } from '../types/data/UserType'
 
-
-
 // region Login and Signup
 export const login = async (
     req: Request,
@@ -107,7 +105,7 @@ export const me = async (
             await authServices.getUser('id', userId) :
             null
 
-    if (!user)
+    if ( !user )
         throw errorFactory.auth.unauthorized()
 
     successResponse<{ user: UserType }>(
@@ -184,7 +182,7 @@ export const confirmEmail = async (
             OTP
         )
 
-    if (!OTPValid)
+    if ( !OTPValid )
         throw errorFactory.validation.otpError()
 
     successResponse<{
