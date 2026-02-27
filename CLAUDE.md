@@ -1,10 +1,10 @@
 # Claude Code Preferences
 
 ## Project Overview
-HealEase Server — Node.js/Express TypeScript backend API for a health and wellness forum with user authentication, CSRF protection, and community features.
+HealEase Server — Node.js/Express TypeScript backend for a health/wellness forum with auth, CSRF protection, and community features.
 
 ## Architecture
-MVC pattern: Controller → Service → Model → Database
+MVC: Controller → Service → Model → Database
 
 ```
 config/          # Environment config (see config/CLAUDE.md)
@@ -37,49 +37,36 @@ src/
 - 4-space indentation
 - Arrow functions always — never `function` declarations
 - Prefer `type` over `interface` (use `interface` only for declaration merging / extending Express types)
-- **File naming**: PascalCase for classes & types (`CustomError.ts`, `UserType.ts`), camelCase for everything else (`authController.ts`)
-- **Folder naming**: camelCase
+- File naming: PascalCase for classes & types, camelCase for everything else
+- Folder naming: camelCase
 
-## Import Organization
-```typescript
-// 1. Node.js built-ins
-import path from 'path'
-
-// 2. Third-party packages
-import express from 'express'
-
-// 3. Third-party @-scoped packages
-import { PrismaClient } from '@prisma/client'
-
-// 4. Local modules (types → config → controllers → services → models → middleware → utils → constants → errors → schemas)
-import { UserType } from '../types/data/UserType'
-import { authConfig } from '../../config'
-import { authService } from '../services/authService'
-```
+## Import Order
+1. Node.js built-ins
+2. Third-party packages
+3. Third-party `@`-scoped packages
+4. Local modules: types → config → controllers → services → models → middleware → utils → constants → errors → schemas
 
 ## Code Formatting
 - Break long lines and function parameters onto multiple lines
-- Space inside curly braces: `{ var1, var2 }`
-- 2+ conditions in an `if` → one condition per line:
-  ```typescript
-  if (
-      condition1 &&
-      condition2
-  ) {
-  ```
+- Limit lines up to about 50 chars
+- 2+ function parameters → each on its own line
+- Objects with 3+ properties → each property on its own line
+- Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
+- 3+ conditions in an `if` → one condition per line
+- Nested objects always on a new line — never inline inside a parent object or array
 
 ## Clean Code
 - Delete unused code — never comment it out
 - No hardcoded values — use constants or config
-- No code snippets — always provide complete, production-ready code
+- Always provide complete, production-ready code
 - No backwards-compatibility shims for removed code
 
 ## Before Committing
 1. `npm run typecheck`
 2. `npm run lint:check`
 3. `npm test`
-4. Verify env vars accessed via config exports (not `process.env`)
-5. No commented-out code left behind
+4. Env vars via config exports only — never `process.env`
+5. No commented-out code
 
 ## Git
 - Write clear commit messages (imperative, present tense)
