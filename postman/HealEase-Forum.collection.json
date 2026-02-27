@@ -23,9 +23,9 @@
                             "})",
                             "",
                             "pm.test('Captures CSRF token', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('_csrf')",
-                            "    pm.collectionVariables.set('csrfToken', json.data._csrf)",
+                            "    const csrfToken = pm.response.json().data._csrf",
+                            "    pm.environment.set('csrfToken', csrfToken)",
+                            "    pm.expect(csrfToken).to.be.a('string')",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -97,12 +97,12 @@
                             "",
                             "pm.test('Returns created post', () => {",
                             "    const json = pm.response.json()",
+                            "    pm.environment.set('postId', json.data.id)",
                             "    pm.expect(json.message).to.eql('Post created successfully')",
                             "    pm.expect(json.data).to.have.property('id')",
                             "    pm.expect(json.data).to.have.property('title')",
                             "    pm.expect(json.data).to.have.property('body')",
                             "    pm.expect(json.data).to.have.property('authorId')",
-                            "    pm.collectionVariables.set('postId', json.data.id)",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -140,7 +140,7 @@
                             "pm.test('Returns single post', () => {",
                             "    const json = pm.response.json()",
                             "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.id).to.eql(pm.collectionVariables.get('postId'))",
+                            "    pm.expect(json.data.id).to.eql(pm.environment.get('postId'))",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -238,12 +238,12 @@
                             "",
                             "pm.test('Returns created reply', () => {",
                             "    const json = pm.response.json()",
+                            "    pm.environment.set('replyId', json.data.id)",
                             "    pm.expect(json.message).to.eql('Reply created successfully')",
                             "    pm.expect(json.data).to.have.property('id')",
                             "    pm.expect(json.data).to.have.property('body')",
                             "    pm.expect(json.data).to.have.property('postId')",
                             "    pm.expect(json.data).to.have.property('authorId')",
-                            "    pm.collectionVariables.set('replyId', json.data.id)",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -384,7 +384,7 @@
                             "    const json = pm.response.json()",
                             "    pm.expect(json.data).to.be.an('array')",
                             "    if (json.data.length > 0) {",
-                            "        pm.collectionVariables.set('tagId', json.data[0].id)",
+                            "        pm.environment.set('tagId', json.data[0].id)",
                             "    }",
                             "})"
                         ],
@@ -420,7 +420,7 @@
                             "pm.test('Returns single tag', () => {",
                             "    const json = pm.response.json()",
                             "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.id).to.eql(pm.collectionVariables.get('tagId'))",
+                            "    pm.expect(json.data.id).to.eql(pm.environment.get('tagId'))",
                             "})"
                         ],
                         "type": "text/javascript"

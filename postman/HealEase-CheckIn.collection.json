@@ -20,9 +20,9 @@
                             "})",
                             "",
                             "pm.test('Captures CSRF token', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('_csrf')",
-                            "    pm.collectionVariables.set('csrfToken', json.data._csrf)",
+                            "    const csrfToken = pm.response.json().data._csrf",
+                            "    pm.environment.set('csrfToken', csrfToken)",
+                            "    pm.expect(csrfToken).to.be.a('string')",
                             "})"
                         ],
                         "type": "text/javascript"
