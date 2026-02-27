@@ -1,7 +1,7 @@
 // @ts-nocheck
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
-import { cacheMiddleware } from '../../middlewares/cache'
+import {cacheMiddleware} from '../../middlewares/cache'
 import {
     createMockNext,
     createMockRequest,

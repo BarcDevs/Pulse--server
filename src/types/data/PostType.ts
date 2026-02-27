@@ -1,7 +1,7 @@
-import type { ReplyType } from './ReplyType'
-import type { TagType } from './TagType'
-import type { UserType } from './UserType'
-import type { Votes } from './Votes'
+import type {ReplyType} from './ReplyType'
+import type {TagType} from './TagType'
+import type {UserType} from './UserType'
+import type {Votes} from './Votes'
 
 export type PostType = {
     id: string

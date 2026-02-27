@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
 import * as authController from '../../controllers/AuthController'
 import * as authServices from '../../services/authService'

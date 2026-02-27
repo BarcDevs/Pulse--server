@@ -16,4 +16,4 @@ const swagger = (
     next()
 }
 
-export { swagger }
+export {swagger}

@@ -1,9 +1,9 @@
-import { Pool } from 'pg'
+import {Pool} from 'pg'
 
-import { PrismaPg } from '@prisma/adapter-pg'
+import {PrismaPg} from '@prisma/adapter-pg'
 
-import { databaseConfig, env } from '../../config'
-import { PrismaClient } from '../../prisma/generated/prisma/client'
+import {databaseConfig, env} from '../../config'
+import {PrismaClient} from '../../prisma/generated/prisma/client'
 
 let client: PrismaClient
 

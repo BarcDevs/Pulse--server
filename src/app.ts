@@ -1,12 +1,12 @@
 import 'dotenv/config'
 import 'express-async-errors'
-import express, { type Express } from 'express'
+import express, {type Express} from 'express'
 
-import { appConfig, env, serverConfig } from '../config'
+import {appConfig, env, serverConfig} from '../config'
 
 import exposeProductionApp from './middlewares/exposeProductionApp'
-import { declareRoutes } from './routes/declare_routes'
-import { declareMiddlewares } from './middlewares'
+import {declareRoutes} from './routes/declare_routes'
+import {declareMiddlewares} from './middlewares'
 
 const {
     protocol,
@@ -16,11 +16,7 @@ const { start } = appConfig
 
 const host = serverConfig.host || '0.0.0.0'
 
-const port =
-    // add env port import for render deployment
-    (process.env.PORT ?
-        Number(serverConfig.port) :
-        serverConfig.port)
+const port = serverConfig.port
 
 const app: Express = express()
 

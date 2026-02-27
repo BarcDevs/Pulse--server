@@ -1,5 +1,5 @@
-import type { Prisma as PrismaTypes } from '../../../prisma/generated/prisma/client'
-import { PostFilter, type PostQuery } from '../../types/query'
+import type {Prisma as PrismaTypes} from '../../../prisma/generated/prisma/client'
+import {PostFilter, type PostQuery} from '../../types/query'
 
 export const postInclude = (
     type: 'single' | 'multiple'

@@ -1,13 +1,16 @@
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
-import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import { errorFactory } from '../errors/factory'
-import { ValidationError } from '../errors/ValidationError'
-import { successResponse } from '../responses/success'
-import { checkInQuerySchema } from '../schemas/checkIn/checkInQuerySchema'
-import { newCheckInSchema } from '../schemas/checkIn/newCheckInSchema'
+import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import {errorFactory} from '../errors/factory'
+import {ValidationError} from '../errors/ValidationError'
+import {successResponse} from '../responses/success'
+import {checkInQuerySchema} from '../schemas/checkIn/checkInQuerySchema'
+import {newCheckInSchema} from '../schemas/checkIn/newCheckInSchema'
 import * as checkInService from '../services/checkInService'
-import type { CheckInStatsType, CheckInType } from '../types/data/CheckInType'
+import type {
+    CheckInStatsType,
+    CheckInType
+} from '../types/data/CheckInType'
 
 export const getCheckIns = async (
     req: Request,

@@ -13,7 +13,7 @@ import {
     updateReply,
     validateOwner
 } from '../../services/forumService'
-import { prismaMock } from '../setup/jestSetup'
+import {prismaMock} from '../setup/jestSetup'
 import {
     createMockPost,
     createMockReply,

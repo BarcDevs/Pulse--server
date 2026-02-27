@@ -1,18 +1,18 @@
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
-import { errorFactory } from '../errors/factory'
-import { ValidationError } from '../errors/ValidationError'
-import { successResponse } from '../responses/success'
-import { newPostSchema } from '../schemas/forum/newPostSchema'
-import { newReplySchema } from '../schemas/forum/newReplySchema'
-import { postQuerySchema } from '../schemas/forum/postQuerySchema'
-import { tagQuerySchema } from '../schemas/forum/tagQuerySchema'
-import { updatePostSchema } from '../schemas/forum/updatePostSchema'
-import { updateReplySchema } from '../schemas/forum/updateReplySchema'
+import {errorFactory} from '../errors/factory'
+import {ValidationError} from '../errors/ValidationError'
+import {successResponse} from '../responses/success'
+import {newPostSchema} from '../schemas/forum/newPostSchema'
+import {newReplySchema} from '../schemas/forum/newReplySchema'
+import {postQuerySchema} from '../schemas/forum/postQuerySchema'
+import {tagQuerySchema} from '../schemas/forum/tagQuerySchema'
+import {updatePostSchema} from '../schemas/forum/updatePostSchema'
+import {updateReplySchema} from '../schemas/forum/updateReplySchema'
 import * as forumService from '../services/forumService'
-import type { PostType } from '../types/data/PostType'
-import type { ReplyType } from '../types/data/ReplyType'
-import type { TagType } from '../types/data/TagType'
+import type {PostType} from '../types/data/PostType'
+import type {ReplyType} from '../types/data/ReplyType'
+import type {TagType} from '../types/data/TagType'
 
 // region Posts
 export const getPosts = async (
@@ -176,7 +176,8 @@ export const getReplies = async (
     ) as ReplyType[]
 
     if (!data)
-        throw errorFactory.generic.notFound('Replies')
+        throw errorFactory
+            .generic.notFound('Replies')
 
     return successResponse<ReplyType[]>(
         res,
@@ -278,7 +279,8 @@ export const getTag = async (
     const data = await forumService.getTag(tagId)
 
     if (!data)
-        throw errorFactory.generic.notFound(`Tag ${tagId}`)
+        throw errorFactory
+            .generic.notFound(`Tag ${tagId}`)
 
     return successResponse<TagType>(
         res,

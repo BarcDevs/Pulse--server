@@ -54,6 +54,11 @@ src/
 - Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
 - 3+ conditions in an `if` → one condition per line
 - Nested objects always on a new line — never inline inside a parent object or array
+- Long chained accessor calls → break after root object:
+  ```ts
+  throw errorFactory
+      .validation.generic('...')
+  ```
 
 ## Clean Code
 - Delete unused code — never comment it out

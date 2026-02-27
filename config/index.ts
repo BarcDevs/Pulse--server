@@ -49,4 +49,5 @@ export {
     databaseConfig,
     emailConfig,
     env,
-    serverConfig}
+    serverConfig
+}

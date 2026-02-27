@@ -1,9 +1,9 @@
-import type { Role } from '../../../prisma/generated/prisma/enums'
-import type { Prettify } from '../index'
+import type {Role} from '../../../prisma/generated/prisma/enums'
+import type {Prettify} from '../index'
 
-import type { PostType } from './PostType'
-import type { ReplyType } from './ReplyType'
-import type { TagType } from './TagType'
+import type {PostType} from './PostType'
+import type {ReplyType} from './ReplyType'
+import type {TagType} from './TagType'
 
 export type UserType = {
     id: string

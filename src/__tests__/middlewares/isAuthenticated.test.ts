@@ -1,9 +1,9 @@
 // @ts-nocheck
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 import jwt from 'jsonwebtoken'
 
-import { authConfig } from '../../../config'
-import { isAuthenticated } from '../../middlewares/isAuthenticated'
+import {authConfig} from '../../../config'
+import {isAuthenticated} from '../../middlewares/isAuthenticated'
 import {
     createAuthToken,
     createMockNext,

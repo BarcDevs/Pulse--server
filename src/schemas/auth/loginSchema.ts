@@ -1,6 +1,6 @@
 import joi from 'joi'
 
-import { PASSWORD_FORMAT } from './passwordFormat'
+import {PASSWORD_FORMAT} from './passwordFormat'
 
 export const loginSchema = joi.object<{
     email: string

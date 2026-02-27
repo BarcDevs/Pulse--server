@@ -1,17 +1,17 @@
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { type Express } from 'express'
+import express, {type Express} from 'express'
 import helmet from 'helmet'
 import hpp from 'hpp'
 import morgan from 'morgan'
 import path from 'path'
 
-import { serverConfig } from '../../config'
+import {serverConfig} from '../../config'
 
-import { loggerMiddleware } from './loggerMiddleWare'
-import { rateLimiter } from './rate-limiting'
-import { sanitizeData } from './sanitaization'
+import {loggerMiddleware} from './loggerMiddleWare'
+import {rateLimiter} from './rate-limiting'
+import {sanitizeData} from './sanitaization'
 
 export const declareMiddlewares = (app: Express) => {
     // Middlewares
@@ -27,7 +27,12 @@ export const declareMiddlewares = (app: Express) => {
     app.use(morgan('dev'))
     app.use(express.json())
     app.use(express.urlencoded({ extended: false }))
-    app.use(express.static(path.join(__dirname, 'public')))
+    app.use(express.static(
+        path.join(
+            __dirname,
+            'public'
+        )
+    ))
 
     app.use(sanitizeData) // sanitize data from request body
     app.use(hpp()) // http params pollution prevention

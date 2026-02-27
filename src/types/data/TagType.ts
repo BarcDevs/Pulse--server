@@ -1,7 +1,7 @@
-import type { PostType } from './PostType'
-import type { UserType } from './UserType'
+import type {PostType} from './PostType'
+import type {UserType} from './UserType'
 
-export interface TagType {
+export type TagType = {
     id: string
     name: string
     description?: string

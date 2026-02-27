@@ -1,17 +1,17 @@
 import Csrf from 'csrf'
-import type { NextFunction } from 'express'
+import type {NextFunction} from 'express'
 
 import {
     createToken,
     hashPassword
 } from '../../services/authService'
-import type { PostType } from '../../types/data/PostType'
-import type { ReplyType } from '../../types/data/ReplyType'
-import type { TagType } from '../../types/data/TagType'
-import type { ServerUserType } from '../../types/data/UserType'
+import type {PostType} from '../../types/data/PostType'
+import type {ReplyType} from '../../types/data/ReplyType'
+import type {TagType} from '../../types/data/TagType'
+import type {ServerUserType} from '../../types/data/UserType'
 
 // Re-export prismaMock from jestSetup for backward compatibility
-export { prismaMock } from './jestSetup'
+export {prismaMock} from './jestSetup'
 
 // ==================== TEST TYPES ====================
 export type MockRequest = {

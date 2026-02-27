@@ -2,7 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import { prismaMock } from '../setup/jestSetup'
+import {prismaMock} from '../setup/jestSetup'
 import {
     createAuthToken,
     createMockUser

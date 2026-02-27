@@ -1,10 +1,16 @@
-import { ErrorFactory, errorFactory } from '../errors/factory'
-import { getTagsByPostId } from '../models/ForumModel'
+import {ErrorFactory, errorFactory} from '../errors/factory'
+import {getTagsByPostId} from '../models/ForumModel'
 import * as forumModel from '../models/ForumModel'
-import type { NewPostType, UpdatePostType } from '../types/data/PostType'
-import type { NewReplyType, UpdateReplyType } from '../types/data/ReplyType'
-import type { PostQuery, TagQuery } from '../types/query'
-import { capitalizeText } from '../utils/capitalizeText'
+import type {
+    NewPostType,
+    UpdatePostType
+} from '../types/data/PostType'
+import type {
+    NewReplyType,
+    UpdateReplyType
+} from '../types/data/ReplyType'
+import type {PostQuery, TagQuery} from '../types/query'
+import {capitalizeText} from '../utils/capitalizeText'
 
 // region Validation
 export const validateOwner = async (
@@ -14,7 +20,8 @@ export const validateOwner = async (
     replyId?: string
 ) => {
     if (schema === 'reply' && !replyId)
-        throw ErrorFactory.GenericError('replyId is missing')
+        throw ErrorFactory
+            .GenericError('replyId is missing')
 
     const data =
         schema === 'post'
@@ -22,7 +29,8 @@ export const validateOwner = async (
             : await forumModel.getReply(postId, replyId!)
 
     if (!data)
-        throw errorFactory.generic.notFound(capitalizeText(schema))
+        throw errorFactory
+            .generic.notFound(capitalizeText(schema))
 
     if (data.authorId !== userId)
         throw errorFactory.auth.unauthorized(

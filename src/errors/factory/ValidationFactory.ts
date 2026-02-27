@@ -1,4 +1,4 @@
-import { ValidationError } from '../ValidationError'
+import {ValidationError} from '../ValidationError'
 
 export class ValidationFactory {
     static generic = (message: string, property?: string) =>

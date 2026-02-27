@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import {Router} from 'express'
 
 import {
     confirmEmail,
@@ -10,12 +10,12 @@ import {
     resetPassword,
     signup
 } from '../controllers/AuthController'
-import { cacheMiddleware } from '../middlewares/cache'
+import {cacheMiddleware} from '../middlewares/cache'
 import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
-import { isAuthenticated } from '../middlewares/isAuthenticated'
+import {isAuthenticated} from '../middlewares/isAuthenticated'
 
 const router = Router()
 

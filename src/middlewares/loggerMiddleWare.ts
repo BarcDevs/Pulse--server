@@ -1,4 +1,4 @@
-import type { Handler } from 'express'
+import type {Handler} from 'express'
 import ExpressWinston from 'express-winston'
 
 import logger from '../utils/logger'

@@ -2,8 +2,8 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import type { CheckInType } from '../../types/data/CheckInType'
-import { prismaMock } from '../setup/jestSetup'
+import type {CheckInType} from '../../types/data/CheckInType'
+import {prismaMock} from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,

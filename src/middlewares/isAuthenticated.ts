@@ -5,9 +5,9 @@ import type {
 } from 'express'
 import jwt from 'jsonwebtoken'
 
-import { authConfig } from '../../config'
-import { errorFactory } from '../errors/factory'
-import type { UserType } from '../types/data/UserType'
+import {authConfig} from '../../config'
+import {errorFactory} from '../errors/factory'
+import type {UserType} from '../types/data/UserType'
 
 export const isAuthenticated = (
     req: Request,

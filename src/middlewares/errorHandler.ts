@@ -4,9 +4,9 @@ import type {
     Response
 } from 'express'
 
-import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import { CustomError } from '../errors/CustomError'
-import type { ResponseType } from '../types/ResponseType'
+import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import {CustomError} from '../errors/CustomError'
+import type {ResponseType} from '../types/ResponseType'
 
 const errorHandler = (
     err: Error,
@@ -38,4 +38,4 @@ const errorHandler = (
     return next()
 }
 
-export { errorHandler }
+export {errorHandler}

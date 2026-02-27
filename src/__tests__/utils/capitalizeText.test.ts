@@ -1,4 +1,4 @@
-import { capitalizeText } from '../../utils/capitalizeText'
+import {capitalizeText} from '../../utils/capitalizeText'
 
 describe('capitalizeText utility', () => {
     it('should return empty string for empty input', () => {

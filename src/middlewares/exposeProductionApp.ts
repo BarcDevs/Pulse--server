@@ -1,12 +1,18 @@
-import express, { type Express } from 'express'
+import express, {type Express} from 'express'
 import path from 'path'
 
-import { env } from '../../config'
+import {env} from '../../config'
 
-function exposeProductionApp(app: Express) {
+const exposeProductionApp = (app: Express) => {
     if (env !== 'production') return
 
-    const buildDir = path.join(__dirname, '..', '..', 'client', 'dist')
+    const buildDir = path.join(
+        __dirname,
+        '..',
+        '..',
+        'client',
+        'dist'
+    )
     console.info('serving build resources at', buildDir)
 
     app.use('/', express.static(buildDir))

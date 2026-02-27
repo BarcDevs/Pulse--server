@@ -1,11 +1,11 @@
 // @ts-nocheck
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
-import { HttpStatusCodes } from '../../constants/httpStatusCodes'
-import { AuthError } from '../../errors/AuthError'
-import { NotFoundError } from '../../errors/NotFoundError'
-import { ValidationError } from '../../errors/ValidationError'
-import { errorHandler } from '../../middlewares/errorHandler'
+import {HttpStatusCodes} from '../../constants/httpStatusCodes'
+import {AuthError} from '../../errors/AuthError'
+import {NotFoundError} from '../../errors/NotFoundError'
+import {ValidationError} from '../../errors/ValidationError'
+import {errorHandler} from '../../middlewares/errorHandler'
 import {
     createMockNext,
     createMockRequest,

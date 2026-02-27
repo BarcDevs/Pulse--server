@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { Request, Response } from 'express'
+import type {Request, Response} from 'express'
 
 import * as forumController from '../../controllers/ForumController'
 import * as forumService from '../../services/forumService'
