@@ -49,16 +49,19 @@ src/
 ## Code Formatting
 - Break long lines and function parameters onto multiple lines
 - Limit lines up to about 50 chars
-- 2+ function parameters → each on its own line
-- Objects with 3+ properties → each property on its own line
 - Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
-- 3+ conditions in an `if` → one condition per line
+- 2+ Elements in an array → each on its own line
+
+### If statement:
+- 2+ conditions → one condition per line
+- no condition and action in same line
+
+### Objects and functions:
+- Inline object types with 2+ parameters → always break to new lines, never inline
+- 2+ chained accessor calls → break after root object
 - Nested objects always on a new line — never inline inside a parent object or array
-- Long chained accessor calls → break after root object:
-  ```ts
-  throw errorFactory
-      .validation.generic('...')
-  ```
+- Objects with 2+ properties → each property on its own line
+- 2+ function parameters → each on its own line
 
 ## Clean Code
 - Delete unused code — never comment it out
