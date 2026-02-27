@@ -4,7 +4,6 @@ import cors from 'cors'
 import express, {type Express} from 'express'
 import helmet from 'helmet'
 import hpp from 'hpp'
-import morgan from 'morgan'
 import path from 'path'
 
 import {serverConfig} from '../../config'
@@ -24,7 +23,7 @@ export const declareMiddlewares = (app: Express) => {
             origin: [serverConfig.origin]
         })
     )
-    app.use(morgan('dev'))
+    app.use(loggerMiddleware)
     app.use(express.json())
     app.use(express.urlencoded({ extended: false }))
     app.use(express.static(
@@ -37,8 +36,6 @@ export const declareMiddlewares = (app: Express) => {
     app.use(sanitizeData) // sanitize data from request body
     app.use(hpp()) // http params pollution prevention
     app.use(rateLimiter) // rate limiting for api requests
-
-    app.use(loggerMiddleware) // logger middleware for log the errors and warnings to logger files
 
     return app
 }
