@@ -1,0 +1,177 @@
+{
+    "info": {
+        "name": "HealEase — Check-In",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        { "key": "baseUrl", "value": "http://localhost:3000" },
+        { "key": "csrfToken", "value": "" }
+    ],
+    "item": [
+        {
+            "name": "Login",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Captures CSRF token', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.data).to.have.property('_csrf')",
+                            "    pm.collectionVariables.set('csrfToken', json.data._csrf)",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testuser123\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "login"]
+                }
+            }
+        },
+        {
+            "name": "Create Check-In",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 201', () => {",
+                            "    pm.response.to.have.status(201)",
+                            "})",
+                            "",
+                            "pm.test('Returns created check-in', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json.data).to.have.property('id')",
+                            "    pm.expect(json.data).to.have.property('moodScore')",
+                            "    pm.expect(json.data).to.have.property('painLevel')",
+                            "    pm.expect(json.data).to.have.property('activities')",
+                            "    pm.expect(json.data).to.have.property('userId')",
+                            "})",
+                            "",
+                            "pm.test('moodScore is within range', () => {",
+                            "    const { moodScore } = pm.response.json().data",
+                            "    pm.expect(moodScore).to.be.at.least(1).and.at.most(10)",
+                            "})",
+                            "",
+                            "pm.test('painLevel is within range', () => {",
+                            "    const { painLevel } = pm.response.json().data",
+                            "    pm.expect(painLevel).to.be.at.least(1).and.at.most(10)",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" },
+                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"moodScore\": 7,\n    \"painLevel\": 3,\n    \"activities\": [\"walking\", \"stretching\"],\n    \"notes\": \"Feeling better today, did a short walk in the morning.\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/check-in",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "check-in"]
+                }
+            }
+        },
+        {
+            "name": "Get Check-Ins",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns array of check-ins', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json.data).to.be.an('array')",
+                            "})",
+                            "",
+                            "pm.test('Each check-in has required fields', () => {",
+                            "    const json = pm.response.json()",
+                            "    if (json.data.length > 0) {",
+                            "        const checkIn = json.data[0]",
+                            "        pm.expect(checkIn).to.have.property('id')",
+                            "        pm.expect(checkIn).to.have.property('moodScore')",
+                            "        pm.expect(checkIn).to.have.property('painLevel')",
+                            "        pm.expect(checkIn).to.have.property('activities')",
+                            "    }",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/check-in?limit=10",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "check-in"],
+                    "query": [
+                        { "key": "limit", "value": "10" }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Check-In Stats",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns stats object', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json.data).to.be.an('object')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/check-in/stats",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "check-in", "stats"]
+                }
+            }
+        }
+    ]
+}

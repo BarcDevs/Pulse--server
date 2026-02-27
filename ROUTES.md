@@ -245,8 +245,7 @@ Clears the `accessToken` cookie.
         "downvotedBy": ["userId"]
       },
       "tags": [{ "id": "string", "name": "string" }],
-      "replies": [],
-      "updatedAt?": "ISO date"
+      "replies": []
     }
   ]
 }
@@ -284,8 +283,7 @@ Clears the `accessToken` cookie.
       "downvotedBy": []
     },
     "tags": [{ "id": "string", "name": "string" }],
-    "replies": [],
-    "updatedAt": "ISO date (optional)"
+    "replies": []
   }
 }
 ```
@@ -313,9 +311,7 @@ Clears the `accessToken` cookie.
       "downvotedBy": ["userId"]
     },
     "tags": [{ "id": "string", "name": "string" }],
-    "replies": [{ "id": "string", "body": "string" }],
-    "author": { "id": "string", "firstName": "string", "lastName": "string", "username": "string" },
-    "updatedAt": "ISO date (optional)"
+    "replies": [{ "id": "string", "body": "string" }]
   }
 }
 ```
@@ -353,8 +349,7 @@ Clears the `accessToken` cookie.
       "downvotedBy": ["userId"]
     },
     "tags": [{ "id": "string", "name": "string" }],
-    "replies": [],
-    "updatedAt": "ISO date (optional)"
+    "replies": []
   }
 }
 ```
@@ -390,9 +385,7 @@ Clears the `accessToken` cookie.
         "downvotes": 0,
         "upvotedBy": ["userId"],
         "downvotedBy": ["userId"]
-      },
-      "author": { "id": "string", "firstName": "string", "lastName": "string", "username": "string" },
-      "updatedAt?": "ISO date"
+      }
     }
   ]
 }
@@ -422,9 +415,7 @@ Clears the `accessToken` cookie.
       "downvotes": 0,
       "upvotedBy": [],
       "downvotedBy": []
-    },
-    "author": { "id": "string", "firstName": "string", "lastName": "string", "username": "string" },
-    "updatedAt": "ISO date (optional)"
+    }
   }
 }
 ```
@@ -454,9 +445,7 @@ Clears the `accessToken` cookie.
       "downvotes": 0,
       "upvotedBy": ["userId"],
       "downvotedBy": ["userId"]
-    },
-    "author": { "id": "string", "firstName": "string", "lastName": "string", "username": "string" },
-    "updatedAt": "ISO date (optional)"
+    }
   }
 }
 ```
@@ -516,9 +505,9 @@ Clears the `accessToken` cookie.
   "data": {
     "id": "string",
     "name": "string",
-    "description": "string (optional)",
-    "posts": "number (optional)",
-    "followers": "number (optional)"
+    "description?": "string",
+    "posts?": "number",
+    "followers?": "number"
   }
 }
 ```
@@ -582,7 +571,7 @@ Clears the `accessToken` cookie.
     "moodScore": 7,
     "painLevel": 3,
     "activities": ["walking", "stretching"],
-    "notes": "string (optional)",
+    "notes?": "string",
     "insights": [
       { "id": "string", "type": "string", "content": "string" }
     ]

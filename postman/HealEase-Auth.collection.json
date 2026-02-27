@@ -1,0 +1,293 @@
+{
+    "info": {
+        "name": "HealEase — Auth",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        { "key": "baseUrl", "value": "http://localhost:3000" },
+        { "key": "csrfToken", "value": "" },
+        { "key": "otp", "value": "" }
+    ],
+    "item": [
+        {
+            "name": "Login",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns message and data', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json).to.have.property('data')",
+                            "})",
+                            "",
+                            "pm.test('Data contains _csrf token', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.data).to.have.property('_csrf')",
+                            "    pm.collectionVariables.set('csrfToken', json.data._csrf)",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testuser123\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "login"]
+                }
+            }
+        },
+        {
+            "name": "Signup",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 201', () => {",
+                            "    pm.response.to.have.status(201)",
+                            "})",
+                            "",
+                            "pm.test('Returns created user', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json.data).to.have.property('user')",
+                            "    pm.expect(json.data.user).to.have.property('id')",
+                            "    pm.expect(json.data.user).to.have.property('email')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"username\": \"testuser\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"testuser123\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/signup",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "signup"]
+                }
+            }
+        },
+        {
+            "name": "Get CSRF Token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns fresh CSRF token', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.data).to.have.property('_csrf')",
+                            "    pm.collectionVariables.set('csrfToken', json.data._csrf)",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/csrf",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "csrf"]
+                }
+            }
+        },
+        {
+            "name": "Get Me",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns current user', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.data).to.have.property('user')",
+                            "    pm.expect(json.data.user).to.have.property('id')",
+                            "    pm.expect(json.data.user).to.have.property('email')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/me",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "me"]
+                }
+            }
+        },
+        {
+            "name": "Forgot Password",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns success message', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/forget-password/test@example.com",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "forget-password", "test@example.com"]
+                }
+            }
+        },
+        {
+            "name": "Confirm Email",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 201', () => {",
+                            "    pm.response.to.have.status(201)",
+                            "})",
+                            "",
+                            "pm.test('Returns confirmed user', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.data).to.have.property('user')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" },
+                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"OTP\": {{otp}}\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/confirm-email",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "confirm-email"]
+                }
+            }
+        },
+        {
+            "name": "Reset Password",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns updated user', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "    pm.expect(json.data).to.have.property('user')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "PUT",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" },
+                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"newPassword\": \"newPass1\",\n    \"userOTP\": {{otp}}\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/reset-password",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "reset-password"]
+                }
+            }
+        },
+        {
+            "name": "Logout",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns success message', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('message')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/auth/logout",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "auth", "logout"]
+                }
+            }
+        }
+    ]
+}
