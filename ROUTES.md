@@ -135,7 +135,7 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `GET /forget-password/:email`
+### `GET /forgot-password/:email`
 
 **Params:** `email` — the account email to send OTP to
 
@@ -187,7 +187,7 @@ Clears the `accessToken` cookie.
 |---------------|--------|----------|----------------------------------|
 | `email`       | string | yes      | Valid `.com` / `.net` email      |
 | `newPassword` | string | yes      | Min 8 chars, alphanumeric        |
-| `userOTP`     | number | yes      | OTP received via forget-password |
+| `userOTP`     | number | yes      | OTP received via forgot-password |
 
 **Response `200`**
 ```json

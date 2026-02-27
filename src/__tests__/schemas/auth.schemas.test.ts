@@ -216,7 +216,7 @@ describe('Auth Schemas', () => {
         })
     })
 
-    // ==================== FORGET PASSWORD SCHEMA ====================
+    // ==================== FORGOT PASSWORD SCHEMA ====================
     describe('forgetPasswordSchema', () => {
         it('should validate correct email', () => {
             const result = forgetPasswordSchema.validate({

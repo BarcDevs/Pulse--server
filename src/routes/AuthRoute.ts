@@ -214,7 +214,7 @@ router.route('/me').get(isAuthenticated, cacheMiddleware, me)
 
 /**
  * @swagger
- * /api/v1/auth/forget-password/{email}:
+ * /api/v1/auth/forgot-password/{email}:
  *   get:
  *     summary: Request a password reset OTP via email
  *     tags: [Auth]
@@ -251,7 +251,7 @@ router.route('/me').get(isAuthenticated, cacheMiddleware, me)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/forget-password/:email').get(forgotPassword)
+router.route('/forgot-password/:email').get(forgotPassword)
 
 /**
  * @swagger

@@ -308,7 +308,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `GET` | `/api/v1/auth/csrf` | — | Get CSRF token |
 | `GET` | `/api/v1/auth/logout` | Cookie | Logout and clear session |
 | `GET` | `/api/v1/auth/me` | Cookie | Get current user profile |
-| `GET` | `/api/v1/auth/forget-password/:email` | — | Send password reset email |
+| `GET` | `/api/v1/auth/forgot-password/:email` | — | Send password reset email |
 | `POST` | `/api/v1/auth/confirm-email` | — | Confirm email address |
 | `PUT` | `/api/v1/auth/reset-password` | — | Reset password with token |
 

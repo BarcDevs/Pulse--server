@@ -4,7 +4,7 @@
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
-        { "key": "baseUrl", "value": "http://localhost:3000" },
+        { "key": "baseUrl", "value": "http://localhost:4000" },
         { "key": "csrfToken", "value": "" },
         { "key": "otp", "value": "" }
     ],
@@ -178,9 +178,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/forget-password/test@example.com",
+                    "raw": "{{baseUrl}}/api/v1/auth/forgot-password/test@example.com",
                     "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "forget-password", "test@example.com"]
+                    "path": ["api", "v1", "auth", "forgot-password", "test@example.com"]
                 }
             }
         },

@@ -384,15 +384,15 @@ describe('Auth Routes', () => {
         })
     })
 
-    // ==================== FORGET PASSWORD ====================
-    describe('GET /api/v1/auth/forget-password/:email', () => {
+    // ==================== FORGOT PASSWORD ====================
+    describe('GET /api/v1/auth/forgot-password/:email', () => {
         it('should return 403 due to body validation bug (email in URL not body)', async () => {
             const mockUser = createMockUser()
             prismaMock.user.findUnique.mockResolvedValue(mockUser)
             prismaMock.user.update.mockResolvedValue(mockUser)
 
             const response = await supertest(App)
-                .get('/api/v1/auth/forget-password/test@test.com')
+                .get('/api/v1/auth/forgot-password/test@test.com')
 
             expect(response.status).toBe(403)
         })
@@ -401,14 +401,14 @@ describe('Auth Routes', () => {
             prismaMock.user.findUnique.mockResolvedValue(null)
 
             const response = await supertest(App)
-                .get('/api/v1/auth/forget-password/notfound@test.com')
+                .get('/api/v1/auth/forgot-password/notfound@test.com')
 
             expect(response.status).toBe(403)
         })
 
         it('should return 403 for invalid email format', async () => {
             const response = await supertest(App)
-                .get('/api/v1/auth/forget-password/invalid-email')
+                .get('/api/v1/auth/forgot-password/invalid-email')
 
             expect(response.status).toBe(403)
             expect(response.body.error[ 0 ].statusType).toBe('Validation Error')
@@ -416,7 +416,7 @@ describe('Auth Routes', () => {
 
         it('should return 403 for email with invalid TLD', async () => {
             const response = await supertest(App)
-                .get('/api/v1/auth/forget-password/test@test.org')
+                .get('/api/v1/auth/forgot-password/test@test.org')
 
             expect(response.status).toBe(403)
         })
