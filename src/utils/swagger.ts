@@ -63,8 +63,9 @@ const options: swaggerJsdoc.Options = {
                     properties: {
                         id: { type: 'string' },
                         name: { type: 'string' },
-                        description: { type: 'string' },
-                        createdAt: { type: 'string', format: 'date-time' }
+                        description: { type: 'string', nullable: true },
+                        posts: { type: 'integer', nullable: true },
+                        followers: { type: 'integer', nullable: true }
                     }
                 },
                 Post: {
@@ -74,12 +75,8 @@ const options: swaggerJsdoc.Options = {
                         title: { type: 'string' },
                         body: { type: 'string' },
                         category: { type: 'string' },
-                        authorId: { type: 'string' },
-                        author: { $ref: '#/components/schemas/User' },
-                        createdAt: { type: 'string', format: 'date-time' },
-                        updatedAt: { type: 'string', format: 'date-time' },
-                        votes: { $ref: '#/components/schemas/Votes' },
                         views: { type: 'integer' },
+                        votes: { $ref: '#/components/schemas/Votes' },
                         tags: {
                             type: 'array',
                             items: { $ref: '#/components/schemas/Tag' }
@@ -95,11 +92,6 @@ const options: swaggerJsdoc.Options = {
                     properties: {
                         id: { type: 'string' },
                         body: { type: 'string' },
-                        authorId: { type: 'string' },
-                        author: { $ref: '#/components/schemas/User' },
-                        postId: { type: 'string' },
-                        createdAt: { type: 'string', format: 'date-time' },
-                        updatedAt: { type: 'string', format: 'date-time' },
                         votes: { $ref: '#/components/schemas/Votes' }
                     }
                 },
@@ -107,7 +99,6 @@ const options: swaggerJsdoc.Options = {
                     type: 'object',
                     properties: {
                         id: { type: 'string' },
-                        checkInId: { type: 'string' },
                         type: {
                             type: 'string',
                             enum: [
@@ -116,15 +107,13 @@ const options: swaggerJsdoc.Options = {
                                 'ACTIVITY_SUGGESTIONS'
                             ]
                         },
-                        content: { type: 'string' },
-                        createdAt: { type: 'string', format: 'date-time' }
+                        content: { type: 'string' }
                     }
                 },
                 CheckIn: {
                     type: 'object',
                     properties: {
                         id: { type: 'string' },
-                        userId: { type: 'string' },
                         moodScore: { type: 'integer', minimum: 1, maximum: 10 },
                         painLevel: { type: 'integer', minimum: 1, maximum: 10 },
                         activities: {
@@ -132,7 +121,6 @@ const options: swaggerJsdoc.Options = {
                             items: { type: 'string' }
                         },
                         notes: { type: 'string', nullable: true },
-                        createdAt: { type: 'string', format: 'date-time' },
                         insights: {
                             type: 'array',
                             items: { $ref: '#/components/schemas/AIInsight' }
@@ -148,7 +136,9 @@ const options: swaggerJsdoc.Options = {
                         topActivities: {
                             type: 'array',
                             items: { type: 'string' }
-                        }
+                        },
+                        currentStreak: { type: 'integer' },
+                        longestStreak: { type: 'integer' }
                     }
                 }
             }
