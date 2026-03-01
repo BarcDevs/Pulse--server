@@ -144,9 +144,9 @@ export const createAuthenticatedRequest = (
     user: ServerUserType
 ) => {
     const token = createToken(user)
-    const { csrfSecret, csrfToken } =
+    const {csrfSecret, csrfToken} =
         generateCsrfTokenPair()
-    return { token, csrfSecret, csrfToken }
+    return {token, csrfSecret, csrfToken}
 }
 
 // ==================== EXPRESS MOCK HELPERS ====================

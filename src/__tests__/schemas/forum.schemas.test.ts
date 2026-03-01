@@ -14,7 +14,10 @@ describe('Forum Schemas', () => {
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general',
-                tags: ['tag1', 'tag2']
+                tags: [
+                    'tag1',
+                    'tag2'
+                ]
             })
 
             expect(result.error).toBeUndefined()
@@ -28,7 +31,8 @@ describe('Forum Schemas', () => {
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path).toContain('title')
+            expect(result.error?.details[0].path)
+                .toContain('title')
         })
 
         it('should reject missing body', () => {
@@ -39,7 +43,8 @@ describe('Forum Schemas', () => {
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path).toContain('body')
+            expect(result.error?.details[0].path)
+                .toContain('body')
         })
 
         it('should reject missing category', () => {
@@ -50,7 +55,8 @@ describe('Forum Schemas', () => {
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path).toContain('category')
+            expect(result.error?.details[0].path)
+                .toContain('category')
         })
 
         it('should reject missing tags', () => {
@@ -61,7 +67,8 @@ describe('Forum Schemas', () => {
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path).toContain('tags')
+            expect(result.error?.details[0].path)
+                .toContain('tags')
         })
 
         it('should accept empty tags array', () => {
@@ -80,7 +87,12 @@ describe('Forum Schemas', () => {
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general',
-                tags: ['tag1', 'tag2', 'tag3', 'tag4']
+                tags: [
+                    'tag1',
+                    'tag2',
+                    'tag3',
+                    'tag4'
+                ]
             })
 
             expect(result.error).toBeUndefined()
@@ -116,7 +128,10 @@ describe('Forum Schemas', () => {
 
         it('should validate with only tags', () => {
             const result = updatePostSchema.validate({
-                tags: ['newTag1', 'newTag2']
+                tags: [
+                    'newTag1',
+                    'newTag2'
+                ]
             })
 
             expect(result.error).toBeUndefined()
@@ -207,7 +222,8 @@ describe('Forum Schemas', () => {
             const result = newReplySchema.validate({})
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path).toContain('body')
+            expect(result.error?.details[0].path)
+                .toContain('body')
         })
 
         it('should reject empty body string', () => {

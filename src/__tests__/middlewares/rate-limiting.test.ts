@@ -19,25 +19,29 @@ describe('Rate Limiting Middleware', () => {
         })
 
         it('should have middleware signature', () => {
-            expect(rateLimiter.length).toBeGreaterThanOrEqual(2)
+            expect(rateLimiter.length)
+                .toBeGreaterThanOrEqual(2)
         })
     })
 
     describe('rateLimiter behavior', () => {
-        it('should call next for normal requests', async () => {
-            const req = createMockRequest({
-                ip: '127.0.0.1',
-                method: 'GET',
-                originalUrl: '/api/v1/test'
-            }) as Request
+        it(
+            'should call next for normal requests',
+            async () => {
+                const req = createMockRequest({
+                    ip: '127.0.0.1',
+                    method: 'GET',
+                    originalUrl: '/api/v1/test'
+                }) as Request
 
-            const res = createMockResponse() as Response
-            res.setHeader = jest.fn()
-            const next = createMockNext()
+                const res = createMockResponse() as Response
+                res.setHeader = jest.fn()
+                const next = createMockNext()
 
-            await rateLimiter(req, res, next)
+                await rateLimiter(req, res, next)
 
-            expect(next).toHaveBeenCalled()
-        })
+                expect(next).toHaveBeenCalled()
+            }
+        )
     })
 })

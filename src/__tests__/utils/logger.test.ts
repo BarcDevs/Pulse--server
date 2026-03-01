@@ -14,7 +14,8 @@ describe('Logger', () => {
 
         it('should have transports configured', () => {
             expect(logger.transports).toBeDefined()
-            expect(logger.transports.length).toBeGreaterThan(0)
+            expect(logger.transports.length)
+                .toBeGreaterThan(0)
         })
 
         it('should have exactly 2 transports', () => {

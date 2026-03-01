@@ -11,16 +11,26 @@ describe('Email Sender', () => {
             expect(typeof sendEmail).toBe('function')
         })
 
-        it('should not throw when called with valid parameters (mocked)', () => {
-            expect(() => {
-                sendEmail('test@test.com', 'Subject', 'Body')
-            }).not.toThrow()
-        })
+        it(
+            'should not throw when called with valid parameters (mocked)',
+            () => {
+                expect(() => {
+                    sendEmail(
+                        'test@test.com',
+                        'Subject',
+                        'Body'
+                    )
+                }).not.toThrow()
+            }
+        )
 
-        it('should handle empty string parameters (mocked)', () => {
-            expect(() => {
-                sendEmail('', '', '')
-            }).not.toThrow()
-        })
+        it(
+            'should handle empty string parameters (mocked)',
+            () => {
+                expect(() => {
+                    sendEmail('', '', '')
+                }).not.toThrow()
+            }
+        )
     })
 })

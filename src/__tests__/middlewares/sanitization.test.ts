@@ -10,22 +10,26 @@ import {
 
 describe('Sanitization Middleware', () => {
     describe('sanitizeData', () => {
-        it('should sanitize string with XSS script', () => {
-            const req = createMockRequest({
-                body: {
-                    content: '<script>alert("xss")</script>Hello'
-                }
-            }) as Request
+        it(
+            'should sanitize string with XSS script',
+            () => {
+                const req = createMockRequest({
+                    body: {
+                        content: '<script>alert("xss")</script>Hello'
+                    }
+                }) as Request
 
-            const res = createMockResponse() as Response
-            const next = createMockNext()
+                const res = createMockResponse() as Response
+                const next = createMockNext()
 
-            sanitizeData(req, res, next)
+                sanitizeData(req, res, next)
 
-            expect(req.body.content).not.toContain('<script>')
-            expect(req.body.content).toContain('Hello')
-            expect(next).toHaveBeenCalled()
-        })
+                expect(req.body.content)
+                    .not.toContain('<script>')
+                expect(req.body.content).toContain('Hello')
+                expect(next).toHaveBeenCalled()
+            }
+        )
 
         it('should sanitize nested objects', () => {
             const req = createMockRequest({
@@ -42,8 +46,10 @@ describe('Sanitization Middleware', () => {
 
             sanitizeData(req, res, next)
 
-            expect(req.body.user.name).not.toContain('onerror')
-            expect(req.body.user.bio).not.toContain('<script>')
+            expect(req.body.user.name)
+                .not.toContain('onerror')
+            expect(req.body.user.bio)
+                .not.toContain('<script>')
             expect(next).toHaveBeenCalled()
         })
 
@@ -63,9 +69,11 @@ describe('Sanitization Middleware', () => {
 
             sanitizeData(req, res, next)
 
-            expect(req.body.tags[0]).not.toContain('<script>')
+            expect(req.body.tags[0])
+                .not.toContain('<script>')
             expect(req.body.tags[0]).toContain('tag1')
-            expect(req.body.tags[2]).not.toContain('onerror')
+            expect(req.body.tags[2])
+                .not.toContain('onerror')
             expect(next).toHaveBeenCalled()
         })
 
@@ -114,7 +122,8 @@ describe('Sanitization Middleware', () => {
             sanitizeData(req, res, next)
 
             expect(req.body.title).toBe('Clean Title')
-            expect(req.body.content).toBe('This is normal content without XSS')
+            expect(req.body.content)
+                .toBe('This is normal content without XSS')
             expect(next).toHaveBeenCalled()
         })
 
@@ -137,21 +146,25 @@ describe('Sanitization Middleware', () => {
             expect(next).toHaveBeenCalled()
         })
 
-        it('should remove dangerous HTML attributes', () => {
-            const req = createMockRequest({
-                body: {
-                    content: '<div onclick="evil()">Click me</div>'
-                }
-            }) as Request
+        it(
+            'should remove dangerous HTML attributes',
+            () => {
+                const req = createMockRequest({
+                    body: {
+                        content: '<div onclick="evil()">Click me</div>'
+                    }
+                }) as Request
 
-            const res = createMockResponse() as Response
-            const next = createMockNext()
+                const res = createMockResponse() as Response
+                const next = createMockNext()
 
-            sanitizeData(req, res, next)
+                sanitizeData(req, res, next)
 
-            expect(req.body.content).not.toContain('onclick')
-            expect(next).toHaveBeenCalled()
-        })
+                expect(req.body.content)
+                    .not.toContain('onclick')
+                expect(next).toHaveBeenCalled()
+            }
+        )
 
         it('should handle null values', () => {
             const req = createMockRequest({
