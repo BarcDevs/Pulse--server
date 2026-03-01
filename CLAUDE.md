@@ -6,25 +6,8 @@ HealEase Server — Node.js/Express TypeScript backend for a health/wellness for
 ## Architecture
 MVC: Controller → Service → Model → Database
 
-```
-config/          # Environment config (see config/CLAUDE.md)
-prisma/          # Prisma schema & migrations
-src/
-├── app.ts
-├── __tests__/   # Jest tests (see src/__tests__/CLAUDE.md)
-├── constants/
-├── controllers/ # HTTP handlers (see src/controllers/CLAUDE.md)
-├── errors/      # Custom errors & factories (see src/errors/CLAUDE.md)
-├── interfaces/
-├── middlewares/ # Express middleware (see src/middlewares/CLAUDE.md)
-├── models/      # Data access layer (see src/models/CLAUDE.md)
-├── responses/
-├── routes/      # Route definitions (see src/routes/CLAUDE.md)
-├── schemas/     # Joi validation (see src/schemas/CLAUDE.md)
-├── services/    # Business logic (see src/services/CLAUDE.md)
-├── types/       # TypeScript types (see src/types/CLAUDE.md)
-└── utils/
-```
+## File Structure
+See `STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 ## Core Principles
 - **SOLID principles** — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
@@ -45,6 +28,8 @@ src/
 2. Third-party packages
 3. Third-party `@`-scoped packages
 4. Local modules: types → config → controllers → services → models → middleware → utils → constants → errors → schemas
+5. Relative parent `../`
+6. Relative same-dir `./`
 
 ## Code Formatting
 - Break long lines and function parameters onto multiple lines
