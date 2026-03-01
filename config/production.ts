@@ -1,9 +1,14 @@
 export default {
     env: 'production',
+    database: {
+        url: process.env.DATABASE_URL || ''
+    },
     server: {
         port: process.env.PORT || 8080,
         protocol: 'https',
-        origin: process.env.ORIGIN || 'https://healease-client.onrender.com',
+        origin:
+            process.env.ORIGIN ||
+            'https://healease-client.onrender.com',
         host: '0.0.0.0'
     },
     auth: {

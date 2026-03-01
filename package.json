@@ -15,7 +15,7 @@
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
     "start:prod": "NODE_ENV=production node build/index.bundle.js",
     "prod": "npm run prisma:generate && npm run prisma:deploy && webpack",
-    "test": "NODE_ENV=test jest --watchAll --detectOpenHandles --forceExit --coverage",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --coverage",
     "format": "prettier --write 09",
     "lint:check": "eslint",
     "lint:fix": "npm run lint:check -- --fix",
@@ -23,6 +23,8 @@
     "prisma:migrate": "npx prisma migrate dev --name init",
     "prisma:deploy": "npx prisma migrate deploy",
     "prisma:studio": "npx prisma studio",
+    "db:dev:migrate": "npx prisma migrate dev",
+    "db:dev:reset": "npx prisma migrate reset",
     "typecheck": "tsc --noEmit",
     "postinstall": ""
   },

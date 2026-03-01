@@ -1,4 +1,4 @@
-import {ErrorFactory, errorFactory} from '../errors/factory'
+import {errorFactory} from '../errors/factory'
 import {getTagsByPostId} from '../models/ForumModel'
 import * as forumModel from '../models/ForumModel'
 import type {
@@ -20,8 +20,10 @@ export const validateOwner = async (
     replyId?: string
 ) => {
     if (schema === 'reply' && !replyId)
-        throw ErrorFactory
-            .GenericError('replyId is missing')
+        throw errorFactory.validation.generic(
+            'replyId is missing',
+            'replyId'
+        )
 
     const data =
         schema === 'post'
@@ -100,17 +102,26 @@ export const getTag = async (
 ) =>
     forumModel.getTag(id)
 
-export const createReply = async (
-    reply: NewReplyType
-) =>
-    forumModel.createReply(reply)
 // endregion
 
 // region Replies
+export const createReply = async (
+    reply: NewReplyType
+) => {
+    const post = await forumModel.getPost(reply.postId)
+    if (!post)
+        throw errorFactory.generic.notFound('Post')
+    return forumModel.createReply(reply)
+}
+
 export const getReplies = async (
     postId: string
-) =>
-    forumModel.getReplies(postId)
+) => {
+    const post = await forumModel.getPost(postId)
+    if (!post)
+        throw errorFactory.generic.notFound('Post')
+    return forumModel.getReplies(postId)
+}
 
 export const updateReply = async (
     replyId: string,

@@ -4,7 +4,7 @@ export default {
         origin: 'ORIGIN'
     },
     database: {
-        url: 'DATABASE_URL'
+        url: 'DEV_DATABASE_URL'
     },
     jwt: {
         secret: 'JWT_SECRET'
