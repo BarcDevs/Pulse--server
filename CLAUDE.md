@@ -12,7 +12,11 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 ## Core Principles
 - **SOLID principles** — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 - **Industry standards** — Clean, readable, maintainable code
-- **One concern per file**
+- One concern per file
+- Never use array index as key; use the current element as an index
+
+## Reading Files:
+-  Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
 
 ## TypeScript Conventions
 - Single quotes for all strings and imports
@@ -40,6 +44,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 ### If statement:
 - 2+ conditions → one condition per line
 - no condition and action in same line
+- Ternary conditions with long or complex expressions: → break to multiple lines
 
 ### Objects and functions:
 - Inline object types with 2+ parameters → always break to new lines, never inline
