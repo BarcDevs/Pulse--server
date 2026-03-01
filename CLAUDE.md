@@ -68,6 +68,7 @@ src/
 - No hardcoded values — use constants or config
 - Always provide complete, production-ready code
 - No backwards-compatibility shims for removed code
+- don't use redundant braces or parentheses
 
 ## Before Committing
 1. `npm run typecheck`
