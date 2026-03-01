@@ -7,7 +7,7 @@ HealEase Server — Node.js/Express TypeScript backend for a health/wellness for
 MVC: Controller → Service → Model → Database
 
 ## File Structure
-See `STRUCTURE.md` for the full directory layout and subdirectory rules.
+See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 ## Core Principles
 - **SOLID principles** — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
