@@ -347,7 +347,10 @@ describe('Forum Service', () => {
     // ==================== createReply ====================
     describe('createReply', () => {
         it('should create reply', async () => {
+            const mockPost = createMockPost()
             const mockReply = createMockReply()
+            prismaMock.post.findUnique
+                .mockResolvedValue(mockPost)
             prismaMock.reply.create
                 .mockResolvedValue(mockReply)
 
@@ -361,15 +364,34 @@ describe('Forum Service', () => {
             expect(prismaMock.reply.create)
                 .toHaveBeenCalled()
         })
+
+        it(
+            'should throw NotFoundError when post not found',
+            async () => {
+                prismaMock.post.findUnique
+                    .mockResolvedValue(null)
+
+                await expect(
+                    createReply({
+                        body: 'Reply content',
+                        authorId: 'user-id',
+                        postId: 'non-existent'
+                    })
+                ).rejects.toThrow('Post not found')
+            }
+        )
     })
 
     // ==================== getReplies ====================
     describe('getReplies', () => {
         it('should return replies for post', async () => {
+            const mockPost = createMockPost()
             const mockReplies = [
                 createMockReply(),
                 createMockReply({id: 'reply-2'})
             ]
+            prismaMock.post.findUnique
+                .mockResolvedValue(mockPost)
             prismaMock.reply.findMany
                 .mockResolvedValue(mockReplies)
 
@@ -379,6 +401,9 @@ describe('Forum Service', () => {
         })
 
         it('should return null when no replies', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique
+                .mockResolvedValue(mockPost)
             prismaMock.reply.findMany
                 .mockResolvedValue(null as unknown as never[])
 
@@ -386,6 +411,18 @@ describe('Forum Service', () => {
 
             expect(result).toBeNull()
         })
+
+        it(
+            'should throw NotFoundError when post not found',
+            async () => {
+                prismaMock.post.findUnique
+                    .mockResolvedValue(null)
+
+                await expect(
+                    getReplies('non-existent')
+                ).rejects.toThrow('Post not found')
+            }
+        )
     })
 
     // ==================== updateReply ====================

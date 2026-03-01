@@ -17,7 +17,7 @@ export type ReplyType = {
 export type NewReplyType = {
     body: string
     authorId: string
-    postId?: string
+    postId: string
 }
 
 export type UpdateReplyType = Partial<

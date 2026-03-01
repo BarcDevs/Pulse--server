@@ -612,10 +612,13 @@ describe('Forum Routes', () => {
     // ==================== GET REPLIES ====================
     describe('GET /api/v1/forum/posts/:postId/reply', () => {
         it('should return 200 and replies array', async () => {
+            const mockPost = createMockPost()
             const mockReplies = [
                 createMockReply(),
                 createMockReply({id: 'reply-2'})
             ]
+            prismaMock.post.findUnique
+                .mockResolvedValue(mockPost)
             prismaMock.reply.findMany
                 .mockResolvedValue(mockReplies)
 
@@ -630,14 +633,14 @@ describe('Forum Routes', () => {
         })
 
         it(
-            'should return 404 when no replies found',
+            'should return 404 when post not found',
             async () => {
-                prismaMock.reply.findMany
-                    .mockResolvedValue(null as unknown as never[])
+                prismaMock.post.findUnique
+                    .mockResolvedValue(null)
 
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/forum/posts/test-post-id-123/reply'
+                        '/api/v1/forum/posts/non-existent/reply'
                     )
 
                 expect(response.status).toBe(404)
@@ -651,6 +654,7 @@ describe('Forum Routes', () => {
             'should return 200 for valid reply creation',
             async () => {
                 const mockUser = createMockUser()
+                const mockPost = createMockPost()
                 const mockReply = createMockReply()
                 const {
                     token,
@@ -658,6 +662,8 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
+                prismaMock.post.findUnique
+                    .mockResolvedValue(mockPost)
                 prismaMock.reply.create
                     .mockResolvedValue(mockReply)
 
