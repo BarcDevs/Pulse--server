@@ -157,7 +157,10 @@ router.route('/signup').post(signup)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/csrf').get(isAuthenticated, getCsrfToken)
+router.route('/csrf').get(
+    isAuthenticated,
+    getCsrfToken
+)
 
 /**
  * @swagger
@@ -210,7 +213,11 @@ router.route('/logout').get(logout)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/me').get(isAuthenticated, cacheMiddleware, me)
+router.route('/me').get(
+    isAuthenticated,
+    cacheMiddleware,
+    me
+)
 
 /**
  * @swagger
@@ -251,7 +258,9 @@ router.route('/me').get(isAuthenticated, cacheMiddleware, me)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/forgot-password/:email').get(forgotPassword)
+router
+    .route('/forgot-password/:email')
+    .get(forgotPassword)
 
 /**
  * @swagger
@@ -299,7 +308,11 @@ router.route('/forgot-password/:email').get(forgotPassword)
  */
 router
     .route('/confirm-email')
-    .post(extractCsrfToken, csrfMiddleware, confirmEmail)
+    .post(
+        extractCsrfToken,
+        csrfMiddleware,
+        confirmEmail
+    )
 
 /**
  * @swagger
@@ -350,6 +363,10 @@ router
  */
 router
     .route('/reset-password')
-    .put(extractCsrfToken, csrfMiddleware, resetPassword)
+    .put(
+        extractCsrfToken,
+        csrfMiddleware,
+        resetPassword
+    )
 
 export default router

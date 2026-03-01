@@ -5,7 +5,7 @@ import {errorFactory} from '../errors/factory'
 import {ValidationError} from '../errors/ValidationError'
 import {successResponse} from '../responses/success'
 import {confirmEmailSchema} from '../schemas/auth/confirmEmailSchema'
-import {forgetPasswordSchema} from '../schemas/auth/forgetPasswordSchema'
+import {forgotPasswordSchema} from '../schemas/auth/forgotPasswordSchema'
 import {loginSchema} from '../schemas/auth/loginSchema'
 import {resetPasswordSchema} from '../schemas/auth/resetPasswordSchema'
 import {signupSchema} from '../schemas/auth/signupSchema'
@@ -50,9 +50,12 @@ export const login = async (
         maxAge: 60 * 60 * 1000
     })
 
-    successResponse<{ token: string; _csrf: string }>(
+    successResponse<{
+        token: string
+        _csrf: string
+    }>(
         res,
-        { token, _csrf },
+        {token, _csrf},
         'user logged in!'
     )
 }
@@ -74,9 +77,11 @@ export const signup = async (
                 generateRandomUsername()
         })
 
-    successResponse<{ user: UserType }>(
+    successResponse<{
+        user: UserType
+    }>(
         res,
-        { user: sanitizeUserData(newUserCreated) },
+        {user: sanitizeUserData(newUserCreated)},
         'user created!',
         HttpStatusCodes.CREATED
     )
@@ -101,19 +106,21 @@ export const me = async (
     req: Request,
     res: Response
 ) => {
-    const { userId } = req
+    const {userId} = req
 
     const user: ServerUserType | null =
         userId ?
             await authServices.getUser('id', userId) :
             null
 
-    if ( !user )
+    if (!user)
         throw errorFactory.auth.unauthorized()
 
-    successResponse<{ user: UserType }>(
+    successResponse<{
+        user: UserType
+    }>(
         res,
-        { user: sanitizeUserData(user) },
+        {user: sanitizeUserData(user)},
         'user info!'
     )
 }
@@ -135,9 +142,11 @@ export const getCsrfToken = async (
         cookiesOptions
     )
 
-    successResponse<{ _csrf: string }>(
+    successResponse<{
+        _csrf: string
+    }>(
         res,
-        { _csrf },
+        {_csrf},
         'CSRF token generated!'
     )
 }
@@ -148,9 +157,11 @@ export const forgotPassword = async (
     req: Request,
     res: Response
 ) => {
-    const { email } =
+    const {email} =
         ValidationError.catchValidationErrors(
-            forgetPasswordSchema.validate(req.body)
+            forgotPasswordSchema.validate(
+                {email: req.params.email}
+            )
         )
 
     await sendEmailWithOTP(email)
@@ -158,7 +169,8 @@ export const forgotPassword = async (
     successResponse(
         res,
         {},
-        'We have sent you an email with an OTP to confirm your email! Please check your email.'
+        'We have sent you an email with an OTP ' +
+        'to confirm your email! Please check your email.'
     )
 }
 
@@ -166,7 +178,7 @@ export const confirmEmail = async (
     req: Request,
     res: Response
 ) => {
-    const { OTP, email } =
+    const {OTP, email} =
         ValidationError.catchValidationErrors(
             confirmEmailSchema.validate(req.body)
         )
@@ -185,14 +197,14 @@ export const confirmEmail = async (
             OTP
         )
 
-    if ( !OTPValid )
+    if (!OTPValid)
         throw errorFactory.validation.otpError()
 
     successResponse<{
         user: UserType
     }>(
         res,
-        { user: sanitizeUserData(user) },
+        {user: sanitizeUserData(user)},
         'Your email is confirmed!',
         HttpStatusCodes.CREATED
     )
@@ -229,9 +241,11 @@ export const resetPassword = async (
     await authServices.resetPassword(user.id, newPassword)
     await authServices.removeResetPasswordOTP(user.id)
 
-    successResponse<{ user: UserType }>(
+    successResponse<{
+        user: UserType
+    }>(
         res,
-        { user: sanitizeUserData(user) },
+        {user: sanitizeUserData(user)},
         'Password has changed successfully!'
     )
 }
