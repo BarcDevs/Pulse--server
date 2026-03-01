@@ -49,7 +49,7 @@ export const createPost = async (
         ValidationError.catchValidationErrors(
             newPostSchema.validate(req.body)
         )
-    const { userId } = req || {}
+    const {userId} = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -69,9 +69,10 @@ export const getPost = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
+    const {postId} = req.params
 
-    const data = (await forumService.getPosts(undefined, postId)) as PostType
+    const data = (await forumService
+        .getPosts(undefined, postId)) as PostType
 
     if (!data)
         throw errorFactory.generic.notFound('Post')
@@ -91,8 +92,8 @@ export const updatePost = async (
         ValidationError.catchValidationErrors(
             updatePostSchema.validate(req.body)
         )
-    const { postId } = req.params
-    const { userId } = req || {}
+    const {postId} = req.params
+    const {userId} = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -103,7 +104,8 @@ export const updatePost = async (
         userId
     )
 
-    const data = await forumService.updatePost(postId, validatedData)
+    const data = await forumService
+        .updatePost(postId, validatedData)
 
     return successResponse<PostType>(
         res,
@@ -116,8 +118,8 @@ export const deletePost = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
-    const { userId } = req || {}
+    const {postId} = req.params
+    const {userId} = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -132,7 +134,8 @@ export const deletePost = async (
 
     return successResponse(
         res,
-        {}, `Post ${postId} deleted!`
+        {},
+        `Post ${postId} deleted!`
     )
 }
 // endregion
@@ -146,8 +149,8 @@ export const createReply = async (
         ValidationError.catchValidationErrors(
             newReplySchema.validate(req.body)
         )
-    const { userId } = req || {}
-    const { postId } = req.params
+    const {userId} = req || {}
+    const {postId} = req.params
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -169,7 +172,7 @@ export const getReplies = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
+    const {postId} = req.params
 
     const data = (
         await forumService.getReplies(postId)
@@ -194,8 +197,8 @@ export const updateReply = async (
         ValidationError.catchValidationErrors(
             updateReplySchema.validate(req.body)
         )
-    const { replyId, postId } = req.params
-    const { userId } = req || {}
+    const {replyId, postId} = req.params
+    const {userId} = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -224,8 +227,8 @@ export const deleteReply = async (
     req: Request,
     res: Response
 ) => {
-    const { replyId, postId } = req.params
-    const { userId } = req || {}
+    const {replyId, postId} = req.params
+    const {userId} = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -258,7 +261,8 @@ export const getTags = async (
             tagQuerySchema.validate(req.query)
         )
 
-    const data = await forumService.getTags(validatedQuery)
+    const data = await forumService
+        .getTags(validatedQuery)
 
     if (!data)
         throw errorFactory.generic.notFound('Tags')
@@ -274,7 +278,7 @@ export const getTag = async (
     req: Request,
     res: Response
 ) => {
-    const { tagId } = req.params
+    const {tagId} = req.params
 
     const data = await forumService.getTag(tagId)
 

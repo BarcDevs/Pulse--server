@@ -15,9 +15,9 @@ export const isAuthenticated = (
     next: NextFunction
 ) => {
     try {
-        const { accessToken } = req.cookies
+        const {accessToken} = req.cookies
 
-        const { id } = jwt.verify(
+        const {id} = jwt.verify(
             accessToken,
             authConfig.jwtSecret!
         ) as Partial<UserType>

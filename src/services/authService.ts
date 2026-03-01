@@ -42,7 +42,10 @@ const getCookiesOptions = (remember: boolean) => ( {
         maxAge: remember ? ms(authConfig.expiresIn) : ms('1d')
     } ) as CookieOptions
 
-const generateResetPasswordOTP = (): { OTP: number; OTPExpiration: Date } => {
+const generateResetPasswordOTP = (): {
+    OTP: number
+    OTPExpiration: Date
+} => {
     const OTP = Math.floor(100000 + Math.random() * 900000)
     const OTPExpiration =
         new Date(Date.now() + ms(authConfig.otp_expiration)) // 10 minutes
@@ -75,7 +78,7 @@ const sendEmailWithOTP = async (email: string): Promise<boolean> => {
 
     if ( !user ) return false
 
-    const { OTP, OTPExpiration } = generateResetPasswordOTP()
+    const {OTP, OTPExpiration} = generateResetPasswordOTP()
 
     await authModel.setUserOTP(user.id, {
         resetPasswordOTP: OTP,

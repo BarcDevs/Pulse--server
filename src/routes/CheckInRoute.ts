@@ -98,7 +98,10 @@ const router = Router()
  */
 router
     .route('/')
-    .get(isAuthenticated, getCheckIns)
+    .get(
+        isAuthenticated,
+        getCheckIns
+    )
     .post(
         isAuthenticated,
         extractCsrfToken,
@@ -135,6 +138,9 @@ router
  */
 router
     .route('/stats')
-    .get(isAuthenticated, getCheckInStats)
+    .get(
+        isAuthenticated,
+        getCheckInStats
+    )
 
 export default router

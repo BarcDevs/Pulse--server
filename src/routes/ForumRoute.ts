@@ -126,7 +126,12 @@ const router = Router()
 router
     .route('/posts')
     .get(getPosts)
-    .post(isAuthenticated, extractCsrfToken, csrfMiddleware, createPost)
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        createPost
+    )
 
 /**
  * @swagger
@@ -260,8 +265,18 @@ router
 router
     .route('/posts/:postId')
     .get(getPost)
-    .put(isAuthenticated, extractCsrfToken, csrfMiddleware, updatePost)
-    .delete(isAuthenticated, extractCsrfToken, csrfMiddleware, deletePost)
+    .put(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        updatePost
+    )
+    .delete(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        deletePost
+    )
 
 /**
  * @swagger
@@ -339,7 +354,12 @@ router
 router
     .route('/posts/:postId/reply')
     .get(getReplies)
-    .post(isAuthenticated, extractCsrfToken, csrfMiddleware, createReply)
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        createReply
+    )
 
 /**
  * @swagger
@@ -447,8 +467,18 @@ router
  */
 router
     .route('/posts/:postId/reply/:replyId')
-    .put(isAuthenticated, extractCsrfToken, csrfMiddleware, updateReply)
-    .delete(isAuthenticated, extractCsrfToken, csrfMiddleware, deleteReply)
+    .put(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        updateReply
+    )
+    .delete(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        deleteReply
+    )
 
 /**
  * @swagger

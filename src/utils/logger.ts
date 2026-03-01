@@ -7,7 +7,7 @@ const consoleFormat = winston.format.combine(
     winston.format.printf(
         ({level, message}) =>
             `${level}: ${message}`
-    ),
+    )
 )
 
 const transports: winston.transport[] = [

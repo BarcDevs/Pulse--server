@@ -25,8 +25,8 @@ export const csrfMiddleware = (
     _res: Response,
     next: NextFunction
 ) => {
-    const { csrfToken } = req
-    const { _csrf } = req.cookies
+    const {csrfToken} = req
+    const {_csrf} = req.cookies
 
     const isCSRFValid =
         csrfProtection.verify(_csrf, csrfToken || '')

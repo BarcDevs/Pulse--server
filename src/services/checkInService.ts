@@ -16,10 +16,18 @@ const prevDay = (dateStr: string): string => {
 
 const calculateStreaks = (
     dates: Date[]
-): {currentStreak: number; longestStreak: number} => {
-    if (dates.length === 0) return {currentStreak: 0, longestStreak: 0}
+): {
+    currentStreak: number
+    longestStreak: number
+} => {
+    if (dates.length === 0) return {
+        currentStreak: 0,
+        longestStreak: 0
+    }
 
-    const uniqueDays = [...new Set(dates.map(toDateStr))].sort().reverse()
+    const uniqueDays = [...new Set(
+        dates.map(toDateStr)
+    )].sort().reverse()
 
     const today = toDateStr(new Date())
     const yesterday = prevDay(today)
@@ -46,7 +54,8 @@ const calculateStreaks = (
     for (let i = 1; i < uniqueDays.length; i++) {
         if (uniqueDays[i] === prevDay(uniqueDays[i - 1])) {
             streak++
-            if (streak > longestStreak) longestStreak = streak
+            if (streak > longestStreak)
+                longestStreak = streak
         } else {
             streak = 1
         }
@@ -72,23 +81,31 @@ export const createCheckIn = async (
 export const getCheckInStats = async (
     userId: string
 ): Promise<CheckInStatsType> => {
-    const checkIns = await checkInModel.getCheckInsForStats(userId)
+    const checkIns = await checkInModel
+        .getCheckInsForStats(userId)
 
     const totalCheckIns = checkIns.length
 
     const averageMoodScore =
         totalCheckIns > 0
-            ? checkIns.reduce((sum, c) => sum + c.moodScore, 0) / totalCheckIns
+            ? checkIns.reduce(
+                (sum, c) => sum + c.moodScore, 0
+        ) / totalCheckIns
             : 0
 
     const averagePainLevel =
         totalCheckIns > 0
-            ? checkIns.reduce((sum, c) => sum + c.painLevel, 0) / totalCheckIns
+            ? checkIns.reduce(
+                (sum, c) => sum + c.painLevel, 0
+        ) / totalCheckIns
             : 0
 
     const activityCount = checkIns
         .flatMap((c) => c.activities)
-        .reduce<Record<string, number>>((acc, activity) => {
+        .reduce<Record<string, number>>((
+            acc,
+            activity
+        ) => {
             acc[activity] = (acc[activity] || 0) + 1
             return acc
         }, {})

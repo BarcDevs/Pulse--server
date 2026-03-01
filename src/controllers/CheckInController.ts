@@ -16,7 +16,7 @@ export const getCheckIns = async (
     req: Request,
     res: Response
 ) => {
-    const { userId } = req
+    const {userId} = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -26,7 +26,10 @@ export const getCheckIns = async (
             checkInQuerySchema.validate(req.query)
         )
 
-    const data = await checkInService.getCheckIns(userId, validatedQuery)
+    const data = await checkInService.getCheckIns(
+        userId,
+        validatedQuery
+    )
 
     return successResponse<CheckInType[]>(
         res,
@@ -39,7 +42,7 @@ export const createCheckIn = async (
     req: Request,
     res: Response
 ) => {
-    const { userId } = req
+    const {userId} = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -51,7 +54,7 @@ export const createCheckIn = async (
 
     const data = await checkInService.createCheckIn({
         ...validatedData,
-        userId,
+        userId
     })
 
     return successResponse<CheckInType>(
@@ -66,12 +69,13 @@ export const getCheckInStats = async (
     req: Request,
     res: Response
 ) => {
-    const { userId } = req
+    const {userId} = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
-    const data = await checkInService.getCheckInStats(userId)
+    const data = await checkInService
+        .getCheckInStats(userId)
 
     return successResponse<CheckInStatsType>(
         res,

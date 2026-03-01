@@ -12,7 +12,7 @@ const {
     protocol,
     url
 } = serverConfig
-const { start } = appConfig
+const {start} = appConfig
 
 const host = serverConfig.host || '0.0.0.0'
 
