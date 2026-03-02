@@ -26,6 +26,7 @@ export type ServerUserType = Prettify<
         password_updated_at: Date
         created_at: Date
         active: boolean
+        timezone?: string | null
         deleted_at?: Date
     }
 >

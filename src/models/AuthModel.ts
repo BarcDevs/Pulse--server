@@ -8,8 +8,8 @@ const getUserById = async (id: string): Promise<ServerUserType | null> => {
     const user = await Prisma.user.findUnique({
         where: {
             id,
-            active: true,
-        },
+            active: true
+        }
     })
 
     if (!user) return null
@@ -18,13 +18,13 @@ const getUserById = async (id: string): Promise<ServerUserType | null> => {
 }
 
 const getUserByEmail = async (
-    email: string,
+    email: string
 ): Promise<ServerUserType | null> => {
     const user = await Prisma.user.findUnique({
         where: {
             email,
-            active: true,
-        },
+            active: true
+        }
     })
 
     if (!user) return null
@@ -34,19 +34,19 @@ const getUserByEmail = async (
 
 const createUser = (newUser: NewUserType): Promise<ServerUserType> =>
     Prisma.user.create({
-        data: newUser,
+        data: newUser
     }) as Promise<ServerUserType>
 
 const updateUser = (
     userId: string,
-    newUserData: Partial<NewUserType>,
+    newUserData: Partial<NewUserType>
 ): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
             id: userId,
-            active: true,
+            active: true
         },
-        data: newUserData,
+        data: newUserData
     }) as Promise<ServerUserType>
 
 export const setUserOTP = (
@@ -55,32 +55,45 @@ export const setUserOTP = (
         resetPasswordOTP: number | null
         resetPasswordExpiration: Date | null
         password_updated_at?: Date
-    },
+    }
 ): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
             id: userId,
-            active: true,
+            active: true
         },
-        data,
+        data
     }) as Promise<ServerUserType>
 
 const disableUser = (id: string): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
-            id,
+            id
         },
         data: {
-            active: false,
-        },
+            active: false
+        }
     }) as Promise<ServerUserType>
 
 const deleteUser = (id: string): Promise<ServerUserType> =>
     Prisma.user.delete({
         where: {
-            id,
-        },
+            id
+        }
     }) as Promise<ServerUserType>
+
+const getUserTimezone = async (
+    userId: string
+): Promise<string | null> => {
+    const user = await Prisma.user.findUnique({
+        where: {
+            id: userId,
+            active: true
+        },
+        select: {timezone: true}
+    })
+    return user?.timezone ?? null
+}
 
 export {
     createUser,
@@ -88,5 +101,6 @@ export {
     disableUser,
     getUserByEmail,
     getUserById,
-    updateUser,
+    getUserTimezone,
+    updateUser
 }

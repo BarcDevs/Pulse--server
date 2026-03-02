@@ -9,7 +9,8 @@ import {newCheckInSchema} from '../schemas/checkIn/newCheckInSchema'
 import * as checkInService from '../services/checkInService'
 import type {
     CheckInStatsType,
-    CheckInType
+    CheckInType,
+    UpsertCheckInResult
 } from '../types/data/CheckInType'
 
 export const getCheckIns = async (
@@ -52,16 +53,22 @@ export const createCheckIn = async (
             newCheckInSchema.validate(req.body)
         )
 
-    const data = await checkInService.createCheckIn({
+    const result = await checkInService.upsertCheckIn({
         ...validatedData,
         userId
     })
 
-    return successResponse<CheckInType>(
+    const {created} = result
+
+    return successResponse<UpsertCheckInResult>(
         res,
-        data,
-        'Check-in created successfully',
-        HttpStatusCodes.CREATED
+        result,
+        created
+            ? 'Check-in created successfully'
+            : 'Check-in updated successfully',
+        created
+            ? HttpStatusCodes.CREATED
+            : HttpStatusCodes.OK
     )
 }
 

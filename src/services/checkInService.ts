@@ -1,12 +1,15 @@
+import * as authModel from '../models/AuthModel'
 import * as checkInModel from '../models/CheckInModel'
 import type {
     CheckInStatsType,
     CheckInType,
-    NewCheckInType
+    NewCheckInType,
+    UpsertCheckInResult
 } from '../types/data/CheckInType'
 import type {CheckInQuery} from '../types/query'
 
-const toDateStr = (d: Date): string => d.toISOString().slice(0, 10)
+const toDateStr = (d: Date): string =>
+    d.toISOString().slice(0, 10)
 
 const prevDay = (dateStr: string): string => {
     const d = new Date(dateStr + 'T00:00:00Z')
@@ -20,14 +23,15 @@ const calculateStreaks = (
     currentStreak: number
     longestStreak: number
 } => {
-    if (dates.length === 0) return {
-        currentStreak: 0,
-        longestStreak: 0
-    }
+    if (dates.length === 0)
+        return {
+            currentStreak: 0,
+            longestStreak: 0
+        }
 
-    const uniqueDays = [...new Set(
-        dates.map(toDateStr)
-    )].sort().reverse()
+    const uniqueDays = [
+        ...new Set(dates.map(toDateStr))
+    ].sort().reverse()
 
     const today = toDateStr(new Date())
     const yesterday = prevDay(today)
@@ -64,18 +68,48 @@ const calculateStreaks = (
     return {currentStreak, longestStreak}
 }
 
+const resolveCheckInDate = (
+    timezone?: string | null
+): Date => {
+    const tz = timezone ?? 'UTC'
+    try {
+        const dateStr = new Intl.DateTimeFormat(
+            'en-CA',
+            {
+                timeZone: tz,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }
+        ).format(new Date())
+        return new Date(`${dateStr}T00:00:00Z`)
+    } catch {
+        const today = new Date()
+        today.setUTCHours(0, 0, 0, 0)
+        return today
+    }
+}
+
 export const getCheckIns = async (
     userId: string,
     query?: CheckInQuery
 ): Promise<CheckInType[]> =>
     checkInModel.getCheckIns(userId, query?.limit)
 
-export const createCheckIn = async (
+export const upsertCheckIn = async (
     data: NewCheckInType
-): Promise<CheckInType> => {
-    const checkIn = await checkInModel.createCheckIn(data)
-    await checkInModel.updateUserLastCheckIn(data.userId)
-    return checkIn
+): Promise<UpsertCheckInResult> => {
+    const timezone = await authModel
+        .getUserTimezone(data.userId)
+    const checkInDate = resolveCheckInDate(timezone)
+
+    const result = await checkInModel
+        .upsertCheckIn(data, checkInDate)
+
+    await checkInModel
+        .updateUserLastCheckIn(data.userId)
+
+    return result
 }
 
 export const getCheckInStats = async (
@@ -90,14 +124,14 @@ export const getCheckInStats = async (
         totalCheckIns > 0
             ? checkIns.reduce(
                 (sum, c) => sum + c.moodScore, 0
-        ) / totalCheckIns
+            ) / totalCheckIns
             : 0
 
     const averagePainLevel =
         totalCheckIns > 0
             ? checkIns.reduce(
                 (sum, c) => sum + c.painLevel, 0
-        ) / totalCheckIns
+            ) / totalCheckIns
             : 0
 
     const activityCount = checkIns
@@ -115,9 +149,10 @@ export const getCheckInStats = async (
         .slice(0, 5)
         .map(([name]) => name)
 
-    const {currentStreak, longestStreak} = calculateStreaks(
-        checkIns.map((c) => c.createdAt)
-    )
+    const {currentStreak, longestStreak} =
+        calculateStreaks(
+            checkIns.map((c) => c.checkInDate)
+        )
 
     return {
         totalCheckIns,

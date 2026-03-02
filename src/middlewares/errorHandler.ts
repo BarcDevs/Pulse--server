@@ -15,12 +15,10 @@ const errorHandler = (
     next: NextFunction
 ) => {
     if (err instanceof CustomError) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const errorType =
-            err.serializeErrors()
+        const errorType = err.serializeErrors()
         const response: ResponseType<typeof errorType> = {
-            message: 'There was an error',
-            error: err.serializeErrors()
+            message: err.message,
+            error: errorType
         }
         return res.status(err.statusCode).json(response)
     }

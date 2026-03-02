@@ -11,11 +11,13 @@ export type AIInsightType = {
 export type CheckInType = {
     id: string
     userId: string
+    checkInDate: Date
     moodScore: number
     painLevel: number
     activities: string[]
     notes?: string | null
     createdAt: Date
+    updatedAt?: Date | null
     insights: AIInsightType[]
 }
 
@@ -25,6 +27,11 @@ export type NewCheckInType = {
     painLevel: number
     activities: string[]
     notes?: string
+}
+
+export type UpsertCheckInResult = {
+    checkIn: CheckInType
+    created: boolean
 }
 
 export type CheckInStatsType = {

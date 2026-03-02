@@ -14,6 +14,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - **Industry standards** — Clean, readable, maintainable code
 - One concern per file
 - Never use array index as key; use the current element as an index
+- Text: never use — character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
 
 ## Reading Files:
 -  Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
@@ -47,7 +48,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Ternary conditions with long or complex expressions: → break to multiple lines
 
 ### Objects and functions:
-- Inline object types with 2+ parameters → always break to new lines, never inline
+- Inline objects with 3+ properties, or 2+ in long lines → always break to new lines, never inline
 - 2+ chained accessor calls → break after root object
 - Nested objects always on a new line — never inline inside a parent object or array
 - Objects with 2+ properties → each property on its own line

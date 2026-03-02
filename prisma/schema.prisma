@@ -26,6 +26,7 @@ model User {
   email     String  @unique
   image     String?
   role      Role    @default(USER)
+  timezone  String?
 
   posts        Post[]
   replies      Reply[]
@@ -73,17 +74,20 @@ model Reply {
 }
 
 model DailyCheckIn {
-  id         String      @id() @default(uuid())
-  user       User        @relation(fields: [userId], references: [id])
-  userId     String
-  moodScore  Int
-  painLevel  Int
-  activities String[]
-  notes      String?
-  createdAt  DateTime    @default(now())
-  insights   AIInsight[]
+  id          String      @id() @default(uuid())
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  checkInDate DateTime    @db.Date
+  moodScore   Int
+  painLevel   Int
+  activities  String[]
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?
+  insights    AIInsight[]
 
-  @@index([userId, createdAt])
+  @@unique([userId, checkInDate])
+  @@index([userId, checkInDate])
 }
 
 model AIInsight {
