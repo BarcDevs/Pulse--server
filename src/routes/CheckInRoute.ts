@@ -3,7 +3,8 @@ import {Router} from 'express'
 import {
     createCheckIn,
     getCheckIns,
-    getCheckInStats
+    getCheckInStats,
+    updateCheckIn
 } from '../controllers/CheckInController'
 import {
     csrfMiddleware,
@@ -50,7 +51,10 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *   post:
- *     summary: Create a daily check-in
+ *     summary: Create today's check-in
+ *     description: >
+ *       Creates a new check-in for today (based on the user's timezone).
+ *       Returns 409 if a check-in already exists for today - use PATCH to update it.
  *     tags: [Check-In]
  *     security:
  *       - cookieAuth: []
@@ -79,7 +83,7 @@ const router = Router()
  *                 type: string
  *     responses:
  *       201:
- *         description: Check-in created with AI-generated insights
+ *         description: Check-in created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -91,6 +95,69 @@ const router = Router()
  *                   $ref: '#/components/schemas/CheckIn'
  *       401:
  *         description: Not authenticated or invalid CSRF token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: A check-in already exists for today - use PATCH to update it
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *   patch:
+ *     summary: Update today's check-in
+ *     description: >
+ *       Updates the existing check-in for today (based on the user's timezone).
+ *       At least one field must be provided. Returns 404 if no check-in exists for today.
+ *     tags: [Check-In]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             minProperties: 1
+ *             properties:
+ *               moodScore:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10
+ *               painLevel:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10
+ *               activities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 minItems: 1
+ *               notes:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Check-in updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CheckIn'
+ *       401:
+ *         description: Not authenticated or invalid CSRF token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: No check-in found for today - use POST to create one
  *         content:
  *           application/json:
  *             schema:
@@ -107,6 +174,12 @@ router
         extractCsrfToken,
         csrfMiddleware,
         createCheckIn
+    )
+    .patch(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        updateCheckIn
     )
 
 /**

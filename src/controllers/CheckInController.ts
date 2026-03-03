@@ -6,11 +6,11 @@ import {ValidationError} from '../errors/ValidationError'
 import {successResponse} from '../responses/success'
 import {checkInQuerySchema} from '../schemas/checkIn/checkInQuerySchema'
 import {newCheckInSchema} from '../schemas/checkIn/newCheckInSchema'
+import {updateCheckInSchema} from '../schemas/checkIn/updateCheckInSchema'
 import * as checkInService from '../services/checkInService'
 import type {
     CheckInStatsType,
-    CheckInType,
-    UpsertCheckInResult
+    CheckInType
 } from '../types/data/CheckInType'
 
 export const getCheckIns = async (
@@ -53,22 +53,42 @@ export const createCheckIn = async (
             newCheckInSchema.validate(req.body)
         )
 
-    const result = await checkInService.upsertCheckIn({
+    const data = await checkInService.createCheckIn({
         ...validatedData,
         userId
     })
 
-    const {created} = result
-
-    return successResponse<UpsertCheckInResult>(
+    return successResponse<CheckInType>(
         res,
-        result,
-        created
-            ? 'Check-in created successfully'
-            : 'Check-in updated successfully',
-        created
-            ? HttpStatusCodes.CREATED
-            : HttpStatusCodes.OK
+        data,
+        'Check-in created successfully',
+        HttpStatusCodes.CREATED
+    )
+}
+
+export const updateCheckIn = async (
+    req: Request,
+    res: Response
+) => {
+    const {userId} = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const validatedData =
+        ValidationError.catchValidationErrors(
+            updateCheckInSchema.validate(req.body)
+        )
+
+    const data = await checkInService.updateCheckIn({
+        ...validatedData,
+        userId
+    })
+
+    return successResponse<CheckInType>(
+        res,
+        data,
+        'Check-in updated successfully'
     )
 }
 
