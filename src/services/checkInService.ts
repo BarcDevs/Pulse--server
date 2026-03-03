@@ -1,12 +1,15 @@
+import {errorFactory} from '../errors/factory'
 import * as authModel from '../models/AuthModel'
 import * as checkInModel from '../models/CheckInModel'
 import type {
     CheckInStatsType,
     CheckInType,
     NewCheckInType,
-    UpsertCheckInResult
+    UpdateCheckInType
 } from '../types/data/CheckInType'
 import type {CheckInQuery} from '../types/query'
+import logger from '../utils/logger'
+import {Prisma} from '../utils/PrismaClient'
 
 const toDateStr = (d: Date): string =>
     d.toISOString().slice(0, 10)
@@ -84,6 +87,9 @@ const resolveCheckInDate = (
         ).format(new Date())
         return new Date(`${dateStr}T00:00:00Z`)
     } catch {
+        logger.warn(
+            `Invalid timezone '${tz}' - falling back to UTC`
+        )
         const today = new Date()
         today.setUTCHours(0, 0, 0, 0)
         return today
@@ -96,20 +102,69 @@ export const getCheckIns = async (
 ): Promise<CheckInType[]> =>
     checkInModel.getCheckIns(userId, query?.limit)
 
-export const upsertCheckIn = async (
-    data: NewCheckInType
-): Promise<UpsertCheckInResult> => {
+const resolveDate = async (
+    userId: string
+): Promise<Date> => {
     const timezone = await authModel
-        .getUserTimezone(data.userId)
-    const checkInDate = resolveCheckInDate(timezone)
+        .getUserTimezone(userId)
+    return resolveCheckInDate(timezone)
+}
 
-    const result = await checkInModel
-        .upsertCheckIn(data, checkInDate)
+export const createCheckIn = async (
+    data: NewCheckInType
+): Promise<CheckInType> => {
+    const checkInDate = await resolveDate(data.userId)
 
-    await checkInModel
-        .updateUserLastCheckIn(data.userId)
+    const existing = await checkInModel
+        .findTodayCheckIn(data.userId, checkInDate)
 
-    return result
+    if (existing)
+        throw errorFactory.generic.conflict(
+            "Today's check-in"
+        )
+
+    try {
+        const checkIn = await checkInModel
+            .createCheckIn(data, checkInDate)
+
+        await checkInModel
+            .updateUserLastCheckIn(data.userId)
+
+        return checkIn
+    } catch (err) {
+        if (
+            err instanceof
+                Prisma.PrismaClientKnownRequestError
+            && err.code === 'P2002'
+        )
+            throw errorFactory.generic.conflict(
+                "Today's check-in"
+            )
+        throw err
+    }
+}
+
+export const updateCheckIn = async (
+    data: UpdateCheckInType
+): Promise<CheckInType> => {
+    const checkInDate = await resolveDate(data.userId)
+
+    const existing = await checkInModel
+        .findTodayCheckIn(data.userId, checkInDate)
+
+    if (!existing)
+        throw errorFactory.generic.notFound(
+            "Today's check-in"
+        )
+
+    const {userId, ...updateData} = data
+
+    const checkIn = await checkInModel
+        .updateCheckIn(userId, checkInDate, updateData)
+
+    await checkInModel.updateUserLastCheckIn(userId)
+
+    return checkIn
 }
 
 export const getCheckInStats = async (
