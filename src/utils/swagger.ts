@@ -114,6 +114,12 @@ const options: swaggerJsdoc.Options = {
                     type: 'object',
                     properties: {
                         id: { type: 'string' },
+                        userId: { type: 'string' },
+                        checkInDate: {
+                            type: 'string',
+                            format: 'date',
+                            description: "User's local calendar date (UTC midnight)"
+                        },
                         moodScore: { type: 'integer', minimum: 1, maximum: 10 },
                         painLevel: { type: 'integer', minimum: 1, maximum: 10 },
                         activities: {
@@ -121,6 +127,13 @@ const options: swaggerJsdoc.Options = {
                             items: { type: 'string' }
                         },
                         notes: { type: 'string', nullable: true },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: {
+                            type: 'string',
+                            format: 'date-time',
+                            nullable: true,
+                            description: 'Set when the check-in was edited; null on first create'
+                        },
                         insights: {
                             type: 'array',
                             items: { $ref: '#/components/schemas/AIInsight' }
