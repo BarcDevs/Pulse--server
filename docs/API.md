@@ -535,10 +535,14 @@ Clears the `accessToken` cookie.
   "data": [
     {
       "id": "string",
+      "userId": "string",
+      "checkInDate": "2026-03-03",
       "moodScore": 7,
       "painLevel": 3,
       "activities": ["walking", "stretching"],
       "notes?": "string",
+      "createdAt": "2026-03-03T08:00:00.000Z",
+      "updatedAt?": "2026-03-03T09:00:00.000Z",
       "insights": [
         { "id": "string", "type": "string", "content": "string" }
       ]
@@ -552,7 +556,7 @@ Clears the `accessToken` cookie.
 ---
 
 ### `POST /`
-> Auth + CSRF required
+> Auth + CSRF required · Creates today's check-in. Returns `409` if one already exists — use `PATCH` to update.
 
 **Body**
 | Field        | Type     | Required | Notes                          |
@@ -568,10 +572,14 @@ Clears the `accessToken` cookie.
   "message": "...",
   "data": {
     "id": "string",
+    "userId": "string",
+    "checkInDate": "2026-03-03",
     "moodScore": 7,
     "painLevel": 3,
     "activities": ["walking", "stretching"],
     "notes?": "string",
+    "createdAt": "2026-03-03T08:00:00.000Z",
+    "updatedAt": null,
     "insights": [
       { "id": "string", "type": "string", "content": "string" }
     ]
@@ -579,7 +587,43 @@ Clears the `accessToken` cookie.
 }
 ```
 
-**Errors:** `400` validation · `401` not authenticated or invalid CSRF
+**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `409` check-in already exists today
+
+---
+
+### `PATCH /`
+> Auth + CSRF required · Updates today's check-in. Returns `404` if none exists — use `POST` to create.
+
+**Body** (at least one field required)
+| Field        | Type     | Required | Notes                          |
+|--------------|----------|----------|--------------------------------|
+| `moodScore`  | number   | no       | 1 – 10                         |
+| `painLevel`  | number   | no       | 1 – 10                         |
+| `activities` | string[] | no       | Min 1 item, each max 100 chars |
+| `notes`      | string   | no       | Max 500 chars, nullable        |
+
+**Response `200`**
+```json
+{
+  "message": "...",
+  "data": {
+    "id": "string",
+    "userId": "string",
+    "checkInDate": "2026-03-03",
+    "moodScore": 9,
+    "painLevel": 3,
+    "activities": ["walking", "meditation"],
+    "notes?": "string",
+    "createdAt": "2026-03-03T08:00:00.000Z",
+    "updatedAt": "2026-03-03T09:00:00.000Z",
+    "insights": [
+      { "id": "string", "type": "string", "content": "string" }
+    ]
+  }
+}
+```
+
+**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `404` no check-in found for today
 
 ---
 
