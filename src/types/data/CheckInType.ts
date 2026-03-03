@@ -29,9 +29,12 @@ export type NewCheckInType = {
     notes?: string
 }
 
-export type UpsertCheckInResult = {
-    checkIn: CheckInType
-    created: boolean
+export type UpdateCheckInType = {
+    userId: string
+    moodScore?: number
+    painLevel?: number
+    activities?: string[]
+    notes?: string | null
 }
 
 export type CheckInStatsType = {
