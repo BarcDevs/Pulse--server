@@ -111,7 +111,7 @@ describe('Check-in Routes', () => {
         )
     })
 
-    // ==================== CREATE / UPSERT CHECK-IN ====================
+    // ==================== CREATE CHECK-IN ====================
     describe('POST /api/v1/check-in', () => {
         const endpoint = '/api/v1/check-in'
         const validBody = {
@@ -125,7 +125,7 @@ describe('Check-in Routes', () => {
         }
 
         it(
-            'creates first check-in: returns 201 with created=true',
+            'should return 201 when creating first check-in',
             async () => {
                 const mockUser = createMockUser()
                 const mockCheckIn = createMockCheckIn()
@@ -135,8 +135,14 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.dailyCheckIn.upsert
+                prismaMock.user.findUnique
+                    .mockResolvedValue({timezone: null})
+                prismaMock.dailyCheckIn.findUnique
+                    .mockResolvedValue(null)
+                prismaMock.dailyCheckIn.create
                     .mockResolvedValue(mockCheckIn)
+                prismaMock.user.update
+                    .mockResolvedValue({} as any)
 
                 const response = await supertest(App)
                     .post(endpoint)
@@ -150,30 +156,29 @@ describe('Check-in Routes', () => {
                 expect(response.status).toBe(201)
                 expect(response.body.message)
                     .toBe('Check-in created successfully')
-                expect(response.body.data.created)
-                    .toBe(true)
-                expect(response.body.data.checkIn)
-                    .toBeDefined()
+                expect(response.body.data.id)
+                    .toBe(mockCheckIn.id)
+                expect(response.body.data.moodScore)
+                    .toBe(mockCheckIn.moodScore)
+                expect(response.body.data.updatedAt)
+                    .toBeNull()
             }
         )
 
         it(
-            'updates same-day check-in: returns 200 with created=false',
+            'should return 409 when check-in already exists today',
             async () => {
                 const mockUser = createMockUser()
-                const updated = createMockCheckIn({
-                    moodScore: 9,
-                    painLevel: 1,
-                    updatedAt: new Date()
-                })
                 const {
                     token,
                     csrfSecret,
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.dailyCheckIn.upsert
-                    .mockResolvedValue(updated)
+                prismaMock.user.findUnique
+                    .mockResolvedValue({timezone: null})
+                prismaMock.dailyCheckIn.findUnique
+                    .mockResolvedValue(createMockCheckIn())
 
                 const response = await supertest(App)
                     .post(endpoint)
@@ -182,52 +187,9 @@ describe('Check-in Routes', () => {
                         `_csrf=${csrfSecret}`
                     ])
                     .set('x-csrf-token', csrfToken)
-                    .send({
-                        ...validBody,
-                        moodScore: 9,
-                        painLevel: 1
-                    })
-
-                expect(response.status).toBe(200)
-                expect(response.body.message)
-                    .toBe('Check-in updated successfully')
-                expect(response.body.data.created)
-                    .toBe(false)
-                expect(response.body.data.checkIn.moodScore)
-                    .toBe(9)
-            }
-        )
-
-        it(
-            'uniqueness: upsert uses existing record, not duplicate',
-            async () => {
-                const mockUser = createMockUser()
-                const existing = createMockCheckIn({
-                    updatedAt: new Date()
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
-
-                prismaMock.dailyCheckIn.upsert
-                    .mockResolvedValue(existing)
-
-                const first = await supertest(App)
-                    .post(endpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
                     .send(validBody)
 
-                // upsert was called, not create
-                expect(
-                    prismaMock.dailyCheckIn.upsert
-                ).toHaveBeenCalledTimes(1)
-                expect(first.body.data.created).toBe(false)
+                expect(response.status).toBe(409)
             }
         )
 
@@ -390,6 +352,142 @@ describe('Check-in Routes', () => {
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
                     .toBe('painLevel')
+            }
+        )
+    })
+
+    // ==================== UPDATE CHECK-IN ====================
+    describe('PATCH /api/v1/check-in', () => {
+        const endpoint = '/api/v1/check-in'
+        const validBody = {
+            moodScore: 9,
+            activities: [
+                'yoga',
+                'reading'
+            ],
+        }
+
+        it(
+            'should return 200 when updating existing check-in',
+            async () => {
+                const mockUser = createMockUser()
+                const updated = createMockCheckIn({
+                    moodScore: 9,
+                    activities: [
+                        'yoga',
+                        'reading'
+                    ],
+                    updatedAt: new Date(),
+                })
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue({timezone: null})
+                prismaMock.dailyCheckIn.findUnique
+                    .mockResolvedValue(createMockCheckIn())
+                prismaMock.dailyCheckIn.update
+                    .mockResolvedValue(updated)
+                prismaMock.user.update
+                    .mockResolvedValue({} as any)
+
+                const response = await supertest(App)
+                    .patch(endpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+                    .set('x-csrf-token', csrfToken)
+                    .send(validBody)
+
+                expect(response.status).toBe(200)
+                expect(response.body.message)
+                    .toBe('Check-in updated successfully')
+                expect(response.body.data.moodScore).toBe(9)
+                expect(response.body.data.updatedAt)
+                    .not.toBeNull()
+            }
+        )
+
+        it(
+            'should return 404 when no check-in exists today',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue({timezone: null})
+                prismaMock.dailyCheckIn.findUnique
+                    .mockResolvedValue(null)
+
+                const response = await supertest(App)
+                    .patch(endpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+                    .set('x-csrf-token', csrfToken)
+                    .send(validBody)
+
+                expect(response.status).toBe(404)
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .patch(endpoint)
+                    .send(validBody)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 401 for missing CSRF token',
+            async () => {
+                const mockUser = createMockUser()
+                const token = createAuthToken(mockUser)
+
+                const response = await supertest(App)
+                    .patch(endpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`
+                    ])
+                    .send(validBody)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 403 for empty body',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const response = await supertest(App)
+                    .patch(endpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+                    .set('x-csrf-token', csrfToken)
+                    .send({})
+
+                expect(response.status).toBe(403)
             }
         )
     })
