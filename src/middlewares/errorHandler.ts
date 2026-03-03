@@ -29,11 +29,9 @@ const errorHandler = (
         error: err.message
     }
 
-    res.status(
-        HttpStatusCodes.INTERNAL_SERVER_ERROR
-    ).json(response)
-
-    return next()
+    return res
+        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
+        .json(response)
 }
 
 export {errorHandler}
