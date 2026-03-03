@@ -5,7 +5,37 @@
     },
     "variable": [
         { "key": "baseUrl", "value": "http://localhost:4000" },
-        { "key": "csrfToken", "value": "" }
+        { "key": "csrfToken", "value": "" },
+        { "key": "checkInId", "value": "" }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "exec": [
+                    "const csrfToken = pm.collectionVariables.get('csrfToken')",
+                    "if (csrfToken) return",
+                    "",
+                    "pm.sendRequest({",
+                    "    url: pm.collectionVariables.get('baseUrl') + '/api/v1/auth/login',",
+                    "    method: 'POST',",
+                    "    header: { 'Content-Type': 'application/json' },",
+                    "    body: {",
+                    "        mode: 'raw',",
+                    "        raw: JSON.stringify({",
+                    "            email: 'test@example.com',",
+                    "            password: 'testuser123'",
+                    "        })",
+                    "    }",
+                    "}, (err, res) => {",
+                    "    if (err) return",
+                    "    const token = res.json().data._csrf",
+                    "    pm.collectionVariables.set('csrfToken', token)",
+                    "})"
+                ],
+                "type": "text/javascript"
+            }
+        }
     ],
     "item": [
         {
@@ -57,13 +87,20 @@
                             "})",
                             "",
                             "pm.test('Returns created check-in', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data).to.have.property('moodScore')",
-                            "    pm.expect(json.data).to.have.property('painLevel')",
-                            "    pm.expect(json.data).to.have.property('activities')",
-                            "    pm.expect(json.data).to.have.property('userId')",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data).to.have.property('id')",
+                            "    pm.expect(data).to.have.property('userId')",
+                            "    pm.expect(data).to.have.property('checkInDate')",
+                            "    pm.expect(data).to.have.property('moodScore')",
+                            "    pm.expect(data).to.have.property('painLevel')",
+                            "    pm.expect(data).to.have.property('activities')",
+                            "    pm.expect(data).to.have.property('insights')",
+                            "    pm.environment.set('checkInId', data.id)",
+                            "})",
+                            "",
+                            "pm.test('updatedAt is null on first create', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.updatedAt).to.be.null",
                             "})",
                             "",
                             "pm.test('moodScore is within range', () => {",
@@ -98,6 +135,95 @@
             }
         },
         {
+            "name": "Create Check-In Again (expect 409)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 409 - already exists today', () => {",
+                            "    pm.response.to.have.status(409)",
+                            "})",
+                            "",
+                            "pm.test('Returns conflict error message', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json).to.have.property('error')",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" },
+                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"moodScore\": 5,\n    \"painLevel\": 5,\n    \"activities\": [\"yoga\"]\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/check-in",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "check-in"]
+                }
+            }
+        },
+        {
+            "name": "Update Check-In",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200', () => {",
+                            "    pm.response.to.have.status(200)",
+                            "})",
+                            "",
+                            "pm.test('Returns updated check-in', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data).to.have.property('id')",
+                            "    pm.expect(data).to.have.property('checkInDate')",
+                            "    pm.expect(data).to.have.property('moodScore')",
+                            "    pm.expect(data).to.have.property('painLevel')",
+                            "    pm.expect(data).to.have.property('activities')",
+                            "})",
+                            "",
+                            "pm.test('updatedAt is set after update', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.updatedAt).to.be.a('string')",
+                            "    pm.expect(data.updatedAt).to.not.be.null",
+                            "})",
+                            "",
+                            "pm.test('moodScore reflects the update', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.moodScore).to.equal(9)",
+                            "})"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    { "key": "Content-Type", "value": "application/json" },
+                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"moodScore\": 9,\n    \"activities\": [\"walking\", \"meditation\", \"reading\"]\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/check-in",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "v1", "check-in"]
+                }
+            }
+        },
+        {
             "name": "Get Check-Ins",
             "event": [
                 {
@@ -119,9 +245,11 @@
                             "    if (json.data.length > 0) {",
                             "        const checkIn = json.data[0]",
                             "        pm.expect(checkIn).to.have.property('id')",
+                            "        pm.expect(checkIn).to.have.property('checkInDate')",
                             "        pm.expect(checkIn).to.have.property('moodScore')",
                             "        pm.expect(checkIn).to.have.property('painLevel')",
                             "        pm.expect(checkIn).to.have.property('activities')",
+                            "        pm.expect(checkIn).to.have.property('insights')",
                             "    }",
                             "})"
                         ],
@@ -153,10 +281,25 @@
                             "    pm.response.to.have.status(200)",
                             "})",
                             "",
-                            "pm.test('Returns stats object', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json.data).to.be.an('object')",
+                            "pm.test('Returns stats object with all fields', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data).to.have.property('totalCheckIns')",
+                            "    pm.expect(data).to.have.property('averageMoodScore')",
+                            "    pm.expect(data).to.have.property('averagePainLevel')",
+                            "    pm.expect(data).to.have.property('topActivities')",
+                            "    pm.expect(data).to.have.property('currentStreak')",
+                            "    pm.expect(data).to.have.property('longestStreak')",
+                            "})",
+                            "",
+                            "pm.test('topActivities is an array', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.topActivities).to.be.an('array')",
+                            "})",
+                            "",
+                            "pm.test('Streak values are non-negative integers', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.currentStreak).to.be.at.least(0)",
+                            "    pm.expect(data.longestStreak).to.be.at.least(0)",
                             "})"
                         ],
                         "type": "text/javascript"
