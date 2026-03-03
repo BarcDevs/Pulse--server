@@ -1,4 +1,5 @@
 import {HttpStatusCodes} from '../../constants/httpStatusCodes'
+import {ConflictError} from '../ConflictError'
 import {NotFoundError} from '../NotFoundError'
 
 export class GenericFactory {
@@ -8,5 +9,10 @@ export class GenericFactory {
             undefined,
             'Not Found',
             HttpStatusCodes.NOT_FOUND
+        )
+
+    static conflict = (object?: string) =>
+        new ConflictError(
+            `${object ?? 'Resource'} already exists for today`
         )
 }
