@@ -3,7 +3,12 @@ import {Pool} from 'pg'
 import {PrismaPg} from '@prisma/adapter-pg'
 
 import {databaseConfig, env} from '../../config'
-import {PrismaClient} from '../../prisma/generated/prisma/client'
+import {
+    Prisma as PrismaNamespace,
+    PrismaClient
+} from '../../prisma/generated/prisma/client'
+
+export {PrismaNamespace as Prisma}
 
 let client: PrismaClient
 
