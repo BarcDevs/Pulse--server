@@ -204,23 +204,25 @@ graph TD
 | id | UUID | Primary key |
 | email | String | Unique |
 | username | String | Unique |
-| passwordHash | String | |
-| fullName | String | |
-| notificationsEnabled | Boolean | |
+| password | String | Hashed |
+| firstName | String | |
+| lastName | String | |
+| timezone | String | Optional, for date resolution |
+| lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
-| updatedAt | DateTime | |
 
-### Checkins
+### DailyCheckIn
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
 | userId | UUID | FK → Users |
+| checkInDate | Date | User's local calendar date (UTC midnight) |
 | moodScore | Int | 1–10 |
 | painLevel | Int | 1–10 |
 | activities | String[] | |
 | notes | String | Optional |
-| aiFeedback | String | Optional, generated async |
 | createdAt | DateTime | |
+| updatedAt | DateTime | Set on PATCH, null on first create |
 
 ### Posts
 | Field | Type | Notes |
@@ -316,9 +318,10 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/check-in` | Cookie + CSRF | Get user's check-in history |
-| `POST` | `/api/v1/check-in` | Cookie + CSRF | Submit daily check-in |
-| `GET` | `/api/v1/check-in/stats` | Cookie + CSRF | Get aggregated check-in stats |
+| `GET` | `/api/v1/check-in` | Cookie | Get check-in history |
+| `POST` | `/api/v1/check-in` | Cookie + CSRF | Create today's check-in (409 if exists) |
+| `PATCH` | `/api/v1/check-in` | Cookie + CSRF | Update today's check-in (404 if none) |
+| `GET` | `/api/v1/check-in/stats` | Cookie | Get aggregated check-in stats |
 
 ### Forum *(protected)*
 
@@ -421,7 +424,7 @@ SENTRY_DSN
 | JWT expiration | 7 days |
 | CSRF protection | Enabled |
 | Rate limiting | 100 requests / 15 min per IP |
-| Input validation | Zod schemas |
+| Input validation | Joi schemas |
 | SQL injection | Prevented by Prisma parameterized queries |
 
 ---
