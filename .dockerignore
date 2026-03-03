@@ -34,3 +34,7 @@
 # DO NOT ignore Prisma files:
 !prisma/
 !prisma/schema.prisma
+
+# Claude code
+.claude
+docs/plans

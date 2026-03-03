@@ -41,6 +41,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Limit lines up to about 50 chars
 - Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
 - 2+ Elements in an array → each on its own line
+- Avoid changes in other projects. different projects are read only
 
 ### If statement:
 - 2+ conditions → one condition per line
