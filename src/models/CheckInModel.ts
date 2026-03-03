@@ -1,7 +1,7 @@
 import type {
     CheckInType,
     NewCheckInType,
-    UpsertCheckInResult
+    UpdateCheckInType
 } from '../types/data/CheckInType'
 import Prisma from '../utils/PrismaClient'
 
@@ -12,47 +12,58 @@ export const getCheckIns = async (
     (await Prisma.dailyCheckIn.findMany({
         where: {userId},
         take: limit,
-        orderBy: {
-            checkInDate: 'desc'
-        },
-        include: {
-            insights: true
-        }
+        orderBy: {checkInDate: 'desc'},
+        include: {insights: true}
     })) as CheckInType[]
 
-export const upsertCheckIn = async (
-    data: NewCheckInType,
+export const findTodayCheckIn = async (
+    userId: string,
     checkInDate: Date
-): Promise<UpsertCheckInResult> => {
-    const {userId, ...checkInData} = data
-
-    const checkIn = (await Prisma.dailyCheckIn.upsert({
+): Promise<CheckInType | null> =>
+    (await Prisma.dailyCheckIn.findUnique({
         where: {
             userId_checkInDate: {
                 userId,
                 checkInDate
             }
         },
-        create: {
+        include: {insights: true}
+    })) as CheckInType | null
+
+export const createCheckIn = async (
+    data: NewCheckInType,
+    checkInDate: Date
+): Promise<CheckInType> => {
+    const {userId, ...checkInData} = data
+
+    return (await Prisma.dailyCheckIn.create({
+        data: {
             ...checkInData,
             checkInDate,
-            user: {
-                connect: {
-                    id: userId
-                }
+            user: {connect: {id: userId}}
+        },
+        include: {insights: true}
+    })) as CheckInType
+}
+
+export const updateCheckIn = async (
+    userId: string,
+    checkInDate: Date,
+    data: Omit<UpdateCheckInType, 'userId'>
+): Promise<CheckInType> =>
+    (await Prisma.dailyCheckIn.update({
+        where: {
+            userId_checkInDate: {
+                userId,
+                checkInDate
             }
         },
-        update: {
-            ...checkInData,
+        data: {
+            ...data,
             updatedAt: new Date()
         },
-        include: {
-            insights: true
-        }
+        include: {insights: true}
     })) as CheckInType
-
-    return {checkIn, created: checkIn.updatedAt === null}
-}
 
 export const updateUserLastCheckIn = async (
     userId: string
@@ -65,13 +76,15 @@ export const updateUserLastCheckIn = async (
 
 export const getCheckInsForStats = async (
     userId: string
-): Promise<Pick<
-    CheckInType,
-    'moodScore' |
-    'painLevel' |
-    'activities' |
-    'checkInDate'
->[]> =>
+): Promise<
+    Pick<
+        CheckInType,
+        'moodScore' |
+        'painLevel' |
+        'activities' |
+        'checkInDate'
+    >[]
+> =>
     Prisma.dailyCheckIn.findMany({
         where: {userId},
         select: {
