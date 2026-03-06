@@ -21,10 +21,10 @@ export const updateCheckInSchema = joi
             .items(
                 joi
                     .string()
-                    .min(1)
+                    .min(0)
                     .max(100)
             )
-            .min(1),
+            .optional(),
         notes: joi
             .string()
             .max(500)
