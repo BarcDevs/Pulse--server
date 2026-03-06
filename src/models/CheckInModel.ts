@@ -93,6 +93,5 @@ export const getCheckInsForStats = async (
             activities: true,
             checkInDate: true
         },
-        orderBy: {checkInDate: 'desc'},
-        take: 30
+        orderBy: {checkInDate: 'desc'}
     })
