@@ -28,7 +28,7 @@ export const updateCheckInSchema = joi
         notes: joi
             .string()
             .max(500)
-            .allow(null)
+            .allow(null, '')
             .optional()
     })
     .min(1)

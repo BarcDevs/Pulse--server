@@ -20,12 +20,11 @@ export const newCheckInSchema =
             .array()
             .items(joi
                 .string()
-                .min(1)
                 .max(100))
-            .min(1)
             .optional(),
         notes: joi
             .string()
             .max(500)
+            .allow(null, '')
             .optional()
     })
