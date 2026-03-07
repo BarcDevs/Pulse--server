@@ -135,7 +135,7 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.user.findUnique
+                prismaMock.profile.findUnique
                     .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
                     .mockResolvedValue(null)
@@ -175,7 +175,7 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.user.findUnique
+                prismaMock.profile.findUnique
                     .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
                     .mockResolvedValue(createMockCheckIn())
@@ -385,7 +385,7 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.user.findUnique
+                prismaMock.profile.findUnique
                     .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
                     .mockResolvedValue(createMockCheckIn())
@@ -422,7 +422,7 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.user.findUnique
+                prismaMock.profile.findUnique
                     .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
                     .mockResolvedValue(null)

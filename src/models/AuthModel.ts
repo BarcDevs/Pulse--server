@@ -32,10 +32,23 @@ const getUserByEmail = async (
     return user as ServerUserType
 }
 
-const createUser = (newUser: NewUserType): Promise<ServerUserType> =>
-    Prisma.user.create({
-        data: newUser
-    }) as Promise<ServerUserType>
+const createUser = async (newUser: NewUserType): Promise<ServerUserType> => {
+    const user = await Prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+            data: newUser
+        })
+
+        await tx.profile.create({
+            data: {
+                userId: createdUser.id
+            }
+        })
+
+        return createdUser
+    })
+
+    return user as ServerUserType
+}
 
 const updateUser = (
     userId: string,
@@ -85,14 +98,15 @@ const deleteUser = (id: string): Promise<ServerUserType> =>
 const getUserTimezone = async (
     userId: string
 ): Promise<string | null> => {
-    const user = await Prisma.user.findUnique({
+    const profile = await Prisma.profile.findUnique({
         where: {
-            id: userId,
-            active: true
+            userId
         },
-        select: {timezone: true}
+        select: {
+            timezone: true
+        }
     })
-    return user?.timezone ?? null
+    return profile?.timezone ?? null
 }
 
 export {

@@ -205,11 +205,69 @@ graph TD
 | email | String | Unique |
 | username | String | Unique |
 | password | String | Hashed |
-| firstName | String | |
-| lastName | String | |
-| timezone | String | Optional, for date resolution |
+| firstName | String | Core identity |
+| lastName | String | Core identity |
+| role | Enum | USER · ADMIN |
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
+| active | Boolean | Account status |
+| deleted_at | DateTime | Optional, soft delete |
+
+### Profile
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| userId | UUID | FK → Users, 1-to-1 unique |
+| image | String | Optional, avatar URL |
+| bio | String | Optional, max 500 chars |
+| location | String | Optional, broad/regional only |
+| timezone | String | Optional, IANA timezone |
+| healthInterests | Relation | Many-to-many via ProfileHealthInterest |
+| activityPreferences | Relation | Many-to-many via ProfileActivityPreference |
+| createdAt | DateTime | Auto-created with User |
+| updatedAt | DateTime | Updated on profile changes |
+
+### HealthInterest (Master Table)
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| slug | String | Unique, URL-safe identifier |
+| name | String | Display name |
+| description | String | Optional |
+| category | String | Optional, for UI grouping |
+| sortOrder | Int | Optional, for ranking |
+| isActive | Boolean | Soft-delete flag |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
+
+### ActivityPreference (Master Table)
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| slug | String | Unique, URL-safe identifier |
+| name | String | Display name |
+| description | String | Optional |
+| category | String | Optional, for UI grouping |
+| sortOrder | Int | Optional, for ranking |
+| isActive | Boolean | Soft-delete flag |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
+
+### ProfileHealthInterest (Junction)
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| profileId | UUID | FK → Profile |
+| healthInterestId | UUID | FK → HealthInterest |
+| addedAt | DateTime | Timestamp |
+
+### ProfileActivityPreference (Junction)
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| profileId | UUID | FK → Profile |
+| activityPreferenceId | UUID | FK → ActivityPreference |
+| addedAt | DateTime | Timestamp |
 
 ### DailyCheckIn
 | Field | Type | Notes |
@@ -338,6 +396,19 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `DELETE` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Delete reply |
 | `GET` | `/api/v1/forum/tags` | Cookie | List all tags |
 | `GET` | `/api/v1/forum/votes` | Cookie + CSRF | Vote on a post or reply |
+
+### Profile *(protected)*
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/profile` | Cookie | Get user profile with interests/activities |
+| `PATCH` | `/api/v1/profile` | Cookie + CSRF | Update profile (image, bio, location, timezone) |
+| `POST` | `/api/v1/profile/health-interests` | Cookie + CSRF | Add health interests by slug |
+| `DELETE` | `/api/v1/profile/health-interests/:slug` | Cookie + CSRF | Remove health interest |
+| `POST` | `/api/v1/profile/activities` | Cookie + CSRF | Add activity preferences by slug |
+| `DELETE` | `/api/v1/profile/activities/:slug` | Cookie + CSRF | Remove activity preference |
+| `GET` | `/api/v1/profile/list/health-interests` | — | List all available health interests |
+| `GET` | `/api/v1/profile/list/activities` | — | List all available activity preferences |
 
 ---
 

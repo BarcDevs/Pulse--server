@@ -26,7 +26,11 @@ export const postInclude = (
             username: true,
             firstName: true,
             lastName: true,
-            image: true
+            profile: {
+                select: {
+                    image: true
+                }
+            }
         }
     },
 
@@ -39,7 +43,11 @@ export const postInclude = (
                     username: true,
                     firstName: true,
                     lastName: true,
-                    image: true
+                    profile: {
+                        select: {
+                            image: true
+                        }
+                    }
                 }
             }
         }

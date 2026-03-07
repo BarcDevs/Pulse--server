@@ -9,6 +9,7 @@ import {swaggerSpec} from '../../utils/swagger'
 import authRoute from '../AuthRoute'
 import checkInRoute from '../CheckInRoute'
 import forumRoute from '../ForumRoute'
+import profileRoute from '../profileRoute'
 
 declare module 'express-serve-static-core' {
     interface Request {
@@ -34,6 +35,7 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('auth'), authRoute)
     app.use(baseRoute('check-in'), checkInRoute)
     app.use(baseRoute('forum'), forumRoute)
+    app.use(baseRoute('profile'), profileRoute)
 
     app.use('*', errorHandler)
 }

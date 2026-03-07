@@ -1,8 +1,5 @@
 import type {Request, Response} from 'express'
 
-import {
-    HttpStatusCodes
-} from '../constants/httpStatusCodes'
 import {errorFactory} from '../errors/factory'
 import {
     ValidationError
@@ -15,7 +12,7 @@ import {
     updateProfileSchema
 } from '../schemas/profileSchema'
 import * as profileService from
-    '../services/profileService'
+        '../services/profileService'
 
 export const getProfile = async (
     req: Request,
@@ -26,9 +23,10 @@ export const getProfile = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
-    const profile = await profileService.getProfile(
-        userId
-    )
+    const profile =
+        await profileService.getProfile(
+            userId
+        )
 
     return successResponse(
         res,
@@ -53,10 +51,11 @@ export const updateProfile = async (
             )
         )
 
-    const profile = await profileService.updateProfile(
-        userId,
-        validatedData
-    )
+    const profile =
+        await profileService.updateProfile(
+            userId,
+            validatedData
+        )
 
     return successResponse(
         res,
@@ -86,9 +85,10 @@ export const addHealthInterests = async (
         validatedData.slugs
     )
 
-    const profile = await profileService.getProfile(
-        userId
-    )
+    const profile =
+        await profileService.getProfile(
+            userId
+        )
 
     return successResponse(
         res,
@@ -117,9 +117,10 @@ export const removeHealthInterest = async (
         validatedParams.slug
     )
 
-    const profile = await profileService.getProfile(
-        userId
-    )
+    const profile =
+        await profileService.getProfile(
+            userId
+        )
 
     return successResponse(
         res,
@@ -144,10 +145,11 @@ export const addActivityPreferences = async (
             )
         )
 
-    await profileService.addActivityPreferences(
-        userId,
-        validatedData.slugs
-    )
+    await profileService
+        .addActivityPreferences(
+            userId,
+            validatedData.slugs
+        )
 
     const profile = await profileService.getProfile(
         userId
@@ -175,14 +177,16 @@ export const removeActivityPreference = async (
             slugParamSchema.validate({slug})
         )
 
-    await profileService.removeActivityPreference(
-        userId,
-        validatedParams.slug
-    )
+    await profileService
+        .removeActivityPreference(
+            userId,
+            validatedParams.slug
+        )
 
-    const profile = await profileService.getProfile(
-        userId
-    )
+    const profile =
+        await profileService.getProfile(
+            userId
+        )
 
     return successResponse(
         res,
@@ -196,7 +200,8 @@ export const getHealthInterests = async (
     res: Response
 ) => {
     const interests =
-        await profileService.getAvailableHealthInterests()
+        await profileService
+            .getAvailableHealthInterests()
 
     return successResponse(
         res,
@@ -210,7 +215,8 @@ export const getActivityPreferences = async (
     res: Response
 ) => {
     const activities =
-        await profileService.getAvailableActivityPreferences()
+        await profileService
+            .getAvailableActivityPreferences()
 
     return successResponse(
         res,

@@ -23,13 +23,15 @@ export const getPosts = async (query?: PostQuery):
     Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
 
-    return (await Prisma.post.findMany({
-        take: query?.limit || 10,
-        skip:
-            (query?.page ? query.page - 1 : 0) *
-            (query?.limit || 10),
-        ...postQuery
-    })) as PostType[]
+    return (
+        await Prisma.post.findMany({
+            take: query?.limit || 10,
+            skip:
+                (query?.page ? query.page - 1 : 0) *
+                (query?.limit || 10),
+            ...postQuery
+        })
+    ) as unknown as PostType[]
 }
 
 export const getPostsCount = async (
@@ -123,7 +125,11 @@ export const getReply = async (
                     username: true,
                     firstName: true,
                     lastName: true,
-                    image: true
+                    profile: {
+                        select: {
+                            image: true
+                        }
+                    }
                 }
             }
         }
@@ -131,25 +137,31 @@ export const getReply = async (
 
 export const getReplies = async (postId: string):
     Promise<ReplyType[] | null> =>
-    (await Prisma.reply.findMany({
-        where: {
-            postId
-        },
-        include: {
-            author: {
-                select: {
-                    id: true,
-                    username: true,
-                    firstName: true,
-                    lastName: true,
-                    image: true
+    (
+        await Prisma.reply.findMany({
+            where: {
+                postId
+            },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        username: true,
+                        firstName: true,
+                        lastName: true,
+                        profile: {
+                            select: {
+                                image: true
+                            }
+                        }
+                    }
                 }
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
-        },
-        orderBy: {
-            createdAt: 'desc'
-        }
-    })) as ReplyType[]
+        })
+    ) as unknown as ReplyType[]
 
 export const updateReply = async (
     replyId: string,

@@ -19,15 +19,14 @@ enum InsightType {
 }
 
 model User {
-  id        String  @id() @default(uuid())
+  id        String @id() @default(uuid())
   firstName String
   lastName  String
-  username  String  @unique
-  email     String  @unique
-  image     String?
-  role      Role    @default(USER)
-  timezone  String?
+  username  String @unique
+  email     String @unique
+  role      Role   @default(USER)
 
+  profile      Profile?
   posts        Post[]
   replies      Reply[]
   followedTags Tag[]
@@ -44,6 +43,91 @@ model User {
   lastCheckInAt           DateTime?
 
   @@index([email, created_at, active])
+}
+
+model Profile {
+  id     String @id() @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  image    String?
+  bio      String?
+  location String?
+  timezone String?
+
+  healthInterests     ProfileHealthInterest[]
+  activityPreferences ProfileActivityPreference[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model HealthInterest {
+  id          String  @id() @default(uuid())
+  slug        String  @unique
+  name        String
+  description String?
+  category    String?
+  sortOrder   Int?
+  isActive    Boolean @default(true)
+
+  profiles ProfileHealthInterest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category, sortOrder])
+}
+
+model ActivityPreference {
+  id          String  @id() @default(uuid())
+  slug        String  @unique
+  name        String
+  description String?
+  category    String?
+  sortOrder   Int?
+  isActive    Boolean @default(true)
+
+  profiles ProfileActivityPreference[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category, sortOrder])
+}
+
+model ProfileHealthInterest {
+  id        String  @id() @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  healthInterestId String
+  healthInterest   HealthInterest @relation(fields: [healthInterestId], references: [id], onDelete: Cascade)
+
+  addedAt DateTime @default(now())
+
+  @@unique([profileId, healthInterestId])
+  @@index([profileId])
+  @@index([healthInterestId])
+}
+
+model ProfileActivityPreference {
+  id        String  @id() @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  activityPreferenceId String
+  activityPreference   ActivityPreference @relation(fields: [activityPreferenceId], references: [id], onDelete: Cascade)
+
+  addedAt DateTime @default(now())
+
+  @@unique([profileId, activityPreferenceId])
+  @@index([profileId])
+  @@index([activityPreferenceId])
 }
 
 model Post {

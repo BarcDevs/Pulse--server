@@ -646,3 +646,245 @@ Clears the `accessToken` cookie.
 ```
 
 **Errors:** `401` not authenticated
+
+---
+
+## Profile — `/api/v1/profile`
+
+---
+
+### `GET /`
+> Auth required
+
+Retrieve the current user's profile with interests and activities.
+
+**Response `200`**
+```json
+{
+  "message": "Profile retrieved successfully",
+  "data": {
+    "id": "profile-123",
+    "userId": "user-123",
+    "image": "https://example.com/avatar.jpg",
+    "bio": "Health recovery journey",
+    "location": "San Francisco, CA",
+    "timezone": "America/Los_Angeles",
+    "healthInterests": [
+      { "id": "hi-1", "slug": "mental-health", "name": "Mental Health", "category": "Wellness" }
+    ],
+    "activityPreferences": [
+      { "id": "ap-1", "slug": "meditation", "name": "Meditation", "category": "Mindfulness" }
+    ],
+    "createdAt": "2026-03-07T10:00:00Z",
+    "updatedAt": "2026-03-07T10:00:00Z"
+  }
+}
+```
+
+**Errors:** `401` not authenticated
+
+---
+
+### `PATCH /`
+> Auth required + CSRF token
+
+Update user profile presentation and preferences.
+
+**Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `image` | string / null | no | Avatar URL or null to clear |
+| `bio` | string / null | no | Max 500 chars, null to clear |
+| `location` | string / null | no | Broad region (no coordinates), null to clear |
+| `timezone` | string / null | no | IANA timezone (e.g., "America/New_York"), null for UTC |
+
+**Example Request**
+```json
+{
+  "bio": "Recovery advocate & meditation enthusiast",
+  "timezone": "America/Denver"
+}
+```
+
+**Response `200`**
+```json
+{
+  "message": "Profile updated successfully",
+  "data": { /* profile object */ }
+}
+```
+
+**Errors:** `400` invalid timezone · `401` not authenticated or invalid CSRF
+
+---
+
+### `POST /health-interests`
+> Auth required + CSRF token
+
+Add health interests to the user's profile.
+
+**Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `slugs` | string[] | yes | Array of interest slugs (e.g., ["mental-health", "stress-management"]) |
+
+**Example Request**
+```json
+{
+  "slugs": ["mental-health", "stress-management"]
+}
+```
+
+**Response `200`**
+```json
+{
+  "message": "Health interests added successfully",
+  "data": { /* updated profile object */ }
+}
+```
+
+**Errors:** `400` invalid slug · `401` not authenticated or invalid CSRF · `404` interest not found
+
+---
+
+### `DELETE /health-interests/:slug`
+> Auth required + CSRF token
+
+Remove a health interest from the user's profile.
+
+**Path Parameters**
+| Param | Type | Notes |
+|-------|------|-------|
+| `slug` | string | Interest slug (e.g., "mental-health") |
+
+**Response `200`**
+```json
+{
+  "message": "Health interest removed successfully",
+  "data": { /* updated profile object */ }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` interest not found
+
+---
+
+### `POST /activities`
+> Auth required + CSRF token
+
+Add activity preferences to the user's profile.
+
+**Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `slugs` | string[] | yes | Array of activity slugs (e.g., ["meditation", "yoga"]) |
+
+**Example Request**
+```json
+{
+  "slugs": ["meditation", "yoga", "walking"]
+}
+```
+
+**Response `200`**
+```json
+{
+  "message": "Activity preferences added successfully",
+  "data": { /* updated profile object */ }
+}
+```
+
+**Errors:** `400` invalid slug · `401` not authenticated or invalid CSRF · `404` activity not found
+
+---
+
+### `DELETE /activities/:slug`
+> Auth required + CSRF token
+
+Remove an activity preference from the user's profile.
+
+**Path Parameters**
+| Param | Type | Notes |
+|-------|------|-------|
+| `slug` | string | Activity slug (e.g., "meditation") |
+
+**Response `200`**
+```json
+{
+  "message": "Activity preference removed successfully",
+  "data": { /* updated profile object */ }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` activity not found
+
+---
+
+### `GET /list/health-interests`
+> No auth required
+
+List all available health interests for the platform.
+
+**Query Parameters (Optional)**
+| Param | Type | Notes |
+|-------|------|-------|
+| N/A | - | - |
+
+**Response `200`**
+```json
+{
+  "message": "10 health interests available",
+  "data": [
+    {
+      "id": "hi-1",
+      "slug": "mental-health",
+      "name": "Mental Health",
+      "category": "Wellness",
+      "sortOrder": 1,
+      "description": "Psychological wellbeing and mental health support"
+    },
+    {
+      "id": "hi-2",
+      "slug": "physical-therapy",
+      "name": "Physical Therapy",
+      "category": "Recovery",
+      "sortOrder": 2
+    }
+  ]
+}
+```
+
+**Errors:** None (always returns 200)
+
+---
+
+### `GET /list/activities`
+> No auth required
+
+List all available activity preferences for the platform.
+
+**Response `200`**
+```json
+{
+  "message": "15 activity preferences available",
+  "data": [
+    {
+      "id": "ap-1",
+      "slug": "meditation",
+      "name": "Meditation",
+      "category": "Mindfulness",
+      "sortOrder": 1,
+      "description": "Mindfulness and meditation practices"
+    },
+    {
+      "id": "ap-2",
+      "slug": "yoga",
+      "name": "Yoga",
+      "category": "Physical",
+      "sortOrder": 2
+    }
+  ]
+}
+```
+
+**Errors:** None (always returns 200)

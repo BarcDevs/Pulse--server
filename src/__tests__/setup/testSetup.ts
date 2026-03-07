@@ -56,7 +56,6 @@ export const createMockUser = (
     lastName: 'User',
     username: 'testuser',
     email: 'test@test.com',
-    image: undefined,
     role: 'USER',
     password: hashPassword('Password123!'),
     resetPasswordOTP: undefined,
