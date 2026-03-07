@@ -12,7 +12,7 @@ const errorHandler = (
     err: Error,
     _req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
 ) => {
     if (err instanceof CustomError) {
         const errorType = err.serializeErrors()
