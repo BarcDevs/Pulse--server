@@ -74,4 +74,4 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Use branches for features/fixes
 - Use conventional commit format (feat, fix, docs, style, refactor, test, chore)
 - Avoid large commits; keep them focused and atomic (every commit should have one change or fix)
-- Claude plans should instructionsnever be committed
+- Claude plans should instructions never be committed
