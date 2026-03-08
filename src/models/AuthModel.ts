@@ -4,7 +4,8 @@ import type {
 } from '../types/data/UserType'
 import Prisma from '../utils/PrismaClient'
 
-const getUserById = async (id: string): Promise<ServerUserType | null> => {
+const getUserById = async (id: string):
+    Promise<ServerUserType | null> => {
     const user = await Prisma.user.findUnique({
         where: {
             id,
@@ -32,20 +33,42 @@ const getUserByEmail = async (
     return user as ServerUserType
 }
 
-const createUser = async (newUser: NewUserType): Promise<ServerUserType> => {
-    const user = await Prisma.$transaction(async (tx) => {
-        const createdUser = await tx.user.create({
-            data: newUser
-        })
-
-        await tx.profile.create({
-            data: {
-                userId: createdUser.id
+const getUserByUsername = async (
+    username: string
+): Promise<ServerUserType | null> => {
+    const user =
+        await Prisma.user.findUnique({
+            where: {
+                username,
+                active: true
             }
         })
 
-        return createdUser
-    })
+    if (!user) return null
+
+    return user as ServerUserType
+}
+
+const createUser = async (
+    newUser: NewUserType
+): Promise<ServerUserType> => {
+    const user =
+        await Prisma.$transaction(
+            async (tx: typeof Prisma) => {
+                const createdUser =
+                    await tx.user.create({
+                        data: newUser
+                    })
+
+                await tx.profile.create({
+                    data: {
+                        userId: createdUser.id
+                    }
+                })
+
+                return createdUser
+            }
+        )
 
     return user as ServerUserType
 }
@@ -76,6 +99,21 @@ export const setUserOTP = (
             active: true
         },
         data
+    }) as Promise<ServerUserType>
+
+const updatePassword = (
+    userId: string,
+    hashedPassword: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            password: hashedPassword,
+            password_updated_at: new Date(Date.now())
+        }
     }) as Promise<ServerUserType>
 
 const disableUser = (id: string): Promise<ServerUserType> =>
@@ -115,6 +153,8 @@ export {
     disableUser,
     getUserByEmail,
     getUserById,
+    getUserByUsername,
     getUserTimezone,
+    updatePassword,
     updateUser
 }
