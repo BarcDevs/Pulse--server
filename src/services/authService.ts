@@ -18,9 +18,12 @@ import {sendEmail} from '../utils/emailSender'
 
 const csrfProtection = new Csrf()
 
-const getUser = async (by: 'email' | 'id', value: string) => {
+const getUser = async (
+    by: 'email' | 'id',
+    value: string
+) => {
     let user: ServerUserType | null
-    switch ( by ) {
+    switch (by) {
         case 'email':
             user = await authModel.getUserByEmail(value)
             break
@@ -35,12 +38,14 @@ const getUser = async (by: 'email' | 'id', value: string) => {
     return user
 }
 
-const getCookiesOptions = (remember: boolean) => ( {
-        httpOnly: true,
-        sameSite: env === 'production' ? 'none' : 'lax',
-        secure: env === 'production',
-        maxAge: remember ? ms(authConfig.expiresIn) : ms('1d')
-    } ) as CookieOptions
+const getCookiesOptions = (remember: boolean) => ({
+    httpOnly: true,
+    sameSite: env === 'production' ? 'none' : 'lax',
+    secure: env === 'production',
+    maxAge: remember ?
+        ms(authConfig.expiresIn) :
+        ms('1d')
+}) as CookieOptions
 
 const generateResetPasswordOTP = (): {
     OTP: number
@@ -48,7 +53,8 @@ const generateResetPasswordOTP = (): {
 } => {
     const OTP = Math.floor(100000 + Math.random() * 900000)
     const OTPExpiration =
-        new Date(Date.now() + ms(authConfig.otp_expiration)) // 10 minutes
+        new Date(Date.now() +
+            ms(authConfig.otp_expiration)) // 10 minutes
 
     return {
         OTP,
@@ -56,7 +62,9 @@ const generateResetPasswordOTP = (): {
     }
 }
 
-const removeResetPasswordOTP = async (userId: string): Promise<void> => {
+const removeResetPasswordOTP = async (
+    userId: string
+): Promise<void> => {
     await authModel.setUserOTP(userId, {
         resetPasswordOTP: null,
         resetPasswordExpiration: null,
@@ -70,20 +78,26 @@ const verifyResetPasswordOTP = (
     OTP: number
 ): boolean => {
     const now = new Date()
-    return now < resetPasswordExpiration && resetPasswordOTP === +OTP
+    return now < resetPasswordExpiration &&
+        resetPasswordOTP === +OTP
 }
 
-const sendEmailWithOTP = async (email: string): Promise<boolean> => {
-    const user: ServerUserType | null = await authModel.getUserByEmail(email)
+const sendEmailWithOTP = async (
+    email: string
+): Promise<boolean> => {
+    const user: ServerUserType | null =
+        await authModel.getUserByEmail(email)
 
-    if ( !user ) return false
+    if (!user) return false
 
-    const {OTP, OTPExpiration} = generateResetPasswordOTP()
+    const {OTP, OTPExpiration} =
+        generateResetPasswordOTP()
 
-    await authModel.setUserOTP(user.id, {
-        resetPasswordOTP: OTP,
-        resetPasswordExpiration: OTPExpiration
-    })
+    await authModel.setUserOTP(
+        user.id, {
+            resetPasswordOTP: OTP,
+            resetPasswordExpiration: OTPExpiration
+        })
 
     sendEmail(
         email,
@@ -95,9 +109,13 @@ const sendEmailWithOTP = async (email: string): Promise<boolean> => {
 }
 
 const createToken = (user: ServerUserType): string => {
-    const payload = { id: user.id, email: user.email }
+    const payload = {
+        id: user.id,
+        email: user.email
+    }
     const options: jwt.SignOptions = {
-        expiresIn: authConfig.expiresIn as jwt.SignOptions['expiresIn']
+        expiresIn: authConfig.expiresIn as
+            jwt.SignOptions['expiresIn']
     }
 
     return jwt.sign(payload, authConfig.jwtSecret!, options)
@@ -113,27 +131,44 @@ const generateCSRFToken = () => {
     }
 }
 
-const hashPassword = (password: string): string => bcrypt.hashSync(password, 10)
+const hashPassword = (password: string): string =>
+    bcrypt.hashSync(password, 10)
 
-const comparePassword = (password: string, hashedPassword: string): boolean =>
-    bcrypt.compareSync(password, hashedPassword)
+const comparePassword = (
+    password: string,
+    hashedPassword: string
+): boolean =>
+    bcrypt.compareSync(
+        password,
+        hashedPassword
+    )
 
-const login = async (email: string, password: string): Promise<string> => {
-    const user: ServerUserType | null = await getUser('email', email)
+const login = async (
+    email: string,
+    password: string
+): Promise<string> => {
+    const user: ServerUserType | null =
+        await getUser('email', email)
 
-    if ( !user || !comparePassword(password, user.password) ) {
+    if (!user || !comparePassword(
+        password,
+        user.password
+    )) {
         throw new AuthError('User not found!')
     }
 
     return createToken(user)
 }
 
-const register = async (newUser: NewUserType): Promise<ServerUserType> => {
-    const userExists: ServerUserType | null = await authModel.getUserByEmail(
-        newUser.email
-    )
+const register = async (
+    newUser: NewUserType
+): Promise<ServerUserType> => {
+    const userExists: ServerUserType | null =
+        await authModel.getUserByEmail(
+            newUser.email
+        )
 
-    if ( userExists )
+    if (userExists)
         throw new AuthError(
             'User already exists!',
             'email',
@@ -141,28 +176,127 @@ const register = async (newUser: NewUserType): Promise<ServerUserType> => {
             HttpStatusCodes.CONFLICT
         )
 
-    const PasswordHash = hashPassword(newUser.password)
+    const PasswordHash =
+        hashPassword(newUser.password)
 
-    const userAfterHashedPassword = { ...newUser, password: PasswordHash }
+    const userAfterHashedPassword = {
+        ...newUser,
+        password: PasswordHash
+    }
 
-    return authModel.createUser(userAfterHashedPassword)
+    return authModel.createUser(
+        userAfterHashedPassword
+    )
 }
 
 const resetPassword = async (
     userId: string,
     newPassword: string
 ): Promise<ServerUserType> =>
-    authModel.updateUser(userId, { password: hashPassword(newPassword) })
+    authModel.updateUser(userId, {
+        password: hashPassword(newPassword)
+    })
 
 const generateRandomUsername = () =>
     `user${Math.floor(Math.random() * 100000000000)}`
 
-const sanitizeUserData = (user: ServerUserType): UserType =>
+const sanitizeUserData = (
+    user: ServerUserType
+): UserType =>
     Object.fromEntries(
         Object.entries(user).filter(
-            ([key]) => !excludedUserFields.includes(key as keyof ServerUserType)
+            ([key]) => !excludedUserFields
+                .includes(key as keyof ServerUserType)
         )
     ) as UserType
+
+const updateUserData = async (
+    userId: string,
+    updates: {
+        firstName?: string
+        lastName?: string
+        username?: string
+        email?: string
+    }
+): Promise<ServerUserType> => {
+    const existingUser = await authModel
+        .getUserById(userId)
+    if (!existingUser)
+        throw new AuthError(
+            'User not found!',
+            'id',
+            'Not Found',
+            HttpStatusCodes.NOT_FOUND
+        )
+
+    if (
+        updates.email &&
+        updates.email !== existingUser.email
+    ) {
+        const emailExists = await authModel
+            .getUserByEmail(updates.email)
+        if (emailExists)
+            throw new AuthError(
+                'Email already in use!',
+                'email',
+                'Conflict',
+                HttpStatusCodes.CONFLICT
+            )
+    }
+
+    if (
+        updates.username &&
+        updates.username !== existingUser.username
+    ) {
+        const usernameExists =
+            await authModel
+                .getUserByUsername(updates.username)
+        if (usernameExists)
+            throw new AuthError(
+                'Username already taken!',
+                'username',
+                'Conflict',
+                HttpStatusCodes.CONFLICT
+            )
+    }
+
+    return authModel.updateUser(
+        userId,
+        updates
+    )
+}
+
+const updateUserPassword = async (
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+): Promise<ServerUserType> => {
+    const user = await authModel.getUserById(userId)
+
+    if (!user)
+        throw new AuthError(
+            'User not found!',
+            'id',
+            'Not Found',
+            HttpStatusCodes.NOT_FOUND
+        )
+
+    if (!comparePassword(
+        currentPassword,
+        user.password
+    ))
+        throw new AuthError(
+            'Invalid current password!',
+            'currentPassword',
+            'Unauthorized',
+            HttpStatusCodes.UNAUTHORIZED
+        )
+
+    return authModel.updatePassword(
+        userId,
+        hashPassword(newPassword)
+    )
+}
 
 export {
     comparePassword,
@@ -178,4 +312,7 @@ export {
     resetPassword,
     sanitizeUserData,
     sendEmailWithOTP,
-    verifyResetPasswordOTP}
+    updateUserData,
+    updateUserPassword,
+    verifyResetPasswordOTP
+}
