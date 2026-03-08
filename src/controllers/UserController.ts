@@ -1,0 +1,69 @@
+import type {Request, Response} from 'express'
+
+import {errorFactory} from '../errors/factory'
+import {ValidationError} from '../errors/ValidationError'
+import {successResponse} from '../responses/success'
+import {updatePasswordSchema} from '../schemas/user/updatePasswordSchema'
+import {updateUserSchema} from '../schemas/user/updateUserSchema'
+import * as authServices from '../services/authService'
+import {sanitizeUserData} from '../services/authService'
+import type {UserType} from '../types/data/UserType'
+
+export const updateUser = async (
+    req: Request,
+    res: Response
+) => {
+    const {userId} = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const validatedData = ValidationError
+        .catchValidationErrors(
+            updateUserSchema.validate(req.body)
+        )
+
+    const updatedUser =
+        await authServices.updateUserData(
+            userId,
+            validatedData
+        )
+
+    successResponse<{
+        user: UserType
+    }>(
+        res,
+        {user: sanitizeUserData(updatedUser)},
+        'User updated successfully'
+    )
+}
+
+export const updatePassword = async (
+    req: Request,
+    res: Response
+) => {
+    const {userId} = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const validatedData = ValidationError
+        .catchValidationErrors(
+            updatePasswordSchema.validate(req.body)
+        )
+
+    const updatedUser = await authServices
+        .updateUserPassword(
+            userId,
+            validatedData.currentPassword,
+            validatedData.newPassword
+        )
+
+    successResponse<{
+        user: UserType
+    }>(
+        res,
+        {user: sanitizeUserData(updatedUser)},
+        'Password updated successfully'
+    )
+}
