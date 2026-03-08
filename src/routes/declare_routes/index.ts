@@ -10,6 +10,7 @@ import authRoute from '../AuthRoute'
 import checkInRoute from '../CheckInRoute'
 import forumRoute from '../ForumRoute'
 import profileRoute from '../profileRoute'
+import userRoute from '../userRoute'
 
 declare module 'express-serve-static-core' {
     interface Request {
@@ -18,12 +19,13 @@ declare module 'express-serve-static-core' {
     }
 }
 
-const baseRoute = (route: string) => `/api/${serverConfig.apiVersion}/${route}`
+const baseRoute = (route: string) =>
+    `/api/${serverConfig.apiVersion}/${route}`
 
 export const declareRoutes = (app: Express) => {
     app.get('/api/status', getServerStatus)
 
-    if ( env !== 'production' ) {
+    if (env !== 'production') {
         app.use(
             '/api-docs',
             swagger,
@@ -36,6 +38,7 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('check-in'), checkInRoute)
     app.use(baseRoute('forum'), forumRoute)
     app.use(baseRoute('profile'), profileRoute)
+    app.use(baseRoute('users'), userRoute)
 
     app.use('*', errorHandler)
 }
