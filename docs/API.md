@@ -211,6 +211,72 @@ Clears the `accessToken` cookie.
 
 ---
 
+## Users — `/api/v1/users`
+
+---
+
+### `PATCH /me`
+> Auth + CSRF required
+
+**Body** _(all fields optional)_
+| Field       | Type   | Notes                       |
+|-------------|--------|----------------------------|
+| `firstName` | string | Min 1, max 100 chars        |
+| `lastName`  | string | Min 1, max 100 chars        |
+| `username`  | string | Min 3, max 30 alphanumeric  |
+| `email`     | string | Valid `.com` / `.net` email |
+
+**Response `200`**
+```json
+{
+  "message": "User updated successfully",
+  "data": {
+    "user": {
+      "id": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "username": "string",
+      "email": "string",
+      "role": "USER | ADMIN"
+    }
+  }
+}
+```
+
+**Errors:** `400` validation · `401` not authenticated · `409` email/username already in use
+
+---
+
+### `PATCH /password`
+> Auth + CSRF required
+
+**Body**
+| Field             | Type   | Required | Notes                        |
+|-------------------|--------|----------|------------------------------|
+| `currentPassword` | string | yes      | User's current password      |
+| `newPassword`     | string | yes      | Min 8 chars, letter + digit  |
+
+**Response `200`**
+```json
+{
+  "message": "Password updated successfully",
+  "data": {
+    "user": {
+      "id": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "username": "string",
+      "email": "string",
+      "role": "USER | ADMIN"
+    }
+  }
+}
+```
+
+**Errors:** `400` validation · `401` invalid current password or not authenticated
+
+---
+
 ## Forum — `/api/v1/forum`
 
 ---
