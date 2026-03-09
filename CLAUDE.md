@@ -10,12 +10,12 @@ MVC: Controller → Service → Model → Database
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 ## Core Principles
-- **SOLID principles** — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- **Industry standards** — Clean, readable, maintainable code
+- SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- Industry standards — Clean, readable, maintainable code
 - One concern per file
 - Never use array index as key; use the current element as an index
 - Text: never use — character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
-- Text: never break long strings to new lines.
+- Text blocks: Don't break unless really long (120–150 chars OK)
 
 ## Reading Files:
 -  Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
@@ -73,6 +73,6 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 ## Git
 - Write clear commit messages (imperative, present tense)
 - Use branches for features/fixes
-- Use conventional commit format (feat, fix, docs, style, refactor, test, chore)
+- Use conventional commit format (feat, fix, docs, style, rfc, test, chore)
 - Avoid large commits; keep them focused and atomic (every commit should have one change or fix)
 - Claude plans should instructions never be committed
