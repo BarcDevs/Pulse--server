@@ -16,6 +16,20 @@
           "name": "Signup - Valid User",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate random values for unique user creation",
+                  "const randomSuffix = Math.random().toString(36).substring(2, 10);",
+                  "pm.environment.set('randomEmail', `user.${randomSuffix}@example.com`);",
+                  "pm.environment.set('randomFirstName', `User${randomSuffix.substring(0, 4)}`);",
+                  "pm.environment.set('randomLastName', `Test${randomSuffix.substring(4)}`);",
+                  "pm.environment.set('lastCreatedEmail', `user.${randomSuffix}@example.com`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -37,6 +51,12 @@
                   "pm.test('Message is user created!', function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.message).to.equal('user created!');",
+                  "});",
+                  "",
+                  "pm.test('User has auto-generated username', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.user.username).to.exist;",
+                  "    pm.expect(jsonData.data.user.username).to.match(/^user\\d+\\d+$/);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -53,7 +73,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\n  \"firstName\": \"{{randomFirstName}}\",\n  \"lastName\": \"{{randomLastName}}\",\n  \"email\": \"{{randomEmail}}\",\n  \"password\": \"Password123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
@@ -73,6 +93,21 @@
           "name": "Signup - With Custom Username",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate random values for unique user creation",
+                  "const randomSuffix = Math.random().toString(36).substring(2, 10);",
+                  "const randomUsername = `user_${randomSuffix}`;",
+                  "pm.environment.set('randomEmail2', `user2.${randomSuffix}@example.com`);",
+                  "pm.environment.set('randomUsername', randomUsername);",
+                  "pm.environment.set('randomFirstName2', `Jane${randomSuffix.substring(0, 3)}`);",
+                  "pm.environment.set('randomLastName2', `Smith${randomSuffix.substring(3, 6)}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -82,7 +117,7 @@
                   "",
                   "pm.test('User has custom username', function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.user.username).to.equal('customuser123');",
+                  "    pm.expect(jsonData.data.user.username).to.equal(pm.environment.get('randomUsername'));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -99,7 +134,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"username\": \"customuser123\",\n  \"password\": \"Password456!\"\n}"
+              "raw": "{\n  \"firstName\": \"{{randomFirstName2}}\",\n  \"lastName\": \"{{randomLastName2}}\",\n  \"email\": \"{{randomEmail2}}\",\n  \"username\": \"{{randomUsername}}\",\n  \"password\": \"Password456!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
@@ -118,6 +153,19 @@
         {
           "name": "Signup - Duplicate Email",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Use the email from the first signup test",
+                  "const duplicateEmail = pm.environment.get('lastCreatedEmail');",
+                  "if (!duplicateEmail) {",
+                  "    console.warn('Warning: lastCreatedEmail not set. Run \"Signup - Valid User\" first.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -146,7 +194,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\n  \"firstName\": \"Another\",\n  \"lastName\": \"Person\",\n  \"email\": \"{{lastCreatedEmail}}\",\n  \"password\": \"DifferentPass123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
@@ -165,6 +213,19 @@
         {
           "name": "Signup - Duplicate Username",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Use the username from the second signup test",
+                  "const duplicateUsername = pm.environment.get('randomUsername');",
+                  "if (!duplicateUsername) {",
+                  "    console.warn('Warning: randomUsername not set. Run \"Signup - With Custom Username\" first.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -193,7 +254,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Another\",\n  \"lastName\": \"User\",\n  \"email\": \"another.user@example.com\",\n  \"username\": \"customuser123\",\n  \"password\": \"Password789!\"\n}"
+              "raw": "{\n  \"firstName\": \"TestUser\",\n  \"lastName\": \"Duplicate\",\n  \"email\": \"test.unique@example.com\",\n  \"username\": \"{{randomUsername}}\",\n  \"password\": \"Password789!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
