@@ -176,6 +176,19 @@ const register = async (
             HttpStatusCodes.CONFLICT
         )
 
+    const usernameExists =
+        await authModel.getUserByUsername(
+            newUser.username
+        )
+
+    if (usernameExists)
+        throw new AuthError(
+            'Username already taken!',
+            'username',
+            'Conflict',
+            HttpStatusCodes.CONFLICT
+        )
+
     const PasswordHash =
         hashPassword(newUser.password)
 
@@ -197,8 +210,11 @@ const resetPassword = async (
         password: hashPassword(newPassword)
     })
 
-const generateRandomUsername = () =>
-    `user${Math.floor(Math.random() * 100000000000)}`
+const generateRandomUsername = () => {
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 10000)
+    return `user${timestamp}${random}`
+}
 
 const sanitizeUserData = (
     user: ServerUserType
