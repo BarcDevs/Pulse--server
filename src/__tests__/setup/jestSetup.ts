@@ -25,6 +25,13 @@ jest.mock('../../utils/emailSender', () => ({
 // Reset mocks before each test
 beforeEach(() => {
     mockReset(prismaMock)
+
+    // Mock $transaction to execute callback with the mock
+    prismaMock.$transaction.mockImplementation(
+        async (callback) => {
+            return callback(prismaMock)
+        }
+    )
 })
 
 // Clear all mocks after each test

@@ -21,7 +21,7 @@ export const newCheckInSchema =
             .items(joi
                 .string()
                 .max(100))
-            .optional(),
+            .required(),
         notes: joi
             .string()
             .max(500)

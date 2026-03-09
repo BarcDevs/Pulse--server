@@ -25,13 +25,21 @@ const sendEmail = (
         text
     }
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            throw new Error(error.message)
-        } else {
-            console.info(`Email sent: ${info.response}`)
+    transporter.sendMail(
+        mailOptions,
+        (error, info) => {
+            if (error) {
+                console.error(
+                    'Error sending email:',
+                    error.message
+                )
+            } else {
+                console.info(
+                    `Email sent: ${info.response}`
+                )
+            }
         }
-    })
+    )
 }
 
 export {sendEmail}

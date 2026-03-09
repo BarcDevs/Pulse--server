@@ -29,7 +29,7 @@ describe('errorHandler Middleware', () => {
                 )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        message: 'There was an error',
+                        message: 'Unauthorized access!',
                         error: expect.arrayContaining([
                             expect.objectContaining({
                                 statusType: 'Authentication Error',
@@ -59,7 +59,7 @@ describe('errorHandler Middleware', () => {
                 )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        message: 'There was an error',
+                        message: 'Invalid email format',
                         error: expect.arrayContaining([
                             expect.objectContaining({
                                 statusType: 'Validation Error',
@@ -92,7 +92,7 @@ describe('errorHandler Middleware', () => {
                 )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        message: 'There was an error'
+                        message: 'Post not found!'
                     })
                 )
             }
@@ -177,7 +177,7 @@ describe('errorHandler Middleware', () => {
         })
 
         it(
-            'should call next after handling generic error',
+            'should return generic error with 500 status',
             () => {
                 const error = new Error('Generic error')
                 const req = createMockRequest() as Request
@@ -186,7 +186,14 @@ describe('errorHandler Middleware', () => {
 
                 errorHandler(error, req, res, next)
 
-                expect(next).toHaveBeenCalled()
+                expect(res.status).toHaveBeenCalledWith(
+                    HttpStatusCodes.INTERNAL_SERVER_ERROR
+                )
+                expect(res.json).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        message: 'There was an error'
+                    })
+                )
             }
         )
     })

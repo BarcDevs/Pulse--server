@@ -9,7 +9,7 @@ export const updateProfileSchema = Joi.object({
         .optional(),
     timezone: Joi.string()
         .pattern(
-            /^([A-Z]{1}[a-z]+\/[A-Z]{1}[a-z]+|UTC)$/
+            /^([A-Z][A-Za-z]+\/[A-Za-z0-9_]+|UTC)$/
         )
         .allow(null)
         .optional()

@@ -158,7 +158,7 @@ describe('Profile Routes', () => {
                     })
 
                 expect(res.status).toBe(
-                    HttpStatusCodes.BAD_REQUEST
+                    HttpStatusCodes.FORBIDDEN
                 )
             }
         )
