@@ -386,6 +386,35 @@ describe('Auth Routes', () => {
                     .toBe('User already exists!')
             }
         )
+
+        it(
+            'should return 409 for existing username',
+            async () => {
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce(
+                        createMockUser(
+                            {username: 'existinguser'}
+                        )
+                    )
+
+                const response = await supertest(App)
+                    .post(signupEndpoint)
+                    .send({
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'new@test.com',
+                        username: 'existinguser',
+                        password: 'Password123!'
+                    })
+
+                expect(response.status).toBe(409)
+                expect(response.body.error[0].statusType)
+                    .toBe('Conflict')
+                expect(response.body.error[0].error)
+                    .toBe('Username already taken!')
+            }
+        )
     })
 
     // ==================== LOGOUT ====================
