@@ -13,8 +13,11 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 - Industry standards — Clean, readable, maintainable code
 - One concern per file
+- Provide a full file edit instead of one edit at a time
+
+### Code Style
 - Never use array index as key; use the current element as an index
-- Text: never use — character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
+- Text: never use the `—` character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
 - Time values: Always use `src/constants/time.ts` (minuteInMs, hourInMs, etc.) instead of hardcoding milliseconds
 - Text blocks: Don't break unless really long (120–150 chars OK)
 
