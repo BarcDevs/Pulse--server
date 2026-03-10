@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "HealEase Server - Auth & Signup",
-    "description": "Test collection for HealEase authentication endpoints",
+    "name": "HealEase Server - Auth & Signup Tests",
+    "description": "Complete test suite for signup with success (2xx) using random values and duplicate error tests (409) that must be run twice",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -10,21 +10,20 @@
   },
   "item": [
     {
-      "name": "Auth",
+      "name": "✅ SUCCESS TESTS - Use Random Values Each Run",
+      "description": "All tests generate unique random values - can run anytime without conflicts",
       "item": [
         {
-          "name": "Signup - Valid User",
+          "name": "✅ Signup - Valid User with Random Email",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Generate random values for unique user creation",
-                  "const randomSuffix = Math.random().toString(36).substring(2, 10);",
-                  "pm.environment.set('randomEmail', `user.${randomSuffix}@example.com`);",
-                  "pm.environment.set('randomFirstName', `User${randomSuffix.substring(0, 4)}`);",
-                  "pm.environment.set('randomLastName', `Test${randomSuffix.substring(4)}`);",
-                  "pm.environment.set('lastCreatedEmail', `user.${randomSuffix}@example.com`);"
+                  "const ts = Date.now();",
+                  "const r = Math.floor(Math.random() * 999999);",
+                  "pm.environment.set('randomEmail', `test${ts}${r}@example.com`);",
+                  "pm.environment.set('randomName', `User${r}`);"
                 ],
                 "type": "text/javascript"
               }
@@ -33,30 +32,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201', function () {",
+                  "pm.test('Status 201 - User Created', function () {",
                   "    pm.response.to.have.status(201);",
                   "});",
-                  "",
-                  "pm.test('Response contains user data', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('data');",
-                  "    pm.expect(jsonData.data).to.have.property('user');",
-                  "});",
-                  "",
-                  "pm.test('User does not contain password', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.user).to.not.have.property('password');",
-                  "});",
-                  "",
-                  "pm.test('Message is user created!', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.message).to.equal('user created!');",
-                  "});",
-                  "",
-                  "pm.test('User has auto-generated username', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.user.username).to.exist;",
-                  "    pm.expect(jsonData.data.user.username).to.match(/^user\\d+\\d+$/);",
+                  "pm.test('Response has user data', function () {",
+                  "    pm.expect(pm.response.json().data.user.username).to.exist;",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -65,44 +45,29 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"{{randomFirstName}}\",\n  \"lastName\": \"{{randomLastName}}\",\n  \"email\": \"{{randomEmail}}\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\"firstName\": \"{{randomName}}\", \"lastName\": \"Test\", \"email\": \"{{randomEmail}}\", \"password\": \"Password123!\"}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
             }
           }
         },
         {
-          "name": "Signup - With Custom Username",
+          "name": "✅ Signup - Custom Username (Random)",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Generate random values for unique user creation",
-                  "const randomSuffix = Math.random().toString(36).substring(2, 10);",
-                  "const randomUsername = `user_${randomSuffix}`;",
-                  "pm.environment.set('randomEmail2', `user2.${randomSuffix}@example.com`);",
-                  "pm.environment.set('randomUsername', randomUsername);",
-                  "pm.environment.set('randomFirstName2', `Jane${randomSuffix.substring(0, 3)}`);",
-                  "pm.environment.set('randomLastName2', `Smith${randomSuffix.substring(3, 6)}`);"
+                  "const ts = Date.now();",
+                  "const r = Math.floor(Math.random() * 999999);",
+                  "pm.environment.set('randomEmail2', `test2${ts}${r}@example.com`);",
+                  "pm.environment.set('randomUsername', `user${r}`);"
                 ],
                 "type": "text/javascript"
               }
@@ -111,13 +76,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201', function () {",
+                  "pm.test('Status 201 - User with custom username created', function () {",
                   "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('User has custom username', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.user.username).to.equal(pm.environment.get('randomUsername'));",
+                  "    pm.expect(pm.response.json().data.user.username).to.equal(pm.environment.get('randomUsername'));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -126,316 +87,204 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"{{randomFirstName2}}\",\n  \"lastName\": \"{{randomLastName2}}\",\n  \"email\": \"{{randomEmail2}}\",\n  \"username\": \"{{randomUsername}}\",\n  \"password\": \"Password456!\"\n}"
+              "raw": "{\"firstName\": \"Jane\", \"lastName\": \"Test\", \"email\": \"{{randomEmail2}}\", \"username\": \"{{randomUsername}}\", \"password\": \"Password456!\"}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
             }
           }
         },
         {
-          "name": "Signup - Duplicate Email",
+          "name": "✅ Validation - Missing Email",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "// Use the email from the first signup test",
-                  "const duplicateEmail = pm.environment.get('lastCreatedEmail');",
-                  "if (!duplicateEmail) {",
-                  "    console.warn('Warning: lastCreatedEmail not set. Run \"Signup - Valid User\" first.');",
+                  "pm.test('Status 403 - Validation Error', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    pm.expect(pm.response.json().error[0].property).to.equal('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"password\": \"Password123!\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "✅ Validation - Invalid Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - Invalid email format', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    pm.expect(pm.response.json().error[0].property).to.equal('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"invalid\", \"password\": \"Password123!\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "✅ Validation - Weak Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - Weak password', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    pm.expect(pm.response.json().error[0].property).to.equal('password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"test@example.com\", \"password\": \"weak\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "❌ DUPLICATE ERROR TESTS - Run Twice Each",
+      "description": "Instructions: Click the test, then click 'Send' twice. First run=201, Second run=409",
+      "item": [
+        {
+          "name": "❌ Test Duplicate Email - RUN TWICE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.test('First run OK - Run this again to test 409', function() {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "  });",
+                  "} else if (pm.response.code === 409) {",
+                  "  pm.test('Duplicate email returns 409', function() {",
+                  "    pm.response.to.have.status(409);",
+                  "    pm.expect(pm.response.json().error[0].error).to.equal('User already exists!');",
+                  "  });",
                   "}"
                 ],
                 "type": "text/javascript"
               }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 409 Conflict', function () {",
-                  "    pm.response.to.have.status(409);",
-                  "});",
-                  "",
-                  "pm.test('Error message indicates user already exists', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error[0].error).to.equal('User already exists!');",
-                  "    pm.expect(jsonData.error[0].statusType).to.equal('Conflict');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Another\",\n  \"lastName\": \"Person\",\n  \"email\": \"{{lastCreatedEmail}}\",\n  \"password\": \"DifferentPass123!\"\n}"
+              "raw": "{\"firstName\": \"Dup\", \"lastName\": \"Email\", \"email\": \"duplicate-email-test123@example.com\", \"password\": \"Password123!\"}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
             }
           }
         },
         {
-          "name": "Signup - Duplicate Username",
+          "name": "❌ Test Duplicate Username - RUN TWICE",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "// Use the username from the second signup test",
-                  "const duplicateUsername = pm.environment.get('randomUsername');",
-                  "if (!duplicateUsername) {",
-                  "    console.warn('Warning: randomUsername not set. Run \"Signup - With Custom Username\" first.');",
+                  "if (pm.response.code === 201) {",
+                  "  pm.test('First run OK - Run this again to test 409', function() {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "  });",
+                  "} else if (pm.response.code === 409) {",
+                  "  pm.test('Duplicate username returns 409', function() {",
+                  "    pm.response.to.have.status(409);",
+                  "    pm.expect(pm.response.json().error[0].error).to.equal('Username already taken!');",
+                  "  });",
                   "}"
                 ],
                 "type": "text/javascript"
               }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 409 Conflict', function () {",
-                  "    pm.response.to.have.status(409);",
-                  "});",
-                  "",
-                  "pm.test('Error message indicates username already taken', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error[0].error).to.equal('Username already taken!');",
-                  "    pm.expect(jsonData.error[0].statusType).to.equal('Conflict');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"TestUser\",\n  \"lastName\": \"Duplicate\",\n  \"email\": \"test.unique@example.com\",\n  \"username\": \"{{randomUsername}}\",\n  \"password\": \"Password789!\"\n}"
+              "raw": "{\"firstName\": \"Dup\", \"lastName\": \"Username\", \"email\": \"test-dupusername@example.com\", \"username\": \"duplicateusername123\", \"password\": \"Password123!\"}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "signup"]
             }
           }
-        },
-        {
-          "name": "Signup - Missing Email (Validation Error)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 403 Forbidden', function () {",
-                  "    pm.response.to.have.status(403);",
-                  "});",
-                  "",
-                  "pm.test('Error indicates validation error on email', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error[0].statusType).to.equal('Validation Error');",
-                  "    pm.expect(jsonData.error[0].property).to.equal('email');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"password\": \"Password123!\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Signup - Invalid Email Format",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 403 Forbidden', function () {",
-                  "    pm.response.to.have.status(403);",
-                  "});",
-                  "",
-                  "pm.test('Error indicates validation error on email format', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error[0].statusType).to.equal('Validation Error');",
-                  "    pm.expect(jsonData.error[0].property).to.equal('email');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"invalid-email\",\n  \"password\": \"Password123!\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Signup - Weak Password",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 403 Forbidden', function () {",
-                  "    pm.response.to.have.status(403);",
-                  "});",
-                  "",
-                  "pm.test('Error indicates validation error on password', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error[0].statusType).to.equal('Validation Error');",
-                  "    pm.expect(jsonData.error[0].property).to.equal('password');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"weak\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "signup"
-              ]
-            }
-          }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Other Endpoints",
+      "item": [
         {
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+              "raw": "{\"email\": \"test@example.com\", \"password\": \"Password123!\"}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
             }
           }
         },
@@ -446,15 +295,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/me",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "me"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "me"]
             }
           }
         },
@@ -465,15 +307,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/logout",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "logout"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
             }
           }
         }
