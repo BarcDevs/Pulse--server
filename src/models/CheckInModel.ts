@@ -7,7 +7,7 @@ import Prisma from '../utils/PrismaClient'
 
 export const getCheckIns = async (
     userId: string,
-    limit = 10
+    limit = 30
 ): Promise<CheckInType[]> =>
     (await Prisma.dailyCheckIn.findMany({
         where: {userId},
