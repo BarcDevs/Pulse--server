@@ -6,7 +6,7 @@ import Prisma from '../utils/PrismaClient'
 
 const getUserById = async (id: string):
     Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findUnique({
+    const user = await Prisma.user.findFirst({
         where: {
             id,
             active: true
@@ -21,7 +21,7 @@ const getUserById = async (id: string):
 const getUserByEmail = async (
     email: string
 ): Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findUnique({
+    const user = await Prisma.user.findFirst({
         where: {
             email,
             active: true
@@ -37,7 +37,7 @@ const getUserByUsername = async (
     username: string
 ): Promise<ServerUserType | null> => {
     const user =
-        await Prisma.user.findUnique({
+        await Prisma.user.findFirst({
             where: {
                 username,
                 active: true
@@ -133,6 +133,20 @@ const deleteUser = (id: string): Promise<ServerUserType> =>
         }
     }) as Promise<ServerUserType>
 
+const linkGoogleId = (
+    userId: string,
+    googleId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            googleId
+        }
+    }) as Promise<ServerUserType>
+
 const getUserTimezone = async (
     userId: string
 ): Promise<string | null> => {
@@ -155,6 +169,7 @@ export {
     getUserById,
     getUserByUsername,
     getUserTimezone,
+    linkGoogleId,
     updatePassword,
     updateUser
 }

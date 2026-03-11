@@ -25,7 +25,7 @@ const errorHandler = (
 
     type ErrorType = typeof err.message
     const response: ResponseType<ErrorType> = {
-        message: 'There was an error',
+        message: 'Something went wrong',
         error: err.message
     }
 
