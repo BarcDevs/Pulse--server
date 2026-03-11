@@ -85,6 +85,32 @@ Sets `accessToken` and `_csrf` cookies.
 
 ---
 
+### `GET /google`
+> No auth required
+
+Initiates the Google OAuth sign-in flow. Generates a state parameter, stores it in an httpOnly cookie (10-minute expiry), and redirects to Google's authorization page.
+
+**Response `302`** - Redirects to Google OAuth consent screen
+
+---
+
+### `GET /google/callback`
+> No auth required - Called by Google after user authorization
+
+Validates the state parameter against the stored cookie, exchanges the authorization code for tokens, finds or creates the user account, and sets auth cookies.
+
+**Query Parameters**
+| Param   | Type   | Notes                              |
+|---------|--------|------------------------------------|
+| `code`  | string | Authorization code from Google     |
+| `state` | string | State parameter for CSRF protection |
+
+**Response `302`** - Redirects to `CLIENT_URL` with `accessToken` and `_csrf` cookies set
+
+**Errors:** `401` invalid state, missing code, unverified email, or authentication failure
+
+---
+
 ### `GET /csrf`
 > Auth required
 
