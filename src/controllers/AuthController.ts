@@ -1,7 +1,15 @@
+import crypto from 'crypto'
 import type {Request, Response} from 'express'
 
-import {isDev} from '../../config'
+import {
+    googleOAuthConfig,
+    isDev
+} from '../../config'
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import {
+    hourInMs,
+    minuteInMs
+} from '../constants/time'
 import {errorFactory} from '../errors/factory'
 import {ValidationError} from '../errors/ValidationError'
 import {successResponse} from '../responses/success'
@@ -19,6 +27,7 @@ import {
     sendEmailWithOTP,
     verifyResetPasswordOTP
 } from '../services/authService'
+import * as googleOAuthService from '../services/googleOAuthService'
 import type {
     ServerUserType,
     UserType
@@ -250,5 +259,78 @@ export const resetPassword = async (
         {user: sanitizeUserData(user)},
         'Password has changed successfully!'
     )
+}
+// endregion
+
+// region Google OAuth
+export const googleSignIn = async (
+    _req: Request,
+    res: Response
+) => {
+    const state = crypto
+        .randomBytes(32)
+        .toString('hex')
+
+    res.cookie('oauth_state', state, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: !isDev,
+        maxAge: 10 * minuteInMs
+    })
+
+    const authUrl =
+        googleOAuthService.buildAuthUrl(state)
+
+    res.redirect(authUrl)
+}
+
+export const googleCallback = async (
+    req: Request,
+    res: Response
+) => {
+    const {code, state} = req.query
+    const storedState = req.cookies?.oauth_state
+
+    res.clearCookie('oauth_state')
+
+    if (
+        !state ||
+        !storedState ||
+        state !== storedState
+    )
+        throw errorFactory.auth.unauthorized(
+            'Invalid OAuth state'
+        )
+
+    if (!code || typeof code !== 'string')
+        throw errorFactory.auth.unauthorized(
+            'Failed to authenticate with Google'
+        )
+
+    const user =
+        await googleOAuthService.handleCallback(
+            code
+        )
+
+    const token = authServices.createToken(user)
+    const {
+        csrfSecret,
+        csrfToken: _csrf
+    } = generateCSRFToken()
+
+    const cookiesOptions =
+        getCookiesOptions(false)
+
+    res.cookie(
+        'accessToken',
+        token,
+        cookiesOptions
+    )
+    res.cookie('_csrf', csrfSecret, {
+        ...cookiesOptions,
+        maxAge: hourInMs
+    })
+
+    res.redirect(googleOAuthConfig.clientUrl)
 }
 // endregion

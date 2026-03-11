@@ -4,6 +4,8 @@ import {
     confirmEmail,
     forgotPassword,
     getCsrfToken,
+    googleCallback,
+    googleSignIn,
     login,
     logout,
     me,
@@ -125,6 +127,53 @@ router.route('/login').post(login)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/signup').post(signup)
+
+/**
+ * @swagger
+ * /api/v1/auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth sign-in flow
+ *     description: Generates a state parameter, stores it in an httpOnly cookie, and redirects the user to Google's authorization page.
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirects to Google OAuth consent screen
+ */
+router.route('/google').get(googleSignIn)
+
+/**
+ * @swagger
+ * /api/v1/auth/google/callback:
+ *   get:
+ *     summary: Handle Google OAuth callback
+ *     description: Validates the state parameter, exchanges the authorization code for tokens, finds or creates the user, sets auth cookies, and redirects to the client application.
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Authorization code from Google
+ *       - in: query
+ *         name: state
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: State parameter for CSRF protection
+ *     responses:
+ *       302:
+ *         description: Redirects to CLIENT_URL with accessToken and _csrf cookies set
+ *       401:
+ *         description: Invalid state, missing code, unverified email, or authentication failure
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/google/callback')
+    .get(googleCallback)
 
 /**
  * @swagger
