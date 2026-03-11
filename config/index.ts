@@ -10,7 +10,7 @@ import type {
 } from '../src/types/ConfigType'
 
 const env: EnvConfig = config.get<EnvConfig>('env')
-const isDev = env === 'development'
+const isDev = (env as string) === 'development'
 
 const serverConfig: ServerConfig = {
     url: config.get<string>('server.url'),
