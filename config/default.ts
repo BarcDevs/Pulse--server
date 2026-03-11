@@ -26,6 +26,12 @@ export default {
         secure: false,
         emailUser: 'EMAIL_USER',
         emailPass: 'EMAIL_PASS'
+    },
+    googleOAuth: {
+        clientId: '',
+        clientSecret: '',
+        redirectUri: 'http://localhost:4000/api/v1/auth/google/callback',
+        clientUrl: 'http://localhost:5173'
     }
 }
 

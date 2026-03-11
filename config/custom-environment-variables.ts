@@ -12,5 +12,11 @@ export default {
     email: {
         user: 'EMAIL_USER',
         password: 'EMAIL_PASSWORD'
+    },
+    googleOAuth: {
+        clientId: 'GOOGLE_CLIENT_ID',
+        clientSecret: 'GOOGLE_CLIENT_SECRET',
+        redirectUri: 'GOOGLE_REDIRECT_URI',
+        clientUrl: 'CLIENT_URL'
     }
 }

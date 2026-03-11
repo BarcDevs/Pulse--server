@@ -6,6 +6,7 @@ import type {
     DatabaseConfig,
     EmailConfig,
     EnvConfig,
+    GoogleOAuthConfig,
     ServerConfig
 } from '../src/types/ConfigType'
 
@@ -44,12 +45,28 @@ const emailConfig: EmailConfig = {
     emailPass: config.get<string>('email.emailPass')
 }
 
+const googleOAuthConfig: GoogleOAuthConfig = {
+    clientId: config.get<string>(
+        'googleOAuth.clientId'
+    ),
+    clientSecret: config.get<string>(
+        'googleOAuth.clientSecret'
+    ),
+    redirectUri: config.get<string>(
+        'googleOAuth.redirectUri'
+    ),
+    clientUrl: config.get<string>(
+        'googleOAuth.clientUrl'
+    )
+}
+
 export {
     appConfig,
     authConfig,
     databaseConfig,
     emailConfig,
     env,
+    googleOAuthConfig,
     isDev,
     serverConfig
 }

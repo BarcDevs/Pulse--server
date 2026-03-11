@@ -32,10 +32,19 @@ type AuthConfig = {
     otp_expiration: number
 }
 
+type GoogleOAuthConfig = {
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+    clientUrl: string
+}
+
 export type {
     AppConfig,
     AuthConfig,
     DatabaseConfig,
     EmailConfig,
     EnvConfig,
-    ServerConfig}
+    GoogleOAuthConfig,
+    ServerConfig
+}
