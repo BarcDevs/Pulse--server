@@ -177,7 +177,7 @@ const resolveDate = async (
 
 export const createCheckIn = async (
     data: NewCheckInType
-): Promise<CheckInType> => {
+): Promise<{checkIn: CheckInType; created: boolean}> => {
     const checkInDate = await resolveDate(data.userId)
     const timezone = await authModel
         .getUserTimezone(data.userId)
@@ -188,10 +188,17 @@ export const createCheckIn = async (
     const existing = await checkInModel
         .findTodayCheckIn(data.userId, checkInDate)
 
-    if (existing)
-        throw errorFactory.generic.conflict(
-            "Today's check-in"
-        )
+    if (existing) {
+        const {userId, ...updateData} = data
+        const checkIn = await checkInModel
+            .updateCheckIn(
+                userId,
+                checkInDate,
+                updateData,
+                createdAt
+            )
+        return {checkIn, created: false}
+    }
 
     try {
         const checkIn = await checkInModel
@@ -204,7 +211,7 @@ export const createCheckIn = async (
         await checkInModel
             .updateUserLastCheckIn(data.userId)
 
-        return checkIn
+        return {checkIn, created: true}
     } catch (err) {
         if (
             err instanceof

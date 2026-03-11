@@ -53,16 +53,23 @@ export const createCheckIn = async (
             newCheckInSchema.validate(req.body)
         )
 
-    const data = await checkInService.createCheckIn({
+    const {
+        checkIn,
+        created
+    } = await checkInService.createCheckIn({
         ...validatedData,
         userId
     })
 
     return successResponse<CheckInType>(
         res,
-        data,
-        'Check-in created successfully',
-        HttpStatusCodes.CREATED
+        checkIn,
+        created ?
+            'Check-in created successfully' :
+            'Check-in updated successfully',
+        created ?
+            HttpStatusCodes.CREATED :
+            HttpStatusCodes.OK
     )
 }
 

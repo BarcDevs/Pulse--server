@@ -51,10 +51,11 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *   post:
- *     summary: Create today's check-in
+ *     summary: Create or update today's check-in
  *     description: >
  *       Creates a new check-in for today (based on the user's timezone).
- *       Returns 409 if a check-in already exists for today - use PATCH to update it.
+ *       If a check-in already exists for today, updates it instead (idempotent).
+ *       Returns 201 if created, 200 if updated.
  *     tags: [Check-In]
  *     security:
  *       - cookieAuth: []
@@ -93,14 +94,19 @@ const router = Router()
  *                   type: string
  *                 data:
  *                   $ref: '#/components/schemas/CheckIn'
- *       401:
- *         description: Not authenticated or invalid CSRF token
+ *       200:
+ *         description: Check-in updated successfully (already existed for today)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: A check-in already exists for today - use PATCH to update it
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CheckIn'
+ *       401:
+ *         description: Not authenticated or invalid CSRF token
  *         content:
  *           application/json:
  *             schema:
