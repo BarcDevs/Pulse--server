@@ -1,6 +1,6 @@
 import winston from 'winston'
 
-import {env} from '../../config'
+import {isDev} from '../../config'
 
 const consoleFormat = winston.format.combine(
     winston.format.colorize(),
@@ -21,7 +21,7 @@ const transports: winston.transport[] = [
     })
 ]
 
-if (env === 'development') {
+if (isDev) {
     transports.push(
         new winston.transports.Console({
             format: consoleFormat

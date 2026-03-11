@@ -2,7 +2,7 @@ import {Pool} from 'pg'
 
 import {PrismaPg} from '@prisma/adapter-pg'
 
-import {databaseConfig, env} from '../../config'
+import {databaseConfig, isDev} from '../../config'
 import {
     Prisma as PrismaNamespace,
     PrismaClient
@@ -23,7 +23,7 @@ export const getPrismaClient = (): PrismaClient => {
             adapter,
             errorFormat: 'minimal',
             log:
-                env === 'development'
+                isDev
                     ? ['query', 'info', 'warn', 'error']
                     : undefined
         })

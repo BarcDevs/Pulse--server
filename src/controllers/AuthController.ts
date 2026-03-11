@@ -1,6 +1,6 @@
 import type {Request, Response} from 'express'
 
-import {env} from '../../config'
+import {isDev} from '../../config'
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {errorFactory} from '../errors/factory'
 import {ValidationError} from '../errors/ValidationError'
@@ -167,7 +167,7 @@ export const forgotPassword = async (
 
     const otpCode = await sendEmailWithOTP(email)
 
-    const OTP = (env as string) === 'development' ? otpCode : null
+    const OTP = isDev ? otpCode : null
 
     successResponse(
         res,

@@ -1,9 +1,9 @@
 import 'dotenv/config'
-import { Pool } from 'pg'
+import {Pool} from 'pg'
 
-import { PrismaPg } from '@prisma/adapter-pg'
+import {PrismaPg} from '@prisma/adapter-pg'
 
-import { databaseConfig, env } from '../config'
+import {databaseConfig, isDev} from '../config'
 
 import {
     PrismaClient
@@ -11,14 +11,14 @@ import {
 
 const connectionString = databaseConfig.url
 
-const pool = new Pool({ connectionString })
+const pool = new Pool({connectionString})
 const adapter = new PrismaPg(pool)
 
 const prisma = new PrismaClient({
     adapter,
     errorFormat: 'minimal',
     log:
-        env === 'development'
+        isDev
             ? ['query', 'info', 'warn', 'error']
             : undefined
 })

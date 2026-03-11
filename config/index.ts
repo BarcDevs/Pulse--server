@@ -10,6 +10,7 @@ import type {
 } from '../src/types/ConfigType'
 
 const env: EnvConfig = config.get<EnvConfig>('env')
+const isDev = env === 'development'
 
 const serverConfig: ServerConfig = {
     url: config.get<string>('server.url'),
@@ -49,5 +50,6 @@ export {
     databaseConfig,
     emailConfig,
     env,
+    isDev,
     serverConfig
 }

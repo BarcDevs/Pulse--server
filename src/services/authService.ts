@@ -4,7 +4,7 @@ import type {CookieOptions} from 'express'
 import jwt from 'jsonwebtoken'
 import ms from 'ms'
 
-import {authConfig, env} from '../../config'
+import {authConfig, isDev} from '../../config'
 import {excludedUserFields} from '../constants/excludedUserFields'
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {AuthError} from '../errors/AuthError'
@@ -40,8 +40,8 @@ const getUser = async (
 
 const getCookiesOptions = (remember: boolean) => ({
     httpOnly: true,
-    sameSite: env === 'production' ? 'none' : 'lax',
-    secure: env === 'production',
+    sameSite: !isDev ? 'none' : 'lax',
+    secure: !isDev,
     maxAge: remember ?
         ms(authConfig.expiresIn) :
         ms('1d')
