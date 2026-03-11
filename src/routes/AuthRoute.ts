@@ -128,6 +128,58 @@ router.route('/signup').post(signup)
 
 /**
  * @swagger
+ * /api/v1/auth/confirm-email:
+ *   post:
+ *     summary: Verify OTP to confirm ownership of the email address
+ *     tags: [Auth]
+ *     security:
+ *       - csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, OTP]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               OTP:
+ *                 type: integer
+ *                 description: One-time password received via email
+ *     responses:
+ *       201:
+ *         description: Email confirmed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/confirm-email')
+    .post(
+        extractCsrfToken,
+        csrfMiddleware,
+        confirmEmail
+    )
+
+/**
+ * @swagger
  * /api/v1/auth/csrf:
  *   get:
  *     summary: Generate a new CSRF token
@@ -261,58 +313,6 @@ router.route('/me').get(
 router
     .route('/forgot-password/:email')
     .get(forgotPassword)
-
-/**
- * @swagger
- * /api/v1/auth/confirm-email:
- *   post:
- *     summary: Verify OTP to confirm ownership of the email address
- *     tags: [Auth]
- *     security:
- *       - csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, OTP]
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               OTP:
- *                 type: integer
- *                 description: One-time password received via email
- *     responses:
- *       201:
- *         description: Email confirmed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *       400:
- *         description: Invalid or expired OTP
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router
-    .route('/confirm-email')
-    .post(
-        extractCsrfToken,
-        csrfMiddleware,
-        confirmEmail
-    )
 
 /**
  * @swagger
