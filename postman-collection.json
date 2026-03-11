@@ -311,6 +311,44 @@
               "path": ["api", "v1", "auth", "logout"]
             }
           }
+        },
+        {
+          "name": "Google Sign-In - Initiate",
+          "description": "Redirects to Google OAuth consent screen. Sets oauth_state cookie for CSRF protection.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google"]
+            }
+          }
+        },
+        {
+          "name": "Google Sign-In - Callback (Test Only)",
+          "description": "This is for reference only. In production, Google redirects here with code & state. Postman cannot test browser redirects directly.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google/callback?code=invalid_code&state=invalid_state",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "invalid_code",
+                  "description": "Authorization code from Google (invalid for testing)"
+                },
+                {
+                  "key": "state",
+                  "value": "invalid_state",
+                  "description": "CSRF state parameter (must match stored cookie)"
+                }
+              ]
+            }
+          }
         }
       ]
     }
