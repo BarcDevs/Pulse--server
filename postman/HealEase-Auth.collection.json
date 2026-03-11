@@ -56,6 +56,18 @@
             "name": "Signup",
             "event": [
                 {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const ts = Date.now()",
+                            "const r = Math.floor(Math.random() * 999999)",
+                            "pm.environment.set('signupEmail', `signup${ts}${r}@example.com`)",
+                            "pm.environment.set('signupUsername', `user${r}`)"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
                     "listen": "test",
                     "script": {
                         "exec": [
@@ -69,6 +81,7 @@
                             "    pm.expect(json.data).to.have.property('user')",
                             "    pm.expect(json.data.user).to.have.property('id')",
                             "    pm.expect(json.data.user).to.have.property('email')",
+                            "    pm.environment.set('signupUserId', json.data.user.id)",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -82,7 +95,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"username\": \"testuser\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"testuser123\"\n}"
+                    "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"username\": \"{{signupUsername}}\",\n    \"email\": \"{{signupEmail}}\",\n    \"password\": \"TestUser123\"\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/v1/auth/signup",
@@ -168,6 +181,14 @@
                             "pm.test('Returns success message', () => {",
                             "    const json = pm.response.json()",
                             "    pm.expect(json).to.have.property('message')",
+                            "})",
+                            "",
+                            "pm.test('Captures OTP from response (dev mode)', () => {",
+                            "    const json = pm.response.json()",
+                            "    if (json.data && json.data.OTP) {",
+                            "        pm.environment.set('otp', json.data.OTP)",
+                            "        pm.expect(json.data.OTP).to.be.a('number')",
+                            "    }",
                             "})"
                         ],
                         "type": "text/javascript"

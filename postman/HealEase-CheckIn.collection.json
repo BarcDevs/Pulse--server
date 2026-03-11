@@ -76,17 +76,17 @@
             }
         },
         {
-            "name": "Create Check-In",
+            "name": "Create Check-In (or Update if exists)",
             "event": [
                 {
                     "listen": "test",
                     "script": {
                         "exec": [
-                            "pm.test('Status 201', () => {",
-                            "    pm.response.to.have.status(201)",
+                            "pm.test('Status is 201 (created) or 200 (updated)', () => {",
+                            "    pm.expect([200, 201]).to.include(pm.response.code)",
                             "})",
                             "",
-                            "pm.test('Returns created check-in', () => {",
+                            "pm.test('Returns check-in data', () => {",
                             "    const { data } = pm.response.json()",
                             "    pm.expect(data).to.have.property('id')",
                             "    pm.expect(data).to.have.property('userId')",
@@ -98,9 +98,9 @@
                             "    pm.environment.set('checkInId', data.id)",
                             "})",
                             "",
-                            "pm.test('updatedAt is null on first create', () => {",
-                            "    const { data } = pm.response.json()",
-                            "    pm.expect(data.updatedAt).to.be.null",
+                            "pm.test('Message indicates create or update', () => {",
+                            "    const json = pm.response.json()",
+                            "    pm.expect(json.message.toLowerCase()).to.match(/created|updated/)",
                             "})",
                             "",
                             "pm.test('moodScore is within range', () => {",
@@ -135,19 +135,25 @@
             }
         },
         {
-            "name": "Create Check-In Again (expect 409)",
+            "name": "Create Check-In Again (Idempotent - Falls Back to Update)",
             "event": [
                 {
                     "listen": "test",
                     "script": {
                         "exec": [
-                            "pm.test('Status 409 - already exists today', () => {",
-                            "    pm.response.to.have.status(409)",
+                            "pm.test('Status 200 - Check-in updated (not created)', () => {",
+                            "    pm.response.to.have.status(200)",
                             "})",
                             "",
-                            "pm.test('Returns conflict error message', () => {",
+                            "pm.test('Message indicates update', () => {",
                             "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('error')",
+                            "    pm.expect(json.message).to.include('updated')",
+                            "})",
+                            "",
+                            "pm.test('updatedAt is set after update', () => {",
+                            "    const { data } = pm.response.json()",
+                            "    pm.expect(data.updatedAt).to.be.a('string')",
+                            "    pm.expect(data.updatedAt).to.not.be.null",
                             "})"
                         ],
                         "type": "text/javascript"
@@ -162,7 +168,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n    \"moodScore\": 5,\n    \"painLevel\": 5,\n    \"activities\": [\"yoga\"]\n}"
+                    "raw": "{\n    \"moodScore\": 7,\n    \"painLevel\": 3,\n    \"activities\": [\"walking\", \"stretching\"],\n    \"notes\": \"Feeling better today, did a short walk in the morning.\"\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/v1/check-in",
@@ -224,7 +230,7 @@
             }
         },
         {
-            "name": "Get Check-Ins",
+            "name": "Get Check-Ins (Last 30)",
             "event": [
                 {
                     "listen": "test",
@@ -261,11 +267,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/check-in?limit=10",
+                    "raw": "{{baseUrl}}/api/v1/check-in?limit=30",
                     "host": ["{{baseUrl}}"],
                     "path": ["api", "v1", "check-in"],
                     "query": [
-                        { "key": "limit", "value": "10" }
+                        { "key": "limit", "value": "30" }
                     ]
                 }
             }

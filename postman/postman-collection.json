@@ -270,6 +270,109 @@
       ]
     },
     {
+      "name": "✅ Check-In Tests - Idempotent POST",
+      "description": "Check-in POST is idempotent: returns 201 on create, 200 on update. Safe to call multiple times.",
+      "item": [
+        {
+          "name": "✅ Create Check-In - First Time (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - Check-in created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.expect(pm.response.json().message).to.include('created');",
+                  "});",
+                  "pm.test('Response has check-in data', function () {",
+                  "    pm.expect(pm.response.json().data.id).to.exist;",
+                  "    pm.expect(pm.response.json().data.moodScore).to.equal(7);",
+                  "    pm.expect(pm.response.json().data.updatedAt).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"moodScore\": 7, \"painLevel\": 3, \"activities\": [\"walking\", \"stretching\"], \"notes\": \"Feeling better today\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/check-in",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "check-in"]
+            }
+          }
+        },
+        {
+          "name": "✅ Create Check-In Again - Falls Back to Update (200)",
+          "description": "Running the same POST again falls back to update. No 409 error.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Check-in updated (not created)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('updated');",
+                  "});",
+                  "pm.test('Response has updated check-in data', function () {",
+                  "    pm.expect(pm.response.json().data.id).to.exist;",
+                  "    pm.expect(pm.response.json().data.moodScore).to.equal(7);",
+                  "    pm.expect(pm.response.json().data.updatedAt).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"moodScore\": 7, \"painLevel\": 3, \"activities\": [\"walking\", \"stretching\"], \"notes\": \"Feeling better today\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/check-in",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "check-in"]
+            }
+          }
+        },
+        {
+          "name": "✅ Get Check-Ins (Last 30)",
+          "description": "Retrieves last 30 check-ins (default limit increased from 10 to 30)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/check-in?limit=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "check-in"],
+              "query": [{"key": "limit", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "✅ Get Check-In Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/check-in/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "check-in", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Other Endpoints",
       "item": [
         {
