@@ -24,6 +24,7 @@ model User {
   lastName  String
   username  String @unique
   email     String @unique
+  googleId  String? @unique
   role      Role   @default(USER)
 
   profile      Profile?
