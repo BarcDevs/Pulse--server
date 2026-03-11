@@ -96,6 +96,71 @@ const resolveCheckInDate = (
     }
 }
 
+const resolveTimestampInUserTz = (
+    timezone?: string | null
+): Date => {
+    const tz = timezone ?? 'UTC'
+    try {
+        const now = new Date()
+        const tzFormatter = new Intl.DateTimeFormat(
+            'en-CA',
+            {
+                timeZone: tz,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }
+        )
+
+        const parts = tzFormatter
+            .formatToParts(now)
+        const year = parseInt(
+            parts.find((p) => p.type === 'year')
+                ?.value ?? '2000'
+        )
+        const month = parseInt(
+            parts.find((p) => p.type === 'month')
+                ?.value ?? '1'
+        ) - 1
+        const day = parseInt(
+            parts.find((p) => p.type === 'day')
+                ?.value ?? '1'
+        )
+        const hour = parseInt(
+            parts.find((p) => p.type === 'hour')
+                ?.value ?? '0'
+        )
+        const minute = parseInt(
+            parts.find((p) => p.type === 'minute')
+                ?.value ?? '0'
+        )
+        const second = parseInt(
+            parts.find((p) => p.type === 'second')
+                ?.value ?? '0'
+        )
+
+        const tzDate = new Date(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second
+        )
+        return tzDate
+    } catch {
+        logger.warn(
+            `Invalid timezone '${tz}' - ` +
+            'falling back to UTC'
+        )
+        return new Date()
+    }
+}
+
 export const getCheckIns = async (
     userId: string,
     query?: CheckInQuery
@@ -114,6 +179,11 @@ export const createCheckIn = async (
     data: NewCheckInType
 ): Promise<CheckInType> => {
     const checkInDate = await resolveDate(data.userId)
+    const timezone = await authModel
+        .getUserTimezone(data.userId)
+    const createdAt = resolveTimestampInUserTz(
+        timezone
+    )
 
     const existing = await checkInModel
         .findTodayCheckIn(data.userId, checkInDate)
@@ -125,7 +195,11 @@ export const createCheckIn = async (
 
     try {
         const checkIn = await checkInModel
-            .createCheckIn(data, checkInDate)
+            .createCheckIn(
+                data,
+                checkInDate,
+                createdAt
+            )
 
         await checkInModel
             .updateUserLastCheckIn(data.userId)
@@ -148,6 +222,11 @@ export const updateCheckIn = async (
     data: UpdateCheckInType
 ): Promise<CheckInType> => {
     const checkInDate = await resolveDate(data.userId)
+    const timezone = await authModel
+        .getUserTimezone(data.userId)
+    const updatedAt = resolveTimestampInUserTz(
+        timezone
+    )
 
     const existing = await checkInModel
         .findTodayCheckIn(data.userId, checkInDate)
@@ -160,7 +239,12 @@ export const updateCheckIn = async (
     const {userId, ...updateData} = data
 
     const checkIn = await checkInModel
-        .updateCheckIn(userId, checkInDate, updateData)
+        .updateCheckIn(
+            userId,
+            checkInDate,
+            updateData,
+            updatedAt
+        )
 
     await checkInModel.updateUserLastCheckIn(userId)
 

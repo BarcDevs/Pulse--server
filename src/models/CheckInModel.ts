@@ -32,7 +32,8 @@ export const findTodayCheckIn = async (
 
 export const createCheckIn = async (
     data: NewCheckInType,
-    checkInDate: Date
+    checkInDate: Date,
+    createdAt?: Date
 ): Promise<CheckInType> => {
     const {userId, ...checkInData} = data
 
@@ -40,6 +41,7 @@ export const createCheckIn = async (
         data: {
             ...checkInData,
             checkInDate,
+            createdAt: createdAt ?? new Date(),
             user: {connect: {id: userId}}
         },
         include: {insights: true}
@@ -49,7 +51,8 @@ export const createCheckIn = async (
 export const updateCheckIn = async (
     userId: string,
     checkInDate: Date,
-    data: Omit<UpdateCheckInType, 'userId'>
+    data: Omit<UpdateCheckInType, 'userId'>,
+    updatedAt?: Date
 ): Promise<CheckInType> =>
     (await Prisma.dailyCheckIn.update({
         where: {
@@ -60,7 +63,7 @@ export const updateCheckIn = async (
         },
         data: {
             ...data,
-            updatedAt: new Date()
+            updatedAt: updatedAt ?? new Date()
         },
         include: {insights: true}
     })) as CheckInType
