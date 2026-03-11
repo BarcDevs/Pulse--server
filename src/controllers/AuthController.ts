@@ -1,5 +1,6 @@
 import type {Request, Response} from 'express'
 
+import {env} from '../../config'
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {errorFactory} from '../errors/factory'
 import {ValidationError} from '../errors/ValidationError'
@@ -164,13 +165,14 @@ export const forgotPassword = async (
             )
         )
 
-    await sendEmailWithOTP(email)
+    const otpCode = await sendEmailWithOTP(email)
+
+    const OTP = (env as string) === 'development' ? otpCode : null
 
     successResponse(
         res,
-        {},
-        'We have sent you an email with an OTP ' +
-        'to confirm your email! Please check your email.'
+        {OTP},
+        'We have sent you an email with an OTP to confirm your email! Please check your email.'
     )
 }
 

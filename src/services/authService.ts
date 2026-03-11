@@ -84,7 +84,7 @@ const verifyResetPasswordOTP = (
 
 const sendEmailWithOTP = async (
     email: string
-): Promise<boolean> => {
+): Promise<boolean | number> => {
     const user: ServerUserType | null =
         await authModel.getUserByEmail(email)
 
@@ -105,7 +105,7 @@ const sendEmailWithOTP = async (
         `here is your OTP for confirm email: ${OTP}`
     )
 
-    return true
+    return OTP
 }
 
 const createToken = (user: ServerUserType): string => {

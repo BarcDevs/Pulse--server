@@ -9,7 +9,7 @@ import type {
     ServerConfig
 } from '../src/types/ConfigType'
 
-const env: EnvConfig = config.get<string>('env')
+const env: EnvConfig = config.get<EnvConfig>('env')
 
 const serverConfig: ServerConfig = {
     url: config.get<string>('server.url'),
