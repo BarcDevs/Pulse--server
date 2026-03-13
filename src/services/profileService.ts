@@ -1,5 +1,10 @@
-import {errorFactory} from '../errors/factory'
 import * as profileModel from '../models/ProfileModel'
+import {
+    ensureProfileExists,
+    resolveHealthInterestSlug,
+    resolveActivityPreferenceSlug,
+    transformProfileWithInterests
+} from '../lib/profileHelpers'
 
 type UpdateProfileData = {
     image?: string | null
@@ -8,15 +13,13 @@ type UpdateProfileData = {
     timezone?: string | null
 }
 
+// region Profile CRUD
 export const getProfile = async (
     userId: string
 ) => {
-    const profile =
-        await profileModel.getProfileByUserId(userId)
-
-    if (!profile) {
-        throw errorFactory.generic.notFound('Profile')
-    }
+    const profile = await ensureProfileExists(
+        userId
+    )
 
     const healthInterestLinks =
         await profileModel.getHealthInterests(
@@ -27,58 +30,41 @@ export const getProfile = async (
             profile.id
         )
 
-    return {
+    const profileWithLinks = {
         ...profile,
-        healthInterests: healthInterestLinks
-            .map((hi) => hi.healthInterest)
-            .filter(
-                (hi) => hi !== undefined
-            ),
-        activityPreferences:
-            activityPrefLinks
-                .map((ap) => ap.activityPreference)
-                .filter(
-                    (ap) => ap !== undefined
-                )
+        healthInterests: healthInterestLinks,
+        activityPreferences: activityPrefLinks
     }
+
+    return transformProfileWithInterests(
+        profileWithLinks
+    )
 }
 
 export const updateProfile = async (
     userId: string,
     data: UpdateProfileData
-) => {
-    return await profileModel.updateProfile(
+) =>
+    profileModel.updateProfile(
         userId,
         data
     )
-}
+// endregion
 
+// region Health Interests
 export const addHealthInterests = async (
     userId: string,
     slugs: string[]
 ) => {
-    const profile =
-        await profileModel
-            .getProfileByUserId(userId)
-
-    if (!profile) {
-        throw errorFactory.generic.notFound('Profile')
-    }
+    const profile = await ensureProfileExists(
+        userId
+    )
 
     const results = []
 
     for (const slug of slugs) {
         const interest =
-            await profileModel
-                .getHealthInterestBySlug(
-                    slug
-                )
-
-        if (!interest) {
-            throw errorFactory.generic.notFound(
-                'Health interest'
-            )
-        }
+            await resolveHealthInterestSlug(slug)
 
         const added =
             await profileModel
@@ -96,25 +82,12 @@ export const removeHealthInterest = async (
     userId: string,
     slug: string
 ) => {
-    const profile =
-        await profileModel
-            .getProfileByUserId(userId)
-
-    if (!profile) {
-        throw errorFactory.generic.notFound('Profile')
-    }
+    const profile = await ensureProfileExists(
+        userId
+    )
 
     const interest =
-        await profileModel
-            .getHealthInterestBySlug(
-                slug
-            )
-
-    if (!interest) {
-        throw errorFactory.generic.notFound(
-            'Health interest'
-        )
-    }
+        await resolveHealthInterestSlug(slug)
 
     await profileModel
         .removeHealthInterest(
@@ -122,33 +95,22 @@ export const removeHealthInterest = async (
             interest.id
         )
 }
+// endregion
 
+// region Activity Preferences
 export const addActivityPreferences = async (
     userId: string,
     slugs: string[]
 ) => {
-    const profile =
-        await profileModel
-            .getProfileByUserId(userId)
-
-    if (!profile) {
-        throw errorFactory.generic.notFound('Profile')
-    }
+    const profile = await ensureProfileExists(
+        userId
+    )
 
     const results = []
 
     for (const slug of slugs) {
         const activity =
-            await profileModel
-                .getActivityPreferenceBySlug(
-                    slug
-                )
-
-        if (!activity) {
-            throw errorFactory.generic.notFound(
-                'Activity preference'
-            )
-        }
+            await resolveActivityPreferenceSlug(slug)
 
         const added =
             await profileModel
@@ -166,25 +128,12 @@ export const removeActivityPreference = async (
     userId: string,
     slug: string
 ) => {
-    const profile =
-        await profileModel
-            .getProfileByUserId(userId)
-
-    if (!profile) {
-        throw errorFactory.generic.notFound('Profile')
-    }
+    const profile = await ensureProfileExists(
+        userId
+    )
 
     const activity =
-        await profileModel
-            .getActivityPreferenceBySlug(
-                slug
-            )
-
-    if (!activity) {
-        throw errorFactory.generic.notFound(
-            'Activity preference'
-        )
-    }
+        await resolveActivityPreferenceSlug(slug)
 
     await profileModel
         .removeActivityPreference(
@@ -192,15 +141,14 @@ export const removeActivityPreference = async (
             activity.id
         )
 }
+// endregion
 
+// region Available Options
 export const getAvailableHealthInterests =
-    async () => {
-        return await profileModel
-            .getAvailableHealthInterests()
-    }
+    async () =>
+        profileModel.getAvailableHealthInterests()
 
 export const getAvailableActivityPreferences =
-    async () => {
-        return await profileModel
-            .getAvailableActivityPreferences()
-    }
+    async () =>
+        profileModel.getAvailableActivityPreferences()
+// endregion
