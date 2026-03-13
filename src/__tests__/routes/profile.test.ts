@@ -154,7 +154,7 @@ describe('Profile Routes', () => {
                     ])
                     .set('x-csrf-token', csrfToken)
                     .send({
-                        timezone: 'invalid-tz'
+                        timezone: 'invalid-timezone'
                     })
 
                 expect(res.status).toBe(
