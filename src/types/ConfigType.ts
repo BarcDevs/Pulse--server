@@ -39,7 +39,24 @@ type GoogleOAuthConfig = {
     clientUrl: string
 }
 
+type AIConfig = {
+    provider: string
+    anthropicModel: string
+    googleModel: string
+    openaiModel: string
+    openaiApiKey: string
+    anthropicApiKey: string
+    googleApiKey: string
+}
+
+type AIGenerationConfig = {
+    maxOutputTokens: number
+    temperature: number
+}
+
 export type {
+    AIConfig,
+    AIGenerationConfig,
     AppConfig,
     AuthConfig,
     DatabaseConfig,

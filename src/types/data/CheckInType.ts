@@ -2,9 +2,12 @@ import type {InsightType} from '../../../prisma/generated/prisma/enums'
 
 export type AIInsightType = {
     id: string
+    userId: string
     checkInId: string
     type: InsightType
+    title: string
     content: string
+    metadata: Record<string, unknown> | null
     createdAt: Date
 }
 

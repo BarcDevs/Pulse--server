@@ -1,6 +1,8 @@
 import config from 'config'
 
 import type {
+    AIConfig,
+    AIGenerationConfig,
     AppConfig,
     AuthConfig,
     DatabaseConfig,
@@ -60,7 +62,42 @@ const googleOAuthConfig: GoogleOAuthConfig = {
     )
 }
 
+const aiConfig: AIConfig = {
+    provider: config.get<string>(
+        'ai.provider'
+    ),
+    anthropicModel: config.get<string>(
+        'ai.anthropicModel'
+    ),
+    googleModel: config.get<string>(
+        'ai.googleModel'
+    ),
+    openaiModel: config.get<string>(
+        'ai.openaiModel'
+    ),
+    openaiApiKey: config.get<string>(
+        'ai.openaiApiKey'
+    ),
+    anthropicApiKey: config.get<string>(
+        'ai.anthropicApiKey'
+    ),
+    googleApiKey: config.get<string>(
+        'ai.googleApiKey'
+    )
+}
+
+const aiGenerationConfig: AIGenerationConfig = {
+    maxOutputTokens: config.get<number>(
+        'aiGeneration.maxOutputTokens'
+    ),
+    temperature: config.get<number>(
+        'aiGeneration.temperature'
+    )
+}
+
 export {
+    aiConfig,
+    aiGenerationConfig,
     appConfig,
     authConfig,
     databaseConfig,
