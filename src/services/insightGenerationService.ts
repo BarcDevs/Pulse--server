@@ -1,0 +1,78 @@
+import * as aiInsightModel from '../models/AIInsightModel'
+import * as checkInModel from '../models/CheckInModel'
+import {decideInsightType} from '../modules/ai-insight'
+import {
+    getFallbackContent,
+} from '../modules/ai-insight/ai-insight-validator'
+import {generateInsight} from '../modules/ai-insight/aiInsightGenerator.service'
+import {generateTitle} from '../modules/ai-insight/prompts'
+import logger from '../utils/logger'
+
+const generateInsightForCheckIn = async (
+    userId: string,
+    checkInId: string
+): Promise<void> => {
+    const recentCheckIns = await checkInModel
+        .getCheckIns(userId, 7)
+
+    if (recentCheckIns.length === 0) {
+        logger.warn(
+            'No recent check-ins found for insight generation',
+            {userId, checkInId}
+        )
+        return
+    }
+
+    const decision = decideInsightType(recentCheckIns)
+
+    let title: string
+    let content: string
+    let usedFallback = false
+
+    try {
+        const generated = await generateInsight({
+            decision,
+            checkIns: recentCheckIns,
+            userId,
+            checkInId
+        })
+        title = generated.title
+        content = generated.content
+    } catch (error) {
+        usedFallback = true
+        const errorMsg = error instanceof Error
+            ? error.message
+            : 'Unknown error'
+        logger.warn(
+            'AI generation failed, using fallback',
+            {
+                userId,
+                checkInId,
+                insightType: decision.type,
+                error: errorMsg
+            }
+        )
+        title = generateTitle(decision.type)
+        content = getFallbackContent(decision.type)
+    }
+
+    await aiInsightModel.createInsight({
+        userId,
+        checkInId,
+        insightType: decision.type,
+        title,
+        content,
+        metadata: decision.metadata
+    })
+
+    logger.info('Insight created', {
+        userId,
+        checkInId,
+        insightType: decision.type,
+        usedFallback,
+        titleLength: title.length,
+        contentLength: content.length
+    })
+}
+
+export {generateInsightForCheckIn}
