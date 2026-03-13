@@ -14,6 +14,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Industry standards — Clean, readable, maintainable code
 - One concern per file
 - Provide a full file edit instead of one edit at a time
+- Always provide informative filenames
 
 ### Code Style
 - Never use array index as key; use the current element as an index
@@ -27,7 +28,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Avoid redundant line breakings — break only when it improves readability or meets the line length threshold
 
 ## Reading Files:
--  Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
+- Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
 
 ## TypeScript Conventions
 - Single quotes for all strings and imports
@@ -67,10 +68,11 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 ## Clean Code
 - Delete unused code — never comment it out
+- No backwards-compatibility shims for removed code
 - No hardcoded values — use constants or config
 - Always provide complete, production-ready code
 - No backwards-compatibility shims for removed code
-- don't use redundant braces or parentheses
+- Don't use redundant braces or parentheses
 
 ## Before Committing
 1. `npm run typecheck`
@@ -84,4 +86,4 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Use branches for features/fixes
 - Use conventional commit format (feat, fix, docs, style, rfc, test, chore)
 - Avoid large commits; keep them focused and atomic (every commit should have one change or fix)
-- Claude plans should instructions never be committed
+- Claude plans should read instructions never be committed
