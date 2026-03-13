@@ -13,9 +13,9 @@ enum Role {
 }
 
 enum InsightType {
-  DAILY_MOTIVATION
-  TREND_ANALYSIS
-  ACTIVITY_SUGGESTIONS
+  MOOD_DROP_ALERT
+  MOTIVATIONAL
+  WEEKLY_SUMMARY
 }
 
 model User {
@@ -177,11 +177,17 @@ model DailyCheckIn {
 
 model AIInsight {
   id        String       @id() @default(uuid())
+  userId    String
   checkIn   DailyCheckIn @relation(fields: [checkInId], references: [id])
   checkInId String
   type      InsightType
+  title     String
   content   String
+  metadata  Json?
   createdAt DateTime     @default(now())
+
+  @@unique([checkInId, type])
+  @@index([userId, createdAt])
 }
 
 model Tag {
