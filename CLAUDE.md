@@ -20,6 +20,11 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - Text: never use the `—` character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
 - Time values: Always use `src/constants/time.ts` (minuteInMs, hourInMs, etc.) instead of hardcoding milliseconds
 - Text blocks: Don't break unless really long (120–150 chars OK)
+- Condition operators at the end of a line if line breaking
+- No line breaking to single import unless very long
+- String blocks with `'` in it, use backticks to avoid escaping
+- Avoid redundant braces or parentheses
+- Avoid redundant line breakings — break only when it improves readability or meets the line length threshold
 
 ## Reading Files:
 -  Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
