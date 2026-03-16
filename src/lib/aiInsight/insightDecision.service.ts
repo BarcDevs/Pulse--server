@@ -63,7 +63,8 @@ const decideInsightType = (
 
     // Calculate current streak for next rules
     const currentStreak = calculateCurrentStreak(
-        sorted.map((ci) => ci.checkInDate)
+        sorted.map((ci) => ci.checkInDate),
+        timezone
     )
 
     // Rule 2: Check Motivational (medium priority - low streak)

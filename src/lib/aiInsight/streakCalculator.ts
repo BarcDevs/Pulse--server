@@ -1,17 +1,25 @@
 import {dayInMs} from '../../constants/time'
 
-const calculateCurrentStreak = (checkInDates: Date[]): number => {
+const calculateCurrentStreak = (
+    checkInDates: Date[],
+    timezone?: string
+): number => {
     if (checkInDates.length === 0) {
         return 0
     }
 
-    // De-duplicate by calendar day (UTC date)
+    // De-duplicate by calendar day (user's timezone)
     const uniqueDates = new Set<string>()
     const uniqueDateObjects: Date[] = []
 
     for (const date of checkInDates) {
-        const dateString = date.toISOString()
-            .split('T')[0]
+        const dateString = timezone ?
+            new Intl.DateTimeFormat(
+                'en-CA',
+                {timeZone: timezone}
+            ).format(date) :
+            date.toISOString().split('T')[0]
+
         if (!uniqueDates.has(dateString)) {
             uniqueDates.add(dateString)
             uniqueDateObjects.push(date)
