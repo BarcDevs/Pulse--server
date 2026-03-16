@@ -260,6 +260,7 @@ router
  */
 router.route('/csrf').get(
     isAuthenticated,
+    cacheMiddleware,
     getCsrfToken
 )
 
