@@ -1,3 +1,5 @@
+import {dayInMs} from '../../constants/time'
+
 const calculateCurrentStreak = (checkInDates: Date[]): number => {
     if (checkInDates.length === 0) {
         return 0
@@ -8,7 +10,8 @@ const calculateCurrentStreak = (checkInDates: Date[]): number => {
     const uniqueDateObjects: Date[] = []
 
     for (const date of checkInDates) {
-        const dateString = date.toISOString().split('T')[0]
+        const dateString = date.toISOString()
+            .split('T')[0]
         if (!uniqueDates.has(dateString)) {
             uniqueDates.add(dateString)
             uniqueDateObjects.push(date)
@@ -30,11 +33,12 @@ const calculateCurrentStreak = (checkInDates: Date[]): number => {
     for (let i = 1; i < sorted.length; i++) {
         const currentDate = sorted[i]
         const expectedPreviousDate = new Date(
-            sorted[i - 1].getTime() - 24 * 60 * 60 * 1000
+            sorted[i - 1].getTime() - dayInMs
         )
 
         // Check if current date is exactly 1 day before the previous date
-        const currentDateString = currentDate.toISOString().split('T')[0]
+        const currentDateString = currentDate
+            .toISOString().split('T')[0]
         const expectedDateString = expectedPreviousDate
             .toISOString()
             .split('T')[0]
