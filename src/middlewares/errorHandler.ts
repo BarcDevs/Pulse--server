@@ -7,6 +7,7 @@ import type {
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {CustomError} from '../errors/CustomError'
 import type {ResponseType} from '../types/ResponseType'
+import logger from '../utils/logger'
 
 const errorHandler = (
     err: Error,
@@ -14,6 +15,12 @@ const errorHandler = (
     res: Response,
     _next: NextFunction
 ) => {
+    logger.error('Unhandled error caught', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+    })
+
     if (err instanceof CustomError) {
         const errorType = err.serializeErrors()
         const response: ResponseType<typeof errorType> = {
