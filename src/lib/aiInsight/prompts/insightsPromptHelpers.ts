@@ -12,17 +12,16 @@ const extractRecentActivities = (
 const calculateAverageMood = (
     checkIns: CheckInType[]
 ): string => {
-    const validMoods = checkIns
-        .map(checkIn => checkIn.moodScore)
-        .filter((mood): mood is number => true)
+    if (checkIns.length === 0) {
+        return 'N/A'
+    }
 
-    return validMoods.length > 0
-        ? (
-            validMoods.reduce(
-                (sum, mood) => sum + mood, 0) /
-            validMoods.length
-        ).toFixed(1)
-        : 'N/A'
+    const sum = checkIns.reduce(
+        (acc, checkIn) => acc + checkIn.moodScore,
+        0
+    )
+
+    return (sum / checkIns.length).toFixed(1)
 }
 
 const getTopActivities = (
