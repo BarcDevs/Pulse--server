@@ -1,8 +1,8 @@
 import {
-    isRetryableError, 
+    isRetryableError,
     retryAsync,
     sleep
-} from './retry'
+} from '../retry'
 
 describe('retry utilities', () => {
     describe('sleep', () => {

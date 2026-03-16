@@ -1,8 +1,8 @@
-import type { CheckInType } from '../../../types/data/CheckInType'
+import type { CheckInType } from '../../../../types/data/CheckInType'
 import {
     decideInsightType,
     InvalidInsightInputError,
-} from '../insightDecision.service'
+} from '../../decision/insightDecision'
 
 const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     id: 'mock-id',

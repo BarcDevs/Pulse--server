@@ -1,4 +1,4 @@
-import { calculateCurrentStreak } from '../streakCalculator'
+import { calculateCurrentStreak } from '../../decision/streakCalculator'
 
 describe('calculateCurrentStreak', () => {
     describe('Empty and single date', () => {

@@ -1,4 +1,4 @@
-import type {CheckInType} from '../../types/data/CheckInType'
+import type {CheckInType} from '../../../types/data/CheckInType'
 
 const extractRecentActivities = (
     checkIns: CheckInType[],

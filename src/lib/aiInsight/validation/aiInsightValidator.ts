@@ -1,17 +1,17 @@
+import type {InsightType} from '../insight.types'
+
 import {
     FALLBACK_INSIGHTS,
     MAX_CONTENT_LENGTH,
     MAX_SENTENCES,
     MIN_CONTENT_LENGTH
-} from '../../constants/aiInsight/validation'
+} from '../../../constants/aiInsight/validation'
 import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
     countSentences,
     normalizeContent
-} from '../../lib/aiInsight/validationHelpers'
-
-import type {InsightType} from './insight.types'
+} from './validationHelpers'
 
 type ValidationResult = {
     isValid: boolean

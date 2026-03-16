@@ -1,8 +1,8 @@
 import {
     aiConfig,
     aiGenerationConfig
-} from '../../../../config'
-import logger from '../../../utils/logger'
+} from '../../../config'
+import logger from '../../utils/logger'
 
 import {
     AIProvider,
@@ -55,7 +55,9 @@ class OpenAIProvider extends AIProvider {
             try {
                 const errorData = await response.json()
                 errorMsg = errorData.error?.message || 'API error'
-            } catch {}
+            } catch {
+                // Intentionally suppress JSON parse errors
+            }
             logger.error('OpenAI API request failed', {
                 status: response.status,
                 error: errorMsg

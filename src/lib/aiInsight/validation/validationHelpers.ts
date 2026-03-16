@@ -2,7 +2,7 @@ import {
     DIAGNOSTIC_PHRASES,
     HARD_BLOCK_PHRASES,
     MEDICAL_TERMS
-} from '../../constants/aiInsight/validation'
+} from '../../../constants/aiInsight/validation'
 
 const normalizeContent = (content: string): string =>
     content.replace(/\s+/g, ' ').trim()
@@ -21,7 +21,7 @@ const containsHardBlockPhrase = (
 ): boolean => {
     const normalized = normalizeContent(content)
     const lowerContent = normalized.toLowerCase()
-    return HARD_BLOCK_PHRASES.some((phrase) =>
+    return HARD_BLOCK_PHRASES.some((phrase: string) =>
         lowerContent.includes(phrase)
     )
 }
@@ -32,9 +32,9 @@ const containsForbiddenMedicalContext = (
     const normalized = normalizeContent(content)
     const lowerContent = normalized.toLowerCase()
 
-    return MEDICAL_TERMS.some((term) =>
+    return MEDICAL_TERMS.some((term: string) =>
         DIAGNOSTIC_PHRASES.some(
-            (diagnostic) =>
+            (diagnostic: string) =>
                 lowerContent.includes(
                     `${diagnostic} ${term}`
                 )

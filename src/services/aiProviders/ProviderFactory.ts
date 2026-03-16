@@ -1,4 +1,4 @@
-import {aiConfig} from '../../../../config'
+import {aiConfig} from '../../../config'
 
 import {type AIProvider} from './AIProvider'
 import {AnthropicProvider} from './AnthropicProvider'

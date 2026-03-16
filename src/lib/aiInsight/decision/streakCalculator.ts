@@ -1,4 +1,4 @@
-import {dayInMs} from '../../constants/time'
+import {dayInMs} from '../../../constants/time'
 
 const calculateCurrentStreak = (
     checkInDates: Date[],

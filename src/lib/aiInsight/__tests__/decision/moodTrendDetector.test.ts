@@ -1,5 +1,5 @@
-import type { CheckInType } from '../../../types/data/CheckInType'
-import { isMoodDropping } from '../mood-trend-detector'
+import type { CheckInType } from '../../../../types/data/CheckInType'
+import { isMoodDropping } from '../../decision/moodTrendDetector'
 
 const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     id: 'mock-id',

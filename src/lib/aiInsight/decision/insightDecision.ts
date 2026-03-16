@@ -1,10 +1,10 @@
-import type { CheckInType } from '../../types/data/CheckInType'
+import type { CheckInType } from '../../../types/data/CheckInType'
 
 import type {
     InsightDecisionMetadata,
     InsightDecisionResult,
-} from './insight.types'
-import { isMoodDropping } from './mood-trend-detector'
+} from '../insight.types'
+import { isMoodDropping } from './moodTrendDetector'
 import { calculateCurrentStreak } from './streakCalculator'
 
 class InvalidInsightInputError extends Error {

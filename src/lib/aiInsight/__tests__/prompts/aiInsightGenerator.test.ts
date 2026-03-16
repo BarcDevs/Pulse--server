@@ -1,9 +1,10 @@
-import {generateInsight} from '../../../services/aiInsightGeneratorService'
-import type {CheckInType} from '../../../types/data/CheckInType'
-import type {InsightDecisionResult} from '../insight.types'
-import * as providerModule from '../providers'
+import type {CheckInType} from '../../../../types/data/CheckInType'
+import type {InsightDecisionResult} from '../../insight.types'
 
-jest.mock('../providers')
+import * as providerModule from '../../../../services/aiProviders'
+import {generateInsight} from '../../../../services/aiInsightGeneratorService'
+
+jest.mock('../../../../services/aiProviders')
 
 const mockCheckIn = (): CheckInType => ({
     id: 'id1',

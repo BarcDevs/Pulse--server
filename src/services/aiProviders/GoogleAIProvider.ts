@@ -1,8 +1,8 @@
 import {
     aiConfig,
     aiGenerationConfig
-} from '../../../../config'
-import logger from '../../../utils/logger'
+} from '../../../config'
+import logger from '../../utils/logger'
 
 import {
     AIProvider,
