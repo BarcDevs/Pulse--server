@@ -5,6 +5,7 @@ import {
 import {generateTitle} from '../lib/aiInsight/prompts'
 import * as aiInsightModel from '../models/AIInsightModel'
 import * as checkInModel from '../models/CheckInModel'
+import {getUserTimezone} from '../models/AuthModel'
 import logger from '../utils/logger'
 
 import {generateInsight} from './aiInsightGeneratorService'
@@ -24,7 +25,11 @@ const generateInsightForCheckIn = async (
         return
     }
 
-    const decision = decideInsightType(recentCheckIns)
+    const userTimezone = await getUserTimezone(userId)
+    const decision = decideInsightType(
+        recentCheckIns,
+        userTimezone || undefined
+    )
 
     let title: string
     let content: string

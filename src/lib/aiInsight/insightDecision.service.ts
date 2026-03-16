@@ -15,7 +15,8 @@ class InvalidInsightInputError extends Error {
 }
 
 const decideInsightType = (
-    checkIns: CheckInType[]
+    checkIns: CheckInType[],
+    timezone?: string
 ): InsightDecisionResult => {
     // Validate: at least one check-in with valid checkInDate
     if (checkIns.length === 0) {

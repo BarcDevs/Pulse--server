@@ -19,6 +19,7 @@ const mockProfile = {
     bio: null,
     location: null,
     timezone: null,
+    dateFormat: 'dd/mm/yyyy',
     createdAt: new Date(),
     updatedAt: new Date()
 }
