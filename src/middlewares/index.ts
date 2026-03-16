@@ -20,7 +20,18 @@ export const declareMiddlewares = (app: Express) => {
     app.use(
         cors({
             credentials: true,
-            origin: [serverConfig.origin]
+            origin: (origin, callback) => {
+                // Allow localhost networks and configured origin only
+                if (
+                    origin?.startsWith('http://localhost:') ||
+                    origin?.startsWith('http://127.0.0.1:') ||
+                    origin === serverConfig.origin
+                ) {
+                    callback(null, true)
+                } else {
+                    callback(new Error('Not allowed by CORS'))
+                }
+            }
         })
     )
     app.use(loggerMiddleware)
