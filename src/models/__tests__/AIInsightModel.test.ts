@@ -34,8 +34,7 @@ describe('AIInsightModel', () => {
                 checkInId: 'mock-check-in-id',
                 insightType: 'MOTIVATIONAL',
                 title: 'Test Insight',
-                content: 'This is test content',
-                metadata: null
+                content: 'This is test content'
             })
 
             expect(result).toEqual(mockInsight)
@@ -52,13 +51,11 @@ describe('AIInsightModel', () => {
                         checkInId: 'mock-check-in-id',
                         type: 'MOTIVATIONAL',
                         title: 'Test Insight',
-                        content: 'This is test content',
-                        metadata: null
+                        content: 'This is test content'
                     },
                     update: {
                         title: 'Test Insight',
-                        content: 'This is test content',
-                        metadata: null
+                        content: 'This is test content'
                     }
                 })
         })
@@ -84,12 +81,18 @@ describe('AIInsightModel', () => {
                 metadata
             })
 
-            if (
-                result.metadata &&
-                typeof result.metadata === 'object'
-            ) {
-                expect(result.metadata).toEqual(metadata)
-            }
+            expect(result.metadata).toEqual(metadata)
+            expect(prismaMock.aIInsight.upsert)
+                .toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        create: expect.objectContaining({
+                            metadata
+                        }),
+                        update: expect.objectContaining({
+                            metadata
+                        })
+                    })
+                )
         })
 
         it('should handle all insight types', async () => {
@@ -122,6 +125,196 @@ describe('AIInsightModel', () => {
                 expect(result.type).toBe(type)
             }
         })
+
+        it(
+            'calling createInsight twice with same (checkInId, type) returns same row',
+            async () => {
+                const input = {
+                    userId: 'mock-user-id',
+                    checkInId: 'check-in-123',
+                    insightType: 'MOOD_DROP_ALERT' as const,
+                    title: 'Mood Drop',
+                    content: 'Your mood is dropping'
+                }
+
+                const existingRow = createMockInsight({
+                    id: 'insight-single',
+                    checkInId: 'check-in-123',
+                    type: 'MOOD_DROP_ALERT'
+                })
+
+                // Both calls return the same row (no duplicate)
+                prismaMock.aIInsight.upsert
+                    .mockResolvedValueOnce(existingRow)
+                    .mockResolvedValueOnce(existingRow)
+
+                const first = await aiInsightModel.createInsight(input)
+                const second = await aiInsightModel.createInsight(input)
+
+                // Critical: same ID = only 1 row in DB
+                expect(first.id).toBe('insight-single')
+                expect(second.id).toBe('insight-single')
+                expect(first).toEqual(second)
+
+                // Verify both used upsert with same composite key
+                const calls = prismaMock.aIInsight.upsert.mock.calls
+                expect(calls).toHaveLength(2)
+                expect(calls[0][0].where.checkInId_type).toEqual({
+                    checkInId: 'check-in-123',
+                    type: 'MOOD_DROP_ALERT'
+                })
+                expect(calls[1][0].where.checkInId_type).toEqual({
+                    checkInId: 'check-in-123',
+                    type: 'MOOD_DROP_ALERT'
+                })
+            }
+        )
+
+        it(
+            'repeated calls with same (checkInId, type) do not create duplicates',
+            async () => {
+                const input = {
+                    userId: 'mock-user-id',
+                    checkInId: 'check-in-abc',
+                    insightType: 'MOTIVATIONAL' as const,
+                    title: 'Stay Motivated',
+                    content: 'You are doing great'
+                }
+
+                const singleRow = createMockInsight({
+                    id: 'row-persistent',
+                    checkInId: 'check-in-abc',
+                    type: 'MOTIVATIONAL'
+                })
+
+                prismaMock.aIInsight.upsert.mockResolvedValue(singleRow)
+
+                // Call 5 times
+                const results = await Promise.all([
+                    aiInsightModel.createInsight(input),
+                    aiInsightModel.createInsight(input),
+                    aiInsightModel.createInsight(input),
+                    aiInsightModel.createInsight(input),
+                    aiInsightModel.createInsight(input)
+                ])
+
+                // All return same ID (1 row, not 5)
+                const uniqueIds = new Set(
+                    results.map((r) => r.id)
+                )
+                expect(uniqueIds.size).toBe(1)
+                expect(uniqueIds.has('row-persistent')).toBe(true)
+            }
+        )
+
+        it(
+            'different types for same checkInId create separate rows',
+            async () => {
+                const checkInId = 'check-in-multi'
+
+                const row1 = createMockInsight({
+                    id: 'row-mood',
+                    checkInId,
+                    type: 'MOOD_DROP_ALERT'
+                })
+                const row2 = createMockInsight({
+                    id: 'row-motiv',
+                    checkInId,
+                    type: 'MOTIVATIONAL'
+                })
+                const row3 = createMockInsight({
+                    id: 'row-weekly',
+                    checkInId,
+                    type: 'WEEKLY_SUMMARY'
+                })
+
+                prismaMock.aIInsight.upsert
+                    .mockResolvedValueOnce(row1)
+                    .mockResolvedValueOnce(row2)
+                    .mockResolvedValueOnce(row3)
+
+                const result1 = await aiInsightModel.createInsight({
+                    userId: 'mock-user-id',
+                    checkInId,
+                    insightType: 'MOOD_DROP_ALERT',
+                    title: 'Mood',
+                    content: 'content'
+                })
+
+                const result2 = await aiInsightModel.createInsight({
+                    userId: 'mock-user-id',
+                    checkInId,
+                    insightType: 'MOTIVATIONAL',
+                    title: 'Motiv',
+                    content: 'content'
+                })
+
+                const result3 = await aiInsightModel.createInsight({
+                    userId: 'mock-user-id',
+                    checkInId,
+                    insightType: 'WEEKLY_SUMMARY',
+                    title: 'Weekly',
+                    content: 'content'
+                })
+
+                // Different types = different rows
+                expect(result1.id).toBe('row-mood')
+                expect(result2.id).toBe('row-motiv')
+                expect(result3.id).toBe('row-weekly')
+
+                // But same checkInId
+                expect(result1.checkInId).toBe(checkInId)
+                expect(result2.checkInId).toBe(checkInId)
+                expect(result3.checkInId).toBe(checkInId)
+            }
+        )
+
+        it(
+            'updates content on repeated calls (idempotent behavior)',
+            async () => {
+                const input = {
+                    userId: 'mock-user-id',
+                    checkInId: 'check-in-update',
+                    insightType: 'MOOD_DROP_ALERT' as const,
+                    title: 'Old Title',
+                    content: 'Old content'
+                }
+
+                const oldRow = createMockInsight({
+                    id: 'row-update',
+                    title: 'Old Title',
+                    content: 'Old content'
+                })
+
+                const newRow = createMockInsight({
+                    id: 'row-update',
+                    title: 'New Title',
+                    content: 'New content'
+                })
+
+                prismaMock.aIInsight.upsert
+                    .mockResolvedValueOnce(oldRow)
+                    .mockResolvedValueOnce(newRow)
+
+                const first = await aiInsightModel.createInsight(input)
+
+                const second = await aiInsightModel.createInsight({
+                    ...input,
+                    title: 'New Title',
+                    content: 'New content'
+                })
+
+                // Same row ID (not a new row)
+                expect(first.id).toBe('row-update')
+                expect(second.id).toBe('row-update')
+
+                // But content updated
+                expect(first.title).toBe('Old Title')
+                expect(second.title).toBe('New Title')
+                expect(first.content).toBe('Old content')
+                expect(second.content).toBe('New content')
+            }
+        )
     })
 
     describe('getInsightsByUserId', () => {
