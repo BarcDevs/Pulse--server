@@ -1,6 +1,7 @@
 import type {CheckInType} from '../../types/data/CheckInType'
 import logger from '../../utils/logger'
 
+import {retryAsync} from './lib/retry'
 import {
     getFallbackContent,
     validateGeneratedInsight
@@ -36,23 +37,48 @@ const generateInsight = async (
     )
 
     const provider = createProvider()
+    const title = generateTitle(decision.type)
 
-    const result = await provider.generateContent({
-        prompt
-    })
+    let generatedContent: string = ''
 
-    const generatedContent = result.content
-
-    if (
-        !generatedContent
-        || generatedContent.trim().length === 0
-    ) {
-        throw new Error(
-            'Failed to generate insight content'
+    try {
+        // Retry with: max 2 retries, 1000ms delay = 3 total attempts
+        const result = await retryAsync(
+            () => provider.generateContent({prompt}),
+            {maxRetries: 2, delayMs: 1000}
         )
+
+        generatedContent = result.content
+
+        if (
+            !generatedContent
+            || generatedContent.trim().length === 0
+        ) {
+            throw new Error(
+                'Failed to generate insight content'
+            )
+        }
+    } catch (error) {
+        // After retries exhausted, use fallback
+        const errorMsg = error instanceof Error
+            ? error.message
+            : 'Unknown error'
+        logger.error(
+            'AI generation failed after retries, using fallback',
+            {
+                insightType: decision.type,
+                error: errorMsg
+            }
+        )
+        const fallbackContent = getFallbackContent(
+            decision.type
+        )
+        return {
+            title,
+            content: fallbackContent
+        }
     }
 
-    const title = generateTitle(decision.type)
     const trimmedContent = generatedContent.trim()
 
     const validation = validateGeneratedInsight(
