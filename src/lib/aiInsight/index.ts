@@ -2,7 +2,7 @@ export type {
     InsightDecisionMetadata,
     InsightDecisionResult,
     InsightType,
-} from './insight.types'
+} from '../../types/insight'
 export {
     decideInsightType,
     InvalidInsightInputError,

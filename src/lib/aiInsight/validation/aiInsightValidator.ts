@@ -1,11 +1,11 @@
-import type {InsightType} from '../insight.types'
-
 import {
     FALLBACK_INSIGHTS,
     MAX_CONTENT_LENGTH,
     MAX_SENTENCES,
     MIN_CONTENT_LENGTH
 } from '../../../constants/aiInsight/validation'
+import type {InsightType} from '../../../types/insight'
+
 import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,

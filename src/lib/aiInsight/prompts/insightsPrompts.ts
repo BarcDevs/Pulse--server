@@ -1,5 +1,5 @@
 import type { CheckInType } from '../../../types/data/CheckInType'
-import type { InsightType } from '../insight.types'
+import type { InsightType } from '../../../types/insight'
 
 import {
     calculateAverageMood,

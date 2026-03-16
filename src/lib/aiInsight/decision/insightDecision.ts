@@ -3,7 +3,7 @@ import type { CheckInType } from '../../../types/data/CheckInType'
 import type {
     InsightDecisionMetadata,
     InsightDecisionResult,
-} from '../insight.types'
+} from '../../../types/insight'
 import { isMoodDropping } from './moodTrendDetector'
 import { calculateCurrentStreak } from './streakCalculator'
 
