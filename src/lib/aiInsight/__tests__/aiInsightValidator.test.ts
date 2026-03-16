@@ -5,7 +5,7 @@ import {
     getFallbackContent,
     normalizeContent,
     validateGeneratedInsight
-} from '../ai-insight-validator'
+} from '../aiInsightValidator'
 
 describe('normalizeContent', () => {
     it('should trim whitespace', () => {

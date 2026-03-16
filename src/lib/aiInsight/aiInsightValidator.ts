@@ -3,13 +3,14 @@ import {
     MAX_CONTENT_LENGTH,
     MAX_SENTENCES,
     MIN_CONTENT_LENGTH
-} from './constants/validation'
+} from '../../constants/aiInsight/validation'
 import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
     countSentences,
     normalizeContent
-} from './lib/validation-helpers'
+} from '../../lib/aiInsight/validationHelpers'
+
 import type {InsightType} from './insight.types'
 
 type ValidationResult = {

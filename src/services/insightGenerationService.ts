@@ -1,12 +1,13 @@
-import * as aiInsightModel from '../models/AIInsightModel'
-import * as checkInModel from '../models/CheckInModel'
-import {decideInsightType} from '../modules/ai-insight'
+import {decideInsightType} from '../lib/aiInsight'
 import {
     getFallbackContent,
-} from '../modules/ai-insight/ai-insight-validator'
-import {generateInsight} from '../modules/ai-insight/aiInsightGenerator.service'
-import {generateTitle} from '../modules/ai-insight/prompts'
+} from '../lib/aiInsight/aiInsightValidator'
+import {generateTitle} from '../lib/aiInsight/prompts'
+import * as aiInsightModel from '../models/AIInsightModel'
+import * as checkInModel from '../models/CheckInModel'
 import logger from '../utils/logger'
+
+import {generateInsight} from './aiInsightGeneratorService'
 
 const generateInsightForCheckIn = async (
     userId: string,

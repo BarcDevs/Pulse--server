@@ -1,5 +1,5 @@
+import {generateInsight} from '../../../services/aiInsightGeneratorService'
 import type {CheckInType} from '../../../types/data/CheckInType'
-import {generateInsight} from '../aiInsightGenerator.service'
 import type {InsightDecisionResult} from '../insight.types'
 import * as providerModule from '../providers'
 

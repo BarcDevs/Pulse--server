@@ -214,7 +214,7 @@ For implementation details, see:
 - **Integration**: `src/modules/ai-insight/ai-insight-generator.service.ts`
   - `generateInsight()` — Calls validator, uses fallback if needed
 
-- **Tests**: `src/modules/ai-insight/__tests__/ai-insight-validator.test.ts`
+- **Tests**: `src/modules/ai-insight/__tests__/aiInsightValidator.test.ts`
   - 46 comprehensive test cases covering all rules
 
 ---
@@ -245,7 +245,7 @@ To change validation rules:
 
 After changes, run tests:
 ```bash
-npm test -- src/modules/ai-insight/__tests__/ai-insight-validator.test.ts
+npm test -- src/modules/ai-insight/__tests__/aiInsightValidator.test.ts
 ```
 
 ---

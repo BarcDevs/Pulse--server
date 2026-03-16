@@ -1,3 +1,11 @@
+import {
+    ensurePostExists,
+    extractRemovedTags,
+    resolveTags,
+    validateOwnerHelper
+} from '../lib/forumHelpers'
+import {getTagsByPostId} from '../models/ForumModel'
+import * as forumModel from '../models/ForumModel'
 import type {
     NewPostType,
     UpdatePostType
@@ -7,14 +15,6 @@ import type {
     UpdateReplyType
 } from '../types/data/ReplyType'
 import type {PostQuery, TagQuery} from '../types/query'
-import {getTagsByPostId} from '../models/ForumModel'
-import * as forumModel from '../models/ForumModel'
-import {
-    ensurePostExists,
-    extractRemovedTags,
-    resolveTags,
-    validateOwnerHelper
-} from '../lib/forumHelpers'
 
 // region Validation
 export const validateOwner = async (

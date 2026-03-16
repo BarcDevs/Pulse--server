@@ -5,7 +5,7 @@ import type {
     InsightDecisionResult,
 } from './insight.types'
 import { isMoodDropping } from './mood-trend-detector'
-import { calculateCurrentStreak } from './streak-calculator'
+import { calculateCurrentStreak } from './streakCalculator'
 
 class InvalidInsightInputError extends Error {
     constructor(message: string) {

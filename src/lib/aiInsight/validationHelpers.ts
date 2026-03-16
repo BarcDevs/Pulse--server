@@ -2,7 +2,7 @@ import {
     DIAGNOSTIC_PHRASES,
     HARD_BLOCK_PHRASES,
     MEDICAL_TERMS
-} from '../constants/validation'
+} from '../../constants/aiInsight/validation'
 
 const normalizeContent = (content: string): string =>
     content.replace(/\s+/g, ' ').trim()

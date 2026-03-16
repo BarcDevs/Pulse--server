@@ -1,6 +1,6 @@
 import type {InsightType} from '../../prisma/generated/prisma/enums'
+import type {InsightDecisionMetadata} from '../lib/aiInsight/insight.types'
 import type {AIInsightType} from '../types/data/CheckInType'
-import type {InsightDecisionMetadata} from '../modules/ai-insight/insight.types'
 import Prisma from '../utils/PrismaClient'
 
 type CreateAIInsightInput = {

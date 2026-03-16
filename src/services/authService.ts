@@ -1,13 +1,9 @@
-import type {
-    NewUserType,
-    ServerUserType
-} from '../types/data/UserType'
-import * as authModel from '../models/AuthModel'
 import {
     comparePassword,
     createToken,
     hashPassword
 } from '../lib/authCrypto'
+import {generateCSRFToken} from '../lib/authCSRF'
 import {
     generateRandomUsername,
     getCookiesOptions,
@@ -20,7 +16,11 @@ import {
     sendEmailWithOTP,
     verifyResetPasswordOTP
 } from '../lib/authOTP'
-import {generateCSRFToken} from '../lib/authCSRF'
+import * as authModel from '../models/AuthModel'
+import type {
+    NewUserType,
+    ServerUserType
+} from '../types/data/UserType'
 
 const getUser = async (
     by: 'email' | 'id',

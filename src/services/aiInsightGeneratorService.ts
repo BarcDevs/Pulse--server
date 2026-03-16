@@ -1,17 +1,16 @@
-import type {CheckInType} from '../../types/data/CheckInType'
-import logger from '../../utils/logger'
-
-import {retryAsync} from './lib/retry'
+import type {InsightDecisionResult} from '../lib/aiInsight'
 import {
     getFallbackContent,
     validateGeneratedInsight
-} from './ai-insight-validator'
-import type {InsightDecisionResult} from './insight.types'
+} from '../lib/aiInsight/aiInsightValidator'
 import {
     buildPromptByType,
     generateTitle
-} from './prompts'
-import {createProvider} from './providers'
+} from '../lib/aiInsight/prompts'
+import {createProvider} from '../lib/aiInsight/providers'
+import {retryAsync} from '../lib/aiInsight/retry'
+import type {CheckInType} from '../types/data/CheckInType'
+import logger from '../utils/logger'
 
 type GenerateInsightInput = {
     decision: InsightDecisionResult

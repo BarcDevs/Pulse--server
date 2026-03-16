@@ -5,11 +5,11 @@ import {authConfig, isDev} from '../../config'
 import {excludedUserFields} from '../constants/excludedUserFields'
 import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {AuthError} from '../errors/AuthError'
+import * as authModel from '../models/AuthModel'
 import type {
     ServerUserType,
     UserType
 } from '../types/data/UserType'
-import * as authModel from '../models/AuthModel'
 
 import {
     comparePassword,
@@ -141,8 +141,8 @@ const updateUserPassword = async (
 }
 
 export {
-    getCookiesOptions,
     generateRandomUsername,
+    getCookiesOptions,
     sanitizeUserData,
     updateUserData,
     updateUserPassword

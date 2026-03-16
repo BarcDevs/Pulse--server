@@ -1,5 +1,3 @@
-import type { CheckInType } from '../../types/data/CheckInType'
-
 import {
     calculateAverageMood,
     extractRecentActivities,
@@ -7,7 +5,9 @@ import {
     formatStreakLine,
     getLatestMood,
     getTopActivities
-} from './lib/prompt-helpers'
+} from '../../lib/aiInsight/promptHelpers'
+import type { CheckInType } from '../../types/data/CheckInType'
+
 import type { InsightType } from './insight.types'
 
 // region Prompt Builders

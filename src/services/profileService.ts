@@ -1,10 +1,10 @@
-import * as profileModel from '../models/ProfileModel'
 import {
     ensureProfileExists,
-    resolveHealthInterestSlug,
     resolveActivityPreferenceSlug,
+    resolveHealthInterestSlug,
     transformProfileWithInterests
 } from '../lib/profileHelpers'
+import * as profileModel from '../models/ProfileModel'
 
 type UpdateProfileData = {
     image?: string | null

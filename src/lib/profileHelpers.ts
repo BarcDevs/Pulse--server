@@ -63,7 +63,7 @@ const transformProfileWithInterests = (profile: any) => {
 
 export {
     ensureProfileExists,
-    resolveHealthInterestSlug,
     resolveActivityPreferenceSlug,
+    resolveHealthInterestSlug,
     transformProfileWithInterests
 }

@@ -9,7 +9,7 @@ import path from 'path'
 import {serverConfig} from '../../config'
 
 import {loggerMiddleware} from './loggerMiddleWare'
-import {rateLimiter} from './rate-limiting'
+import {rateLimiter} from './rateLimiting'
 import {sanitizeData} from './sanitaization'
 
 export const declareMiddlewares = (app: Express) => {

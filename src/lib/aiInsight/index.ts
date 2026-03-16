@@ -6,10 +6,10 @@ export type {
 export {
     decideInsightType,
     InvalidInsightInputError,
-} from './insight-decision.service'
+} from './insightDecision.service'
 export {
     isMoodDropping,
 } from './mood-trend-detector'
 export {
     calculateCurrentStreak,
-} from './streak-calculator'
+} from './streakCalculator'
