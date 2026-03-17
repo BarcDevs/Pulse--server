@@ -93,14 +93,18 @@ export const postQueryBuilder = (
             },
 
             // filter by tag
-            tags: {
-                some: {
-                    name: query?.tag
+            ...(query?.tag && {
+                tags: {
+                    some: {
+                        name: query.tag
+                    }
                 }
-            },
+            }),
 
             // filter by category
-            category: query?.category,
+            ...(query?.category && {
+                category: query.category
+            }),
 
             // filter by search
             ...searchQuery,
