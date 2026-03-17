@@ -21,10 +21,15 @@ export const declareMiddlewares = (app: Express) => {
         cors({
             credentials: true,
             origin: (origin, callback) => {
-                // Allow localhost networks and configured origin only
+                // Allow no origin (Postman, cURL, desktop apps)
+                if (!origin) {
+                    callback(null, true)
+                    return
+                }
+
                 if (
-                    origin?.startsWith('http://localhost:') ||
-                    origin?.startsWith('http://127.0.0.1:') ||
+                    origin.startsWith('http://localhost:') ||
+                    origin.startsWith('http://127.0.0.1:') ||
                     origin === serverConfig.origin
                 ) {
                     callback(null, true)
