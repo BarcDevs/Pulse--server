@@ -14,7 +14,7 @@ const {
 } = serverConfig
 const {start} = appConfig
 
-const host = serverConfig.host || '0.0.0.0'
+const host = serverConfig.host || '127.0.0.1'
 
 const port = serverConfig.port
 
