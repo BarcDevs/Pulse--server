@@ -188,7 +188,7 @@ graph TD
 
 ### Key Flows
 
-**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → background job triggers the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → result pushed to the AI Insight Panel. If a mood-decline pattern is detected, a real-time alert is also pushed to the therapist via Socket.io.
+**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → background job triggers the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → result pushed to the AI Insight Panel for the patient to review.
 
 **Forum Engagement** — Authenticated request passes the JWT + RBAC guard → post/reply written to `posts/replies` → a `new reply` event fires through Socket.io → Redis broadcasts the update to all subscribed clients in real time.
 
@@ -414,9 +414,12 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 ## AI Features
 
-Powered by **Google Gemini API** for personalized recovery insights.
+Powered by **Google Gemini API** for personalized recovery insights and conversation.
 
-### How It Works
+### AI Chat
+Patients can chat with an AI assistant to ask questions, get support, and discuss their recovery journey. The chat is context-aware, referencing the patient's check-in history and recovery patterns.
+
+### Automated Insights
 
 | Property | Detail |
 |---|---|
@@ -426,7 +429,7 @@ Powered by **Google Gemini API** for personalized recovery insights.
 | Fallback | Generic encouraging message if API fails |
 | Rate limiting | Implemented to respect free-tier limits |
 
-### Feedback Types
+### Insight Types
 
 1. **Daily Motivation** — Personalized encouragement based on today's scores
 2. **Trend Analysis** — Detects patterns in mood and pain over time
@@ -514,7 +517,6 @@ SENTRY_DSN
 
 ### Code Style
 
-- Arrow functions exclusively — never `function` declarations
 - No semicolons unless syntactically required
 - ESLint + Prettier enforced via pre-commit hooks
 - TypeScript strict mode enabled
