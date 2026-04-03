@@ -24,13 +24,13 @@ export const getPrismaClient = (): PrismaClient => {
             logger.info('Database pool connected')
         })
 
-        pool.on('error', (err) => {
+        pool.on('error', (err: Error) => {
             logger.error('Database pool error', {
                 message: err.message
             })
         })
 
-        const adapter = new PrismaPg(pool)
+        const adapter = new PrismaPg(pool as any)
 
         client = new PrismaClient({
             adapter,
