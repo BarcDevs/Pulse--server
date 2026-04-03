@@ -6,14 +6,13 @@ import Prisma from '../utils/PrismaClient'
 
 const getUserById = async (id: string):
     Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findFirst({
+    const user = await Prisma.user.findUnique({
         where: {
-            id,
-            active: true
+            id
         }
     })
 
-    if (!user) return null
+    if (!user || !user.active) return null
 
     return user as ServerUserType
 }
@@ -21,14 +20,13 @@ const getUserById = async (id: string):
 const getUserByEmail = async (
     email: string
 ): Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findFirst({
+    const user = await Prisma.user.findUnique({
         where: {
-            email,
-            active: true
+            email
         }
     })
 
-    if (!user) return null
+    if (!user || !user.active) return null
 
     return user as ServerUserType
 }
@@ -37,14 +35,13 @@ const getUserByUsername = async (
     username: string
 ): Promise<ServerUserType | null> => {
     const user =
-        await Prisma.user.findFirst({
+        await Prisma.user.findUnique({
             where: {
-                username,
-                active: true
+                username
             }
         })
 
-    if (!user) return null
+    if (!user || !user.active) return null
 
     return user as ServerUserType
 }

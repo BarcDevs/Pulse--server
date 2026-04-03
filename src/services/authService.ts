@@ -1,3 +1,4 @@
+import {errorFactory} from '../errors/factory'
 import {
     comparePassword,
     createToken,
@@ -49,11 +50,16 @@ const login = async (
     const user: ServerUserType | null =
         await getUser('email', email)
 
-    if (!user || !comparePassword(
-        password,
-        user.password
-    )) {
-        throw new Error('User not found!')
+    if (!user) {
+        throw errorFactory.auth.credentials(
+            'User not found!'
+        )
+    }
+
+    if (!comparePassword(password, user.password)) {
+        throw errorFactory.auth.credentials(
+            'Invalid password!'
+        )
     }
 
     return createToken(user)
@@ -68,7 +74,9 @@ const register = async (
         )
 
     if (userExists)
-        throw new Error('User already exists!')
+        throw errorFactory.auth.conflict(
+            'User already exists!'
+        )
 
     const usernameExists =
         await authModel.getUserByUsername(
@@ -76,7 +84,9 @@ const register = async (
         )
 
     if (usernameExists)
-        throw new Error('Username already taken!')
+        throw errorFactory.auth.conflict(
+            'Username already taken!'
+        )
 
     const passwordHash =
         hashPassword(newUser.password)

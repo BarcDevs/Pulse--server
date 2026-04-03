@@ -1,5 +1,8 @@
 import {HttpStatusCodes} from '../../constants/httpStatusCodes'
 import {AuthError} from '../AuthError'
+import {
+    ConflictError
+} from '../ConflictError'
 
 export class AuthFactory {
     static generic = (message?: string) =>
@@ -7,9 +10,9 @@ export class AuthFactory {
 
     static credentials = (message?: string) =>
         new AuthError(
-            `Invalid credentials! ${message ?? 'please try again!'}`,
+            message ?? 'Invalid credentials! please try again!',
             undefined,
-            'Invalid Credentials',
+            'Authentication Error',
             HttpStatusCodes.UNAUTHORIZED
         )
 
@@ -35,4 +38,7 @@ export class AuthFactory {
             undefined,
             'Reset Password'
         )
+
+    static conflict = (message: string) =>
+        new ConflictError(message)
 }

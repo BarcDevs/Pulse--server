@@ -413,6 +413,7 @@ router
     .route('/reset-password')
     .put(
         extractCsrfToken,
+        csrfMiddleware,
         resetPassword
     )
 
