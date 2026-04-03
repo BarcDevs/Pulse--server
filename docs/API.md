@@ -111,7 +111,7 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
 
 ---
 
-### `GET /csrf`
+### `GET /refresh`
 > Auth required
 
 **Response `200`**

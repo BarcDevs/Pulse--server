@@ -229,7 +229,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/csrf:
+ * /api/v1/auth/refresh:
  *   get:
  *     summary: Generate a new CSRF token
  *     description: Returns a fresh CSRF token and sets the _csrf cookie. Use the returned token as the x-csrf-token header on mutation requests.
@@ -258,7 +258,7 @@ router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/csrf').get(
+router.route('/refresh').get(
     isAuthenticated,
     cacheMiddleware,
     getCsrfToken
