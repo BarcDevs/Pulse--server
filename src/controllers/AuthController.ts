@@ -104,6 +104,7 @@ export const logout = async (
     res: Response
 ) => {
     res.clearCookie('accessToken')
+    res.clearCookie('_csrf')
 
     successResponse(
         res,

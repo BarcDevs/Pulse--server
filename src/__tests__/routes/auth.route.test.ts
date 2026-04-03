@@ -430,6 +430,28 @@ describe('Auth Routes', () => {
                     .toBe('user logged out!')
             }
         )
+
+        it(
+            'should clear both accessToken and _csrf cookies',
+            async () => {
+                const response = await supertest(App)
+                    .get('/api/v1/auth/logout')
+
+                expect(response.status).toBe(200)
+
+                const setCookieHeaders =
+                    response.headers['set-cookie'] || []
+
+                const cookieHeaderText =
+                    setCookieHeaders.join('; ')
+
+                // Both cookies should be cleared (set with max-age=0)
+                expect(cookieHeaderText)
+                    .toContain('accessToken')
+                expect(cookieHeaderText)
+                    .toContain('_csrf')
+            }
+        )
     })
 
     // ==================== ME ====================
@@ -516,6 +538,59 @@ describe('Auth Routes', () => {
                     ])
 
                 expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should not return cached data for different users',
+            async () => {
+                // Setup two different users
+                const user1 = createMockUser({
+                    id: 'user-1',
+                    email: 'user1@test.com',
+                    firstName: 'User',
+                    lastName: 'One'
+                })
+
+                const user2 = createMockUser({
+                    id: 'user-2',
+                    email: 'user2@test.com',
+                    firstName: 'User',
+                    lastName: 'Two'
+                })
+
+                // First call with user1
+                const token1 = createAuthToken(user1)
+                prismaMock.user.findUnique
+                    .mockResolvedValue(user1)
+
+                const response1 = await supertest(App)
+                    .get(meEndpoint)
+                    .set('Cookie', [`accessToken=${token1}`])
+
+                expect(response1.status).toBe(200)
+                expect(response1.body.data.user.id)
+                    .toBe('user-1')
+
+                // Second call with user2 (different token)
+                // This should NOT return user1's cached data
+                const token2 = createAuthToken(user2)
+                prismaMock.user.findUnique
+                    .mockResolvedValue(user2)
+
+                const response2 = await supertest(App)
+                    .get(meEndpoint)
+                    .set('Cookie', [`accessToken=${token2}`])
+
+                expect(response2.status).toBe(200)
+                expect(response2.body.data.user.id)
+                    .toBe('user-2')
+                expect(response2.body.data.user.email)
+                    .toBe('user2@test.com')
+
+                // Verify they're different users
+                expect(response2.body.data.user.id)
+                    .not.toBe(response1.body.data.user.id)
             }
         )
     })

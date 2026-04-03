@@ -12,7 +12,6 @@ import {
     resetPassword,
     signup
 } from '../controllers/AuthController'
-import {cacheMiddleware} from '../middlewares/cache'
 import {
     csrfMiddleware,
     extractCsrfToken
@@ -260,7 +259,6 @@ router
  */
 router.route('/refresh').get(
     isAuthenticated,
-    cacheMiddleware,
     getCsrfToken
 )
 
@@ -268,11 +266,12 @@ router.route('/refresh').get(
  * @swagger
  * /api/v1/auth/logout:
  *   get:
- *     summary: Logout and clear the access token cookie
+ *     summary: Logout and clear authentication cookies
+ *     description: Clears both the accessToken and _csrf cookies
  *     tags: [Auth]
  *     responses:
  *       200:
- *         description: Logged out successfully
+ *         description: Logged out successfully. Clears accessToken and _csrf cookies.
  *         content:
  *           application/json:
  *             schema:
@@ -317,7 +316,6 @@ router.route('/logout').get(logout)
  */
 router.route('/me').get(
     isAuthenticated,
-    cacheMiddleware,
     me
 )
 
