@@ -595,9 +595,9 @@ describe('Auth Routes', () => {
         )
     })
 
-    // ==================== CSRF ====================
-    describe('GET /api/v1/auth/csrf', () => {
-        const csrfEndpoint = '/api/v1/auth/csrf'
+    // ==================== REFRESH ====================
+    describe('GET /api/v1/auth/refresh', () => {
+        const csrfEndpoint = '/api/v1/auth/refresh'
 
         it(
             'should return 200 and CSRF token for authenticated user',
