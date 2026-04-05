@@ -11,6 +11,7 @@ export type UserType = {
     lastName: string
     username: string
     email: string
+    googleId?: string | null
     role: Role
     posts?: PostType[]
     replies?: ReplyType[]
