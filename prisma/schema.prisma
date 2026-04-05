@@ -57,6 +57,13 @@ model Profile {
   timezone   String?
   dateFormat String? @default("dd/mm/yyyy")
 
+  theme                  String  @default("light")
+  language               String  @default("en-US")
+  dailyReminder          Boolean @default(true)
+  communityAlerts        Boolean @default(false)
+  profileVisibility      String  @default("friends")
+  anonymousParticipation Boolean @default(true)
+
   healthInterests     ProfileHealthInterest[]
   activityPreferences ProfileActivityPreference[]
 

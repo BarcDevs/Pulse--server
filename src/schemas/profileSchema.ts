@@ -12,7 +12,19 @@ export const updateProfileSchema = Joi.object({
             /^([A-Z][A-Za-z]+\/[A-Za-z0-9_]+|UTC)$/
         )
         .allow(null)
-        .optional()
+        .optional(),
+    theme: Joi.string()
+        .valid('light', 'dark')
+        .optional(),
+    language: Joi.string()
+        .max(10)
+        .optional(),
+    dailyReminder: Joi.boolean().optional(),
+    communityAlerts: Joi.boolean().optional(),
+    profileVisibility: Joi.string()
+        .valid('onlyMe', 'friends', 'public')
+        .optional(),
+    anonymousParticipation: Joi.boolean().optional()
 })
 
 export const addHealthInterestsSchema =

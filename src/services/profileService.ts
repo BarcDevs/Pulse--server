@@ -11,6 +11,12 @@ type UpdateProfileData = {
     bio?: string | null
     location?: string | null
     timezone?: string | null
+    theme?: string
+    language?: string
+    dailyReminder?: boolean
+    communityAlerts?: boolean
+    profileVisibility?: string
+    anonymousParticipation?: boolean
 }
 
 // region Profile CRUD

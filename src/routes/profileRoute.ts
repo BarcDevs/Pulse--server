@@ -55,6 +55,20 @@ const router = Router()
  *               timezone:
  *                 type: string
  *                 nullable: true
+ *               theme:
+ *                 type: string
+ *                 enum: [light, dark]
+ *               language:
+ *                 type: string
+ *               dailyReminder:
+ *                 type: boolean
+ *               communityAlerts:
+ *                 type: boolean
+ *               profileVisibility:
+ *                 type: string
+ *                 enum: [onlyMe, friends, public]
+ *               anonymousParticipation:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Profile updated
