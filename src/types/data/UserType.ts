@@ -22,10 +22,10 @@ export type ServerUserType = Prettify<
         password: string
         resetPasswordOTP?: number
         resetPasswordExpiration?: Date
-        password_updated_at: Date
-        created_at: Date
+        passwordUpdatedAt: Date
+        createdAt: Date
         active: boolean
-        deleted_at?: Date
+        deletedAt?: Date
     }
 >
 

@@ -87,7 +87,7 @@ export const setUserOTP = (
     data: {
         resetPasswordOTP: number | null
         resetPasswordExpiration: Date | null
-        password_updated_at?: Date
+        passwordUpdatedAt?: Date
     }
 ): Promise<ServerUserType> =>
     Prisma.user.update({
@@ -109,7 +109,7 @@ const updatePassword = (
         },
         data: {
             password: hashedPassword,
-            password_updated_at: new Date(Date.now())
+            passwordUpdatedAt: new Date(Date.now())
         }
     }) as Promise<ServerUserType>
 

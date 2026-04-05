@@ -326,7 +326,7 @@ describe('User Routes', () => {
                 prismaMock.user.update
                     .mockResolvedValue({
                         ...mockUser,
-                        password_updated_at: new Date()
+                        passwordUpdatedAt: new Date()
                     })
 
                 const response = await supertest(App)

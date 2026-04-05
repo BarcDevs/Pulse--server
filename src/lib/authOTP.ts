@@ -26,7 +26,7 @@ const removeResetPasswordOTP = async (
         {
             resetPasswordOTP: null,
             resetPasswordExpiration: null,
-            password_updated_at: new Date(
+            passwordUpdatedAt: new Date(
                 Date.now()
             )
         }

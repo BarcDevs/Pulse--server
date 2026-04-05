@@ -37,13 +37,13 @@ model User {
   password                String
   resetPasswordOTP        Int?
   resetPasswordExpiration DateTime?
-  password_updated_at     DateTime  @default(now())
-  created_at              DateTime  @default(now())
+  passwordUpdatedAt       DateTime  @default(now())
+  createdAt               DateTime  @default(now())
   active                  Boolean   @default(true)
-  deleted_at              DateTime?
+  deletedAt               DateTime?
   lastCheckInAt           DateTime?
 
-  @@index([email, created_at, active])
+  @@index([email, createdAt, active])
 }
 
 model Profile {
