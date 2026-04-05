@@ -112,7 +112,7 @@ export const postQueryBuilder = (
             // filter by unanswered
             ...( query?.filter === PostFilter.UNANSWERED && {
                 replies: {
-                    none: true
+                    none: {}
                 }
             } ),
 
