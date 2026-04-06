@@ -538,4 +538,130 @@ describe('User Routes', () => {
             }
         )
     })
+
+    // ==================== DELETE /api/v1/users/me ====================
+    describe('DELETE /api/v1/users/me', () => {
+        const deleteUserEndpoint = '/api/v1/users/me'
+
+        it('should deactivate user account', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser)
+            prismaMock.user.update
+                .mockResolvedValue({
+                    ...mockUser,
+                    active: false
+                })
+
+            const response = await supertest(App)
+                .delete(deleteUserEndpoint)
+                .set('Cookie', [
+                    `accessToken=${token}`,
+                    `_csrf=${csrfSecret}`
+                ])
+                .set('x-csrf-token', csrfToken)
+
+            expect(response.status).toBe(204)
+            expect(prismaMock.user.findUnique)
+                .toHaveBeenCalledWith({
+                    where: {id: mockUser.id}
+                })
+            expect(prismaMock.user.update)
+                .toHaveBeenCalledWith({
+                    where: {id: mockUser.id},
+                    data: {active: false}
+                })
+        })
+
+        it('should return 401 when user not found', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.user.findUnique
+                .mockResolvedValue(null)
+
+            const response = await supertest(App)
+                .delete(deleteUserEndpoint)
+                .set('Cookie', [
+                    `accessToken=${token}`,
+                    `_csrf=${csrfSecret}`
+                ])
+                .set('x-csrf-token', csrfToken)
+
+            expect(response.status).toBe(404)
+            expect(response.body.error[0].error).toContain(
+                'not found'
+            )
+        })
+
+        it('should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .delete(deleteUserEndpoint)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it('should return 401 when CSRF token is missing',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await supertest(App)
+                    .delete(deleteUserEndpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+
+                expect(response.status).toBe(401)
+                expect(response.body.error[0].error).toContain(
+                    'CSRF'
+                )
+            }
+        )
+
+        it('should return 401 when CSRF token is invalid',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await supertest(App)
+                    .delete(deleteUserEndpoint)
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+                    .set('x-csrf-token', 'invalid-token')
+
+                expect(response.status).toBe(401)
+                expect(response.body.error[0].error).toContain(
+                    'CSRF'
+                )
+            }
+        )
+    })
 })

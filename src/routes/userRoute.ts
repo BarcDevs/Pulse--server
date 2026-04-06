@@ -1,6 +1,7 @@
 import {Router} from 'express'
 
 import {
+    deleteUser,
     updatePassword,
     updateUser
 } from '../controllers/UserController'
@@ -144,6 +145,34 @@ router
         extractCsrfToken,
         csrfMiddleware,
         updatePassword
+    )
+
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   delete:
+ *     summary: Deactivate user account
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     responses:
+ *       204:
+ *         description: User account deactivated successfully
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/me')
+    .delete(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        deleteUser
     )
 
 export default router

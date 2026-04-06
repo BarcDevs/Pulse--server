@@ -109,9 +109,21 @@ const resetPassword = async (
         password: hashPassword(newPassword)
     })
 
+const deactivateUser = async (
+    userId: string
+): Promise<void> => {
+    const user = await authModel.getUserById(userId)
+
+    if (!user)
+        throw errorFactory.generic.notFound('User')
+
+    await authModel.disableUser(userId)
+}
+
 export {
     comparePassword,
     createToken,
+    deactivateUser,
     generateCSRFToken,
     generateRandomUsername,
     getCookiesOptions,

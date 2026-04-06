@@ -1,12 +1,13 @@
 import type {Request, Response} from 'express'
 
+import {HttpStatusCodes} from '../constants/httpStatusCodes'
 import {errorFactory} from '../errors/factory'
 import {ValidationError} from '../errors/ValidationError'
+import {sanitizeUserData} from '../lib/authHelpers'
 import {successResponse} from '../responses/success'
 import {updatePasswordSchema} from '../schemas/user/updatePasswordSchema'
 import {updateUserSchema} from '../schemas/user/updateUserSchema'
 import * as authServices from '../services/authService'
-import {sanitizeUserData} from '../services/authService'
 import type {UserType} from '../types/data/UserType'
 
 export const updateUser = async (
@@ -29,9 +30,7 @@ export const updateUser = async (
             validatedData
         )
 
-    successResponse<{
-        user: UserType
-    }>(
+    successResponse<{user: UserType}>(
         res,
         {user: sanitizeUserData(updatedUser)},
         'User updated successfully'
@@ -59,11 +58,28 @@ export const updatePassword = async (
             validatedData.newPassword
         )
 
-    successResponse<{
-        user: UserType
-    }>(
+    successResponse<{user: UserType}>(
         res,
         {user: sanitizeUserData(updatedUser)},
         'Password updated successfully'
+    )
+}
+
+export const deleteUser = async (
+    req: Request,
+    res: Response
+) => {
+    const {userId} = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    await authServices.deactivateUser(userId)
+
+    successResponse(
+        res,
+        null,
+        'User account deactivated successfully',
+        HttpStatusCodes.NO_CONTENT
     )
 }
