@@ -147,7 +147,7 @@ model Post {
   authorId  String
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotedBy\": [], \"downvotedBy\": [], \"upvotes\": 0, \"downvotes\": 0}")
+  votes     Json      @default("{\"upvotedBy\": [], \"upvotes\": 0}")
   replies   Reply[]
   views     Int       @default(0)
   category  String
@@ -161,7 +161,7 @@ model Reply {
   authorId  String
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotedBy\": [], \"downvotedBy\": [], \"upvotes\": 0, \"downvotes\": 0}")
+  votes     Json      @default("{\"upvotedBy\": [], \"upvotes\": 0}")
   post      Post      @relation(fields: [postId], references: [id])
   postId    String
 }

@@ -69,7 +69,7 @@ export const createMockUser = (
 
 export const createMockPost = (
     overrides?: Partial<PostType>
-): PostType => ( {
+): PostType => ({
     id: 'test-post-id-123',
     title: 'Test Post Title',
     body: 'Test post body content',
@@ -85,9 +85,7 @@ export const createMockPost = (
     },
     votes: {
         upvotedBy: [],
-        downvotedBy: [],
-        upvotes: 0,
-        downvotes: 0
+        upvotes: 0
     },
     views: 0,
     createdAt: new Date(),
@@ -96,11 +94,11 @@ export const createMockPost = (
     replies: [],
     _count: { replies: 0 },
     ...overrides
-} )
+})
 
 export const createMockReply = (
     overrides?: Partial<ReplyType>
-): ReplyType => ( {
+): ReplyType => ({
     id: 'test-reply-id-123',
     body: 'Test reply content',
     authorId: 'test-user-id-123',
@@ -115,24 +113,22 @@ export const createMockReply = (
     },
     votes: {
         upvotedBy: [],
-        downvotedBy: [],
-        upvotes: 0,
-        downvotes: 0
+        upvotes: 0
     },
     createdAt: new Date(),
     updatedAt: undefined,
     ...overrides
-} )
+})
 
 export const createMockTag = (
     overrides?: Partial<TagType>
-): TagType => ( {
+): TagType => ({
     id: 'test-tag-id-123',
     name: 'test-tag',
     description: 'A test tag',
     createdAt: new Date(),
     ...overrides
-} )
+})
 
 // ==================== AUTH HELPERS ====================
 export const createAuthToken = (

@@ -332,9 +332,7 @@ Clears the `accessToken` cookie.
       "views": 0,
       "votes": {
         "upvotes": 0,
-        "downvotes": 0,
-        "upvotedBy": ["userId"],
-        "downvotedBy": ["userId"]
+        "upvotedBy": ["userId"]
       },
       "tags": [{ "id": "string", "name": "string" }],
       "replies": []
@@ -370,9 +368,7 @@ Clears the `accessToken` cookie.
     "views": 0,
     "votes": {
       "upvotes": 0,
-      "downvotes": 0,
-      "upvotedBy": [],
-      "downvotedBy": []
+      "upvotedBy": []
     },
     "tags": [{ "id": "string", "name": "string" }],
     "replies": []
@@ -398,9 +394,7 @@ Clears the `accessToken` cookie.
     "views": 0,
     "votes": {
       "upvotes": 0,
-      "downvotes": 0,
-      "upvotedBy": ["userId"],
-      "downvotedBy": ["userId"]
+      "upvotedBy": ["userId"]
     },
     "tags": [{ "id": "string", "name": "string" }],
     "replies": [{ "id": "string", "body": "string" }]
@@ -436,9 +430,7 @@ Clears the `accessToken` cookie.
     "views": 0,
     "votes": {
       "upvotes": 0,
-      "downvotes": 0,
-      "upvotedBy": ["userId"],
-      "downvotedBy": ["userId"]
+      "upvotedBy": ["userId"]
     },
     "tags": [{ "id": "string", "name": "string" }],
     "replies": []
@@ -474,9 +466,7 @@ Clears the `accessToken` cookie.
       "body": "string",
       "votes": {
         "upvotes": 0,
-        "downvotes": 0,
-        "upvotedBy": ["userId"],
-        "downvotedBy": ["userId"]
+        "upvotedBy": ["userId"]
       }
     }
   ]
@@ -504,9 +494,7 @@ Clears the `accessToken` cookie.
     "body": "string",
     "votes": {
       "upvotes": 0,
-      "downvotes": 0,
-      "upvotedBy": [],
-      "downvotedBy": []
+      "upvotedBy": []
     }
   }
 }
@@ -534,9 +522,7 @@ Clears the `accessToken` cookie.
     "body": "string",
     "votes": {
       "upvotes": 0,
-      "downvotes": 0,
-      "upvotedBy": ["userId"],
-      "downvotedBy": ["userId"]
+      "upvotedBy": ["userId"]
     }
   }
 }

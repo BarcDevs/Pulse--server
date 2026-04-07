@@ -33,72 +33,88 @@ const options: swaggerJsdoc.Options = {
                 ErrorResponse: {
                     type: 'object',
                     properties: {
-                        message: { type: 'string' },
-                        status: { type: 'integer' }
+                        message: {type: 'string'},
+                        status: {type: 'integer'}
                     }
                 },
                 Votes: {
                     type: 'object',
                     properties: {
-                        upvotedBy: { type: 'array', items: { type: 'string' } },
-                        downvotedBy: { type: 'array', items: { type: 'string' } },
-                        upvotes: { type: 'integer' },
-                        downvotes: { type: 'integer' }
+                        upvotedBy: {
+                            type: 'array',
+                            items: {type: 'string'}
+                        },
+                        upvotes: {type: 'integer'}
                     }
                 },
                 User: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
-                        firstName: { type: 'string' },
-                        lastName: { type: 'string' },
-                        username: { type: 'string' },
-                        email: { type: 'string', format: 'email' },
-                        image: { type: 'string' },
-                        role: { type: 'string', enum: ['USER', 'ADMIN'] }
+                        id: {type: 'string'},
+                        firstName: {type: 'string'},
+                        lastName: {type: 'string'},
+                        username: {type: 'string'},
+                        email: {
+                            type: 'string',
+                            format: 'email'
+                        },
+                        image: {type: 'string'},
+                        role: {
+                            type: 'string',
+                            enum: ['USER', 'ADMIN']
+                        }
                     }
                 },
                 Tag: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
-                        name: { type: 'string' },
-                        description: { type: 'string', nullable: true },
-                        posts: { type: 'integer', nullable: true },
-                        followers: { type: 'integer', nullable: true }
+                        id: {type: 'string'},
+                        name: {type: 'string'},
+                        description: {
+                            type: 'string',
+                            nullable: true
+                        },
+                        posts: {
+                            type: 'integer',
+                            nullable: true
+                        },
+                        followers: {
+                            type: 'integer',
+                            nullable: true
+                        }
                     }
                 },
                 Post: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
-                        title: { type: 'string' },
-                        body: { type: 'string' },
-                        category: { type: 'string' },
-                        views: { type: 'integer' },
-                        votes: { $ref: '#/components/schemas/Votes' },
+                        id: {type: 'string'},
+                        title: {type: 'string'},
+                        body: {type: 'string'},
+                        category: {type: 'string'},
+                        views: {type: 'integer'},
+                        votes: {$ref: '#/components/schemas/Votes'},
                         tags: {
                             type: 'array',
-                            items: { $ref: '#/components/schemas/Tag' }
+                            items: {$ref: '#/components/schemas/Tag'}
                         },
                         replies: {
                             type: 'array',
-                            items: { $ref: '#/components/schemas/Reply' }
+                            items: {$ref: '#/components/schemas/Reply'}
                         }
                     }
                 },
                 Reply: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
-                        body: { type: 'string' },
-                        votes: { $ref: '#/components/schemas/Votes' }
+                        id: {type: 'string'},
+                        body: {type: 'string'},
+                        votes: {$ref: '#/components/schemas/Votes'}
                     }
                 },
                 AIInsight: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
+                        id: {type: 'string'},
                         type: {
                             type: 'string',
                             enum: [
@@ -107,27 +123,42 @@ const options: swaggerJsdoc.Options = {
                                 'ACTIVITY_SUGGESTIONS'
                             ]
                         },
-                        content: { type: 'string' }
+                        content: {type: 'string'}
                     }
                 },
                 CheckIn: {
                     type: 'object',
                     properties: {
-                        id: { type: 'string' },
-                        userId: { type: 'string' },
+                        id: {type: 'string'},
+                        userId: {type: 'string'},
                         checkInDate: {
                             type: 'string',
                             format: 'date',
-                            description: "User's local calendar date (UTC midnight)"
+                            description: `User's local calendar date (UTC midnight)`
                         },
-                        moodScore: { type: 'integer', minimum: 1, maximum: 10 },
-                        painLevel: { type: 'integer', minimum: 1, maximum: 10 },
+                        moodScore: {
+                            type: 'integer',
+                            minimum: 1,
+                            maximum: 10
+                        },
+                        painLevel: {
+                            type: 'integer',
+                            minimum: 1,
+                            maximum: 10
+                        },
                         activities: {
+
                             type: 'array',
-                            items: { type: 'string' }
+                            items: {type: 'string'}
                         },
-                        notes: { type: 'string', nullable: true },
-                        createdAt: { type: 'string', format: 'date-time' },
+                        notes: {
+                            type: 'string',
+                            nullable: true
+                        },
+                        createdAt: {
+                            type: 'string',
+                            format: 'date-time'
+                        },
                         updatedAt: {
                             type: 'string',
                             format: 'date-time',
@@ -136,22 +167,22 @@ const options: swaggerJsdoc.Options = {
                         },
                         insights: {
                             type: 'array',
-                            items: { $ref: '#/components/schemas/AIInsight' }
+                            items: {$ref: '#/components/schemas/AIInsight'}
                         }
                     }
                 },
                 CheckInStats: {
                     type: 'object',
                     properties: {
-                        totalCheckIns: { type: 'integer' },
-                        averageMoodScore: { type: 'number' },
-                        averagePainLevel: { type: 'number' },
+                        totalCheckIns: {type: 'integer'},
+                        averageMoodScore: {type: 'number'},
+                        averagePainLevel: {type: 'number'},
                         topActivities: {
                             type: 'array',
-                            items: { type: 'string' }
+                            items: {type: 'string'}
                         },
-                        currentStreak: { type: 'integer' },
-                        longestStreak: { type: 'integer' }
+                        currentStreak: {type: 'integer'},
+                        longestStreak: {type: 'integer'}
                     }
                 }
             }

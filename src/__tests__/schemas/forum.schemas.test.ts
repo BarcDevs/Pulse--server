@@ -148,7 +148,7 @@ describe('Forum Schemas', () => {
             expect(result.error).toBeUndefined()
         })
 
-        it('should accept vote down', () => {
+        it('should reject vote down', () => {
             const result = updatePostSchema.validate({
                 vote: {
                     userId: 'user-123',
@@ -156,7 +156,7 @@ describe('Forum Schemas', () => {
                 }
             })
 
-            expect(result.error).toBeUndefined()
+            expect(result.error).toBeDefined()
         })
 
         it('should reject invalid vote value', () => {

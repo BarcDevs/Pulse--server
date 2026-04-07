@@ -24,7 +24,7 @@ export type UpdateReplyType = Partial<
     Omit<NewReplyType, 'authorId'> & {
         vote?: {
             userId: string
-            vote: 'up' | 'down'
+            vote: 'up'
         }
     }
 >

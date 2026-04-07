@@ -200,7 +200,7 @@ router
  *                     type: string
  *                   vote:
  *                     type: string
- *                     enum: [up, down]
+ *                     enum: [up]
  *     responses:
  *       200:
  *         description: Post updated
@@ -398,7 +398,7 @@ router
  *                     type: string
  *                   vote:
  *                     type: string
- *                     enum: [up, down]
+ *                     enum: [up]
  *     responses:
  *       200:
  *         description: Reply updated
