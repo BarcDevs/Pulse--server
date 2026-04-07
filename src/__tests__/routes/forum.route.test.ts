@@ -22,15 +22,21 @@ describe('Forum Routes', () => {
             async () => {
                 const mockPosts = [
                     createMockPost(),
-                    createMockPost({id: 'post-2'})
+                    createMockPost({
+                        id: 'post-2'
+                    })
                 ]
                 prismaMock.post.findMany
-                    .mockResolvedValue(mockPosts)
+                    .mockResolvedValue(
+                        mockPosts
+                    )
 
-                const response = await supertest(App)
-                    .get(postsEndpoint)
+                const response =
+                    await supertest(App)
+                        .get(postsEndpoint)
 
-                expect(response.status).toBe(200)
+                expect(response.status)
+                    .toBe(200)
                 expect(response.body.data)
                     .toBeInstanceOf(Array)
                 expect(response.body.message)
@@ -47,7 +53,10 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({limit: 5, page: 1})
+                    .query({
+                        limit: 5,
+                        page: 1
+                    })
 
                 expect(response.status).toBe(200)
             }
@@ -57,7 +66,11 @@ describe('Forum Routes', () => {
             'should return 200 with tag filter',
             async () => {
                 const mockPosts = [
-                    createMockPost({tags: [createMockTag()]})
+                    createMockPost({
+                        tags: [
+                            createMockTag()
+                        ]
+                    })
                 ]
                 prismaMock.post.findMany
                     .mockResolvedValue(mockPosts)
@@ -836,6 +849,9 @@ describe('Forum Routes', () => {
     describe(
         'DELETE /api/v1/forum/posts/:postId/reply/:replyId',
         () => {
+            const deleteReplyEndpoint =
+                '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
+
             it(
                 'should return 200 for valid delete by owner',
                 async () => {
@@ -855,9 +871,7 @@ describe('Forum Routes', () => {
                         .mockResolvedValue(mockReply)
 
                     const response = await supertest(App)
-                        .delete(
-                            '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
-                        )
+                        .delete(deleteReplyEndpoint)
                         .set('Cookie', [
                             `accessToken=${token}`,
                             `_csrf=${csrfSecret}`
@@ -865,6 +879,66 @@ describe('Forum Routes', () => {
                         .set('x-csrf-token', csrfToken)
 
                     expect(response.status).toBe(200)
+                    expect(response.body.message)
+                        .toContain('deleted')
+                }
+            )
+
+            it(
+                'should return 401 for non-owner user',
+                async () => {
+                    const mockUser = createMockUser()
+                    const otherUser = createMockUser({
+                        id: 'other-user-id'
+                    })
+                    const mockReply = createMockReply({
+                        authorId: otherUser.id
+                    })
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(mockReply)
+
+                    const response = await supertest(App)
+                        .delete(deleteReplyEndpoint)
+                        .set('Cookie', [
+                            `accessToken=${token}`,
+                            `_csrf=${csrfSecret}`
+                        ])
+                        .set('x-csrf-token', csrfToken)
+
+                    expect(response.status).toBe(401)
+                    expect(response.body.error[0].error)
+                        .toContain('not the author')
+                }
+            )
+
+            it(
+                'should return 404 for non-existent reply',
+                async () => {
+                    const mockUser = createMockUser()
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(null)
+
+                    const response = await supertest(App)
+                        .delete(deleteReplyEndpoint)
+                        .set('Cookie', [
+                            `accessToken=${token}`,
+                            `_csrf=${csrfSecret}`
+                        ])
+                        .set('x-csrf-token', csrfToken)
+
+                    expect(response.status).toBe(404)
                 }
             )
 
@@ -872,11 +946,66 @@ describe('Forum Routes', () => {
                 'should return 401 for unauthenticated request',
                 async () => {
                     const response = await supertest(App)
-                        .delete(
-                            '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
-                        )
+                        .delete(deleteReplyEndpoint)
 
                     expect(response.status).toBe(401)
+                }
+            )
+
+            it(
+                'should return 401 when CSRF token is missing',
+                async () => {
+                    const mockUser = createMockUser()
+                    const mockReply = createMockReply({
+                        authorId: mockUser.id
+                    })
+                    const {
+                        token,
+                        csrfSecret
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(mockReply)
+
+                    const response = await supertest(App)
+                        .delete(deleteReplyEndpoint)
+                        .set('Cookie', [
+                            `accessToken=${token}`,
+                            `_csrf=${csrfSecret}`
+                        ])
+
+                    expect(response.status).toBe(401)
+                    expect(response.body.error[0].error)
+                        .toContain('CSRF')
+                }
+            )
+
+            it(
+                'should return 401 when CSRF token is invalid',
+                async () => {
+                    const mockUser = createMockUser()
+                    const mockReply = createMockReply({
+                        authorId: mockUser.id
+                    })
+                    const {
+                        token,
+                        csrfSecret
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(mockReply)
+
+                    const response = await supertest(App)
+                        .delete(deleteReplyEndpoint)
+                        .set('Cookie', [
+                            `accessToken=${token}`,
+                            `_csrf=${csrfSecret}`
+                        ])
+                        .set('x-csrf-token', 'invalid-token')
+
+                    expect(response.status).toBe(401)
+                    expect(response.body.error[0].error)
+                        .toContain('CSRF')
                 }
             )
         }
@@ -889,7 +1018,10 @@ describe('Forum Routes', () => {
         it('should return 200 and tags array', async () => {
             const mockTags = [
                 createMockTag(),
-                createMockTag({id: 'tag-2', name: 'tag2'})
+                createMockTag({
+                    id: 'tag-2',
+                    name: 'tag2'
+                })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(mockTags)
@@ -943,7 +1075,10 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
-                    .query({limit: 5, page: 1})
+                    .query({
+                        limit: 5,
+                        page: 1
+                    })
 
                 expect(response.status).toBe(200)
             }
