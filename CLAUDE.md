@@ -25,7 +25,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - No line breaking to single import unless very long
 - String blocks with `'` in it, use backticks to avoid escaping
 - Avoid redundant braces or parentheses
-- Avoid redundant line breakings — break only when it improves readability or meets the line length threshold
+- Avoid redundant line breaking — break only when it improves readability or meets the line length threshold
 
 ## Reading Files:
 - Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
