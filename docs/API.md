@@ -462,7 +462,7 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `GET /posts/:postId/reply`
+### `GET /posts/:postId/replies`
 
 **Response `200`**
 ```json
@@ -487,7 +487,7 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `POST /posts/:postId/reply`
+### `POST /posts/:postId/replies`
 > Auth + CSRF required
 
 **Body**
@@ -516,7 +516,7 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `PUT /posts/:postId/reply/:replyId`
+### `PUT /posts/:postId/replies/:replyId`
 > Auth + CSRF required · Owner only
 
 **Body** _(all fields optional)_
@@ -546,7 +546,7 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `DELETE /posts/:postId/reply/:replyId`
+### `DELETE /posts/:postId/replies/:replyId`
 > Auth + CSRF required · Owner only
 
 **Response `200`**

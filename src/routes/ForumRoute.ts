@@ -280,7 +280,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/reply:
+ * /api/v1/forum/posts/{postId}/replies:
  *   get:
  *     summary: Get all replies for a post
  *     tags: [Forum]
@@ -352,7 +352,7 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router
-    .route('/posts/:postId/reply')
+    .route('/posts/:postId/replies')
     .get(getReplies)
     .post(
         isAuthenticated,
@@ -363,7 +363,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/reply/{replyId}:
+ * /api/v1/forum/posts/{postId}/replies/{replyId}:
  *   put:
  *     summary: Update a reply (owner only)
  *     tags: [Forum]
@@ -466,7 +466,7 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router
-    .route('/posts/:postId/reply/:replyId')
+    .route('/posts/:postId/replies/:replyId')
     .put(
         isAuthenticated,
         extractCsrfToken,

@@ -623,7 +623,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET REPLIES ====================
-    describe('GET /api/v1/forum/posts/:postId/reply', () => {
+    describe('GET /api/v1/forum/posts/:postId/replies', () => {
         it('should return 200 and replies array', async () => {
             const mockPost = createMockPost()
             const mockReplies = [
@@ -637,7 +637,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .get(
-                    '/api/v1/forum/posts/test-post-id-123/reply'
+                    '/api/v1/forum/posts/test-post-id-123/replies'
                 )
 
             expect(response.status).toBe(200)
@@ -653,7 +653,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/forum/posts/non-existent/reply'
+                        '/api/v1/forum/posts/non-existent/replies'
                     )
 
                 expect(response.status).toBe(404)
@@ -662,7 +662,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== CREATE REPLY ====================
-    describe('POST /api/v1/forum/posts/:postId/reply', () => {
+    describe('POST /api/v1/forum/posts/:postId/replies', () => {
         it(
             'should return 200 for valid reply creation',
             async () => {
@@ -682,7 +682,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .post(
-                        '/api/v1/forum/posts/test-post-id-123/reply'
+                        '/api/v1/forum/posts/test-post-id-123/replies'
                     )
                     .set('Cookie', [
                         `accessToken=${token}`,
@@ -704,7 +704,7 @@ describe('Forum Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .post(
-                        '/api/v1/forum/posts/test-post-id-123/reply'
+                        '/api/v1/forum/posts/test-post-id-123/replies'
                     )
                     .send({
                         body: 'This is a reply'
@@ -724,7 +724,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .post(
-                    '/api/v1/forum/posts/test-post-id-123/reply'
+                    '/api/v1/forum/posts/test-post-id-123/replies'
                 )
                 .set('Cookie', [
                     `accessToken=${token}`,
@@ -741,7 +741,7 @@ describe('Forum Routes', () => {
 
     // ==================== UPDATE REPLY ====================
     describe(
-        'PUT /api/v1/forum/posts/:postId/reply/:replyId',
+        'PUT /api/v1/forum/posts/:postId/replies/:replyId',
         () => {
             it(
                 'should return 200 for valid update by owner',
@@ -765,7 +765,7 @@ describe('Forum Routes', () => {
 
                     const response = await supertest(App)
                         .put(
-                            '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
+                            '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
                         )
                         .set('Cookie', [
                             `accessToken=${token}`,
@@ -798,7 +798,7 @@ describe('Forum Routes', () => {
 
                     const response = await supertest(App)
                         .put(
-                            '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
+                            '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
                         )
                         .set('Cookie', [
                             `accessToken=${token}`,
@@ -828,7 +828,7 @@ describe('Forum Routes', () => {
 
                     const response = await supertest(App)
                         .put(
-                            '/api/v1/forum/posts/test-post-id-123/reply/non-existent-id'
+                            '/api/v1/forum/posts/test-post-id-123/replies/non-existent-id'
                         )
                         .set('Cookie', [
                             `accessToken=${token}`,
@@ -847,10 +847,10 @@ describe('Forum Routes', () => {
 
     // ==================== DELETE REPLY ====================
     describe(
-        'DELETE /api/v1/forum/posts/:postId/reply/:replyId',
+        'DELETE /api/v1/forum/posts/:postId/replies/:replyId',
         () => {
             const deleteReplyEndpoint =
-                '/api/v1/forum/posts/test-post-id-123/reply/test-reply-id-123'
+                '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
 
             it(
                 'should return 200 for valid delete by owner',
