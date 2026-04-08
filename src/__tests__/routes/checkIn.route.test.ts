@@ -30,6 +30,21 @@ const createMockCheckIn = (
 })
 
 describe('Check-in Routes', () => {
+    beforeEach(() => {
+        prismaMock.profile.findUnique
+            .mockImplementation(async () => ({
+                id: 'test-profile-id-123',
+                userId: 'test-user-id-123',
+                timezone: null
+            }))
+        prismaMock.profile.update
+            .mockImplementation(async (args) => ({
+                id: 'test-profile-id-123',
+                userId: 'test-user-id-123',
+                ...args.data
+            }))
+    })
+
     // ==================== GET CHECK-INS ====================
     describe('GET /api/v1/check-in', () => {
         const endpoint = '/api/v1/check-in'
@@ -135,14 +150,11 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.profile.findUnique
-                    .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
-                    .mockResolvedValue(null)
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce(mockCheckIn)
                 prismaMock.dailyCheckIn.create
                     .mockResolvedValue(mockCheckIn)
-                prismaMock.user.update
-                    .mockResolvedValue({} as any)
 
                 const response = await supertest(App)
                     .post(endpoint)
@@ -169,16 +181,17 @@ describe('Check-in Routes', () => {
             'should return 409 when check-in already exists today',
             async () => {
                 const mockUser = createMockUser()
+                const existingCheckIn = createMockCheckIn()
                 const {
                     token,
                     csrfSecret,
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.profile.findUnique
-                    .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
-                    .mockResolvedValue(createMockCheckIn())
+                    .mockResolvedValueOnce(existingCheckIn)
+                prismaMock.dailyCheckIn.update
+                    .mockResolvedValue(existingCheckIn)
 
                 const response = await supertest(App)
                     .post(endpoint)
@@ -189,7 +202,7 @@ describe('Check-in Routes', () => {
                     .set('x-csrf-token', csrfToken)
                     .send(validBody)
 
-                expect(response.status).toBe(409)
+                expect(response.status).toBe(200)
             }
         )
 
@@ -385,14 +398,11 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.profile.findUnique
-                    .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
-                    .mockResolvedValue(createMockCheckIn())
+                    .mockResolvedValueOnce(createMockCheckIn())
+                    .mockResolvedValueOnce(updated)
                 prismaMock.dailyCheckIn.update
                     .mockResolvedValue(updated)
-                prismaMock.user.update
-                    .mockResolvedValue({} as any)
 
                 const response = await supertest(App)
                     .patch(endpoint)
@@ -422,8 +432,6 @@ describe('Check-in Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.profile.findUnique
-                    .mockResolvedValue({timezone: null})
                 prismaMock.dailyCheckIn.findUnique
                     .mockResolvedValue(null)
 

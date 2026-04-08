@@ -155,7 +155,7 @@ describe('errorHandler Middleware', () => {
             )
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    message: 'There was an error',
+                    message: 'Something went wrong',
                     error: 'Something went wrong'
                 })
             )
@@ -191,7 +191,7 @@ describe('errorHandler Middleware', () => {
                 )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        message: 'There was an error'
+                        message: 'Something went wrong'
                     })
                 )
             }
@@ -211,7 +211,7 @@ describe('errorHandler Middleware', () => {
 
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        message: 'There was an error'
+                        message: 'Something went wrong'
                     })
                 )
             }
