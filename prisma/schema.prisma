@@ -7,117 +7,99 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum InsightType {
-  MOOD_DROP_ALERT
-  MOTIVATIONAL
-  WEEKLY_SUMMARY
-}
-
 model User {
-  id        String  @id() @default(uuid())
+  id        String  @id @default(uuid())
   firstName String
   lastName  String
   username  String  @unique
   email     String  @unique
-  googleId  String? @unique
   role      Role    @default(USER)
+  googleId  String? @unique
 
-  profile      Profile?
-  posts        Post[]
-  replies      Reply[]
-  followedTags Tag[]
-  checkIns     DailyCheckIn[]
+  createdAt DateTime @default(now())
+  active    Boolean  @default(true)
 
-  // excluded from client
   password                String
   resetPasswordOTP        Int?
   resetPasswordExpiration DateTime?
   passwordUpdatedAt       DateTime  @default(now())
-  createdAt               DateTime  @default(now())
-  active                  Boolean   @default(true)
   deletedAt               DateTime?
-  lastCheckInAt           DateTime?
+
+  profile Profile?
 
   @@index([email, createdAt, active])
 }
 
 model Profile {
-  id     String @id() @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id         String   @id @default(uuid())
+  userId     String   @unique
   image      String?
   bio        String?
   location   String?
   timezone   String?
-  dateFormat String? @default("dd/mm/yyyy")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  dateFormat String?  @default("dd/mm/yyyy")
 
-  theme                  String  @default("light")
-  language               String  @default("en-US")
-  dailyReminder          Boolean @default(true)
-  communityAlerts        Boolean @default(false)
-  profileVisibility      String  @default("friends")
-  anonymousParticipation Boolean @default(true)
+  anonymousParticipation Boolean   @default(true)
+  communityAlerts        Boolean   @default(false)
+  dailyReminder          Boolean   @default(true)
+  language               String    @default("en-US")
+  profileVisibility      String    @default("friends")
+  theme                  String    @default("light")
+  lastCheckInAt          DateTime?
 
-  healthInterests     ProfileHealthInterest[]
+  posts               Post[]
+  replies             Reply[]
+  followedTags        ProfileToTag[]
+  checkIns            DailyCheckIn[]
   activityPreferences ProfileActivityPreference[]
+  healthInterests     ProfileHealthInterest[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model HealthInterest {
-  id          String  @id() @default(uuid())
-  slug        String  @unique
+  id          String                  @id @default(uuid())
+  slug        String                  @unique
   name        String
   description String?
   category    String?
   sortOrder   Int?
-  isActive    Boolean @default(true)
-
-  profiles ProfileHealthInterest[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive    Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  profiles    ProfileHealthInterest[]
 
   @@index([isActive])
   @@index([category, sortOrder])
 }
 
 model ActivityPreference {
-  id          String  @id() @default(uuid())
-  slug        String  @unique
+  id          String                      @id @default(uuid())
+  slug        String                      @unique
   name        String
   description String?
   category    String?
   sortOrder   Int?
-  isActive    Boolean @default(true)
-
-  profiles ProfileActivityPreference[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive    Boolean                     @default(true)
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+  profiles    ProfileActivityPreference[]
 
   @@index([isActive])
   @@index([category, sortOrder])
 }
 
 model ProfileHealthInterest {
-  id        String  @id() @default(uuid())
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
+  id               String         @id @default(uuid())
+  profileId        String
   healthInterestId String
+  addedAt          DateTime       @default(now())
   healthInterest   HealthInterest @relation(fields: [healthInterestId], references: [id], onDelete: Cascade)
-
-  addedAt DateTime @default(now())
+  profile          Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, healthInterestId])
   @@index([profileId])
@@ -125,14 +107,12 @@ model ProfileHealthInterest {
 }
 
 model ProfileActivityPreference {
-  id        String  @id() @default(uuid())
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
+  id                   String             @id @default(uuid())
+  profileId            String
   activityPreferenceId String
+  addedAt              DateTime           @default(now())
   activityPreference   ActivityPreference @relation(fields: [activityPreferenceId], references: [id], onDelete: Cascade)
-
-  addedAt DateTime @default(now())
+  profile              Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, activityPreferenceId])
   @@index([profileId])
@@ -140,36 +120,36 @@ model ProfileActivityPreference {
 }
 
 model Post {
-  id        String    @id() @default(uuid())
+  id        String    @id @default(uuid())
   title     String
   body      String
-  author    User      @relation(fields: [authorId], references: [id])
   authorId  String
+  author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotedBy\": [], \"upvotes\": 0}")
-  replies   Reply[]
+  votes     Json      @default("{\"upvotes\": 0, \"upvotedBy\": []}")
   views     Int       @default(0)
   category  String
-  tags      Tag[]
+  replies   Reply[]
+  tags      Tag[]     @relation("PostToTag")
 }
 
 model Reply {
-  id        String    @id() @default(uuid())
+  id        String    @id @default(uuid())
   body      String
-  author    User      @relation(fields: [authorId], references: [id])
   authorId  String
+  author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotedBy\": [], \"upvotes\": 0}")
-  post      Post      @relation(fields: [postId], references: [id])
+  votes     Json      @default("{\"upvotes\": 0, \"upvotedBy\": []}")
   postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model DailyCheckIn {
-  id          String      @id() @default(uuid())
-  user        User        @relation(fields: [userId], references: [id])
-  userId      String
+  id          String      @id @default(uuid())
+  profileId   String
+  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
   checkInDate DateTime    @db.Date
   moodScore   Int
   painLevel   Int
@@ -179,30 +159,51 @@ model DailyCheckIn {
   updatedAt   DateTime?
   insights    AIInsight[]
 
-  @@unique([userId, checkInDate])
-  @@index([userId, checkInDate])
+  @@unique([profileId, checkInDate])
+  @@index([profileId, checkInDate])
 }
 
 model AIInsight {
-  id        String       @id() @default(uuid())
-  userId    String
-  checkIn   DailyCheckIn @relation(fields: [checkInId], references: [id])
+  id        String       @id @default(uuid())
   checkInId String
   type      InsightType
-  title     String
   content   String
-  metadata  Json?
   createdAt DateTime     @default(now())
+  title     String
+  userId    String
+  metadata  Json?
+  checkIn   DailyCheckIn @relation(fields: [checkInId], references: [id])
 
   @@unique([checkInId, type])
   @@index([userId, createdAt])
 }
 
 model Tag {
-  id          String   @id() @default(uuid())
-  name        String   @unique
+  id          String         @id @default(uuid())
+  name        String         @unique
   description String?
-  posts       Post[]
-  followers   User[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime       @default(now())
+  followers   ProfileToTag[]
+  posts       Post[]         @relation("PostToTag")
+}
+
+model ProfileToTag {
+  A       String
+  B       String
+  Profile Profile @relation(fields: [A], references: [id], onDelete: Cascade)
+  Tag     Tag     @relation(fields: [B], references: [id], onDelete: Cascade)
+
+  @@unique([A, B], map: "_ProfileToTag_AB_unique")
+  @@map("_ProfileToTag")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum InsightType {
+  MOOD_DROP_ALERT
+  MOTIVATIONAL
+  WEEKLY_SUMMARY
 }

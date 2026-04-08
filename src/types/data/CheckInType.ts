@@ -13,7 +13,7 @@ export type AIInsightType = {
 
 export type CheckInType = {
     id: string
-    userId: string
+    profileId: string
     checkInDate: Date
     moodScore: number
     painLevel: number
@@ -26,6 +26,14 @@ export type CheckInType = {
 
 export type NewCheckInType = {
     userId: string
+    moodScore: number
+    painLevel: number
+    activities: string[]
+    notes?: string
+}
+
+export type CheckInDataType = {
+    profileId: string
     moodScore: number
     painLevel: number
     activities: string[]

@@ -1,10 +1,6 @@
 import type {Role} from '../../../prisma/generated/prisma/enums'
 import type {Prettify} from '../index'
 
-import type {PostType} from './PostType'
-import type {ReplyType} from './ReplyType'
-import type {TagType} from './TagType'
-
 export type HealthInterestType = {
     id: string
     slug: string
@@ -59,6 +55,7 @@ export type ProfileType = {
     communityAlerts: boolean
     profileVisibility: string
     anonymousParticipation: boolean
+    lastCheckInAt?: Date | null
     healthInterests?: ProfileHealthInterestType[]
     activityPreferences?: ProfileActivityPreferenceType[]
     createdAt: Date
@@ -73,10 +70,9 @@ export type UserType = {
     email: string
     googleId?: string | null
     role: Role
+    createdAt: Date
+    active: boolean
     profile?: Partial<ProfileType>
-    posts?: PostType[]
-    replies?: ReplyType[]
-    followedTags?: Partial<TagType>[]
 }
 
 export type ServerUserType = Prettify<
@@ -85,8 +81,6 @@ export type ServerUserType = Prettify<
         resetPasswordOTP?: number
         resetPasswordExpiration?: Date
         passwordUpdatedAt: Date
-        createdAt: Date
-        active: boolean
         deletedAt?: Date
     }
 >

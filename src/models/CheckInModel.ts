@@ -5,25 +5,41 @@ import type {
 } from '../types/data/CheckInType'
 import Prisma from '../utils/PrismaClient'
 
+export const getProfileIdForUser = async (
+    userId: string
+): Promise<string> => {
+    const profile = await Prisma.profile
+        .findUnique({
+            where: {userId}
+        })
+
+    if (!profile)
+        throw new Error(
+            `Profile not found for user ${userId}`
+        )
+
+    return profile.id
+}
+
 export const getCheckIns = async (
-    userId: string,
+    profileId: string,
     limit = 30
 ): Promise<CheckInType[]> =>
     (await Prisma.dailyCheckIn.findMany({
-        where: {userId},
+        where: {profileId},
         take: limit,
         orderBy: {checkInDate: 'desc'},
         include: {insights: true}
     })) as CheckInType[]
 
 export const findTodayCheckIn = async (
-    userId: string,
+    profileId: string,
     checkInDate: Date
 ): Promise<CheckInType | null> =>
     (await Prisma.dailyCheckIn.findUnique({
         where: {
-            userId_checkInDate: {
-                userId,
+            profileId_checkInDate: {
+                profileId,
                 checkInDate
             }
         },
@@ -36,28 +52,29 @@ export const createCheckIn = async (
     createdAt?: Date
 ): Promise<CheckInType> => {
     const {userId, ...checkInData} = data
+    const profileId = await getProfileIdForUser(userId)
 
     return (await Prisma.dailyCheckIn.create({
         data: {
             ...checkInData,
             checkInDate,
             createdAt: createdAt ?? new Date(),
-            user: {connect: {id: userId}}
+            profile: {connect: {id: profileId}}
         },
         include: {insights: true}
     })) as CheckInType
 }
 
 export const updateCheckIn = async (
-    userId: string,
+    profileId: string,
     checkInDate: Date,
     data: Omit<UpdateCheckInType, 'userId'>,
     updatedAt?: Date
 ): Promise<CheckInType> =>
     (await Prisma.dailyCheckIn.update({
         where: {
-            userId_checkInDate: {
-                userId,
+            profileId_checkInDate: {
+                profileId,
                 checkInDate
             }
         },
@@ -71,14 +88,14 @@ export const updateCheckIn = async (
 export const updateUserLastCheckIn = async (
     userId: string
 ): Promise<void> => {
-    await Prisma.user.update({
-        where: {id: userId},
+    await Prisma.profile.update({
+        where: {userId},
         data: {lastCheckInAt: new Date()}
     })
 }
 
 export const getCheckInsForStats = async (
-    userId: string
+    profileId: string
 ): Promise<
     Pick<
         CheckInType,
@@ -89,7 +106,7 @@ export const getCheckInsForStats = async (
     >[]
 > =>
     Prisma.dailyCheckIn.findMany({
-        where: {userId},
+        where: {profileId},
         select: {
             moodScore: true,
             painLevel: true,

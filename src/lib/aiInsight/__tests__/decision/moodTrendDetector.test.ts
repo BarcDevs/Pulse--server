@@ -3,7 +3,7 @@ import { isMoodDropping } from '../../decision/moodTrendDetector'
 
 const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     id: 'mock-id',
-    userId: 'mock-user-id',
+    profileId: 'mock-profile-id',
     checkInDate: new Date(),
     moodScore: 5,
     painLevel: 3,

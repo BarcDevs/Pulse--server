@@ -11,6 +11,7 @@ import {
 } from '../lib/checkInStats'
 import * as authModel from '../models/AuthModel'
 import * as checkInModel from '../models/CheckInModel'
+import {getProfileIdForUser} from '../models/CheckInModel'
 import type {
     CheckInStatsType,
     CheckInType,
@@ -25,11 +26,14 @@ import {generateInsightSafely} from './insightService'
 export const getCheckIns = async (
     userId: string,
     query?: CheckInQuery
-): Promise<CheckInType[]> =>
-    checkInModel.getCheckIns(
-        userId,
+): Promise<CheckInType[]> => {
+    const profileId = await getProfileIdForUser(userId)
+
+    return checkInModel.getCheckIns(
+        profileId,
         query?.limit
     )
+}
 
 export const createCheckIn = async (
     data: NewCheckInType
@@ -41,20 +45,20 @@ export const createCheckIn = async (
         await resolveDate(data.userId)
     const userTimezone = await authModel
         .getUserTimezone(data.userId)
-    const createdAt = resolveTimestampInUserTimeZone(
-        userTimezone
-    )
+    const createdAt = resolveTimestampInUserTimeZone(userTimezone)
+
+    const profileId = await getProfileIdForUser(data.userId)
 
     const existing = await checkInModel
         .findTodayCheckIn(
-            data.userId,
+            profileId,
             checkInDate
         )
 
     if (existing) {
         const {userId, ...updateData} = data
         await checkInModel.updateCheckIn(
-            userId,
+            profileId,
             checkInDate,
             updateData,
             createdAt
@@ -67,7 +71,10 @@ export const createCheckIn = async (
 
         // Re-fetch with insights loaded
         const checkIn = await checkInModel
-            .findTodayCheckIn(userId, checkInDate)
+            .findTodayCheckIn(
+                profileId,
+                checkInDate
+            )
 
         return {
             checkIn: checkIn!,
@@ -83,33 +90,33 @@ export const createCheckIn = async (
                 createdAt
             )
 
-        await checkInModel
-            .updateUserLastCheckIn(data.userId)
+        await checkInModel.updateUserLastCheckIn(data.userId)
 
         await generateInsightSafely(
             data.userId,
             checkIn.id
         )
 
-        const checkInWithInsights = await checkInModel
-            .findTodayCheckIn(
-                data.userId,
-                checkInDate
-            )
+        const checkInWithInsights =
+            await checkInModel
+                .findTodayCheckIn(
+                    profileId,
+                    checkInDate
+                )
 
         return {
             checkIn: checkInWithInsights!,
             created: true
         }
     } catch (err) {
-        const isUniqueConstraint = (
+        if (
             err instanceof
             Prisma.PrismaClientKnownRequestError
             && err.code === 'P2002'
         )
-
-        if (isUniqueConstraint)
-            throw errorFactory.generic.conflict(`Today's check-in`)
+            throw errorFactory.generic.conflict(
+                `Today's check-in`
+            )
         throw err
     }
 }
@@ -127,9 +134,11 @@ export const updateCheckIn = async (
             userTimezone
         )
 
+    const profileId = await getProfileIdForUser(data.userId)
+
     const existing = await checkInModel
         .findTodayCheckIn(
-            data.userId,
+            profileId,
             checkInDate
         )
 
@@ -141,13 +150,15 @@ export const updateCheckIn = async (
     const {userId, ...updateData} = data
 
     await checkInModel.updateCheckIn(
-        userId,
+        profileId,
         checkInDate,
         updateData,
         updatedAt
     )
 
-    await checkInModel.updateUserLastCheckIn(userId)
+    await checkInModel.updateUserLastCheckIn(
+        userId
+    )
 
     await generateInsightSafely(
         userId,
@@ -156,7 +167,7 @@ export const updateCheckIn = async (
 
     const fetchedCheckIn =
         await checkInModel.findTodayCheckIn(
-            userId,
+            profileId,
             checkInDate
         )
     return fetchedCheckIn!
@@ -165,8 +176,10 @@ export const updateCheckIn = async (
 export const getCheckInStats = async (
     userId: string
 ): Promise<CheckInStatsType> => {
+    const profileId = await getProfileIdForUser(userId)
+
     const checkIns = await checkInModel
-        .getCheckInsForStats(userId)
+        .getCheckInsForStats(profileId)
 
     const totalCheckIns = checkIns.length
 

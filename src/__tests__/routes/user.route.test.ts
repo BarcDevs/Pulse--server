@@ -570,7 +570,18 @@ describe('User Routes', () => {
             expect(response.status).toBe(204)
             expect(prismaMock.user.findUnique)
                 .toHaveBeenCalledWith({
-                    where: {id: mockUser.id}
+                    where: {id: mockUser.id},
+                    include: {
+                        profile: {
+                            select: {
+                                image: true,
+                                timezone: true,
+                                theme: true,
+                                language: true,
+                                lastCheckInAt: true
+                            }
+                        }
+                    }
                 })
             expect(prismaMock.user.update)
                 .toHaveBeenCalledWith({

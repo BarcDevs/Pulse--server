@@ -3,15 +3,13 @@ import {PostFilter, type PostQuery} from '../../types/query'
 
 export const postInclude = (
     type: 'single' | 'multiple'
-) => ( {
-    // add replies count
+) => ({
     _count: {
         select: {
             replies: true
         }
     },
 
-    // include tags name and id
     tags: {
         select: {
             id: true,
@@ -19,51 +17,51 @@ export const postInclude = (
         }
     },
 
-    // include author basic info
     author: {
         select: {
             id: true,
-            username: true,
-            firstName: true,
-            lastName: true,
-            profile: {
+            image: true,
+            user: {
                 select: {
-                    image: true
+                    id: true,
+                    username: true,
+                    firstName: true,
+                    lastName: true
                 }
             }
         }
     },
 
-    // include replies for single post
     replies: type === 'single' && {
         include: {
             author: {
                 select: {
                     id: true,
-                    username: true,
-                    firstName: true,
-                    lastName: true,
-                    profile: {
+                    image: true,
+                    user: {
                         select: {
-                            image: true
+                            id: true,
+                            username: true,
+                            firstName: true,
+                            lastName: true
                         }
                     }
                 }
             }
         }
     }
-} )
+})
 
-export const connectTags = (tags: string[]) => ( {
-    connectOrCreate: tags.map((tag) => ( {
+export const connectTags = (tags: string[]) => ({
+    connectOrCreate: tags.map((tag) => ({
         where: {
             name: tag
         },
         create: {
             name: tag
         }
-    } ))
-} )
+    }))
+})
 
 export const postQueryBuilder = (
     query?: PostQuery,
@@ -87,9 +85,10 @@ export const postQueryBuilder = (
 
     return {
         where: {
-            // make sure author is an active account
             author: {
-                active: true
+                user: {
+                    active: true
+                }
             },
 
             // filter by tag
@@ -110,11 +109,11 @@ export const postQueryBuilder = (
             ...searchQuery,
 
             // filter by unanswered
-            ...( query?.filter === PostFilter.UNANSWERED && {
+            ...(query?.filter === PostFilter.UNANSWERED && {
                 replies: {
                     none: {}
                 }
-            } ),
+            }),
 
             // additional filter
             ...options?.where
@@ -125,21 +124,12 @@ export const postQueryBuilder = (
         // sort by given sort method
         orderBy: (
             query?.filter === PostFilter.NEWEST
-                ? {
-                    createdAt: 'desc'
-                }
+                ? {createdAt: 'desc'}
                 : query?.filter === PostFilter.HOT
-                    ? {
-                        replies: {
-                            _count: 'desc'
-                        }
-                    }
+                    ? {replies: {_count: 'desc'}}
                     : query?.filter === PostFilter.POPULAR
-                        ? {
-                            views: 'desc'
-                        }
-                        : {
-                            createdAt: 'desc'
-                        } ) as PrismaTypes.PostOrderByWithRelationInput
+                        ? {views: 'desc'}
+                        : {createdAt: 'desc'}
+        ) as PrismaTypes.PostOrderByWithRelationInput
     }
 }

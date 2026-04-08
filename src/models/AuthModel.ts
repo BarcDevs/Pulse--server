@@ -16,7 +16,8 @@ const getUserById = async (id: string):
                     image: true,
                     timezone: true,
                     theme: true,
-                    language: true
+                    language: true,
+                    lastCheckInAt: true
                 }
             }
         }
@@ -40,7 +41,8 @@ const getUserByEmail = async (
                     image: true,
                     timezone: true,
                     theme: true,
-                    language: true
+                    language: true,
+                    lastCheckInAt: true
                 }
             }
         }

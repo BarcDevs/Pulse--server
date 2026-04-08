@@ -55,7 +55,9 @@ export const getPost = async (id: string):
         where: {
             id,
             author: {
-                active: true
+                user: {
+                    active: true
+                }
             }
         },
         include: postInclude('single')
@@ -122,12 +124,13 @@ export const getReply = async (
             author: {
                 select: {
                     id: true,
-                    username: true,
-                    firstName: true,
-                    lastName: true,
-                    profile: {
+                    image: true,
+                    user: {
                         select: {
-                            image: true
+                            id: true,
+                            username: true,
+                            firstName: true,
+                            lastName: true
                         }
                     }
                 }
@@ -146,12 +149,13 @@ export const getReplies = async (postId: string):
                 author: {
                     select: {
                         id: true,
-                        username: true,
-                        firstName: true,
-                        lastName: true,
-                        profile: {
+                        image: true,
+                        user: {
                             select: {
-                                image: true
+                                id: true,
+                                username: true,
+                                firstName: true,
+                                lastName: true
                             }
                         }
                     }

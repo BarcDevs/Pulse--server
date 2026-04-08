@@ -26,6 +26,7 @@ const mockProfile = {
     communityAlerts: false,
     profileVisibility: 'friends',
     anonymousParticipation: true,
+    lastCheckInAt: null,
     createdAt: new Date(),
     updatedAt: new Date()
 }

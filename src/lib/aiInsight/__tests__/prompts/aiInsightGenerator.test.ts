@@ -7,7 +7,7 @@ jest.mock('../../../../services/aiProviders')
 
 const mockCheckIn = (): CheckInType => ({
     id: 'id1',
-    userId: 'user1',
+    profileId: 'profile1',
     checkInDate: new Date(),
     moodScore: 5,
     painLevel: 3,
