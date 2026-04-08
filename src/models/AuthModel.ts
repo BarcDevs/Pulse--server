@@ -11,7 +11,14 @@ const getUserById = async (id: string):
             id
         },
         include: {
-            profile: true
+            profile: {
+                select: {
+                    image: true,
+                    timezone: true,
+                    theme: true,
+                    language: true
+                }
+            }
         }
     })
 
@@ -28,7 +35,14 @@ const getUserByEmail = async (
             email
         },
         include: {
-            profile: true
+            profile: {
+                select: {
+                    image: true,
+                    timezone: true,
+                    theme: true,
+                    language: true
+                }
+            }
         }
     })
 

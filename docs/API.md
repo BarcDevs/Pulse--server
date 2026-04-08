@@ -141,7 +141,12 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
       "username": "string",
       "email": "string",
       "role": "USER | ADMIN",
-      "image?": "string"
+      "profile?": {
+        "image": "string | null",
+        "timezone": "string | null",
+        "theme": "light | dark",
+        "language": "string"
+      }
     }
   }
 }
