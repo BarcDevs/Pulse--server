@@ -15,6 +15,7 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 - One concern per file
 - Provide a full file edit instead of one edit at a time
 - Always provide informative filenames
+- When building tests, cover both happy paths and edge cases, and ensure they are comprehensive and meaningful
 
 ### Code Style
 - Never use array index as key; use the current element as an index
