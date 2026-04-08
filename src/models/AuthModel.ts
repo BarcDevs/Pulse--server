@@ -9,6 +9,9 @@ const getUserById = async (id: string):
     const user = await Prisma.user.findUnique({
         where: {
             id
+        },
+        include: {
+            profile: true
         }
     })
 
@@ -23,6 +26,9 @@ const getUserByEmail = async (
     const user = await Prisma.user.findUnique({
         where: {
             email
+        },
+        include: {
+            profile: true
         }
     })
 

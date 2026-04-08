@@ -20,6 +20,12 @@ const mockProfile = {
     location: null,
     timezone: null,
     dateFormat: 'dd/mm/yyyy',
+    theme: 'light',
+    language: 'en-US',
+    dailyReminder: true,
+    communityAlerts: false,
+    profileVisibility: 'friends',
+    anonymousParticipation: true,
     createdAt: new Date(),
     updatedAt: new Date()
 }
