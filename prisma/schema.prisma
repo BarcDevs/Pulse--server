@@ -25,7 +25,8 @@ model User {
   passwordUpdatedAt       DateTime  @default(now())
   deletedAt               DateTime?
 
-  profile Profile?
+  profile         Profile?
+  recoveryGoals   RecoveryGoal[]
 
   @@index([email, createdAt, active])
 }
@@ -176,6 +177,33 @@ model AIInsight {
 
   @@unique([checkInId, type])
   @@index([userId, createdAt])
+}
+
+model RecoveryGoal {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String      @db.VarChar(150)
+  description String?     @db.Text
+  milestones  Milestone[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+model Milestone {
+  id          String       @id @default(cuid())
+  goalId      String
+  goal        RecoveryGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String       @db.VarChar(150)
+  isCompleted Boolean      @default(false)
+  order       Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([goalId, order])
+  @@index([goalId])
 }
 
 model Tag {

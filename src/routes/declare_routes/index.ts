@@ -10,6 +10,7 @@ import authRoute from '../AuthRoute'
 import checkInRoute from '../CheckInRoute'
 import forumRoute from '../ForumRoute'
 import profileRoute from '../profileRoute'
+import recoveryGoalRoute from '../RecoveryGoalRoute'
 import userRoute from '../userRoute'
 
 declare module 'express-serve-static-core' {
@@ -38,6 +39,7 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('check-in'), checkInRoute)
     app.use(baseRoute('forum'), forumRoute)
     app.use(baseRoute('profile'), profileRoute)
+    app.use(baseRoute('recovery-goals'), recoveryGoalRoute)
     app.use(baseRoute('users'), userRoute)
 
     app.use('*', errorHandler)

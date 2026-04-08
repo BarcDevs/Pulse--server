@@ -1,17 +1,21 @@
 import Csrf from 'csrf'
-import type {NextFunction} from 'express'
+import type { NextFunction } from 'express'
 
 import {
     createToken,
     hashPassword
-} from '../../services/authService'
-import type {PostType} from '../../types/data/PostType'
-import type {ReplyType} from '../../types/data/ReplyType'
-import type {TagType} from '../../types/data/TagType'
-import type {ServerUserType} from '../../types/data/UserType'
+} from '../../lib/authCrypto'
+import type { PostType } from '../../types/data/PostType'
+import type {
+    MilestoneType,
+    RecoveryGoalType
+} from '../../types/data/RecoveryGoalType'
+import type { ReplyType } from '../../types/data/ReplyType'
+import type { TagType } from '../../types/data/TagType'
+import type { ServerUserType } from '../../types/data/UserType'
 
 // Re-export prismaMock from jestSetup for backward compatibility
-export {prismaMock} from './jestSetup'
+export { prismaMock } from './jestSetup'
 
 // ==================== TEST TYPES ====================
 export type MockRequest = {
@@ -120,6 +124,32 @@ export const createMockReply = (
     ...overrides
 })
 
+export const createMockRecoveryGoal = (
+    overrides?: Partial<RecoveryGoalType>
+): RecoveryGoalType => ({
+    id: 'test-goal-id-123',
+    userId: 'test-user-id-123',
+    title: 'Build a consistent sleep schedule',
+    description: 'Establish a regular sleep routine',
+    milestones: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides
+})
+
+export const createMockMilestone = (
+    overrides?: Partial<MilestoneType>
+): MilestoneType => ({
+    id: 'test-milestone-id-123',
+    goalId: 'test-goal-id-123',
+    title: 'No screens 1 hour before bed',
+    isCompleted: false,
+    order: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides
+})
+
 export const createMockTag = (
     overrides?: Partial<TagType>
 ): TagType => ({
@@ -139,10 +169,29 @@ export const createAuthenticatedRequest = (
     user: ServerUserType
 ) => {
     const token = createToken(user)
-    const {csrfSecret, csrfToken} =
+    const { csrfSecret, csrfToken } =
         generateCsrfTokenPair()
-    return {token, csrfSecret, csrfToken}
+    return { token, csrfSecret, csrfToken }
 }
+
+// Apply CSRF auth headers to a supertest request
+export const withCsrfAuth = (
+    request: any,
+    token: string,
+    csrfSecret: string,
+    csrfToken: string
+) => request
+    .set('Cookie', [
+        `accessToken=${token}`,
+        `_csrf=${csrfSecret}`
+    ])
+    .set('x-csrf-token', csrfToken)
+
+// Apply only bearer token (no CSRF for read requests)
+export const withBearerAuth = (
+    request: any,
+    token: string
+) => request.set('Cookie', [`accessToken=${token}`])
 
 // ==================== EXPRESS MOCK HELPERS ====================
 export const createMockRequest = (
