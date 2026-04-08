@@ -9,7 +9,9 @@ import {
     createMockPost,
     createMockReply,
     createMockTag,
-    createMockUser
+    createMockUser,
+    withBearerAuth,
+    withCsrfAuth
 } from '../setup/testSetup'
 
 describe('Forum Routes', () => {
@@ -228,22 +230,20 @@ describe('Forum Routes', () => {
                 prismaMock.post.create
                     .mockResolvedValue(mockPost)
 
-                const response = await supertest(App)
-                    .post(postsEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'New Post',
-                        body: 'Post content',
-                        category: 'general',
-                        tags: [
-                            'tag1',
-                            'tag2'
-                        ]
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).post(postsEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'New Post',
+                    body: 'Post content',
+                    category: 'general',
+                    tags: [
+                        'tag1',
+                        'tag2'
+                    ]
+                })
 
                 expect(response.status).toBe(200)
                 expect(response.body.message)
@@ -299,18 +299,16 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .post(postsEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        body: 'Post content',
-                        category: 'general',
-                        tags: ['tag1']
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).post(postsEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    body: 'Post content',
+                    category: 'general',
+                    tags: ['tag1']
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -328,18 +326,16 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .post(postsEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'New Post',
-                        category: 'general',
-                        tags: ['tag1']
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).post(postsEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'New Post',
+                    category: 'general',
+                    tags: ['tag1']
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -357,18 +353,16 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .post(postsEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'New Post',
-                        body: 'Post content',
-                        tags: ['tag1']
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).post(postsEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'New Post',
+                    body: 'Post content',
+                    tags: ['tag1']
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -386,18 +380,16 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .post(postsEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'New Post',
-                        body: 'Post content',
-                        category: 'general'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).post(postsEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'New Post',
+                    body: 'Post content',
+                    category: 'general'
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -461,16 +453,16 @@ describe('Forum Routes', () => {
                 prismaMock.tag.findMany
                     .mockResolvedValue([])
 
-                const response = await supertest(App)
-                    .put('/api/v1/forum/posts/test-post-id-123')
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'Updated Title'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).put(
+                        '/api/v1/forum/posts/test-post-id-123'
+                    ),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'Updated Title'
+                })
 
                 expect(response.status).toBe(200)
             }
@@ -530,16 +522,16 @@ describe('Forum Routes', () => {
                 prismaMock.post.findUnique
                     .mockResolvedValue(null)
 
-                const response = await supertest(App)
-                    .put('/api/v1/forum/posts/non-existent-id')
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        title: 'Updated Title'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).put(
+                        '/api/v1/forum/posts/non-existent-id'
+                    ),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    title: 'Updated Title'
+                })
 
                 expect(response.status).toBe(404)
             }
@@ -566,15 +558,14 @@ describe('Forum Routes', () => {
                 prismaMock.post.delete
                     .mockResolvedValue(mockPost)
 
-                const response = await supertest(App)
-                    .delete(
+                const response = await withCsrfAuth(
+                    supertest(App).delete(
                         '/api/v1/forum/posts/test-post-id-123'
-                    )
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
+                    ),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
 
                 expect(response.status).toBe(200)
                 expect(response.body.message)
@@ -680,18 +671,16 @@ describe('Forum Routes', () => {
                 prismaMock.reply.create
                     .mockResolvedValue(mockReply)
 
-                const response = await supertest(App)
-                    .post(
+                const response = await withCsrfAuth(
+                    supertest(App).post(
                         '/api/v1/forum/posts/test-post-id-123/replies'
-                    )
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        body: 'This is a reply'
-                    })
+                    ),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    body: 'This is a reply'
+                })
 
                 expect(response.status).toBe(200)
                 expect(response.body.message)
@@ -763,18 +752,16 @@ describe('Forum Routes', () => {
                         body: 'Updated reply'
                     })
 
-                    const response = await supertest(App)
-                        .put(
+                    const response = await withCsrfAuth(
+                        supertest(App).put(
                             '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
-                        )
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set('x-csrf-token', csrfToken)
-                        .send({
-                            body: 'Updated reply'
-                        })
+                        ),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        body: 'Updated reply'
+                    })
 
                     expect(response.status).toBe(200)
                 }
@@ -796,18 +783,16 @@ describe('Forum Routes', () => {
                     prismaMock.reply.findUnique
                         .mockResolvedValue(mockReply)
 
-                    const response = await supertest(App)
-                        .put(
+                    const response = await withCsrfAuth(
+                        supertest(App).put(
                             '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
-                        )
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set('x-csrf-token', csrfToken)
-                        .send({
-                            body: 'Updated reply'
-                        })
+                        ),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        body: 'Updated reply'
+                    })
 
                     expect(response.status).toBe(401)
                 }
@@ -826,18 +811,16 @@ describe('Forum Routes', () => {
                     prismaMock.reply.findUnique
                         .mockResolvedValue(null)
 
-                    const response = await supertest(App)
-                        .put(
+                    const response = await withCsrfAuth(
+                        supertest(App).put(
                             '/api/v1/forum/posts/test-post-id-123/replies/non-existent-id'
-                        )
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set('x-csrf-token', csrfToken)
-                        .send({
-                            body: 'Updated reply'
-                        })
+                        ),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        body: 'Updated reply'
+                    })
 
                     expect(response.status).toBe(404)
                 }

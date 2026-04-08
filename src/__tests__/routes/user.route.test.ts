@@ -6,7 +6,8 @@ import {prismaMock} from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createMockUser,
-    hashPassword
+    hashPassword,
+    withCsrfAuth
 } from '../setup/testSetup'
 
 describe('User Routes', () => {
@@ -30,14 +31,12 @@ describe('User Routes', () => {
                     firstName: 'John'
                 })
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({firstName: 'John'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({firstName: 'John'})
 
             expect(response.status).toBe(200)
             expect(response.body.message).toBe(
@@ -63,14 +62,12 @@ describe('User Routes', () => {
                     lastName: 'Doe'
                 })
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({lastName: 'Doe'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({lastName: 'Doe'})
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.lastName)
@@ -94,14 +91,12 @@ describe('User Routes', () => {
                     username: 'newusername'
                 })
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({username: 'newusername'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({username: 'newusername'})
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.username)
@@ -125,14 +120,12 @@ describe('User Routes', () => {
                     email: 'newemail@test.com'
                 })
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({email: 'newemail@test.com'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({email: 'newemail@test.com'})
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.email)
@@ -160,18 +153,16 @@ describe('User Routes', () => {
                         username: 'johndoe'
                     })
 
-                const response = await supertest(App)
-                    .patch(updateUserEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        firstName: 'John',
-                        lastName: 'Doe',
-                        username: 'johndoe'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updateUserEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    username: 'johndoe'
+                })
 
                 expect(response.status).toBe(200)
                 expect(response.body.data.user.firstName)
@@ -198,14 +189,12 @@ describe('User Routes', () => {
                 .mockResolvedValueOnce(mockUser)
                 .mockResolvedValueOnce(otherUser)
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({email: 'taken@test.com'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({email: 'taken@test.com'})
 
             expect(response.status).toBe(409)
             expect(response.body.error[0].error).toContain(
@@ -228,14 +217,12 @@ describe('User Routes', () => {
                 .mockResolvedValueOnce(mockUser)
                 .mockResolvedValueOnce(otherUser)
 
-            const response = await supertest(App)
-                .patch(updateUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({username: 'takenname'})
+            const response = await withCsrfAuth(
+                supertest(App).patch(updateUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({username: 'takenname'})
 
             expect(response.status).toBe(409)
             expect(response.body.error[0].error).toContain(
@@ -252,14 +239,12 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updateUserEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({username: 'ab'})
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updateUserEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({username: 'ab'})
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -278,14 +263,12 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updateUserEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({email: 'invalid-email'})
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updateUserEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({email: 'invalid-email'})
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -329,17 +312,15 @@ describe('User Routes', () => {
                         passwordUpdatedAt: new Date()
                     })
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        currentPassword: 'OldPassword123!',
-                        newPassword: 'NewPassword456!'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    currentPassword: 'OldPassword123!',
+                    newPassword: 'NewPassword456!'
+                })
 
                 expect(response.status).toBe(200)
                 expect(response.body.message).toBe(
@@ -363,17 +344,15 @@ describe('User Routes', () => {
                 prismaMock.user.findUnique
                     .mockResolvedValue(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        currentPassword: 'WrongPassword123!',
-                        newPassword: 'NewPassword456!'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    currentPassword: 'WrongPassword123!',
+                    newPassword: 'NewPassword456!'
+                })
 
                 expect(response.status).toBe(401)
                 expect(response.body.error[0].error).toContain(
@@ -392,17 +371,15 @@ describe('User Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
-            const response = await supertest(App)
-                .patch(updatePasswordEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
-                .send({
-                    currentPassword: 'OldPassword123!',
-                    newPassword: 'weak'
-                })
+            const response = await withCsrfAuth(
+                supertest(App).patch(updatePasswordEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                currentPassword: 'OldPassword123!',
+                newPassword: 'weak'
+            })
 
             expect(response.status).toBe(403)
             expect(response.body.error[0].statusType)
@@ -422,17 +399,15 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        currentPassword: 'OldPassword123!',
-                        newPassword: '12345678'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    currentPassword: 'OldPassword123!',
+                    newPassword: '12345678'
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -451,17 +426,15 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        currentPassword: 'OldPassword123!',
-                        newPassword: 'OnlyLetters'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    currentPassword: 'OldPassword123!',
+                    newPassword: 'OnlyLetters'
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -478,16 +451,14 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        newPassword: 'NewPassword456!'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    newPassword: 'NewPassword456!'
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -506,16 +477,14 @@ describe('User Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const response = await supertest(App)
-                    .patch(updatePasswordEndpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        currentPassword: 'OldPassword123!'
-                    })
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updatePasswordEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
+                    currentPassword: 'OldPassword123!'
+                })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -559,13 +528,12 @@ describe('User Routes', () => {
                     active: false
                 })
 
-            const response = await supertest(App)
-                .delete(deleteUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
+            const response = await withCsrfAuth(
+                supertest(App).delete(deleteUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
             expect(response.status).toBe(204)
             expect(prismaMock.user.findUnique)
@@ -601,13 +569,12 @@ describe('User Routes', () => {
             prismaMock.user.findUnique
                 .mockResolvedValue(null)
 
-            const response = await supertest(App)
-                .delete(deleteUserEndpoint)
-                .set('Cookie', [
-                    `accessToken=${token}`,
-                    `_csrf=${csrfSecret}`
-                ])
-                .set('x-csrf-token', csrfToken)
+            const response = await withCsrfAuth(
+                supertest(App).delete(deleteUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
             expect(response.status).toBe(404)
             expect(response.body.error[0].error).toContain(

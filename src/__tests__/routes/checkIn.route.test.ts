@@ -7,7 +7,9 @@ import {prismaMock} from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,
-    createMockUser
+    createMockUser,
+    withBearerAuth,
+    withCsrfAuth
 } from '../setup/testSetup'
 
 const createMockCheckIn = (
@@ -156,14 +158,12 @@ describe('Check-in Routes', () => {
                 prismaMock.dailyCheckIn.create
                     .mockResolvedValue(mockCheckIn)
 
-                const response = await supertest(App)
-                    .post(endpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send(validBody)
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send(validBody)
 
                 expect(response.status).toBe(201)
                 expect(response.body.message)
@@ -193,14 +193,12 @@ describe('Check-in Routes', () => {
                 prismaMock.dailyCheckIn.update
                     .mockResolvedValue(existingCheckIn)
 
-                const response = await supertest(App)
-                    .post(endpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send(validBody)
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send(validBody)
 
                 expect(response.status).toBe(200)
             }

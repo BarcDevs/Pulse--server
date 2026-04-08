@@ -8,7 +8,9 @@ import {prismaMock} from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,
-    createMockUser
+    createMockUser,
+    withBearerAuth,
+    withCsrfAuth
 } from '../setup/testSetup'
 
 const mockUser = createMockUser()
@@ -121,14 +123,12 @@ describe('Profile Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const res = await request(App)
-                    .patch('/api/v1/profile')
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
+                const res = await withCsrfAuth(
+                    request(App).patch('/api/v1/profile'),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
                         bio: 'Updated bio',
                         timezone: 'UTC'
                     })
@@ -154,14 +154,12 @@ describe('Profile Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
-                const res = await request(App)
-                    .patch('/api/v1/profile')
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
+                const res = await withCsrfAuth(
+                    request(App).patch('/api/v1/profile'),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({
                         timezone: 'invalid-timezone'
                     })
 
