@@ -12,9 +12,10 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 ## Core Principles
 - SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 - Industry standards — Clean, readable, maintainable code
+- Keep DRY rules
 - One concern per file
 - Provide a full file edit instead of one edit at a time
-- Always provide informative filenames
+- Always provide informative names for files, functions and variable
 - When building tests, cover both happy paths and edge cases, and ensure they are comprehensive and meaningful
 
 ### Code Style
