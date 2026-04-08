@@ -622,13 +622,13 @@ Clears the `accessToken` cookie.
     {
       "id": "string",
       "userId": "string",
-      "checkInDate": "2026-03-03",
+      "checkInDate": "ISO 8601 date",
       "moodScore": 7,
       "painLevel": 3,
       "activities": ["walking", "stretching"],
       "notes?": "string",
-      "createdAt": "2026-03-03T08:00:00.000Z",
-      "updatedAt?": "2026-03-03T09:00:00.000Z",
+      "createdAt": "ISO 8601 date",
+      "updatedAt?": "ISO 8601 date | null",
       "insights": [
         { "id": "string", "type": "string", "content": "string" }
       ]
@@ -659,12 +659,12 @@ Clears the `accessToken` cookie.
   "data": {
     "id": "string",
     "userId": "string",
-    "checkInDate": "2026-03-03",
+    "checkInDate": "ISO 8601 date",
     "moodScore": 7,
     "painLevel": 3,
     "activities": ["walking", "stretching"],
     "notes?": "string",
-    "createdAt": "2026-03-03T08:00:00.000Z",
+    "createdAt": "ISO 8601 date",
     "updatedAt": null,
     "insights": [
       { "id": "string", "type": "string", "content": "string" }
@@ -680,13 +680,13 @@ Clears the `accessToken` cookie.
   "data": {
     "id": "string",
     "userId": "string",
-    "checkInDate": "2026-03-03",
+    "checkInDate": "ISO 8601 date",
     "moodScore": 7,
     "painLevel": 3,
     "activities": ["walking", "stretching"],
     "notes?": "string",
-    "createdAt": "2026-03-03T08:00:00.000Z",
-    "updatedAt": "2026-03-03T09:00:00.000Z",
+    "createdAt": "ISO 8601 date",
+    "updatedAt": "ISO 8601 date",
     "insights": [
       { "id": "string", "type": "string", "content": "string" }
     ]
@@ -716,13 +716,13 @@ Clears the `accessToken` cookie.
   "data": {
     "id": "string",
     "userId": "string",
-    "checkInDate": "2026-03-03",
+    "checkInDate": "ISO 8601 date",
     "moodScore": 9,
     "painLevel": 3,
     "activities": ["walking", "meditation"],
     "notes?": "string",
-    "createdAt": "2026-03-03T08:00:00.000Z",
-    "updatedAt": "2026-03-03T09:00:00.000Z",
+    "createdAt": "ISO 8601 date",
+    "updatedAt": "ISO 8601 date",
     "insights": [
       { "id": "string", "type": "string", "content": "string" }
     ]
@@ -782,8 +782,8 @@ Retrieve the current user's profile with interests and activities.
     "activityPreferences": [
       { "id": "ap-1", "slug": "meditation", "name": "Meditation", "category": "Mindfulness" }
     ],
-    "createdAt": "2026-03-07T10:00:00Z",
-    "updatedAt": "2026-03-07T10:00:00Z"
+    "createdAt": "ISO 8601 date",
+    "updatedAt": "ISO 8601 date"
   }
 }
 ```
