@@ -10,7 +10,7 @@ export type MilestoneType = {
 
 export type RecoveryGoalType = {
     id: string
-    userId: string
+    profileId: string
     title: string
     description: string | null
     milestones: MilestoneType[]

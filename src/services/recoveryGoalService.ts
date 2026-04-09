@@ -1,5 +1,6 @@
 import { errorFactory } from '../errors/factory'
 import * as RecoveryGoalModel from '../models/RecoveryGoalModel'
+import { getProfileIdForUser } from '../models/RecoveryGoalModel'
 import type {
     MilestoneType,
     NewRecoveryGoalType,
@@ -89,9 +90,10 @@ export const updateMilestone = async (
 ): Promise<MilestoneType> => {
     if (!userId) throw errorFactory.auth.unauthorized()
 
+    const profileId = await getProfileIdForUser(userId)
     const milestone = await RecoveryGoalModel.getMilestoneById(id)
     if (!milestone) throw errorFactory.generic.notFound('Milestone not found')
-    if (milestone.goal.userId !== userId)
+    if (milestone.goal.profileId !== profileId)
         throw errorFactory.auth.unauthorized()
 
     const updated = await RecoveryGoalModel.updateMilestone(id, data)
@@ -105,9 +107,10 @@ export const deleteMilestone = async (
 ): Promise<void> => {
     if (!userId) throw errorFactory.auth.unauthorized()
 
+    const profileId = await getProfileIdForUser(userId)
     const milestone = await RecoveryGoalModel.getMilestoneById(id)
     if (!milestone) throw errorFactory.generic.notFound('Milestone not found')
-    if (milestone.goal.userId !== userId)
+    if (milestone.goal.profileId !== profileId)
         throw errorFactory.auth.unauthorized()
 
     await RecoveryGoalModel.deleteMilestone(id)

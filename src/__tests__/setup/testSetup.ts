@@ -128,7 +128,7 @@ export const createMockRecoveryGoal = (
     overrides?: Partial<RecoveryGoalType>
 ): RecoveryGoalType => ({
     id: 'test-goal-id-123',
-    userId: 'test-user-id-123',
+    profileId: 'test-profile-id-123',
     title: 'Build a consistent sleep schedule',
     description: 'Establish a regular sleep routine',
     milestones: [],

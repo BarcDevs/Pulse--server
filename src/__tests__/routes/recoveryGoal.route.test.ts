@@ -17,6 +17,22 @@ import {
 const API_BASE = '/api/v1/recovery-goals'
 
 describe('Recovery Goals Routes', () => {
+    beforeEach(() => {
+        prismaMock.profile.findUnique
+            .mockImplementation(async (args: any) => {
+                const userId = args.where.userId
+                const profileIdMap: {[key: string]: string} = {
+                    'test-user-id-123': 'test-profile-id-123',
+                    'other-user-id': 'other-profile-id-456'
+                }
+                const profileId = profileIdMap[userId] || 'test-profile-id-123'
+                return {
+                    id: profileId,
+                    userId
+                }
+            })
+    })
+
     // ==================== CREATE GOAL ====================
     describe('POST /api/v1/recovery-goals', () => {
         const endpoint = API_BASE
@@ -29,7 +45,7 @@ describe('Recovery Goals Routes', () => {
             'should return 201 and create goal with title and description',
             async () => {
             const mockUser = createMockUser()
-            const mockGoal = createMockRecoveryGoal({ userId: mockUser.id })
+            const mockGoal = createMockRecoveryGoal()
             const {
                 token,
                 csrfSecret,
@@ -48,7 +64,7 @@ describe('Recovery Goals Routes', () => {
             expect(response.status).toBe(201)
             expect(response.body.message).toBe('Goal created successfully')
             expect(response.body.data.title).toBe(validBody.title)
-            expect(response.body.data.userId).toBe(mockUser.id)
+            expect(response.body.data.profileId).toBe('test-profile-id-123')
         })
 
         it('should allow optional description', async () => {
@@ -146,7 +162,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
             const mockGoals = [
-                createMockRecoveryGoal({ userId: mockUser.id }),
+                createMockRecoveryGoal(),
                 createMockRecoveryGoal({
                     id: 'goal-2',
                     userId: mockUser.id,
@@ -734,7 +750,7 @@ describe('Recovery Goals Routes', () => {
                 })
                 const otherUsersGoal =
                     createMockRecoveryGoal({
-                        userId: otherUser.id
+                        profileId: 'other-profile-id-456'
                     })
                 const {
                     token,
@@ -850,7 +866,7 @@ describe('Recovery Goals Routes', () => {
                 })
                 const otherUsersGoal =
                     createMockRecoveryGoal({
-                        userId: otherUser.id
+                        profileId: 'other-profile-id-456'
                     })
                 const {
                     token,
