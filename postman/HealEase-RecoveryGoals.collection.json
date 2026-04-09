@@ -1,0 +1,1554 @@
+{
+  "info": {
+    "name": "HealEase — Recovery Goals",
+    "description": "Complete test suite for Recovery Goals CRUD and milestone operations. Includes manual testing folder and automated one-click test suite with happy path, error cases, and security tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "user1Email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user1Username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user1Password",
+      "value": "TestUser123",
+      "type": "string"
+    },
+    {
+      "key": "user1Token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user1CSRF",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2Email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2Username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2Password",
+      "value": "TestUser456",
+      "type": "string"
+    },
+    {
+      "key": "user2Token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2CSRF",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "goalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user1GoalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "milestoneId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "📝 Manual Testing",
+      "description": "Simple one-endpoint-at-a-time testing. No scripts, just raw requests for manual exploration. Replace {{goalId}} and {{milestoneId}} with actual values.",
+      "item": [
+        {
+          "name": "POST - Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build a consistent sleep schedule\",\n  \"description\": \"Establish a regular sleep routine for better recovery\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals"]
+            }
+          }
+        },
+        {
+          "name": "GET - All Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals"]
+            }
+          }
+        },
+        {
+          "name": "GET - Single Goal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Update Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Goal Title\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST - Add Milestone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"No screens 1 hour before bed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Update Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"isCompleted\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Milestone",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{user1CSRF}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 Automated One-Click Test Suite",
+      "description": "Run entire folder to execute sequential tests with automatic data chaining. Happy path → Error cases → Security tests.",
+      "item": [
+        {
+          "name": "✅ Happy Path (Sequential)",
+          "description": "Complete flow: signup, login, create goal, add milestone, update, delete. Data chains between requests automatically.",
+          "item": [
+            {
+              "name": "1. Signup User 1",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const ts = Date.now();",
+                      "const r = Math.floor(Math.random() * 999999);",
+                      "pm.environment.set('user1Email', `recoverygoal${ts}${r}@example.com`);",
+                      "pm.environment.set('user1Username', `user${r}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201 - User created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has user data', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data.user).to.have.property('id');",
+                      "    pm.expect(data.user.email).to.equal(pm.environment.get('user1Email'));",
+                      "    pm.environment.set('user1Id', data.user.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"RecoveryGoal\",\n  \"email\": \"{{user1Email}}\",\n  \"username\": \"{{user1Username}}\",\n  \"password\": \"{{user1Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/signup",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "signup"]
+                }
+              }
+            },
+            {
+              "name": "2. Login User 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Logged in', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has CSRF token', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data).to.have.property('_csrf');",
+                      "    pm.environment.set('user1CSRF', data._csrf);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{user1Email}}\",\n  \"password\": \"{{user1Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "3. Create Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201 - Goal created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has goal data', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data).to.have.property('id');",
+                      "    pm.expect(data).to.have.property('title');",
+                      "    pm.expect(data).to.have.property('userId');",
+                      "    pm.expect(data.userId).to.equal(pm.environment.get('user1Id'));",
+                      "    pm.expect(data.milestones).to.be.an('array');",
+                      "    pm.environment.set('goalId', data.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Complete Physical Therapy\",\n  \"description\": \"Recovery goal for PT sessions\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "4. Get All Goals",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Goals retrieved', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is array with created goal', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data).to.be.an('array');",
+                      "    const createdGoal = data.find(g => g.id === pm.environment.get('goalId'));",
+                      "    pm.expect(createdGoal).to.exist;",
+                      "    pm.expect(createdGoal.title).to.equal('Complete Physical Therapy');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "5. Get Single Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Single goal retrieved', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response matches created goal', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    const goalId = pm.environment.get('goalId');",
+                      "    pm.expect(data.id).to.equal(goalId);",
+                      "    pm.expect(data.title).to.equal('Complete Physical Therapy');",
+                      "    pm.expect(data.milestones).to.be.an('array');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                }
+              }
+            },
+            {
+              "name": "6. Add Milestone",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201 - Milestone created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has milestone data', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data).to.have.property('id');",
+                      "    pm.expect(data).to.have.property('title');",
+                      "    pm.expect(data).to.have.property('order');",
+                      "    pm.expect(data.order).to.equal(0);",
+                      "    pm.expect(data.isCompleted).to.equal(false);",
+                      "    pm.environment.set('milestoneId', data.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Complete 5 PT sessions\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
+                }
+              }
+            },
+            {
+              "name": "7. Update Milestone",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Milestone updated', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Milestone title updated', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data.title).to.equal('Complete 5-6 PT sessions');",
+                      "    pm.expect(data.isCompleted).to.equal(false);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Complete 5-6 PT sessions\",\n  \"isCompleted\": false\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+                }
+              }
+            },
+            {
+              "name": "8. Update Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Goal updated', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Goal fields updated', function () {",
+                      "    const { data } = pm.response.json();",
+                      "    pm.expect(data.title).to.include('Updated');",
+                      "    pm.expect(data.description).to.equal('Updated recovery goal');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Complete Physical Therapy - Updated\",\n  \"description\": \"Updated recovery goal\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                }
+              }
+            },
+            {
+              "name": "9. Delete Milestone",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Milestone deleted', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response message confirms deletion', function () {",
+                      "    const { message } = pm.response.json();",
+                      "    pm.expect(message).to.include('deleted');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+                }
+              }
+            },
+            {
+              "name": "10. Delete Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Goal deleted', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response message confirms deletion', function () {",
+                      "    const { message } = pm.response.json();",
+                      "    pm.expect(message).to.include('deleted');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                }
+              }
+            },
+            {
+              "name": "11. Logout User 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 - Logged out', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Clear temporary variables', function () {",
+                      "    pm.environment.set('user1CSRF', '');",
+                      "    pm.environment.set('goalId', '');",
+                      "    pm.environment.set('milestoneId', '');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "logout"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Error Cases (Validation & Logic)",
+          "description": "Tests for validation failures, missing fields, and business logic constraints.",
+          "item": [
+            {
+              "name": "Create Goal - Empty Title",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 403 - Validation error', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Error message mentions title', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0]).to.have.property('property', 'title');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"No title\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Create Goal - Title > 150 chars",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 403 - Validation error', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions title length', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0]).to.have.property('property', 'title');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Create Goal - Description > 1000 chars",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 403 - Validation error', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions description', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0]).to.have.property('property', 'description');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Valid Title\",\n  \"description\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Add Milestone - Missing Title",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 403 - Validation error', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions title', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0]).to.have.property('property', 'title');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
+                }
+              }
+            },
+            {
+              "name": "Add Milestone - Goal Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Error message mentions goal', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0].error).to.include('not found');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Test Milestone\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/invalid-goal-id-xyz/milestones",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "invalid-goal-id-xyz", "milestones"]
+                }
+              }
+            },
+            {
+              "name": "Update Goal - Goal Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/nonexistent-id",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "nonexistent-id"]
+                }
+              }
+            },
+            {
+              "name": "Delete Goal - Goal Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/nonexistent-id",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "nonexistent-id"]
+                }
+              }
+            },
+            {
+              "name": "Update Milestone - Milestone Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Milestone not found', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/invalid-id",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "invalid-id"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔐 Security Tests (Auth & CSRF)",
+          "description": "Tests for multi-user isolation, CSRF validation, and authentication requirements.",
+          "item": [
+            {
+              "name": "Setup - Signup & Create Goal (User 1)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const ts = Date.now();",
+                      "const r = Math.floor(Math.random() * 999999);",
+                      "pm.environment.set('user1Email', `recovery${ts}${r}@example.com`);",
+                      "pm.environment.set('user1Username', `user${r}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201 - User created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"User\",\n  \"lastName\": \"One\",\n  \"email\": \"{{user1Email}}\",\n  \"username\": \"{{user1Username}}\",\n  \"password\": \"{{user1Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/signup",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "signup"]
+                }
+              }
+            },
+            {
+              "name": "Setup - Login User 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const { data } = pm.response.json();",
+                      "pm.environment.set('user1CSRF', data._csrf);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{user1Email}}\",\n  \"password\": \"{{user1Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "Setup - Create Goal (User 1)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "const { data } = pm.response.json();",
+                      "pm.environment.set('user1GoalId', data.id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user1CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"User 1 Goal\",\n  \"description\": \"This goal belongs to User 1\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Setup - Logout User 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.environment.set('user1CSRF', '');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "logout"]
+                }
+              }
+            },
+            {
+              "name": "Setup - Signup & Login User 2",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const ts = Date.now();",
+                      "const r = Math.floor(Math.random() * 999999);",
+                      "pm.environment.set('user2Email', `recovery2${ts}${r}@example.com`);",
+                      "pm.environment.set('user2Username', `user2${r}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 201 - User created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"User\",\n  \"lastName\": \"Two\",\n  \"email\": \"{{user2Email}}\",\n  \"username\": \"{{user2Username}}\",\n  \"password\": \"{{user2Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/signup",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "signup"]
+                }
+              }
+            },
+            {
+              "name": "Setup - Login User 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const { data } = pm.response.json();",
+                      "pm.environment.set('user2CSRF', data._csrf);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{user2Email}}\",\n  \"password\": \"{{user2Password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "Security - User 2 Cannot Get User 1 Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found (ownership check)', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                }
+              }
+            },
+            {
+              "name": "Security - User 2 Cannot Update User 1 Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found (ownership check)', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user2CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Hacked\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                }
+              }
+            },
+            {
+              "name": "Security - User 2 Cannot Delete User 1 Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found (ownership check)', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user2CSRF}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                }
+              }
+            },
+            {
+              "name": "Security - User 2 Cannot Add Milestone to User 1 Goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 404 - Goal not found (ownership check)', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{user2CSRF}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Unauthorized milestone\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}/milestones",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}", "milestones"]
+                }
+              }
+            },
+            {
+              "name": "Security - Logout User 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "auth", "logout"]
+                }
+              }
+            },
+            {
+              "name": "Security - Create Goal Without CSRF Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 401 - CSRF token missing', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions CSRF', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0].error).to.include('CSRF');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Security - Create Goal With Invalid CSRF Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 401 - CSRF token invalid', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions CSRF', function () {",
+                      "    const { error } = pm.response.json();",
+                      "    pm.expect(error[0].error).to.include('CSRF');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "invalid-token-xyz"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            },
+            {
+              "name": "Security - Create Goal Without Auth Cookie",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 401 - Not authenticated', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "some-token"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Test\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "recovery-goals"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
