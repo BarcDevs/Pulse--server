@@ -5,6 +5,22 @@ import type {
 } from '../types/data/RecoveryGoalType'
 import Prisma from '../utils/PrismaClient'
 
+export const getProfileIdForUser = async (
+    userId: string
+): Promise<string> => {
+    const profile = await Prisma.profile
+        .findUnique({
+            where: {userId}
+        })
+
+    if (!profile)
+        throw new Error(
+            `Profile not found for user ${userId}`
+        )
+
+    return profile.id
+}
+
 const goalInclude = {
     milestones: {
         orderBy: {
@@ -17,34 +33,43 @@ export const createGoal = async (data: {
     userId: string
     title: string
     description?: string | null
-}): Promise<RecoveryGoalType> =>
-    Prisma.recoveryGoal.create({
-        data,
+}): Promise<RecoveryGoalType> => {
+    const profileId = await getProfileIdForUser(data.userId)
+    return Prisma.recoveryGoal.create({
+        data: {
+            ...data,
+            profileId
+        },
         include: goalInclude
     })
+}
 
 export const getGoalById = async (
     id: string,
     userId: string
-): Promise<RecoveryGoalType | null> =>
-    Prisma.recoveryGoal.findFirst({
+): Promise<RecoveryGoalType | null> => {
+    const profileId = await getProfileIdForUser(userId)
+    return Prisma.recoveryGoal.findFirst({
         where: {
             id,
-            userId
+            profileId
         },
         include: goalInclude
     })
+}
 
 export const getGoalsByUserId = async (
     userId: string
-): Promise<RecoveryGoalType[]> =>
-    Prisma.recoveryGoal.findMany({
-        where: { userId },
+): Promise<RecoveryGoalType[]> => {
+    const profileId = await getProfileIdForUser(userId)
+    return Prisma.recoveryGoal.findMany({
+        where: {profileId},
         include: goalInclude,
         orderBy: {
             createdAt: 'desc'
         }
     })
+}
 
 export const updateGoal = async (
     id: string,
