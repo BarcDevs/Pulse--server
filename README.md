@@ -410,6 +410,19 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `GET` | `/api/v1/profile/list/health-interests` | — | List all available health interests |
 | `GET` | `/api/v1/profile/list/activities` | — | List all available activity preferences |
 
+### Recovery Goals *(protected)*
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/recovery-goals` | Cookie | List all goals with milestones |
+| `POST` | `/api/v1/recovery-goals` | Cookie + CSRF | Create new recovery goal |
+| `GET` | `/api/v1/recovery-goals/:goalId` | Cookie | Get single goal with milestones |
+| `PATCH` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Update goal (title, description) |
+| `DELETE` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Delete goal and milestones |
+| `POST` | `/api/v1/recovery-goals/:goalId/milestones` | Cookie + CSRF | Add milestone to goal (max 4) |
+| `PATCH` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Update milestone |
+| `DELETE` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Delete milestone |
+
 ---
 
 ## AI Features
