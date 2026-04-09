@@ -1,12 +1,12 @@
 {
   "info": {
     "name": "HealEase — Recovery Goals",
-    "description": "Complete test suite for Recovery Goals CRUD and milestone operations. Includes manual testing folder and automated one-click test suite with happy path, error cases, and security tests.",
+    "description": "Automated one-click test suite for Recovery Goals. Sequential tests with automatic data chaining: Happy Path (11 tests) → Error Cases (9 tests) → Security Tests (11 tests). Total 31 tests covering all 8 endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "baseUrl",
+      "key": "base_url",
       "value": "http://localhost:4000",
       "type": "string"
     },
@@ -88,170 +88,6 @@
   ],
   "item": [
     {
-      "name": "📝 Manual Testing",
-      "description": "Simple one-endpoint-at-a-time testing. No scripts, just raw requests for manual exploration. Replace {{goalId}} and {{milestoneId}} with actual values.",
-      "item": [
-        {
-          "name": "POST - Create Goal",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Build a consistent sleep schedule\",\n  \"description\": \"Establish a regular sleep routine for better recovery\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals"]
-            }
-          }
-        },
-        {
-          "name": "GET - All Goals",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals"]
-            }
-          }
-        },
-        {
-          "name": "GET - Single Goal",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
-            }
-          }
-        },
-        {
-          "name": "PATCH - Update Goal",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Goal Title\",\n  \"description\": \"Updated description\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
-            }
-          }
-        },
-        {
-          "name": "DELETE - Goal",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
-            }
-          }
-        },
-        {
-          "name": "POST - Add Milestone",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"No screens 1 hour before bed\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
-            }
-          }
-        },
-        {
-          "name": "PATCH - Update Milestone",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"isCompleted\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
-            }
-          }
-        },
-        {
-          "name": "DELETE - Milestone",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-CSRF-Token",
-                "value": "{{user1CSRF}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "🤖 Automated One-Click Test Suite",
       "description": "Run entire folder to execute sequential tests with automatic data chaining. Happy path → Error cases → Security tests.",
       "item": [
@@ -306,9 +142,16 @@
                   "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"RecoveryGoal\",\n  \"email\": \"{{user1Email}}\",\n  \"username\": \"{{user1Username}}\",\n  \"password\": \"{{user1Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/signup",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "signup"]
+                  "raw": "{{base_url}}/api/v1/auth/signup",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "signup"
+                  ]
                 }
               }
             },
@@ -346,9 +189,16 @@
                   "raw": "{\n  \"email\": \"{{user1Email}}\",\n  \"password\": \"{{user1Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/login",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "login"]
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
                 }
               }
             },
@@ -385,7 +235,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -394,9 +244,15 @@
                   "raw": "{\n  \"title\": \"Complete Physical Therapy\",\n  \"description\": \"Recovery goal for PT sessions\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -427,9 +283,15 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -460,9 +322,16 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}"
+                  ]
                 }
               }
             },
@@ -499,7 +368,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -508,9 +377,17 @@
                   "raw": "{\n  \"title\": \"Complete 5 PT sessions\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}/milestones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}",
+                    "milestones"
+                  ]
                 }
               }
             },
@@ -543,7 +420,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -552,9 +429,18 @@
                   "raw": "{\n  \"title\": \"Complete 5-6 PT sessions\",\n  \"isCompleted\": false\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}",
+                    "milestones",
+                    "{{milestoneId}}"
+                  ]
                 }
               }
             },
@@ -587,7 +473,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -596,9 +482,16 @@
                   "raw": "{\n  \"title\": \"Complete Physical Therapy - Updated\",\n  \"description\": \"Updated recovery goal\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}"
+                  ]
                 }
               }
             },
@@ -626,14 +519,23 @@
                 "method": "DELETE",
                 "header": [
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}",
+                    "milestones",
+                    "{{milestoneId}}"
+                  ]
                 }
               }
             },
@@ -661,14 +563,21 @@
                 "method": "DELETE",
                 "header": [
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}"
+                  ]
                 }
               }
             },
@@ -697,9 +606,16 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/logout",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "logout"]
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
                 }
               }
             }
@@ -737,7 +653,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -746,9 +662,15 @@
                   "raw": "{\n  \"description\": \"No title\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -780,7 +702,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -789,9 +711,15 @@
                   "raw": "{\n  \"title\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -823,7 +751,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -832,9 +760,15 @@
                   "raw": "{\n  \"title\": \"Valid Title\",\n  \"description\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -866,7 +800,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -875,9 +809,17 @@
                   "raw": "{}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}/milestones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}",
+                    "milestones"
+                  ]
                 }
               }
             },
@@ -909,7 +851,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -918,9 +860,17 @@
                   "raw": "{\n  \"title\": \"Test Milestone\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/invalid-goal-id-xyz/milestones",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "invalid-goal-id-xyz", "milestones"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/invalid-goal-id-xyz/milestones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "invalid-goal-id-xyz",
+                    "milestones"
+                  ]
                 }
               }
             },
@@ -947,7 +897,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -956,9 +906,16 @@
                   "raw": "{\n  \"title\": \"Updated\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/nonexistent-id",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "nonexistent-id"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/nonexistent-id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "nonexistent-id"
+                  ]
                 }
               }
             },
@@ -981,14 +938,21 @@
                 "method": "DELETE",
                 "header": [
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/nonexistent-id",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "nonexistent-id"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/nonexistent-id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "nonexistent-id"
+                  ]
                 }
               }
             },
@@ -1015,7 +979,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -1024,9 +988,18 @@
                   "raw": "{\n  \"title\": \"Updated\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{goalId}}/milestones/invalid-id",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{goalId}}", "milestones", "invalid-id"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{goalId}}/milestones/invalid-id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{goalId}}",
+                    "milestones",
+                    "invalid-id"
+                  ]
                 }
               }
             }
@@ -1076,9 +1049,16 @@
                   "raw": "{\n  \"firstName\": \"User\",\n  \"lastName\": \"One\",\n  \"email\": \"{{user1Email}}\",\n  \"username\": \"{{user1Username}}\",\n  \"password\": \"{{user1Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/signup",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "signup"]
+                  "raw": "{{base_url}}/api/v1/auth/signup",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "signup"
+                  ]
                 }
               }
             },
@@ -1113,9 +1093,16 @@
                   "raw": "{\n  \"email\": \"{{user1Email}}\",\n  \"password\": \"{{user1Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/login",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "login"]
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
                 }
               }
             },
@@ -1145,7 +1132,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user1CSRF}}"
                   }
                 ],
@@ -1154,9 +1141,15 @@
                   "raw": "{\n  \"title\": \"User 1 Goal\",\n  \"description\": \"This goal belongs to User 1\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -1181,9 +1174,16 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/logout",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "logout"]
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
                 }
               }
             },
@@ -1227,9 +1227,16 @@
                   "raw": "{\n  \"firstName\": \"User\",\n  \"lastName\": \"Two\",\n  \"email\": \"{{user2Email}}\",\n  \"username\": \"{{user2Username}}\",\n  \"password\": \"{{user2Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/signup",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "signup"]
+                  "raw": "{{base_url}}/api/v1/auth/signup",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "signup"
+                  ]
                 }
               }
             },
@@ -1264,9 +1271,16 @@
                   "raw": "{\n  \"email\": \"{{user2Email}}\",\n  \"password\": \"{{user2Password}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/login",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "login"]
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
                 }
               }
             },
@@ -1289,9 +1303,16 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{user1GoalId}}"
+                  ]
                 }
               }
             },
@@ -1318,7 +1339,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user2CSRF}}"
                   }
                 ],
@@ -1327,9 +1348,16 @@
                   "raw": "{\n  \"title\": \"Hacked\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{user1GoalId}}"
+                  ]
                 }
               }
             },
@@ -1352,14 +1380,21 @@
                 "method": "DELETE",
                 "header": [
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user2CSRF}}"
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{user1GoalId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{user1GoalId}}"
+                  ]
                 }
               }
             },
@@ -1386,7 +1421,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "{{user2CSRF}}"
                   }
                 ],
@@ -1395,9 +1430,17 @@
                   "raw": "{\n  \"title\": \"Unauthorized milestone\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals/{{user1GoalId}}/milestones",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals", "{{user1GoalId}}", "milestones"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals/{{user1GoalId}}/milestones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals",
+                    "{{user1GoalId}}",
+                    "milestones"
+                  ]
                 }
               }
             },
@@ -1420,9 +1463,16 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/auth/logout",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "auth", "logout"]
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
                 }
               }
             },
@@ -1459,9 +1509,15 @@
                   "raw": "{\n  \"title\": \"Test\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -1493,7 +1549,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "invalid-token-xyz"
                   }
                 ],
@@ -1502,9 +1558,15 @@
                   "raw": "{\n  \"title\": \"Test\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             },
@@ -1531,7 +1593,7 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-CSRF-Token",
+                    "key": "x-csrf-token",
                     "value": "some-token"
                   }
                 ],
@@ -1540,9 +1602,15 @@
                   "raw": "{\n  \"title\": \"Test\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/recovery-goals",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "v1", "recovery-goals"]
+                  "raw": "{{base_url}}/api/v1/recovery-goals",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "recovery-goals"
+                  ]
                 }
               }
             }
