@@ -1,5 +1,12 @@
-import {errorFactory} from '../errors/factory'
+import { errorFactory } from '../errors/factory'
 import * as profileModel from '../models/ProfileModel'
+import type {
+    ActivityPreferenceType,
+    HealthInterestType,
+    ProfileActivityPreferenceType,
+    ProfileHealthInterestType,
+    ProfileType
+} from '../types/data/UserType'
 
 const ensureProfileExists = async (
     userId: string
@@ -44,7 +51,15 @@ const resolveActivityPreferenceSlug = async (
     return activity
 }
 
-const transformProfileWithInterests = (profile: any) => {
+const transformProfileWithInterests = (
+    profile: ProfileType
+): Omit<
+    ProfileType,
+    'healthInterests' | 'activityPreferences'
+> & {
+    healthInterests: HealthInterestType[]
+    activityPreferences: ActivityPreferenceType[]
+} => {
     const healthInterestLinks =
         profile.healthInterests || []
     const activityPrefLinks =
@@ -53,11 +68,29 @@ const transformProfileWithInterests = (profile: any) => {
     return {
         ...profile,
         healthInterests: healthInterestLinks
-            .map((hi: any) => hi.healthInterest)
-            .filter((hi: any) => hi !== undefined),
+            .map(
+                (
+                    hi: ProfileHealthInterestType
+                ) => hi.healthInterest
+            )
+            .filter(
+                (
+                    hi: HealthInterestType | undefined
+                ): hi is HealthInterestType =>
+                    hi !== undefined
+            ),
         activityPreferences: activityPrefLinks
-            .map((ap: any) => ap.activityPreference)
-            .filter((ap: any) => ap !== undefined)
+            .map(
+                (
+                    ap: ProfileActivityPreferenceType
+                ) => ap.activityPreference
+            )
+            .filter(
+                (
+                    ap: ActivityPreferenceType | undefined
+                ): ap is ActivityPreferenceType =>
+                    ap !== undefined
+            )
     }
 }
 

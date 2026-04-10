@@ -10,7 +10,7 @@ export const getProfileIdForUser = async (
 ): Promise<string> => {
     const profile = await Prisma.profile
         .findUnique({
-            where: {userId}
+            where: { userId }
         })
 
     if (!profile)
@@ -63,7 +63,7 @@ export const getGoalsByUserId = async (
 ): Promise<RecoveryGoalType[]> => {
     const profileId = await getProfileIdForUser(userId)
     return Prisma.recoveryGoal.findMany({
-        where: {profileId},
+        where: { profileId },
         include: goalInclude,
         orderBy: {
             createdAt: 'desc'

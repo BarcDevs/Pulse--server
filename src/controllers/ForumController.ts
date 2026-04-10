@@ -1,18 +1,18 @@
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {errorFactory} from '../errors/factory'
-import {ValidationError} from '../errors/ValidationError'
-import {successResponse} from '../responses/success'
-import {newPostSchema} from '../schemas/forum/newPostSchema'
-import {newReplySchema} from '../schemas/forum/newReplySchema'
-import {postQuerySchema} from '../schemas/forum/postQuerySchema'
-import {tagQuerySchema} from '../schemas/forum/tagQuerySchema'
-import {updatePostSchema} from '../schemas/forum/updatePostSchema'
-import {updateReplySchema} from '../schemas/forum/updateReplySchema'
+import { errorFactory } from '../errors/factory'
+import { ValidationError } from '../errors/ValidationError'
+import { successResponse } from '../responses/success'
+import { newPostSchema } from '../schemas/forum/newPostSchema'
+import { newReplySchema } from '../schemas/forum/newReplySchema'
+import { postQuerySchema } from '../schemas/forum/postQuerySchema'
+import { tagQuerySchema } from '../schemas/forum/tagQuerySchema'
+import { updatePostSchema } from '../schemas/forum/updatePostSchema'
+import { updateReplySchema } from '../schemas/forum/updateReplySchema'
 import * as forumService from '../services/forumService'
-import type {PostType} from '../types/data/PostType'
-import type {ReplyType} from '../types/data/ReplyType'
-import type {TagType} from '../types/data/TagType'
+import type { PostType } from '../types/data/PostType'
+import type { ReplyType } from '../types/data/ReplyType'
+import type { TagType } from '../types/data/TagType'
 
 // region Posts
 export const getPosts = async (
@@ -20,16 +20,14 @@ export const getPosts = async (
     res: Response
 ) => {
     const validatedQuery =
-        req.query &&
-        ValidationError.catchValidationErrors(
+        req.query
+        && ValidationError.catchValidationErrors(
             postQuerySchema.validate(req.query)
         )
 
     const data = (
         await forumService.getPosts(validatedQuery)
-    ) as
-        | PostType[]
-        | null
+    ) as PostType[] | null
 
     if (!data)
         throw errorFactory.generic.notFound('Posts')
@@ -49,7 +47,7 @@ export const createPost = async (
         ValidationError.catchValidationErrors(
             newPostSchema.validate(req.body)
         )
-    const {userId} = req || {}
+    const { userId } = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -69,7 +67,7 @@ export const getPost = async (
     req: Request,
     res: Response
 ) => {
-    const {postId} = req.params
+    const { postId } = req.params
 
     const data = (await forumService
         .getPosts(undefined, postId)) as PostType
@@ -92,8 +90,8 @@ export const updatePost = async (
         ValidationError.catchValidationErrors(
             updatePostSchema.validate(req.body)
         )
-    const {postId} = req.params
-    const {userId} = req || {}
+    const { postId } = req.params
+    const { userId } = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -118,8 +116,8 @@ export const deletePost = async (
     req: Request,
     res: Response
 ) => {
-    const {postId} = req.params
-    const {userId} = req || {}
+    const { postId } = req.params
+    const { userId } = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -149,8 +147,8 @@ export const createReply = async (
         ValidationError.catchValidationErrors(
             newReplySchema.validate(req.body)
         )
-    const {userId} = req || {}
-    const {postId} = req.params
+    const { userId } = req || {}
+    const { postId } = req.params
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -172,7 +170,7 @@ export const getReplies = async (
     req: Request,
     res: Response
 ) => {
-    const {postId} = req.params
+    const { postId } = req.params
 
     const data = (
         await forumService.getReplies(postId)
@@ -197,8 +195,8 @@ export const updateReply = async (
         ValidationError.catchValidationErrors(
             updateReplySchema.validate(req.body)
         )
-    const {replyId, postId} = req.params
-    const {userId} = req || {}
+    const { replyId, postId } = req.params
+    const { userId } = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -227,8 +225,8 @@ export const deleteReply = async (
     req: Request,
     res: Response
 ) => {
-    const {replyId, postId} = req.params
-    const {userId} = req || {}
+    const { replyId, postId } = req.params
+    const { userId } = req || {}
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -256,8 +254,8 @@ export const getTags = async (
     res: Response
 ) => {
     const validatedQuery =
-        req.query &&
-        ValidationError.catchValidationErrors(
+        req.query
+        && ValidationError.catchValidationErrors(
             tagQuerySchema.validate(req.query)
         )
 
@@ -278,7 +276,7 @@ export const getTag = async (
     req: Request,
     res: Response
 ) => {
-    const {tagId} = req.params
+    const { tagId } = req.params
 
     const data = await forumService.getTag(tagId)
 

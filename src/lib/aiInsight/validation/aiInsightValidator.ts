@@ -4,7 +4,7 @@ import {
     MAX_SENTENCES,
     MIN_CONTENT_LENGTH
 } from '../../../constants/aiInsight/validation'
-import type {InsightType} from '../../../types/insight'
+import type { InsightType } from '../../../types/insight'
 
 import {
     containsForbiddenMedicalContext,
@@ -27,7 +27,7 @@ const isTitleValid = (title: string): ValidationResult => {
             reason: 'Title is empty'
         }
     }
-    return {isValid: true}
+    return { isValid: true }
 }
 
 const isContentPresent = (content: string): ValidationResult => {
@@ -37,7 +37,7 @@ const isContentPresent = (content: string): ValidationResult => {
             reason: 'Content is empty'
         }
     }
-    return {isValid: true}
+    return { isValid: true }
 }
 
 const isContentLengthValid = (
@@ -59,7 +59,7 @@ const isContentLengthValid = (
         }
     }
 
-    return {isValid: true}
+    return { isValid: true }
 }
 
 const isLanguageSafe = (
@@ -81,7 +81,7 @@ const isLanguageSafe = (
         }
     }
 
-    return {isValid: true}
+    return { isValid: true }
 }
 
 const isSentenceCountValid = (
@@ -97,7 +97,7 @@ const isSentenceCountValid = (
         }
     }
 
-    return {isValid: true}
+    return { isValid: true }
 }
 
 // endregion
@@ -123,7 +123,7 @@ const validateGeneratedInsight = (
         }
     }
 
-    return {isValid: true}
+    return { isValid: true }
 }
 
 // endregion
@@ -145,4 +145,4 @@ export {
     normalizeContent,
     validateGeneratedInsight
 }
-export type {ValidationResult}
+export type { ValidationResult }

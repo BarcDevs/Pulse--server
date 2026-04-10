@@ -1,6 +1,6 @@
-import type {InsightType} from '../../prisma/generated/prisma/enums'
-import type {AIInsightType} from '../types/data/CheckInType'
-import type {InsightDecisionMetadata} from '../types/insight'
+import type { InsightType } from '../../prisma/generated/prisma/enums'
+import type { AIInsightType } from '../types/data/CheckInType'
+import type { InsightDecisionMetadata } from '../types/insight'
 import Prisma from '../utils/PrismaClient'
 
 type CreateAIInsightInput = {
@@ -37,12 +37,12 @@ const createInsight = async (
             type: insightType,
             title,
             content,
-            ...(metadata && {metadata})
+            ...(metadata && { metadata })
         },
         update: {
             title,
             content,
-            ...(metadata && {metadata})
+            ...(metadata && { metadata })
         }
     }
 
@@ -57,8 +57,8 @@ const getInsightsByUserId = async (
 ): Promise<AIInsightType[]> =>
     (await Prisma.aIInsight
         .findMany({
-            where: {userId},
-            orderBy: {createdAt: 'desc'},
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
             take: limit
         })) as AIInsightType[]
 
@@ -66,8 +66,8 @@ const getInsightByCheckInId = async (
     checkInId: string
 ): Promise<AIInsightType | null> =>
     (await Prisma.aIInsight.findFirst({
-        where: {checkInId},
-        orderBy: {createdAt: 'desc'}
+        where: { checkInId },
+        orderBy: { createdAt: 'desc' }
     })) as AIInsightType | null
 
 export {
@@ -75,4 +75,4 @@ export {
     getInsightByCheckInId,
     getInsightsByUserId
 }
-export type {CreateAIInsightInput}
+export type { CreateAIInsightInput }

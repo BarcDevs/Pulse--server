@@ -2,7 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import {prismaMock} from '../setup/jestSetup'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,
@@ -10,7 +10,6 @@ import {
     createMockReply,
     createMockTag,
     createMockUser,
-    withBearerAuth,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -79,7 +78,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({tag: 'test-tag'})
+                    .query({ tag: 'test-tag' })
 
                 expect(response.status).toBe(200)
             }
@@ -89,14 +88,14 @@ describe('Forum Routes', () => {
             'should return 200 with category filter',
             async () => {
                 const mockPosts = [
-                    createMockPost({category: 'health'})
+                    createMockPost({ category: 'health' })
                 ]
                 prismaMock.post.findMany
                     .mockResolvedValue(mockPosts)
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({category: 'health'})
+                    .query({ category: 'health' })
 
                 expect(response.status).toBe(200)
             }
@@ -106,14 +105,14 @@ describe('Forum Routes', () => {
             'should return 200 with search filter',
             async () => {
                 const mockPosts = [
-                    createMockPost({title: 'Search Test'})
+                    createMockPost({ title: 'Search Test' })
                 ]
                 prismaMock.post.findMany
                     .mockResolvedValue(mockPosts)
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({search: 'Search'})
+                    .query({ search: 'Search' })
 
                 expect(response.status).toBe(200)
             }
@@ -128,7 +127,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({filter: 'newest'})
+                    .query({ filter: 'newest' })
 
                 expect(response.status).toBe(200)
             }
@@ -138,14 +137,14 @@ describe('Forum Routes', () => {
             'should return 200 with popular filter',
             async () => {
                 const mockPosts = [
-                    createMockPost({views: 100})
+                    createMockPost({ views: 100 })
                 ]
                 prismaMock.post.findMany
                     .mockResolvedValue(mockPosts)
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({filter: 'popular'})
+                    .query({ filter: 'popular' })
 
                 expect(response.status).toBe(200)
             }
@@ -160,7 +159,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({filter: 'hot'})
+                    .query({ filter: 'hot' })
 
                 expect(response.status).toBe(200)
             }
@@ -171,7 +170,7 @@ describe('Forum Routes', () => {
             async () => {
                 const mockPosts = [
                     createMockPost({
-                        _count: {replies: 0}
+                        _count: { replies: 0 }
                     })
                 ]
                 prismaMock.post.findMany
@@ -179,7 +178,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({filter: 'unanswered'})
+                    .query({ filter: 'unanswered' })
 
                 expect(response.status).toBe(200)
             }
@@ -205,7 +204,7 @@ describe('Forum Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .get(postsEndpoint)
-                    .query({limit: 200})
+                    .query({ limit: 200 })
 
                 expect(response.status).toBe(403)
             }
@@ -619,7 +618,7 @@ describe('Forum Routes', () => {
             const mockPost = createMockPost()
             const mockReplies = [
                 createMockReply(),
-                createMockReply({id: 'reply-2'})
+                createMockReply({ id: 'reply-2' })
             ]
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
@@ -1021,14 +1020,14 @@ describe('Forum Routes', () => {
             'should return 200 with search filter',
             async () => {
                 const mockTags = [
-                    createMockTag({name: 'javascript'})
+                    createMockTag({ name: 'javascript' })
                 ]
                 prismaMock.tag.findMany
                     .mockResolvedValue(mockTags)
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
-                    .query({search: 'java'})
+                    .query({ search: 'java' })
 
                 expect(response.status).toBe(200)
             }
@@ -1043,7 +1042,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
-                    .query({filter: 'popular'})
+                    .query({ filter: 'popular' })
 
                 expect(response.status).toBe(200)
             }

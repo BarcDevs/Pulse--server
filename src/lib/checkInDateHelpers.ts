@@ -5,7 +5,7 @@ const toDateStr = (d: Date): string =>
     d.toISOString().slice(0, 10)
 
 const prevDay = (dateStr: string): string => {
-    const d = new Date(dateStr + 'T00:00:00Z')
+    const d = new Date(`${dateStr} T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() - 1)
     return toDateStr(d)
 }
@@ -31,8 +31,7 @@ const resolveCheckInDate = (
         )
     } catch {
         logger.warn(
-            `Invalid timezone '${timezoneName}' - ` +
-            'falling back to UTC'
+            `Invalid timezone '${timezoneName}' - falling back to UTC`
         )
         const today = new Date()
         today.setUTCHours(0, 0, 0, 0)
@@ -98,8 +97,7 @@ const resolveTimestampInUserTimeZone = (
         )
     } catch {
         logger.warn(
-            `Invalid timezone '${timezoneName}' - ` +
-            'falling back to UTC'
+            `Invalid timezone '${timezoneName}' - falling back to UTC`
         )
         return new Date()
     }

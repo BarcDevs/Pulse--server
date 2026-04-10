@@ -1,6 +1,6 @@
-import type {AIInsight} from '../../../prisma/generated/prisma/client'
-import type {InsightType} from '../../../prisma/generated/prisma/enums'
-import {prismaMock} from '../../__tests__/setup/jestSetup'
+import type { AIInsight } from '../../../prisma/generated/prisma/client'
+import type { InsightType } from '../../../prisma/generated/prisma/enums'
+import { prismaMock } from '../../__tests__/setup/jestSetup'
 import * as aiInsightModel from '../AIInsightModel'
 
 const createMockInsight = (
@@ -347,15 +347,15 @@ describe('AIInsightModel', () => {
                 expect(result).toEqual(mockInsights)
                 expect(prismaMock.aIInsight.findMany)
                     .toHaveBeenCalledWith({
-                        where: {userId: 'mock-user-id'},
-                        orderBy: {createdAt: 'desc'},
+                        where: { userId: 'mock-user-id' },
+                        orderBy: { createdAt: 'desc' },
                         take: 10
                     })
             })
 
         it('should support custom limit parameter', async () => {
             const mockInsights = [
-                createMockInsight({id: 'insight-1'})
+                createMockInsight({ id: 'insight-1' })
             ]
             prismaMock.aIInsight.findMany.mockResolvedValue(
                 mockInsights
@@ -368,8 +368,8 @@ describe('AIInsightModel', () => {
 
             expect(prismaMock.aIInsight.findMany)
                 .toHaveBeenCalledWith({
-                    where: {userId: 'mock-user-id'},
-                    orderBy: {createdAt: 'desc'},
+                    where: { userId: 'mock-user-id' },
+                    orderBy: { createdAt: 'desc' },
                     take: 5
                 })
         })
@@ -403,8 +403,8 @@ describe('AIInsightModel', () => {
             expect(result).toEqual(mockInsight)
             expect(prismaMock.aIInsight.findFirst)
                 .toHaveBeenCalledWith({
-                    where: {checkInId: 'mock-check-in-id'},
-                    orderBy: {createdAt: 'desc'}
+                    where: { checkInId: 'mock-check-in-id' },
+                    orderBy: { createdAt: 'desc' }
                 })
         })
 

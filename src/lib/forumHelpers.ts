@@ -1,7 +1,7 @@
-import {errorFactory} from '../errors/factory'
+import { errorFactory } from '../errors/factory'
 import * as forumModel from '../models/ForumModel'
-import type {TagQuery} from '../types/query'
-import {capitalizeText} from '../utils/capitalizeText'
+import type { TagQuery } from '../types/query'
+import { capitalizeText } from '../utils/capitalizeText'
 
 const ensurePostExists = async (postId: string) => {
     const post = await forumModel.getPost(postId)
@@ -12,7 +12,7 @@ const ensurePostExists = async (postId: string) => {
 }
 
 const extractRemovedTags = (
-    prevTags: any[] | undefined,
+    prevTags: Array<{ name: string }> | undefined,
     newTagNames: string[] | undefined
 ) => {
     if (!prevTags || !newTagNames)
@@ -72,8 +72,7 @@ const validateOwnerHelper = async (
 
     if (data.authorId !== userId)
         throw errorFactory.auth.unauthorized(
-            `you are not the author of ` +
-            `this ${schema}!`
+            `you are not the author of this ${schema}!`
         )
 }
 

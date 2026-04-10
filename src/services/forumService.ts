@@ -4,7 +4,7 @@ import {
     resolveTags,
     validateOwnerHelper
 } from '../lib/forumHelpers'
-import {getTagsByPostId} from '../models/ForumModel'
+import { getTagsByPostId } from '../models/ForumModel'
 import * as forumModel from '../models/ForumModel'
 import type {
     NewPostType,
@@ -14,7 +14,7 @@ import type {
     NewReplyType,
     UpdateReplyType
 } from '../types/data/ReplyType'
-import type {PostQuery, TagQuery} from '../types/query'
+import type { PostQuery, TagQuery } from '../types/query'
 
 // region Validation
 export const validateOwner = async (

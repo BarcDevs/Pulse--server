@@ -1,13 +1,14 @@
-import {decideInsightType} from '../lib/aiInsight'
-import {generateTitle} from '../lib/aiInsight/prompts/insightsPrompts'
+import { decideInsightType } from '../lib/aiInsight'
+import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import {
-    getFallbackContent,
+    getFallbackContent
 } from '../lib/aiInsight/validation/aiInsightValidator'
 import * as aiInsightModel from '../models/AIInsightModel'
+import { getUserTimezone } from '../models/AuthModel'
 import * as checkInModel from '../models/CheckInModel'
-import {getUserTimezone} from '../models/AuthModel'
 import logger from '../utils/logger'
-import {generateInsight} from './aiInsightGeneratorService'
+
+import { generateInsight } from './aiInsightGeneratorService'
 
 const generateInsightForCheckIn = async (
     userId: string,
@@ -19,7 +20,7 @@ const generateInsightForCheckIn = async (
     if (recentCheckIns.length === 0) {
         logger.warn(
             'No recent check-ins found for insight generation',
-            {userId, checkInId}
+            { userId, checkInId }
         )
         return
     }
@@ -80,4 +81,4 @@ const generateInsightForCheckIn = async (
     })
 }
 
-export {generateInsightForCheckIn}
+export { generateInsightForCheckIn }

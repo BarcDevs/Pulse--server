@@ -1,10 +1,10 @@
 // @ts-nocheck
-import {newPostSchema} from '../../schemas/forum/newPostSchema'
-import {newReplySchema} from '../../schemas/forum/newReplySchema'
-import {postQuerySchema} from '../../schemas/forum/postQuerySchema'
-import {tagQuerySchema} from '../../schemas/forum/tagQuerySchema'
-import {updatePostSchema} from '../../schemas/forum/updatePostSchema'
-import {updateReplySchema} from '../../schemas/forum/updateReplySchema'
+import { newPostSchema } from '../../schemas/forum/newPostSchema'
+import { newReplySchema } from '../../schemas/forum/newReplySchema'
+import { postQuerySchema } from '../../schemas/forum/postQuerySchema'
+import { tagQuerySchema } from '../../schemas/forum/tagQuerySchema'
+import { updatePostSchema } from '../../schemas/forum/updatePostSchema'
+import { updateReplySchema } from '../../schemas/forum/updateReplySchema'
 
 describe('Forum Schemas', () => {
     // ==================== NEW POST SCHEMA ====================

@@ -1,4 +1,4 @@
-import {Router} from 'express'
+import { Router } from 'express'
 
 import {
     createCheckIn,
@@ -10,7 +10,7 @@ import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
-import {isAuthenticated} from '../middlewares/isAuthenticated'
+import { isAuthenticated } from '../middlewares/isAuthenticated'
 
 const router = Router()
 

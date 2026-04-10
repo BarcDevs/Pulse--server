@@ -17,7 +17,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-08'),
                 new Date('2026-03-09'),
-                new Date('2026-03-10'),
+                new Date('2026-03-10')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -28,7 +28,7 @@ describe('calculateCurrentStreak', () => {
                 new Date('2026-03-07'),
                 new Date('2026-03-08'),
                 new Date('2026-03-09'),
-                new Date('2026-03-10'),
+                new Date('2026-03-10')
             ]
             expect(calculateCurrentStreak(dates)).toBe(5)
         })
@@ -38,7 +38,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-10'),
                 new Date('2026-03-09'),
-                new Date('2026-03-08'),
+                new Date('2026-03-08')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -49,7 +49,7 @@ describe('calculateCurrentStreak', () => {
             // Gap on 2026-03-09
             const dates = [
                 new Date('2026-03-10'),
-                new Date('2026-03-08'),
+                new Date('2026-03-08')
             ]
             expect(calculateCurrentStreak(dates)).toBe(1)
         })
@@ -57,7 +57,7 @@ describe('calculateCurrentStreak', () => {
         it('should return 1 for [2026-03-10, 2026-03-07] with 3-day gap', () => {
             const dates = [
                 new Date('2026-03-10'),
-                new Date('2026-03-07'),
+                new Date('2026-03-07')
             ]
             expect(calculateCurrentStreak(dates)).toBe(1)
         })
@@ -69,7 +69,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-10'),
                 new Date('2026-03-09'),
-                new Date('2026-03-07'),
+                new Date('2026-03-07')
             ]
             expect(calculateCurrentStreak(dates)).toBe(2)
         })
@@ -83,7 +83,7 @@ describe('calculateCurrentStreak', () => {
                 new Date('2026-03-09'),
                 new Date('2026-03-08'),
                 new Date('2026-03-07'),
-                new Date('2026-03-05'),
+                new Date('2026-03-05')
             ]
             expect(calculateCurrentStreak(dates)).toBe(4)
         })
@@ -94,7 +94,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-08'),
                 new Date('2026-03-10'),
-                new Date('2026-03-09'),
+                new Date('2026-03-09')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -103,12 +103,12 @@ describe('calculateCurrentStreak', () => {
             const orderedDates = [
                 new Date('2026-03-08'),
                 new Date('2026-03-09'),
-                new Date('2026-03-10'),
+                new Date('2026-03-10')
             ]
             const unorderedDates = [
                 new Date('2026-03-10'),
                 new Date('2026-03-08'),
-                new Date('2026-03-09'),
+                new Date('2026-03-09')
             ]
             expect(calculateCurrentStreak(orderedDates)).toBe(
                 calculateCurrentStreak(unorderedDates)
@@ -119,7 +119,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-10'),
                 new Date('2026-03-09'),
-                new Date('2026-03-08'),
+                new Date('2026-03-08')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -132,7 +132,7 @@ describe('calculateCurrentStreak', () => {
                 new Date('2026-03-10'),
                 new Date('2026-03-10'),
                 new Date('2026-03-09'),
-                new Date('2026-03-08'),
+                new Date('2026-03-08')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -144,7 +144,7 @@ describe('calculateCurrentStreak', () => {
                 new Date('2026-03-10'),
                 new Date('2026-03-09'),
                 new Date('2026-03-09'),
-                new Date('2026-03-08'),
+                new Date('2026-03-08')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -153,7 +153,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-10'),
                 new Date('2026-03-10'),
-                new Date('2026-03-10'),
+                new Date('2026-03-10')
             ]
             expect(calculateCurrentStreak(dates)).toBe(1)
         })
@@ -164,7 +164,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-03-10T15:30:00Z'),
                 new Date('2026-03-09T08:00:00Z'),
-                new Date('2026-03-08T23:59:59Z'),
+                new Date('2026-03-08T23:59:59Z')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })
@@ -173,7 +173,7 @@ describe('calculateCurrentStreak', () => {
             const dates = [
                 new Date('2026-01-02'),
                 new Date('2026-01-01'),
-                new Date('2025-12-31'),
+                new Date('2025-12-31')
             ]
             expect(calculateCurrentStreak(dates)).toBe(3)
         })

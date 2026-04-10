@@ -88,8 +88,8 @@ class AnthropicProvider extends AIProvider {
             )
         }
 
-        return {content}
+        return { content }
     }
 }
 
-export {AnthropicProvider}
+export { AnthropicProvider }

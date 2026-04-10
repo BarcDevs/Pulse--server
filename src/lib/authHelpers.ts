@@ -1,10 +1,10 @@
-import type {CookieOptions} from 'express'
+import type { CookieOptions } from 'express'
 import ms from 'ms'
 
-import {authConfig, isDev} from '../../config'
-import {excludedUserFields} from '../constants/excludedUserFields'
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
-import {AuthError} from '../errors/AuthError'
+import { authConfig, isDev } from '../../config'
+import { excludedUserFields } from '../constants/excludedUserFields'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { AuthError } from '../errors/AuthError'
 import * as authModel from '../models/AuthModel'
 import type {
     ServerUserType,
@@ -22,9 +22,9 @@ const getCookiesOptions = (
     httpOnly: true,
     sameSite: !isDev ? 'none' : 'lax',
     secure: !isDev,
-    maxAge: remember ?
-        ms(authConfig.expiresIn) :
-        ms('1d')
+    maxAge: remember
+        ? ms(authConfig.expiresIn)
+        : ms('1d')
 }) as CookieOptions
 
 const generateRandomUsername = () => {
@@ -69,8 +69,8 @@ const updateUserData = async (
         )
 
     if (
-        updates.email &&
-        updates.email !== existingUser.email
+        updates.email
+        && updates.email !== existingUser.email
     ) {
         const emailExists = await authModel
             .getUserByEmail(updates.email)
@@ -84,8 +84,8 @@ const updateUserData = async (
     }
 
     if (
-        updates.username &&
-        updates.username !== existingUser.username
+        updates.username
+        && updates.username !== existingUser.username
     ) {
         const usernameExists =
             await authModel

@@ -1,11 +1,11 @@
 import winston from 'winston'
 
-import {isDev} from '../../config'
+import { isDev } from '../../config'
 
 const consoleFormat = winston.format.combine(
     winston.format.colorize(),
     winston.format.printf(
-        ({level, message}) =>
+        ({ level, message }) =>
             `${level}: ${message}`
     )
 )

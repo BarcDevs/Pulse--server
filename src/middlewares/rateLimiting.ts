@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit'
 
-import {minuteInMs} from '../constants/time'
+import { minuteInMs } from '../constants/time'
 
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
@@ -9,7 +9,7 @@ export const rateLimiter = rateLimit({
         'Too many requests from this IP, please try again after 15 minutes',
     skip: (req) => {
         // Exempt auth infrastructure endpoints from rate limiting
-        return req.path === '/api/v1/auth/me' ||
-            req.path === '/api/v1/auth/csrf'
+        return req.path === '/api/v1/auth/me'
+            || req.path === '/api/v1/auth/csrf'
     }
 })

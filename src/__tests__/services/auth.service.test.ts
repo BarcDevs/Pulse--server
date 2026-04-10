@@ -13,8 +13,8 @@ import {
     sanitizeUserData,
     verifyResetPasswordOTP
 } from '../../services/authService'
-import {prismaMock} from '../setup/jestSetup'
-import {createMockUser} from '../setup/testSetup'
+import { prismaMock } from '../setup/jestSetup'
+import { createMockUser } from '../setup/testSetup'
 
 describe('Auth Service', () => {
     // ==================== hashPassword ====================

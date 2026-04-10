@@ -10,7 +10,7 @@ export const getProfileIdForUser = async (
 ): Promise<string> => {
     const profile = await Prisma.profile
         .findUnique({
-            where: {userId}
+            where: { userId }
         })
 
     if (!profile)
@@ -26,10 +26,10 @@ export const getCheckIns = async (
     limit = 30
 ): Promise<CheckInType[]> =>
     (await Prisma.dailyCheckIn.findMany({
-        where: {profileId},
+        where: { profileId },
         take: limit,
-        orderBy: {checkInDate: 'desc'},
-        include: {insights: true}
+        orderBy: { checkInDate: 'desc' },
+        include: { insights: true }
     })) as CheckInType[]
 
 export const findTodayCheckIn = async (
@@ -43,7 +43,7 @@ export const findTodayCheckIn = async (
                 checkInDate
             }
         },
-        include: {insights: true}
+        include: { insights: true }
     })) as CheckInType | null
 
 export const createCheckIn = async (
@@ -51,7 +51,7 @@ export const createCheckIn = async (
     checkInDate: Date,
     createdAt?: Date
 ): Promise<CheckInType> => {
-    const {userId, ...checkInData} = data
+    const { userId, ...checkInData } = data
     const profileId = await getProfileIdForUser(userId)
 
     return (await Prisma.dailyCheckIn.create({
@@ -59,9 +59,9 @@ export const createCheckIn = async (
             ...checkInData,
             checkInDate,
             createdAt: createdAt ?? new Date(),
-            profile: {connect: {id: profileId}}
+            profile: { connect: { id: profileId } }
         },
-        include: {insights: true}
+        include: { insights: true }
     })) as CheckInType
 }
 
@@ -82,15 +82,15 @@ export const updateCheckIn = async (
             ...data,
             updatedAt: updatedAt ?? new Date()
         },
-        include: {insights: true}
+        include: { insights: true }
     })) as CheckInType
 
 export const updateUserLastCheckIn = async (
     userId: string
 ): Promise<void> => {
     await Prisma.profile.update({
-        where: {userId},
-        data: {lastCheckInAt: new Date()}
+        where: { userId },
+        data: { lastCheckInAt: new Date() }
     })
 }
 
@@ -106,12 +106,12 @@ export const getCheckInsForStats = async (
     >[]
 > =>
     Prisma.dailyCheckIn.findMany({
-        where: {profileId},
+        where: { profileId },
         select: {
             moodScore: true,
             painLevel: true,
             activities: true,
             checkInDate: true
         },
-        orderBy: {checkInDate: 'desc'}
+        orderBy: { checkInDate: 'desc' }
     })

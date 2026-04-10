@@ -5,9 +5,9 @@ import type {
 } from 'express'
 import jwt from 'jsonwebtoken'
 
-import {authConfig} from '../../config'
-import {errorFactory} from '../errors/factory'
-import type {UserType} from '../types/data/UserType'
+import { authConfig } from '../../config'
+import { errorFactory } from '../errors/factory'
+import type { UserType } from '../types/data/UserType'
 
 export const isAuthenticated = (
     req: Request,
@@ -15,9 +15,9 @@ export const isAuthenticated = (
     next: NextFunction
 ) => {
     try {
-        const {accessToken} = req.cookies
+        const { accessToken } = req.cookies
 
-        const {id} = jwt.verify(
+        const { id } = jwt.verify(
             accessToken,
             authConfig.jwtSecret!
         ) as Partial<UserType>

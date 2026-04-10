@@ -1,15 +1,15 @@
 export type {
     InsightDecisionMetadata,
     InsightDecisionResult,
-    InsightType,
+    InsightType
 } from '../../types/insight'
 export {
     decideInsightType,
-    InvalidInsightInputError,
+    InvalidInsightInputError
 } from './decision/insightDecision'
 export {
-    isMoodDropping,
+    isMoodDropping
 } from './decision/moodTrendDetector'
 export {
-    calculateCurrentStreak,
+    calculateCurrentStreak
 } from './decision/streakCalculator'

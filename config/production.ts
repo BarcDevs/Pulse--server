@@ -7,8 +7,8 @@ export default {
         port: process.env.PORT || 8080,
         protocol: 'https',
         origin:
-            process.env.ORIGIN ||
-            'https://healease-client.onrender.com',
+            process.env.ORIGIN
+            || 'https://healease-client.onrender.com',
         host: '0.0.0.0'
     },
     auth: {

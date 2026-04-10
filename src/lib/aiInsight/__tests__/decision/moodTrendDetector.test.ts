@@ -11,7 +11,7 @@ const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     createdAt: new Date(),
     updatedAt: null,
     insights: [],
-    ...overrides,
+    ...overrides
 })
 
 describe('isMoodDropping', () => {
@@ -22,16 +22,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })
@@ -40,16 +40,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 10,
+                    moodScore: 10
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 3,
-                }),
+                    moodScore: 3
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })
@@ -58,16 +58,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 9,
+                    moodScore: 9
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 1,
-                }),
+                    moodScore: 1
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })
@@ -78,16 +78,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -96,16 +96,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -114,16 +114,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 7,
-                }),
+                    moodScore: 7
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -132,16 +132,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -155,8 +155,8 @@ describe('isMoodDropping', () => {
         it('should return false for single check-in', () => {
             const checkIns = [
                 createMockCheckIn({
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -165,12 +165,12 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -179,16 +179,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: undefined as any,
-                }),
+                    moodScore: undefined as any
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -199,12 +199,12 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 2)).toBe(true)
         })
@@ -213,24 +213,24 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 10,
+                    moodScore: 10
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 8,
+                    moodScore: 8
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 4,
+                    moodScore: 4
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 2,
-                }),
+                    moodScore: 2
+                })
             ]
             expect(isMoodDropping(checkIns, 5)).toBe(true)
         })
@@ -239,12 +239,12 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 5)).toBe(false)
         })
@@ -258,12 +258,12 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 2)).toBe(true)
         })
@@ -273,16 +273,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 8,
+                    moodScore: 8
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 4,
-                }),
+                    moodScore: 4
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })
@@ -293,16 +293,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })
@@ -311,31 +311,31 @@ describe('isMoodDropping', () => {
             const orderedCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
 
             const unorderedCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
 
             expect(isMoodDropping(orderedCheckIns, 3)).toBe(
@@ -349,16 +349,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: undefined as any,
+                    moodScore: undefined as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -367,16 +367,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: null as any,
+                    moodScore: null as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -385,16 +385,16 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 'not a number' as any,
+                    moodScore: 'not a number' as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(false)
         })
@@ -403,24 +403,24 @@ describe('isMoodDropping', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 8,
+                    moodScore: 8
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: undefined as any,
+                    moodScore: undefined as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 4,
+                    moodScore: 4
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-11'),
-                    moodScore: 2,
-                }),
+                    moodScore: 2
+                })
             ]
             expect(isMoodDropping(checkIns, 3)).toBe(true)
         })

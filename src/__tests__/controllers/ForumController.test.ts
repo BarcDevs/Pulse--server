@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
 import * as forumController from '../../controllers/ForumController'
 import * as forumService from '../../services/forumService'
@@ -31,7 +31,7 @@ describe('ForumController', () => {
         it('should return posts array', async () => {
             const mockPosts = [
                 createMockPost(),
-                createMockPost({id: 'post-2'})
+                createMockPost({ id: 'post-2' })
             ]
             ;(forumService.getPosts as jest.Mock)
                 .mockResolvedValue(mockPosts)
@@ -203,7 +203,7 @@ describe('ForumController', () => {
                 .mockResolvedValue(mockPost)
 
             const req = createMockRequest({
-                params: {postId: 'test-post-id-123'}
+                params: { postId: 'test-post-id-123' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -225,7 +225,7 @@ describe('ForumController', () => {
                     .mockResolvedValue(null)
 
                 const req = createMockRequest({
-                    params: {postId: 'non-existent'}
+                    params: { postId: 'non-existent' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -250,8 +250,8 @@ describe('ForumController', () => {
 
             const req = createMockRequest({
                 userId: 'test-user-id-123',
-                params: {postId: 'test-post-id-123'},
-                body: {title: 'Updated Title'}
+                params: { postId: 'test-post-id-123' },
+                body: { title: 'Updated Title' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -265,7 +265,7 @@ describe('ForumController', () => {
             )
             expect(forumService.updatePost).toHaveBeenCalledWith(
                 'test-post-id-123',
-                {title: 'Updated Title'}
+                { title: 'Updated Title' }
             )
             expect(res.status)
                 .toHaveBeenCalledWith(200)
@@ -276,8 +276,8 @@ describe('ForumController', () => {
             async () => {
                 const req = createMockRequest({
                     userId: undefined,
-                    params: {postId: 'test-post-id-123'},
-                    body: {title: 'Updated Title'}
+                    params: { postId: 'test-post-id-123' },
+                    body: { title: 'Updated Title' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -299,7 +299,7 @@ describe('ForumController', () => {
 
             const req = createMockRequest({
                 userId: 'test-user-id-123',
-                params: {postId: 'test-post-id-123'}
+                params: { postId: 'test-post-id-123' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -323,7 +323,7 @@ describe('ForumController', () => {
             async () => {
                 const req = createMockRequest({
                     userId: undefined,
-                    params: {postId: 'test-post-id-123'}
+                    params: { postId: 'test-post-id-123' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -346,8 +346,8 @@ describe('ForumController', () => {
 
                 const req = createMockRequest({
                     userId: 'test-user-id-123',
-                    params: {postId: 'test-post-id-123'},
-                    body: {body: 'Reply content'}
+                    params: { postId: 'test-post-id-123' },
+                    body: { body: 'Reply content' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -371,8 +371,8 @@ describe('ForumController', () => {
             async () => {
                 const req = createMockRequest({
                     userId: undefined,
-                    params: {postId: 'test-post-id-123'},
-                    body: {body: 'Reply content'}
+                    params: { postId: 'test-post-id-123' },
+                    body: { body: 'Reply content' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -389,13 +389,13 @@ describe('ForumController', () => {
         it('should return replies for post', async () => {
             const mockReplies = [
                 createMockReply(),
-                createMockReply({id: 'reply-2'})
+                createMockReply({ id: 'reply-2' })
             ]
             ;(forumService.getReplies as jest.Mock)
                 .mockResolvedValue(mockReplies)
 
             const req = createMockRequest({
-                params: {postId: 'test-post-id-123'}
+                params: { postId: 'test-post-id-123' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -416,7 +416,7 @@ describe('ForumController', () => {
                     .mockResolvedValue(null)
 
                 const req = createMockRequest({
-                    params: {postId: 'test-post-id-123'}
+                    params: { postId: 'test-post-id-123' }
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -445,7 +445,7 @@ describe('ForumController', () => {
                     postId: 'test-post-id-123',
                     replyId: 'test-reply-id-123'
                 },
-                body: {body: 'Updated reply'}
+                body: { body: 'Updated reply' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -461,7 +461,7 @@ describe('ForumController', () => {
             expect(forumService.updateReply).toHaveBeenCalledWith(
                 'test-reply-id-123',
                 'test-post-id-123',
-                {body: 'Updated reply'}
+                { body: 'Updated reply' }
             )
             expect(res.status)
                 .toHaveBeenCalledWith(200)
@@ -508,7 +508,7 @@ describe('ForumController', () => {
         it('should return tags array', async () => {
             const mockTags = [
                 createMockTag(),
-                createMockTag({id: 'tag-2', name: 'tag2'})
+                createMockTag({ id: 'tag-2', name: 'tag2' })
             ]
             ;(forumService.getTags as jest.Mock)
                 .mockResolvedValue(mockTags)
@@ -553,7 +553,7 @@ describe('ForumController', () => {
                 .mockResolvedValue(mockTag)
 
             const req = createMockRequest({
-                params: {tagId: 'test-tag-id-123'}
+                params: { tagId: 'test-tag-id-123' }
             }) as Request
 
             const res = createMockResponse() as Response
@@ -574,7 +574,7 @@ describe('ForumController', () => {
                     .mockResolvedValue(null)
 
                 const req = createMockRequest({
-                    params: {tagId: 'non-existent'}
+                    params: { tagId: 'non-existent' }
                 }) as Request
 
                 const res = createMockResponse() as Response

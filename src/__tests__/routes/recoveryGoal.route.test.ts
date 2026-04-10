@@ -742,9 +742,6 @@ describe('Recovery Goals Routes', () => {
             'should return 401 when milestone belongs to different user',
             async () => {
                 const mockUser = createMockUser()
-                const otherUser = createMockUser({
-                    id: 'other-user-id'
-                })
                 const mockMilestone = createMockMilestone({
                     goalId
                 })
@@ -858,9 +855,6 @@ describe('Recovery Goals Routes', () => {
             'should return 401 when milestone belongs to different user',
             async () => {
                 const mockUser = createMockUser()
-                const otherUser = createMockUser({
-                    id: 'other-user-id'
-                })
                 const mockMilestone = createMockMilestone({
                     goalId
                 })

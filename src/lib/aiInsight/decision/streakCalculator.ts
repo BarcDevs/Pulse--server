@@ -1,4 +1,4 @@
-import {dayInMs} from '../../../constants/time'
+import { dayInMs } from '../../../constants/time'
 
 const calculateCurrentStreak = (
     checkInDates: Date[],
@@ -13,12 +13,12 @@ const calculateCurrentStreak = (
     const uniqueDateObjects: Date[] = []
 
     for (const date of checkInDates) {
-        const dateString = timezone ?
-            new Intl.DateTimeFormat(
+        const dateString = timezone
+            ? new Intl.DateTimeFormat(
                 'en-CA',
-                {timeZone: timezone}
-            ).format(date) :
-            date.toISOString().split('T')[0]
+                { timeZone: timezone }
+            ).format(date)
+            : date.toISOString().split('T')[0]
 
         if (!uniqueDates.has(dateString)) {
             uniqueDates.add(dateString)

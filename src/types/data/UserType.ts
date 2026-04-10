@@ -1,5 +1,5 @@
-import type {Role} from '../../../prisma/generated/prisma/enums'
-import type {Prettify} from '../index'
+import type { Role } from '../../../prisma/generated/prisma/enums'
+import type { Prettify } from '../index'
 
 export type HealthInterestType = {
     id: string

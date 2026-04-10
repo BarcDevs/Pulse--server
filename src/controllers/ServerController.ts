@@ -3,8 +3,8 @@ import type {
     Response
 } from 'express'
 
-import {env, serverConfig} from '../../config'
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import { env, serverConfig } from '../../config'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
 export const getServerStatus = (
     _req: Request,

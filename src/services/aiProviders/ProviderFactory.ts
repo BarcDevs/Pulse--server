@@ -1,9 +1,9 @@
-import {aiConfig} from '../../../config'
+import { aiConfig } from '../../../config'
 
-import {type AIProvider} from './AIProvider'
-import {AnthropicProvider} from './AnthropicProvider'
-import {GoogleAIProvider} from './GoogleAIProvider'
-import {OpenAIProvider} from './OpenAIProvider'
+import { type AIProvider } from './AIProvider'
+import { AnthropicProvider } from './AnthropicProvider'
+import { GoogleAIProvider } from './GoogleAIProvider'
+import { OpenAIProvider } from './OpenAIProvider'
 
 type ProviderType = 'google' | 'openai' | 'anthropic'
 
@@ -16,12 +16,12 @@ const createProvider = (): AIProvider => {
 
     switch (providerType) {
         case 'openai':
-            return new OpenAIProvider({apiKey})
+            return new OpenAIProvider({ apiKey })
         case 'anthropic':
-            return new AnthropicProvider({apiKey})
+            return new AnthropicProvider({ apiKey })
         case 'google':
         default:
-            return new GoogleAIProvider({apiKey})
+            return new GoogleAIProvider({ apiKey })
     }
 }
 
@@ -39,5 +39,5 @@ const getApiKeyForProvider = (
     }
 }
 
-export {createProvider}
-export type {ProviderType}
+export { createProvider }
+export type { ProviderType }

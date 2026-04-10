@@ -1,5 +1,5 @@
 // @ts-nocheck
-import {sendEmail} from '../../utils/emailSender'
+import { sendEmail } from '../../utils/emailSender'
 
 describe('Email Sender', () => {
     describe('sendEmail', () => {

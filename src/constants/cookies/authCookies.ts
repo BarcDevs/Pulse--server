@@ -1,10 +1,11 @@
-import type {CookieOptions} from 'express'
+import type { CookieOptions } from 'express'
 
-import {isDev} from '../../../config'
+import { isDev } from '../../../config'
 import {
     dayInMs,
     hourInMs, 
-    minuteInMs} from '../time'
+    minuteInMs
+} from '../time'
 
 const COOKIE_NAMES = {
     ACCESS_TOKEN: 'accessToken',

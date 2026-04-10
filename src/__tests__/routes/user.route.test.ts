@@ -2,7 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import {prismaMock} from '../setup/jestSetup'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createMockUser,
@@ -36,7 +36,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({firstName: 'John'})
+            ).send({ firstName: 'John' })
 
             expect(response.status).toBe(200)
             expect(response.body.message).toBe(
@@ -67,7 +67,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({lastName: 'Doe'})
+            ).send({ lastName: 'Doe' })
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.lastName)
@@ -96,7 +96,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({username: 'newusername'})
+            ).send({ username: 'newusername' })
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.username)
@@ -125,7 +125,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({email: 'newemail@test.com'})
+            ).send({ email: 'newemail@test.com' })
 
             expect(response.status).toBe(200)
             expect(response.body.data.user.email)
@@ -194,7 +194,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({email: 'taken@test.com'})
+            ).send({ email: 'taken@test.com' })
 
             expect(response.status).toBe(409)
             expect(response.body.error[0].error).toContain(
@@ -222,7 +222,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({username: 'takenname'})
+            ).send({ username: 'takenname' })
 
             expect(response.status).toBe(409)
             expect(response.body.error[0].error).toContain(
@@ -244,7 +244,7 @@ describe('User Routes', () => {
                     token,
                     csrfSecret,
                     csrfToken
-                ).send({username: 'ab'})
+                ).send({ username: 'ab' })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -268,7 +268,7 @@ describe('User Routes', () => {
                     token,
                     csrfSecret,
                     csrfToken
-                ).send({email: 'invalid-email'})
+                ).send({ email: 'invalid-email' })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].statusType)
@@ -282,7 +282,7 @@ describe('User Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .patch(updateUserEndpoint)
-                    .send({firstName: 'John'})
+                    .send({ firstName: 'John' })
 
                 expect(response.status).toBe(401)
             }
@@ -538,7 +538,7 @@ describe('User Routes', () => {
             expect(response.status).toBe(204)
             expect(prismaMock.user.findUnique)
                 .toHaveBeenCalledWith({
-                    where: {id: mockUser.id},
+                    where: { id: mockUser.id },
                     include: {
                         profile: {
                             select: {
@@ -553,8 +553,8 @@ describe('User Routes', () => {
                 })
             expect(prismaMock.user.update)
                 .toHaveBeenCalledWith({
-                    where: {id: mockUser.id},
-                    data: {active: false}
+                    where: { id: mockUser.id },
+                    data: { active: false }
                 })
         })
 

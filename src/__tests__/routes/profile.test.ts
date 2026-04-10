@@ -1,15 +1,12 @@
 import request from 'supertest'
 
 import App from '../../app'
-import {
-    HttpStatusCodes
-} from '../../constants/httpStatusCodes'
-import {prismaMock} from '../setup/jestSetup'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,
     createMockUser,
-    withBearerAuth,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -129,9 +126,9 @@ describe('Profile Routes', () => {
                     csrfSecret,
                     csrfToken
                 ).send({
-                        bio: 'Updated bio',
-                        timezone: 'UTC'
-                    })
+                    bio: 'Updated bio',
+                    timezone: 'UTC'
+                })
 
                 expect(res.status).toBe(
                     HttpStatusCodes.OK
@@ -160,8 +157,8 @@ describe('Profile Routes', () => {
                     csrfSecret,
                     csrfToken
                 ).send({
-                        timezone: 'invalid-timezone'
-                    })
+                    timezone: 'invalid-timezone'
+                })
 
                 expect(res.status).toBe(
                     HttpStatusCodes.FORBIDDEN
@@ -184,13 +181,13 @@ describe('Profile Routes', () => {
                         )
                     prismaMock.profileHealthInterest
                         .upsert.mockResolvedValue({
-                            id: 'link-1',
-                            profileId:
-                                mockProfile.id,
-                            healthInterestId:
-                                mockHealthInterest.id,
-                            addedAt: new Date()
-                        })
+                        id: 'link-1',
+                        profileId:
+                        mockProfile.id,
+                        healthInterestId:
+                        mockHealthInterest.id,
+                        addedAt: new Date()
+                    })
                     prismaMock.profileHealthInterest
                         .findMany
                         .mockResolvedValue([])

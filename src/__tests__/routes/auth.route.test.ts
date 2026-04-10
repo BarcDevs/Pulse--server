@@ -2,7 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import {prismaMock} from '../setup/jestSetup'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthToken,
     createMockUser
@@ -230,7 +230,7 @@ describe('Auth Routes', () => {
                     .mockResolvedValue(null)
                 prismaMock.user.create.mockResolvedValue(
                     createMockUser(
-                        {username: 'customuser'}
+                        { username: 'customuser' }
                     )
                 )
 
@@ -394,7 +394,7 @@ describe('Auth Routes', () => {
                     .mockResolvedValueOnce(null)
                     .mockResolvedValueOnce(
                         createMockUser(
-                            {username: 'existinguser'}
+                            { username: 'existinguser' }
                         )
                     )
 

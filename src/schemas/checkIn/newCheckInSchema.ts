@@ -1,6 +1,6 @@
 import joi from 'joi'
 
-import type {NewCheckInType} from '../../types/data/CheckInType'
+import type { NewCheckInType } from '../../types/data/CheckInType'
 
 export const newCheckInSchema =
     joi.object<Omit<NewCheckInType, 'userId'>>({

@@ -5,7 +5,7 @@ import {
     mockReset
 } from 'jest-mock-extended'
 
-import type {PrismaClient} from '../../../prisma/generated/prisma/client'
+import type { PrismaClient } from '../../../prisma/generated/prisma/client'
 
 // Create the mock instance that will be shared across all tests
 export const prismaMock = mockDeep<PrismaClient>() as DeepMockProxy<PrismaClient>

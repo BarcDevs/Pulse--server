@@ -88,8 +88,8 @@ class OpenAIProvider extends AIProvider {
             )
         }
 
-        return {content}
+        return { content }
     }
 }
 
-export {OpenAIProvider}
+export { OpenAIProvider }

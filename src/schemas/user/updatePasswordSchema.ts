@@ -1,6 +1,6 @@
 import joi from 'joi'
 
-import {PASSWORD_FORMAT} from '../auth/passwordFormat'
+import { PASSWORD_FORMAT } from '../auth/passwordFormat'
 
 export const updatePasswordSchema = joi.object<{
     currentPassword: string

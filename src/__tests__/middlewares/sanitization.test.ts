@@ -1,7 +1,7 @@
 // @ts-nocheck
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {sanitizeData} from '../../middlewares/sanitaization'
+import { sanitizeData } from '../../middlewares/sanitaization'
 import {
     createMockNext,
     createMockRequest,

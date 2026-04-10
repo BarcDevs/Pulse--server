@@ -1,9 +1,9 @@
 // @ts-nocheck
-import {confirmEmailSchema} from '../../schemas/auth/confirmEmailSchema'
-import {forgotPasswordSchema} from '../../schemas/auth/forgotPasswordSchema'
-import {loginSchema} from '../../schemas/auth/loginSchema'
-import {resetPasswordSchema} from '../../schemas/auth/resetPasswordSchema'
-import {signupSchema} from '../../schemas/auth/signupSchema'
+import { confirmEmailSchema } from '../../schemas/auth/confirmEmailSchema'
+import { forgotPasswordSchema } from '../../schemas/auth/forgotPasswordSchema'
+import { loginSchema } from '../../schemas/auth/loginSchema'
+import { resetPasswordSchema } from '../../schemas/auth/resetPasswordSchema'
+import { signupSchema } from '../../schemas/auth/signupSchema'
 
 describe('Auth Schemas', () => {
     // ==================== LOGIN SCHEMA ====================

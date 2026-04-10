@@ -1,6 +1,6 @@
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
-import {CustomError} from './CustomError'
+import { CustomError } from './CustomError'
 
 class ConflictError extends CustomError {
     statusCode = HttpStatusCodes.CONFLICT
@@ -31,4 +31,4 @@ class ConflictError extends CustomError {
     }
 }
 
-export {ConflictError}
+export { ConflictError }

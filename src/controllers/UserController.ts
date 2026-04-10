@@ -1,20 +1,20 @@
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
-import {errorFactory} from '../errors/factory'
-import {ValidationError} from '../errors/ValidationError'
-import {sanitizeUserData} from '../lib/authHelpers'
-import {successResponse} from '../responses/success'
-import {updatePasswordSchema} from '../schemas/user/updatePasswordSchema'
-import {updateUserSchema} from '../schemas/user/updateUserSchema'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { errorFactory } from '../errors/factory'
+import { ValidationError } from '../errors/ValidationError'
+import { sanitizeUserData } from '../lib/authHelpers'
+import { successResponse } from '../responses/success'
+import { updatePasswordSchema } from '../schemas/user/updatePasswordSchema'
+import { updateUserSchema } from '../schemas/user/updateUserSchema'
 import * as authServices from '../services/authService'
-import type {UserType} from '../types/data/UserType'
+import type { UserType } from '../types/data/UserType'
 
 export const updateUser = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -32,7 +32,7 @@ export const updateUser = async (
 
     successResponse<{user: UserType}>(
         res,
-        {user: sanitizeUserData(updatedUser)},
+        { user: sanitizeUserData(updatedUser) },
         'User updated successfully'
     )
 }
@@ -41,7 +41,7 @@ export const updatePassword = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -60,7 +60,7 @@ export const updatePassword = async (
 
     successResponse<{user: UserType}>(
         res,
-        {user: sanitizeUserData(updatedUser)},
+        { user: sanitizeUserData(updatedUser) },
         'Password updated successfully'
     )
 }
@@ -69,7 +69,7 @@ export const deleteUser = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()

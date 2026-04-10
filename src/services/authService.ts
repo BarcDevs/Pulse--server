@@ -1,10 +1,10 @@
-import {errorFactory} from '../errors/factory'
+import { errorFactory } from '../errors/factory'
 import {
     comparePassword,
     createToken,
     hashPassword
 } from '../lib/authCrypto'
-import {generateCSRFToken} from '../lib/authCSRF'
+import { generateCSRFToken } from '../lib/authCSRF'
 import {
     generateRandomUsername,
     getCookiesOptions,
