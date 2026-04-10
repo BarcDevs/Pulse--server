@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import typescript from 'typescript-eslint'
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
 import eslintPluginImport from 'eslint-plugin-import'
+import enforceObjectBreaking from './eslint-rules/enforce-object-breaking.js'
 
 export default [
     js.configs.recommended,
@@ -22,7 +23,12 @@ export default [
         files: ['**/*.{js,ts}'],
         plugins: {
             'simple-import-sort': eslintPluginSimpleImportSort,
-            'import': eslintPluginImport
+            'import': eslintPluginImport,
+            'custom-rules': {
+                rules: {
+                    'enforce-object-breaking': enforceObjectBreaking
+                }
+            }
         },
         languageOptions: {
             ecmaVersion: 'latest',
@@ -50,7 +56,9 @@ export default [
             ],
 
             /** Node.js specific */
-            'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
+            'no-console': ['warn', { 
+                allow: ['info', 'warn', 'error']
+            }],
             'no-process-exit': 'warn',
 
             /** Import rules */
@@ -97,7 +105,27 @@ export default [
                 }
             ],
             'simple-import-sort/exports': 'warn',
-            'no-empty-pattern': 'off'
+            'no-empty-pattern': 'off',
+
+            /** Spacing rules */
+            'object-curly-spacing': [
+                'warn',
+                'always'
+            ],
+            'comma-dangle': [
+                'warn',
+                'never'
+            ],
+
+            /** Operator placement rules */
+            'operator-linebreak': [
+                'warn',
+                'before',
+                { overrides: { '=': 'after' } }
+            ],
+
+            /** Custom code style rules */
+            'custom-rules/enforce-object-breaking': 'warn'
         }
     },
     {
