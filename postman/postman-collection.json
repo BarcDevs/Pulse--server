@@ -373,6 +373,366 @@
       ]
     },
     {
+      "name": "✅ Profile Tests - Complete CRUD",
+      "description": "Test suite for user profile management including interests and preferences",
+      "item": [
+        {
+          "name": "✅ Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Profile retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().data).to.have.property('id');",
+                  "});",
+                  "pm.test('Profile contains expected fields', function () {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.have.property('userId');",
+                  "    pm.expect(data).to.have.property('bio');",
+                  "    pm.expect(data).to.have.property('timezone');",
+                  "    pm.expect(data).to.have.property('theme');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "✅ Update Profile - Bio and Timezone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Profile updated', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('updated');",
+                  "});",
+                  "pm.test('Bio and timezone updated', function () {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data.bio).to.equal('A passionate health enthusiast');",
+                  "    pm.expect(data.timezone).to.equal('America/New_York');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bio\": \"A passionate health enthusiast\", \"timezone\": \"America/New_York\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "✅ Update Profile - Theme to Dark",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Theme updated to dark', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().data.theme).to.equal('dark');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"theme\": \"dark\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "✅ Update Profile - Location and Visibility",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Location and visibility updated', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data.location).to.equal('San Francisco, CA');",
+                  "    pm.expect(data.profileVisibility).to.equal('public');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"location\": \"San Francisco, CA\", \"profileVisibility\": \"public\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "❌ Validation - Invalid Timezone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - Invalid timezone rejected', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    pm.expect(pm.response.json().error[0].property).to.equal('timezone');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"timezone\": \"invalid-timezone\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "✅ Get Available Health Interests",
+          "description": "Publicly accessible - no authentication required",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Health interests list returned', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().data).to.be.instanceOf(Array);",
+                  "});",
+                  "pm.test('Each interest has required fields', function () {",
+                  "    const interests = pm.response.json().data;",
+                  "    if (interests.length > 0) {",
+                  "      const first = interests[0];",
+                  "      pm.expect(first).to.have.property('slug');",
+                  "      pm.expect(first).to.have.property('name');",
+                  "      pm.expect(first).to.have.property('category');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/health-interests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "list", "health-interests"]
+            }
+          }
+        },
+        {
+          "name": "✅ Add Health Interests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Health interests added', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('added');",
+                  "});",
+                  "pm.test('Profile includes health interests', function () {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.have.property('healthInterests');",
+                  "    pm.expect(data.healthInterests).to.be.instanceOf(Array);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"slugs\": [\"mental-health\", \"fitness\"]}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "health-interests"]
+            }
+          }
+        },
+        {
+          "name": "✅ Get Available Activity Preferences",
+          "description": "Publicly accessible - no authentication required",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Activity preferences list returned', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().data).to.be.instanceOf(Array);",
+                  "});",
+                  "pm.test('Each activity has required fields', function () {",
+                  "    const activities = pm.response.json().data;",
+                  "    if (activities.length > 0) {",
+                  "      const first = activities[0];",
+                  "      pm.expect(first).to.have.property('slug');",
+                  "      pm.expect(first).to.have.property('name');",
+                  "      pm.expect(first).to.have.property('category');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "list", "activities"]
+            }
+          }
+        },
+        {
+          "name": "✅ Add Activity Preferences",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Activity preferences added', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('added');",
+                  "});",
+                  "pm.test('Profile includes activity preferences', function () {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.have.property('activityPreferences');",
+                  "    pm.expect(data.activityPreferences).to.be.instanceOf(Array);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"slugs\": [\"meditation\", \"yoga\", \"walking\"]}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "activities"]
+            }
+          }
+        },
+        {
+          "name": "✅ Remove Health Interest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Health interest removed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('removed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests/mental-health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "health-interests", "mental-health"]
+            }
+          }
+        },
+        {
+          "name": "✅ Remove Activity Preference",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Activity preference removed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().message).to.include('removed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities/meditation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{apiVersion}}", "profile", "activities", "meditation"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Other Endpoints",
       "item": [
         {
@@ -460,6 +820,11 @@
     {
       "key": "base_url",
       "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "apiVersion",
+      "value": "v1",
       "type": "string"
     }
   ]
