@@ -1,8 +1,8 @@
-import {Pool} from 'pg'
+import { Pool } from 'pg'
 
-import {PrismaPg} from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-import {databaseConfig, isDev} from '../../config'
+import { databaseConfig, isDev } from '../../config'
 import {
     Prisma as PrismaNamespace,
     PrismaClient
@@ -10,7 +10,7 @@ import {
 
 import logger from './logger'
 
-export {PrismaNamespace as Prisma}
+export { PrismaNamespace as Prisma }
 
 let client: PrismaClient
 
@@ -30,18 +30,23 @@ export const getPrismaClient = (): PrismaClient => {
             })
         })
 
-        const adapter = new PrismaPg(pool as any)
+        const adapter = new PrismaPg(
+            pool as unknown as Parameters<
+                typeof PrismaPg
+            >[0]
+        )
 
         client = new PrismaClient({
             adapter,
             errorFormat: 'minimal',
             log:
-                isDev
-                    ? ['query', 'info', 'warn', 'error']
+                isDev ? ['query', 'info', 'warn', 'error']
                     : undefined
         })
 
-        logger.info(`Prisma client initialized. Database connected to ${isDev ? 'dev' : 'prod'} database`)
+        logger.info(
+            `Prisma client initialized. Database connected to ${isDev ? 'dev' : 'prod'} database`
+        )
     }
 
     return client

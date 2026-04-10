@@ -50,7 +50,7 @@ const retryAsync = async <T>(
     operation: () => Promise<T>,
     config: RetryConfig
 ): Promise<T> => {
-    const {maxRetries, delayMs} = config
+    const { maxRetries, delayMs } = config
     let lastError: Error | null = null
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -75,7 +75,7 @@ const retryAsync = async <T>(
     throw lastError || new Error('Retry failed')
 }
 
-export type {RetryConfig}
+export type { RetryConfig }
 
 export {
     isRetryableError,

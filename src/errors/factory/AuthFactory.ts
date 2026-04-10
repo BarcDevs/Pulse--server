@@ -1,5 +1,5 @@
-import {HttpStatusCodes} from '../../constants/httpStatusCodes'
-import {AuthError} from '../AuthError'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { AuthError } from '../AuthError'
 import {
     ConflictError
 } from '../ConflictError'

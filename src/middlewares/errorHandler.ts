@@ -4,9 +4,9 @@ import type {
     Response
 } from 'express'
 
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
-import {CustomError} from '../errors/CustomError'
-import type {ResponseType} from '../types/ResponseType'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { CustomError } from '../errors/CustomError'
+import type { ResponseType } from '../types/ResponseType'
 import logger from '../utils/logger'
 
 const errorHandler = (
@@ -41,4 +41,4 @@ const errorHandler = (
         .json(response)
 }
 
-export {errorHandler}
+export { errorHandler }

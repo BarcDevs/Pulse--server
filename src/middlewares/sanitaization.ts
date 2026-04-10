@@ -6,15 +6,15 @@ import type {
 } from 'express'
 import jsdom from 'jsdom'
 
-const {JSDOM} = jsdom
+const { JSDOM } = jsdom
 
-const {window} = new JSDOM('')
+const { window } = new JSDOM('')
 const DOMPurify = createDOMPurify(window)
 
 const isBodyEmpty = (req: Request) => Object.keys(req.body).length === 0
 
 const extractCsrfToken = (req: Request) => {
-    const {csrfToken} = req.body
+    const { csrfToken } = req.body
 
     if (csrfToken) req.csrfToken = csrfToken
 }

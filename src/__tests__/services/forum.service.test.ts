@@ -13,7 +13,7 @@ import {
     updateReply,
     validateOwner
 } from '../../services/forumService'
-import {prismaMock} from '../setup/jestSetup'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createMockPost,
     createMockReply,
@@ -134,7 +134,7 @@ describe('Forum Service', () => {
         it('should return posts array', async () => {
             const mockPosts = [
                 createMockPost(),
-                createMockPost({id: 'post-2'})
+                createMockPost({ id: 'post-2' })
             ]
             prismaMock.post.findMany
                 .mockResolvedValue(mockPosts)
@@ -187,7 +187,7 @@ describe('Forum Service', () => {
 
             const result = await getPostsCount()
 
-            expect(result).toEqual({count: 10})
+            expect(result).toEqual({ count: 10 })
         })
 
         it('should filter by query', async () => {
@@ -197,7 +197,7 @@ describe('Forum Service', () => {
                 category: 'health'
             })
 
-            expect(result).toEqual({count: 5})
+            expect(result).toEqual({ count: 5 })
         })
     })
 
@@ -237,7 +237,7 @@ describe('Forum Service', () => {
 
             const result = await updatePost(
                 'post-id',
-                {title: 'Updated Title'}
+                { title: 'Updated Title' }
             )
 
             expect(result.title).toBe('Updated Title')
@@ -246,14 +246,14 @@ describe('Forum Service', () => {
         it('should handle tag changes', async () => {
             const mockPost = createMockPost()
             const existingTags = [
-                createMockTag({name: 'old-tag'})
+                createMockTag({ name: 'old-tag' })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(existingTags)
             prismaMock.post.update
                 .mockResolvedValue(mockPost)
 
-            await updatePost('post-id', {tags: ['new-tag']})
+            await updatePost('post-id', { tags: ['new-tag'] })
 
             expect(prismaMock.post.update)
                 .toHaveBeenCalled()
@@ -270,7 +270,7 @@ describe('Forum Service', () => {
             await deletePost('post-id')
 
             expect(prismaMock.post.delete).toHaveBeenCalledWith({
-                where: {id: 'post-id'}
+                where: { id: 'post-id' }
             })
         })
     })
@@ -280,7 +280,7 @@ describe('Forum Service', () => {
         it('should return tags array', async () => {
             const mockTags = [
                 createMockTag(),
-                createMockTag({id: 'tag-2', name: 'tag2'})
+                createMockTag({ id: 'tag-2', name: 'tag2' })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(mockTags)
@@ -308,12 +308,12 @@ describe('Forum Service', () => {
 
         it('should filter by search', async () => {
             const mockTags = [
-                createMockTag({name: 'javascript'})
+                createMockTag({ name: 'javascript' })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(mockTags)
 
-            const result = await getTags({search: 'java'})
+            const result = await getTags({ search: 'java' })
 
             expect(result).toEqual(mockTags)
         })
@@ -388,7 +388,7 @@ describe('Forum Service', () => {
             const mockPost = createMockPost()
             const mockReplies = [
                 createMockReply(),
-                createMockReply({id: 'reply-2'})
+                createMockReply({ id: 'reply-2' })
             ]
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
@@ -437,7 +437,7 @@ describe('Forum Service', () => {
             const result = await updateReply(
                 'reply-id',
                 'post-id',
-                {body: 'Updated reply'}
+                { body: 'Updated reply' }
             )
 
             expect(result.body).toBe('Updated reply')

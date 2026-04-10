@@ -1,6 +1,6 @@
-import {HttpStatusCodes} from '../../constants/httpStatusCodes'
-import {ConflictError} from '../ConflictError'
-import {NotFoundError} from '../NotFoundError'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { ConflictError } from '../ConflictError'
+import { NotFoundError } from '../NotFoundError'
 
 export class GenericFactory {
     static notFound = (object?: string) =>

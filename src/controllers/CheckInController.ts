@@ -1,12 +1,12 @@
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
-import {errorFactory} from '../errors/factory'
-import {ValidationError} from '../errors/ValidationError'
-import {successResponse} from '../responses/success'
-import {checkInQuerySchema} from '../schemas/checkIn/checkInQuerySchema'
-import {newCheckInSchema} from '../schemas/checkIn/newCheckInSchema'
-import {updateCheckInSchema} from '../schemas/checkIn/updateCheckInSchema'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { errorFactory } from '../errors/factory'
+import { ValidationError } from '../errors/ValidationError'
+import { successResponse } from '../responses/success'
+import { checkInQuerySchema } from '../schemas/checkIn/checkInQuerySchema'
+import { newCheckInSchema } from '../schemas/checkIn/newCheckInSchema'
+import { updateCheckInSchema } from '../schemas/checkIn/updateCheckInSchema'
 import * as checkInService from '../services/checkInService'
 import type {
     CheckInStatsType,
@@ -17,7 +17,7 @@ export const getCheckIns = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -43,7 +43,7 @@ export const createCheckIn = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -64,12 +64,12 @@ export const createCheckIn = async (
     return successResponse<CheckInType>(
         res,
         checkIn,
-        created ?
-            'Check-in created successfully' :
-            'Check-in updated successfully',
-        created ?
-            HttpStatusCodes.CREATED :
-            HttpStatusCodes.OK
+        created
+            ? 'Check-in created successfully'
+            : 'Check-in updated successfully',
+        created
+            ? HttpStatusCodes.CREATED
+            : HttpStatusCodes.OK
     )
 }
 
@@ -77,7 +77,7 @@ export const updateCheckIn = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -103,7 +103,7 @@ export const getCheckInStats = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()

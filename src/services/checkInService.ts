@@ -1,4 +1,4 @@
-import {errorFactory} from '../errors/factory'
+import { errorFactory } from '../errors/factory'
 import {
     resolveDate,
     resolveTimestampInUserTimeZone
@@ -11,17 +11,17 @@ import {
 } from '../lib/checkInStats'
 import * as authModel from '../models/AuthModel'
 import * as checkInModel from '../models/CheckInModel'
-import {getProfileIdForUser} from '../models/CheckInModel'
+import { getProfileIdForUser } from '../models/CheckInModel'
 import type {
     CheckInStatsType,
     CheckInType,
     NewCheckInType,
     UpdateCheckInType
 } from '../types/data/CheckInType'
-import type {CheckInQuery} from '../types/query'
-import {Prisma} from '../utils/PrismaClient'
+import type { CheckInQuery } from '../types/query'
+import { Prisma } from '../utils/PrismaClient'
 
-import {generateInsightSafely} from './insightService'
+import { generateInsightSafely } from './insightService'
 
 export const getCheckIns = async (
     userId: string,
@@ -56,7 +56,10 @@ export const createCheckIn = async (
         )
 
     if (existing) {
-        const {userId, ...updateData} = data
+        const {
+            userId: _userId, 
+            ...updateData
+        } = data
         await checkInModel.updateCheckIn(
             profileId,
             checkInDate,
@@ -110,8 +113,8 @@ export const createCheckIn = async (
         }
     } catch (err) {
         if (
-            err instanceof
-            Prisma.PrismaClientKnownRequestError
+            err
+            instanceof Prisma.PrismaClientKnownRequestError
             && err.code === 'P2002'
         )
             throw errorFactory.generic.conflict(
@@ -147,7 +150,7 @@ export const updateCheckIn = async (
             `Today's check-in`
         )
 
-    const {userId, ...updateData} = data
+    const { userId, ...updateData } = data
 
     await checkInModel.updateCheckIn(
         profileId,

@@ -26,7 +26,7 @@ export const updateUserSchema = joi.object<{
         .string()
         .email({
             minDomainSegments: 2,
-            tlds: {allow: ['com', 'net']}
+            tlds: { allow: ['com', 'net'] }
         })
         .optional()
 })

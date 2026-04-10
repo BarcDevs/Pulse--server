@@ -1,9 +1,9 @@
-import type {ValidationResult} from 'joi'
+import type { ValidationResult } from 'joi'
 
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
-import {CustomError} from './CustomError'
-import {errorFactory} from './factory'
+import { CustomError } from './CustomError'
+import { errorFactory } from './factory'
 
 class ValidationError extends CustomError {
     statusCode = HttpStatusCodes.FORBIDDEN
@@ -44,4 +44,4 @@ class ValidationError extends CustomError {
     }
 }
 
-export {ValidationError}
+export { ValidationError }

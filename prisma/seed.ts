@@ -1,9 +1,9 @@
 import 'dotenv/config'
-import {Pool} from 'pg'
+import { Pool } from 'pg'
 
-import {PrismaPg} from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-import {databaseConfig, isDev} from '../config'
+import { databaseConfig, isDev } from '../config'
 
 import {
     PrismaClient
@@ -11,7 +11,7 @@ import {
 
 const connectionString = databaseConfig.url
 
-const pool = new Pool({connectionString})
+const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 
 const prisma = new PrismaClient({
@@ -183,7 +183,7 @@ async function main() {
     console.info('Seeding health interests...')
     for (const interest of healthInterests) {
         await prisma.healthInterest.upsert({
-            where: {slug: interest.slug},
+            where: { slug: interest.slug },
             update: {},
             create: interest
         })
@@ -192,7 +192,7 @@ async function main() {
     console.info('Seeding activity preferences...')
     for (const activity of activityPreferences) {
         await prisma.activityPreference.upsert({
-            where: {slug: activity.slug},
+            where: { slug: activity.slug },
             update: {},
             create: activity
         })

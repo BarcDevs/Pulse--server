@@ -1,17 +1,17 @@
-import type {InsightDecisionResult} from '../lib/aiInsight'
-import type {CheckInType} from '../types/data/CheckInType'
-
+import type { InsightDecisionResult } from '../lib/aiInsight'
 import {
     buildPromptByType,
     generateTitle
 } from '../lib/aiInsight/prompts/insightsPrompts'
-import {retryAsync} from '../lib/aiInsight/retry'
+import { retryAsync } from '../lib/aiInsight/retry'
 import {
     getFallbackContent,
     validateGeneratedInsight
 } from '../lib/aiInsight/validation/aiInsightValidator'
-import {createProvider} from './aiProviders'
+import type { CheckInType } from '../types/data/CheckInType'
 import logger from '../utils/logger'
+
+import { createProvider } from './aiProviders'
 
 type GenerateInsightInput = {
     decision: InsightDecisionResult
@@ -28,7 +28,7 @@ type GenerateInsightOutput = {
 const generateInsight = async (
     input: GenerateInsightInput
 ): Promise<GenerateInsightOutput> => {
-    const {decision, checkIns} = input
+    const { decision, checkIns } = input
 
     const prompt = buildPromptByType(
         decision.type,
@@ -44,8 +44,8 @@ const generateInsight = async (
     try {
         // Retry with: max 2 retries, 1000ms delay = 3 total attempts
         const result = await retryAsync(
-            () => provider.generateContent({prompt}),
-            {maxRetries: 2, delayMs: 1000}
+            () => provider.generateContent({ prompt }),
+            { maxRetries: 2, delayMs: 1000 }
         )
 
         generatedContent = result.content
@@ -106,7 +106,7 @@ const generateInsight = async (
     }
 }
 
-export {generateInsight}
+export { generateInsight }
 export type {
     GenerateInsightInput,
     GenerateInsightOutput

@@ -39,7 +39,7 @@ class GoogleAIProvider extends AIProvider {
                 contents: [
                     {
                         parts: [
-                            {text: input.prompt}
+                            { text: input.prompt }
                         ]
                     }
                 ],
@@ -101,8 +101,8 @@ class GoogleAIProvider extends AIProvider {
             )
         }
 
-        return {content}
+        return { content }
     }
 }
 
-export {GoogleAIProvider}
+export { GoogleAIProvider }

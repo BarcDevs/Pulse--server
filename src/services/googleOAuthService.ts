@@ -1,11 +1,11 @@
 import crypto from 'crypto'
-import {OAuth2Client} from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 
-import {googleOAuthConfig} from '../../config'
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
-import {AuthError} from '../errors/AuthError'
+import { googleOAuthConfig } from '../../config'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { AuthError } from '../errors/AuthError'
 import * as authModel from '../models/AuthModel'
-import type {ServerUserType} from '../types/data/UserType'
+import type { ServerUserType } from '../types/data/UserType'
 import Prisma from '../utils/PrismaClient'
 
 const oAuth2Client = new OAuth2Client(
@@ -29,9 +29,9 @@ const validateState = (
     cookieState: string | undefined,
     queryState: string | undefined
 ): boolean =>
-    !!cookieState &&
-    !!queryState &&
-    cookieState === queryState
+    !!cookieState
+    && !!queryState
+    && cookieState === queryState
 
 const buildAuthUrl = (state: string): string =>
     oAuth2Client.generateAuthUrl({
@@ -49,7 +49,7 @@ const exchangeCodeForTokens = async (
     code: string
 ) => {
     try {
-        const {tokens} =
+        const { tokens } =
             await oAuth2Client.getToken(code)
         return tokens
     } catch {
@@ -226,14 +226,14 @@ const linkGoogleId = async (
             if (picture) {
                 const profile =
                     await tx.profile.findUnique({
-                        where: {userId},
-                        select: {image: true}
+                        where: { userId },
+                        select: { image: true }
                     })
 
                 if (!profile?.image) {
                     await tx.profile.update({
-                        where: {userId},
-                        data: {image: picture}
+                        where: { userId },
+                        data: { image: picture }
                     })
                 }
             }
@@ -294,4 +294,4 @@ export {
     validateState
 }
 
-export type {GoogleProfile}
+export type { GoogleProfile }

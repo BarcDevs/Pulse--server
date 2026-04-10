@@ -1,9 +1,9 @@
 import type { CheckInType } from '../../../types/data/CheckInType'
-
 import type {
     InsightDecisionMetadata,
-    InsightDecisionResult,
+    InsightDecisionResult
 } from '../../../types/insight'
+
 import { isMoodDropping } from './moodTrendDetector'
 import { calculateCurrentStreak } from './streakCalculator'
 
@@ -28,8 +28,8 @@ const decideInsightType = (
     // Filter to only check-ins with valid checkInDate
     const validCheckIns = checkIns.filter((checkIn) => {
         return (
-            checkIn.checkInDate instanceof Date &&
-            !isNaN(checkIn.checkInDate.getTime())
+            checkIn.checkInDate instanceof Date
+            && !isNaN(checkIn.checkInDate.getTime())
         )
     })
 
@@ -52,13 +52,13 @@ const decideInsightType = (
 
         const metadata: InsightDecisionMetadata = {
             moodTrend,
-            checkInCount: sorted.length,
+            checkInCount: sorted.length
         }
 
         return {
             type: 'MOOD_DROP_ALERT',
             reason: 'Mood decreased across the latest 3 check-ins',
-            metadata,
+            metadata
         }
     }
 
@@ -72,13 +72,13 @@ const decideInsightType = (
     if (currentStreak < 2) {
         const metadata: InsightDecisionMetadata = {
             currentStreak,
-            checkInCount: sorted.length,
+            checkInCount: sorted.length
         }
 
         return {
             type: 'MOTIVATIONAL',
             reason: 'User has not yet established a consistent check-in streak',
-            metadata,
+            metadata
         }
     }
 
@@ -86,26 +86,26 @@ const decideInsightType = (
     if (sorted.length >= 5) {
         const metadata: InsightDecisionMetadata = {
             currentStreak,
-            checkInCount: sorted.length,
+            checkInCount: sorted.length
         }
 
         return {
             type: 'WEEKLY_SUMMARY',
             reason: 'User has enough recent check-in data for a useful summary',
-            metadata,
+            metadata
         }
     }
 
     // Rule 4: Fallback to Motivational (not enough data for weekly summary)
     const metadata: InsightDecisionMetadata = {
         currentStreak,
-        checkInCount: sorted.length,
+        checkInCount: sorted.length
     }
 
     return {
         type: 'MOTIVATIONAL',
         reason: 'Not enough data yet for a weekly summary',
-        metadata,
+        metadata
     }
 }
 

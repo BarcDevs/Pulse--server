@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-import {authConfig} from '../../config'
-import type {ServerUserType} from '../types/data/UserType'
+import { authConfig } from '../../config'
+import type { ServerUserType } from '../types/data/UserType'
 
 const hashPassword = (
     password: string

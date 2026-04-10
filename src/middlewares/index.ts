@@ -1,16 +1,16 @@
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, {type Express} from 'express'
+import express, { type Express } from 'express'
 import helmet from 'helmet'
 import hpp from 'hpp'
 import path from 'path'
 
-import {serverConfig} from '../../config'
+import { serverConfig } from '../../config'
 
-import {loggerMiddleware} from './loggerMiddleWare'
-import {rateLimiter} from './rateLimiting'
-import {sanitizeData} from './sanitaization'
+import { loggerMiddleware } from './loggerMiddleWare'
+import { rateLimiter } from './rateLimiting'
+import { sanitizeData } from './sanitaization'
 
 export const declareMiddlewares = (app: Express) => {
     // Middlewares
@@ -28,9 +28,9 @@ export const declareMiddlewares = (app: Express) => {
                 }
 
                 if (
-                    origin.startsWith('http://localhost:') ||
-                    origin.startsWith('http://127.0.0.1:') ||
-                    origin === serverConfig.origin
+                    origin.startsWith('http://localhost:')
+                    || origin.startsWith('http://127.0.0.1:')
+                    || origin === serverConfig.origin
                 ) {
                     callback(null, true)
                 } else {

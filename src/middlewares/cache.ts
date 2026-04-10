@@ -15,7 +15,7 @@ const cache =
 export const cacheMiddleware = (
     req: Request,
     res: Response,
-    next: NextFunction,
+    next: NextFunction
 ) => {
     if (req.method !== 'GET')
         return next()

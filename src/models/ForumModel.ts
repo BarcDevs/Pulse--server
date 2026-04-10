@@ -1,4 +1,4 @@
-import type {Prisma as PrismaTypes} from '../../prisma/generated/prisma/client'
+import type { Prisma as PrismaTypes } from '../../prisma/generated/prisma/client'
 import type {
     NewPostType,
     PostType,
@@ -9,8 +9,8 @@ import type {
     ReplyType,
     UpdateReplyType
 } from '../types/data/ReplyType'
-import type {TagType} from '../types/data/TagType'
-import type {PostQuery} from '../types/query'
+import type { TagType } from '../types/data/TagType'
+import type { PostQuery } from '../types/query'
 import Prisma from '../utils/PrismaClient'
 
 import {
@@ -27,8 +27,8 @@ export const getPosts = async (query?: PostQuery):
         await Prisma.post.findMany({
             take: query?.limit || 10,
             skip:
-                (query?.page ? query.page - 1 : 0) *
-                (query?.limit || 10),
+                (query?.page ? query.page - 1 : 0)
+                * (query?.limit || 10),
             ...postQuery
         })
     ) as unknown as PostType[]
@@ -38,9 +38,9 @@ export const getPostsCount = async (
     query?: PostQuery
 ): Promise<{count: number}> => {
     const postQuery =
-        query ?
-            postQueryBuilder(query) :
-            {}
+        query
+            ? postQueryBuilder(query)
+            : {}
 
     return {
         count: await Prisma.post.count({
@@ -65,7 +65,7 @@ export const getPost = async (id: string):
 
 export const createPost = async (post: NewPostType):
     Promise<PostType> => {
-    const {authorId, tags, ...postData} = post
+    const { authorId, tags, ...postData } = post
 
     return (await Prisma.post.create({
         data: {
@@ -96,7 +96,7 @@ export const updatePost = async (
             ...post,
             tags: {
                 disconnect: removeTags?.map(
-                    (tag) => ({id: tag.id})
+                    (tag) => ({ id: tag.id })
                 ),
                 ...connectTags(post.tags || [])
             }
@@ -203,7 +203,7 @@ export const getTags = async (
         skip: page * limit,
         ...(search ? {
             where: {
-                name: {contains: search}
+                name: { contains: search }
             }
         } : {}),
         include: {
@@ -252,7 +252,7 @@ export const getTagsByPostId = async (id: string):
 
 export const createReply = async (reply: NewReplyType):
     Promise<ReplyType> => {
-    const {authorId, postId, body} = reply
+    const { authorId, postId, body } = reply
 
     return (await Prisma.reply.create({
         data: {

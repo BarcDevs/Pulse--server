@@ -1,7 +1,7 @@
 import type { CheckInType } from '../../../../types/data/CheckInType'
 import {
     decideInsightType,
-    InvalidInsightInputError,
+    InvalidInsightInputError
 } from '../../decision/insightDecision'
 
 const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
@@ -14,7 +14,7 @@ const createMockCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     createdAt: new Date(),
     updatedAt: null,
     insights: [],
-    ...overrides,
+    ...overrides
 })
 
 describe('decideInsightType', () => {
@@ -23,16 +23,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -43,16 +43,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.moodTrend).toEqual([7, 6, 5])
@@ -63,16 +63,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).not.toBe('MOOD_DROP_ALERT')
@@ -82,16 +82,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).not.toBe('MOOD_DROP_ALERT')
@@ -103,16 +103,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 9,
+                    moodScore: 9
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -122,20 +122,20 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: undefined as any,
+                    moodScore: undefined as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -145,16 +145,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: undefined as any,
+                    moodScore: undefined as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).not.toBe('MOOD_DROP_ALERT')
@@ -166,8 +166,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -179,8 +179,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -191,8 +191,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -202,8 +202,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.currentStreak).toBeDefined()
@@ -215,24 +215,24 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -246,24 +246,24 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('WEEKLY_SUMMARY')
@@ -274,20 +274,20 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).not.toBe('WEEKLY_SUMMARY')
@@ -298,32 +298,32 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-01'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-02'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-03'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-04'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).not.toBe('WEEKLY_SUMMARY')
@@ -333,24 +333,24 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.currentStreak).toBeDefined()
@@ -361,24 +361,24 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('WEEKLY_SUMMARY')
@@ -388,28 +388,28 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('WEEKLY_SUMMARY')
@@ -422,20 +422,20 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -446,16 +446,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-11'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -468,8 +468,8 @@ describe('decideInsightType', () => {
             const lowDataCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(lowDataCheckIns)
             expect(result.type).not.toBe('WEEKLY_SUMMARY')
@@ -481,16 +481,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -500,31 +500,31 @@ describe('decideInsightType', () => {
             const orderedCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
 
             const unorderedCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
 
             const result1 = decideInsightType(orderedCheckIns)
@@ -540,16 +540,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
-                }),
+                    moodScore: 7
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -562,8 +562,8 @@ describe('decideInsightType', () => {
             const singleCheckIn = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(singleCheckIn)
             expect(result.metadata?.checkInCount).toBe(1)
@@ -573,8 +573,8 @@ describe('decideInsightType', () => {
             const motivationalCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const motivationalResult = decideInsightType(motivationalCheckIns)
             expect(motivationalResult.metadata?.currentStreak).toBeDefined()
@@ -582,24 +582,24 @@ describe('decideInsightType', () => {
             const summaryCheckIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const summaryResult = decideInsightType(summaryCheckIns)
             expect(summaryResult.metadata?.currentStreak).toBeDefined()
@@ -609,16 +609,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.moodTrend).toBeDefined()
@@ -629,8 +629,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.moodTrend).toBeUndefined()
@@ -647,11 +647,11 @@ describe('decideInsightType', () => {
         it('should throw InvalidInsightInputError when all check-ins have invalid checkInDate', () => {
             const checkIns = [
                 createMockCheckIn({
-                    checkInDate: new Date('invalid'),
+                    checkInDate: new Date('invalid')
                 }),
                 createMockCheckIn({
-                    checkInDate: null as any,
-                }),
+                    checkInDate: null as any
+                })
             ]
             expect(() => {
                 decideInsightType(checkIns)
@@ -667,8 +667,8 @@ describe('decideInsightType', () => {
         it('should throw InvalidInsightInputError with descriptive message for no valid check-ins', () => {
             const checkIns = [
                 createMockCheckIn({
-                    checkInDate: new Date('invalid'),
-                }),
+                    checkInDate: new Date('invalid')
+                })
             ]
             expect(() => {
                 decideInsightType(checkIns)
@@ -679,12 +679,12 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: undefined as any,
+                    moodScore: undefined as any
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result).toBeDefined()
@@ -694,12 +694,12 @@ describe('decideInsightType', () => {
         it('should handle mixed valid and invalid check-in dates', () => {
             const checkIns = [
                 createMockCheckIn({
-                    checkInDate: new Date('invalid'),
+                    checkInDate: new Date('invalid')
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result).toBeDefined()
@@ -712,8 +712,8 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -724,16 +724,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2025-12-30'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2025-12-31'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-01-01'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBeDefined()
@@ -744,16 +744,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.metadata?.currentStreak).toBe(2)
@@ -763,16 +763,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 7.5,
+                    moodScore: 7.5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6.25,
+                    moodScore: 6.25
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5.1,
-                }),
+                    moodScore: 5.1
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -782,16 +782,16 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 2,
+                    moodScore: 2
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 1,
+                    moodScore: 1
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 0,
-                }),
+                    moodScore: 0
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')
@@ -805,8 +805,8 @@ describe('decideInsightType', () => {
                     id: 'new-checkin-1',
                     checkInDate: new Date('2026-03-10'),
                     moodScore: 5,
-                    activities: ['walking'],
-                }),
+                    activities: ['walking']
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -818,20 +818,20 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-11'),
-                    moodScore: 5,
-                }),
+                    moodScore: 5
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOTIVATIONAL')
@@ -842,28 +842,28 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-10'),
-                    moodScore: 6,
-                }),
+                    moodScore: 6
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('WEEKLY_SUMMARY')
@@ -873,24 +873,24 @@ describe('decideInsightType', () => {
             const checkIns = [
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-05'),
-                    moodScore: 8,
+                    moodScore: 8
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-06'),
-                    moodScore: 7,
+                    moodScore: 7
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-07'),
-                    moodScore: 6,
+                    moodScore: 6
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-08'),
-                    moodScore: 5,
+                    moodScore: 5
                 }),
                 createMockCheckIn({
                     checkInDate: new Date('2026-03-09'),
-                    moodScore: 4,
-                }),
+                    moodScore: 4
+                })
             ]
             const result = decideInsightType(checkIns)
             expect(result.type).toBe('MOOD_DROP_ALERT')

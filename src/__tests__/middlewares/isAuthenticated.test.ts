@@ -1,9 +1,9 @@
 // @ts-nocheck
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-import {authConfig} from '../../../config'
-import {isAuthenticated} from '../../middlewares/isAuthenticated'
+import { authConfig } from '../../../config'
+import { isAuthenticated } from '../../middlewares/isAuthenticated'
 import {
     createAuthToken,
     createMockNext,
@@ -35,7 +35,7 @@ describe('isAuthenticated Middleware', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
             const req = createMockRequest({
-                cookies: {accessToken: token}
+                cookies: { accessToken: token }
             }) as Request
             const res = createMockResponse() as Response
             const next = createMockNext()
@@ -63,7 +63,7 @@ describe('isAuthenticated Middleware', () => {
 
     it('should throw error for empty token', () => {
         const req = createMockRequest({
-            cookies: {accessToken: ''}
+            cookies: { accessToken: '' }
         }) as Request
         const res = createMockResponse() as Response
         const next = createMockNext()
@@ -75,7 +75,7 @@ describe('isAuthenticated Middleware', () => {
 
     it('should throw error for invalid token', () => {
         const req = createMockRequest({
-            cookies: {accessToken: 'invalid-token'}
+            cookies: { accessToken: 'invalid-token' }
         }) as Request
         const res = createMockResponse() as Response
         const next = createMockNext()
@@ -93,10 +93,10 @@ describe('isAuthenticated Middleware', () => {
                 email: mockUser.email
             },
             authConfig.jwtSecret!,
-            {expiresIn: '-1h'}
+            { expiresIn: '-1h' }
         )
         const req = createMockRequest({
-            cookies: {accessToken: expiredToken}
+            cookies: { accessToken: expiredToken }
         }) as Request
         const res = createMockResponse() as Response
         const next = createMockNext()
@@ -116,10 +116,10 @@ describe('isAuthenticated Middleware', () => {
                     email: mockUser.email
                 },
                 'wrong-secret',
-                {expiresIn: '1h'}
+                { expiresIn: '1h' }
             )
             const req = createMockRequest({
-                cookies: {accessToken: wrongSecretToken}
+                cookies: { accessToken: wrongSecretToken }
             }) as Request
             const res = createMockResponse() as Response
             const next = createMockNext()
@@ -132,7 +132,7 @@ describe('isAuthenticated Middleware', () => {
 
     it('should throw error for malformed token', () => {
         const req = createMockRequest({
-            cookies: {accessToken: 'not.a.valid.jwt.token'}
+            cookies: { accessToken: 'not.a.valid.jwt.token' }
         }) as Request
         const res = createMockResponse() as Response
         const next = createMockNext()
@@ -144,7 +144,7 @@ describe('isAuthenticated Middleware', () => {
 
     it('should clear cookie on any error', () => {
         const req = createMockRequest({
-            cookies: {accessToken: 'bad-token'}
+            cookies: { accessToken: 'bad-token' }
         }) as Request
         const res = createMockResponse() as Response
         const next = createMockNext()

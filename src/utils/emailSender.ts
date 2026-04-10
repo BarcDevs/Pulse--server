@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 
-import {emailConfig} from '../../config'
+import { emailConfig } from '../../config'
 
 const transporter = nodemailer.createTransport({
     host: emailConfig.host,
@@ -42,4 +42,4 @@ const sendEmail = (
     )
 }
 
-export {sendEmail}
+export { sendEmail }

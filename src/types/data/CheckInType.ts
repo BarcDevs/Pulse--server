@@ -1,4 +1,4 @@
-import type {InsightType} from '../../../prisma/generated/prisma/enums'
+import type { InsightType } from '../../../prisma/generated/prisma/enums'
 
 export type AIInsightType = {
     id: string

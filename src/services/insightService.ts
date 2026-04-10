@@ -1,6 +1,6 @@
 import logger from '../utils/logger'
 
-import {generateInsightForCheckIn} from './insightGenerationService'
+import { generateInsightForCheckIn } from './insightGenerationService'
 
 const generateInsightSafely = async (
     userId: string,
@@ -25,4 +25,4 @@ const generateInsightSafely = async (
     }
 }
 
-export {generateInsightSafely}
+export { generateInsightSafely }

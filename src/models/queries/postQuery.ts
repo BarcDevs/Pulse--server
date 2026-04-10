@@ -1,5 +1,5 @@
-import type {Prisma as PrismaTypes} from '../../../prisma/generated/prisma/client'
-import {PostFilter, type PostQuery} from '../../types/query'
+import type { Prisma as PrismaTypes } from '../../../prisma/generated/prisma/client'
+import { PostFilter, type PostQuery } from '../../types/query'
 
 export const postInclude = (
     type: 'single' | 'multiple'
@@ -124,12 +124,12 @@ export const postQueryBuilder = (
         // sort by given sort method
         orderBy: (
             query?.filter === PostFilter.NEWEST
-                ? {createdAt: 'desc'}
+                ? { createdAt: 'desc' }
                 : query?.filter === PostFilter.HOT
-                    ? {replies: {_count: 'desc'}}
+                    ? { replies: { _count: 'desc' } }
                     : query?.filter === PostFilter.POPULAR
-                        ? {views: 'desc'}
-                        : {createdAt: 'desc'}
+                        ? { views: 'desc' }
+                        : { createdAt: 'desc' }
         ) as PrismaTypes.PostOrderByWithRelationInput
     }
 }

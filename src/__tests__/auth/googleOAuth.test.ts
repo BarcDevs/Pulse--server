@@ -3,11 +3,10 @@ import crypto from 'crypto'
 import supertest from 'supertest'
 
 import App from '../../app'
-import {HttpStatusCodes} from '../../constants/httpStatusCodes'
-import {AuthError} from '../../errors/AuthError'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { AuthError } from '../../errors/AuthError'
 import * as googleOAuthService from '../../services/googleOAuthService'
-import {prismaMock} from '../setup/jestSetup'
-import {createMockUser} from '../setup/testSetup'
+import { createMockUser } from '../setup/testSetup'
 
 jest.mock(
     '../../services/googleOAuthService',
@@ -27,31 +26,12 @@ const mockBuildAuthUrl =
     googleOAuthService.buildAuthUrl as jest.Mock
 const mockHandleCallback =
     googleOAuthService.handleCallback as jest.Mock
-const mockExchangeCodeForTokens =
-    googleOAuthService.exchangeCodeForTokens as jest.Mock
-const mockFetchGoogleProfile =
-    googleOAuthService.fetchGoogleProfile as jest.Mock
-const mockFindOrCreateUser =
-    googleOAuthService.findOrCreateUser as jest.Mock
-const mockValidateState =
-    googleOAuthService.validateState as jest.Mock
 
 // ==================== HELPERS ====================
 const googleSignInEndpoint =
     '/api/v1/auth/google'
 const googleCallbackEndpoint =
     '/api/v1/auth/google/callback'
-
-const createMockGoogleProfile = (
-    overrides?: Record<string, unknown>
-) => ({
-    googleId: 'google-id-123',
-    email: 'googleuser@test.com',
-    firstName: 'Google',
-    lastName: 'User',
-    picture: 'https://lh3.googleusercontent.com/photo.jpg',
-    ...overrides
-})
 
 const createGoogleUser = (
     overrides?: Record<string, unknown>
@@ -548,8 +528,7 @@ describe('Google OAuth', () => {
                             (c: string) =>
                                 c.includes(
                                     'oauth_state'
-                                ) &&
-                                c.includes(
+                                ) && c.includes(
                                     'Expires=Thu, 01 Jan 1970'
                                 )
                         )
@@ -973,8 +952,8 @@ describe('Google OAuth', () => {
                             (c: string) =>
                                 c.includes(
                                     'oauth_state'
-                                ) &&
-                                c.includes(
+                                )
+                                && c.includes(
                                     'Expires=Thu, 01 Jan 1970'
                                 )
                         )

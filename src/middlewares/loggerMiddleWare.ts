@@ -15,14 +15,14 @@ export const loggerMiddleware = (
 
     res.on('finish', () => {
         const ms = Date.now() - start
-        const {method, path} = req
+        const { method, path } = req
         const status = res.statusCode
         const userId = req.userId ?? '-'
 
         logger.http(
-            `${method} ${path}` +
-            ` ${status} ${ms}ms` +
-            ` userId=${userId}`
+            `${method} ${path}
+             ${status} ${ms}ms
+             userId=${userId}`
         )
     })
 

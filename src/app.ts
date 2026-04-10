@@ -1,18 +1,22 @@
 import 'dotenv/config'
 import 'express-async-errors'
-import express, {type Express} from 'express'
+import express, { type Express } from 'express'
 
-import {appConfig, env, serverConfig} from '../config'
+import {
+    appConfig,
+    env,
+    serverConfig
+} from '../config'
 
 import exposeProductionApp from './middlewares/exposeProductionApp'
-import {declareRoutes} from './routes/declare_routes'
-import {declareMiddlewares} from './middlewares'
+import { declareRoutes } from './routes/declare_routes'
+import { declareMiddlewares } from './middlewares'
 
 const {
     protocol,
     url
 } = serverConfig
-const {start} = appConfig
+const { start } = appConfig
 
 const host = serverConfig.host || '127.0.0.1'
 

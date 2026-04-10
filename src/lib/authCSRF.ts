@@ -14,4 +14,4 @@ const generateCSRFToken = () => {
     }
 }
 
-export {generateCSRFToken}
+export { generateCSRFToken }

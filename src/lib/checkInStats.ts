@@ -1,13 +1,13 @@
-import type {CheckInType} from '../types/data/CheckInType'
+import type { CheckInType } from '../types/data/CheckInType'
 
-import {prevDay, toDateStr} from './checkInDateHelpers'
+import { prevDay, toDateStr } from './checkInDateHelpers'
 
 type CheckInStatsData = Pick<
     CheckInType,
-    'moodScore' |
-    'painLevel' |
-    'activities' |
-    'checkInDate'
+    | 'moodScore'
+    | 'painLevel'
+    | 'activities'
+    | 'checkInDate'
 >
 
 const calculateStreaks = (
@@ -31,8 +31,8 @@ const calculateStreaks = (
 
     let currentStreak = 0
     if (
-        uniqueDays[0] === today ||
-        uniqueDays[0] === yesterday
+        uniqueDays[0] === today
+        || uniqueDays[0] === yesterday
     ) {
         currentStreak = 1
         let cursor = uniqueDays[0]
@@ -58,7 +58,7 @@ const calculateStreaks = (
         }
     }
 
-    return {currentStreak, longestStreak}
+    return { currentStreak, longestStreak }
 }
 
 const calculateAverageMood = (

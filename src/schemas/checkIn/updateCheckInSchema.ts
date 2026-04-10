@@ -1,6 +1,6 @@
 import joi from 'joi'
 
-import type {UpdateCheckInType} from '../../types/data/CheckInType'
+import type { UpdateCheckInType } from '../../types/data/CheckInType'
 
 export const updateCheckInSchema = joi
     .object<

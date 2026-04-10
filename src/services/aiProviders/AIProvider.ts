@@ -24,7 +24,7 @@ abstract class AIProvider {
     abstract validateConfiguration(): void
 }
 
-export {AIProvider}
+export { AIProvider }
 export type {
     AIProviderConfig,
     GenerateContentInput,

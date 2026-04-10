@@ -2,13 +2,12 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import type {CheckInType} from '../../types/data/CheckInType'
-import {prismaMock} from '../setup/jestSetup'
+import type { CheckInType } from '../../types/data/CheckInType'
+import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createAuthToken,
     createMockUser,
-    withBearerAuth,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -28,7 +27,7 @@ const createMockCheckIn = (
     createdAt: new Date(),
     updatedAt: null,
     insights: [],
-    ...overrides,
+    ...overrides
 })
 
 describe('Check-in Routes', () => {
@@ -60,7 +59,7 @@ describe('Check-in Routes', () => {
                     createMockCheckIn(),
                     createMockCheckIn({
                         id: 'test-checkin-id-456'
-                    }),
+                    })
                 ]
                 prismaMock.dailyCheckIn.findMany
                     .mockResolvedValue(mockCheckIns)
@@ -94,7 +93,7 @@ describe('Check-in Routes', () => {
                     .set('Cookie', [
                         `accessToken=${token}`
                     ])
-                    .query({limit: 5})
+                    .query({ limit: 5 })
 
                 expect(response.status).toBe(200)
             }
@@ -121,7 +120,7 @@ describe('Check-in Routes', () => {
                     .set('Cookie', [
                         `accessToken=${token}`
                     ])
-                    .query({limit: 200})
+                    .query({ limit: 200 })
 
                 expect(response.status).toBe(403)
             }
@@ -138,7 +137,7 @@ describe('Check-in Routes', () => {
                 'walking',
                 'meditation'
             ],
-            notes: 'Feeling good today',
+            notes: 'Feeling good today'
         }
 
         it(
@@ -333,7 +332,7 @@ describe('Check-in Routes', () => {
                         `_csrf=${csrfSecret}`
                     ])
                     .set('x-csrf-token', csrfToken)
-                    .send({...validBody, moodScore: 11})
+                    .send({ ...validBody, moodScore: 11 })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -358,7 +357,7 @@ describe('Check-in Routes', () => {
                         `_csrf=${csrfSecret}`
                     ])
                     .set('x-csrf-token', csrfToken)
-                    .send({...validBody, painLevel: 0})
+                    .send({ ...validBody, painLevel: 0 })
 
                 expect(response.status).toBe(403)
                 expect(response.body.error[0].property)
@@ -375,7 +374,7 @@ describe('Check-in Routes', () => {
             activities: [
                 'yoga',
                 'reading'
-            ],
+            ]
         }
 
         it(
@@ -388,7 +387,7 @@ describe('Check-in Routes', () => {
                         'yoga',
                         'reading'
                     ],
-                    updatedAt: new Date(),
+                    updatedAt: new Date()
                 })
                 const {
                     token,
@@ -523,7 +522,7 @@ describe('Check-in Routes', () => {
                         'reading'
                     ],
                     checkInDate: new Date('2026-03-01T00:00:00Z')
-                },
+                }
             ])
 
             const response = await supertest(App)
@@ -541,7 +540,7 @@ describe('Check-in Routes', () => {
                     'walking'
                 ]),
                 currentStreak: expect.any(Number),
-                longestStreak: expect.any(Number),
+                longestStreak: expect.any(Number)
             })
             expect(response.body.message)
                 .toBe('Check-in stats retrieved')
@@ -568,7 +567,7 @@ describe('Check-in Routes', () => {
                     averagePainLevel: 0,
                     topActivities: [],
                     currentStreak: 0,
-                    longestStreak: 0,
+                    longestStreak: 0
                 })
             }
         )

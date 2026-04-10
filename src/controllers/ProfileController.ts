@@ -1,10 +1,10 @@
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {errorFactory} from '../errors/factory'
+import { errorFactory } from '../errors/factory'
 import {
     ValidationError
 } from '../errors/ValidationError'
-import {successResponse} from '../responses/success'
+import { successResponse } from '../responses/success'
 import {
     addActivityPreferencesSchema,
     addHealthInterestsSchema,
@@ -18,7 +18,7 @@ export const getProfile = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -39,7 +39,7 @@ export const updateProfile = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -68,7 +68,7 @@ export const addHealthInterests = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -101,15 +101,15 @@ export const removeHealthInterest = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
-    const {slug} = req.params
+    const { userId } = req
+    const { slug } = req.params
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.validate({slug})
+            slugParamSchema.validate({ slug })
         )
 
     await profileService.removeHealthInterest(
@@ -133,7 +133,7 @@ export const addActivityPreferences = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
+    const { userId } = req
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -166,15 +166,15 @@ export const removeActivityPreference = async (
     req: Request,
     res: Response
 ) => {
-    const {userId} = req
-    const {slug} = req.params
+    const { userId } = req
+    const { slug } = req.params
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.validate({slug})
+            slugParamSchema.validate({ slug })
         )
 
     await profileService

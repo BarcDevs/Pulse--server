@@ -1,6 +1,6 @@
 import joi from 'joi'
 
-import type {CheckInQuery} from '../../types/query'
+import type { CheckInQuery } from '../../types/query'
 
 export const checkInQuerySchema = joi
     .object<CheckInQuery>({

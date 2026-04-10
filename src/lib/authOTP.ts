@@ -1,8 +1,8 @@
 import ms from 'ms'
 
-import {authConfig} from '../../config'
+import { authConfig } from '../../config'
 import * as authModel from '../models/AuthModel'
-import {sendEmail} from '../utils/emailSender'
+import { sendEmail } from '../utils/emailSender'
 
 const generateResetPasswordOTP = (): {
     OTP: number
@@ -15,7 +15,7 @@ const generateResetPasswordOTP = (): {
         Date.now() + ms(authConfig.otp_expiration)
     )
 
-    return {OTP, OTPExpiration}
+    return { OTP, OTPExpiration }
 }
 
 const removeResetPasswordOTP = async (
@@ -40,8 +40,8 @@ const verifyResetPasswordOTP = (
 ): boolean => {
     const now = new Date()
     return (
-        now < resetPasswordExpiration &&
-        resetPasswordOTP === +OTP
+        now < resetPasswordExpiration
+        && resetPasswordOTP === +OTP
     )
 }
 
@@ -53,7 +53,7 @@ const sendEmailWithOTP = async (
 
     if (!user) return false
 
-    const {OTP, OTPExpiration} =
+    const { OTP, OTPExpiration } =
         generateResetPasswordOTP()
 
     await authModel.setUserOTP(

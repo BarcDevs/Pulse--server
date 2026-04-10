@@ -1,7 +1,7 @@
 // @ts-nocheck
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
 
-import {rateLimiter} from '../../middlewares/rateLimiting'
+import { rateLimiter } from '../../middlewares/rateLimiting'
 import {
     createMockNext,
     createMockRequest,

@@ -1,6 +1,6 @@
-import {HttpStatusCodes} from '../constants/httpStatusCodes'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
-import {CustomError} from './CustomError'
+import { CustomError } from './CustomError'
 
 class AuthError extends CustomError {
     statusCode = HttpStatusCodes.UNAUTHORIZED
@@ -32,4 +32,4 @@ class AuthError extends CustomError {
     }
 }
 
-export {AuthError}
+export { AuthError }

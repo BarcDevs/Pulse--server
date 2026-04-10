@@ -89,14 +89,14 @@ describe('retry utilities', () => {
     describe('retryAsync', () => {
         it('should succeed on first attempt', async () => {
             const operation = jest.fn()
-                .mockResolvedValueOnce({success: true})
+                .mockResolvedValueOnce({ success: true })
 
             const result = await retryAsync(
                 operation,
-                {maxRetries: 2, delayMs: 10}
+                { maxRetries: 2, delayMs: 10 }
             )
 
-            expect(result).toEqual({success: true})
+            expect(result).toEqual({ success: true })
             expect(operation).toHaveBeenCalledTimes(1)
         })
 
@@ -105,14 +105,14 @@ describe('retry utilities', () => {
                 .mockRejectedValueOnce(
                     new Error('Network error')
                 )
-                .mockResolvedValueOnce({success: true})
+                .mockResolvedValueOnce({ success: true })
 
             const result = await retryAsync(
                 operation,
-                {maxRetries: 2, delayMs: 10}
+                { maxRetries: 2, delayMs: 10 }
             )
 
-            expect(result).toEqual({success: true})
+            expect(result).toEqual({ success: true })
             expect(operation).toHaveBeenCalledTimes(2)
         })
 
@@ -124,14 +124,14 @@ describe('retry utilities', () => {
                 .mockRejectedValueOnce(
                     new Error('Network error 2')
                 )
-                .mockResolvedValueOnce({success: true})
+                .mockResolvedValueOnce({ success: true })
 
             const result = await retryAsync(
                 operation,
-                {maxRetries: 2, delayMs: 10}
+                { maxRetries: 2, delayMs: 10 }
             )
 
-            expect(result).toEqual({success: true})
+            expect(result).toEqual({ success: true })
             expect(operation).toHaveBeenCalledTimes(3)
         })
 
@@ -144,7 +144,7 @@ describe('retry utilities', () => {
             await expect(
                 retryAsync(
                     operation,
-                    {maxRetries: 2, delayMs: 10}
+                    { maxRetries: 2, delayMs: 10 }
                 )
             ).rejects.toThrow('Validation failed')
 
@@ -160,7 +160,7 @@ describe('retry utilities', () => {
             await expect(
                 retryAsync(
                     operation,
-                    {maxRetries: 2, delayMs: 10}
+                    { maxRetries: 2, delayMs: 10 }
                 )
             ).rejects.toThrow('API request failed')
 
@@ -176,7 +176,7 @@ describe('retry utilities', () => {
             await expect(
                 retryAsync(
                     operation,
-                    {maxRetries: 1, delayMs: 10}
+                    { maxRetries: 1, delayMs: 10 }
                 )
             ).rejects.toThrow()
 
@@ -191,12 +191,12 @@ describe('retry utilities', () => {
                 .mockRejectedValueOnce(
                     new Error('Validation failed (non-retryable)')
                 )
-                .mockResolvedValueOnce({success: true})
+                .mockResolvedValueOnce({ success: true })
 
             await expect(
                 retryAsync(
                     operation,
-                    {maxRetries: 2, delayMs: 10}
+                    { maxRetries: 2, delayMs: 10 }
                 )
             ).rejects.toThrow('Validation failed')
 
@@ -213,7 +213,7 @@ describe('retry utilities', () => {
             await expect(
                 retryAsync(
                     operation,
-                    {maxRetries: 2, delayMs: 10}
+                    { maxRetries: 2, delayMs: 10 }
                 )
             ).rejects.toBeDefined()
 
@@ -228,12 +228,12 @@ describe('retry utilities', () => {
                 .mockRejectedValueOnce(
                     new Error('Network error 2')
                 )
-                .mockResolvedValueOnce({success: true})
+                .mockResolvedValueOnce({ success: true })
 
             const start = Date.now()
             await retryAsync(
                 operation,
-                {maxRetries: 2, delayMs: 50}
+                { maxRetries: 2, delayMs: 50 }
             )
             const elapsed = Date.now() - start
 

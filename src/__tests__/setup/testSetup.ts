@@ -171,7 +171,11 @@ export const createAuthenticatedRequest = (
     const token = createToken(user)
     const { csrfSecret, csrfToken } =
         generateCsrfTokenPair()
-    return { token, csrfSecret, csrfToken }
+    return {
+        token,
+        csrfSecret,
+        csrfToken
+    }
 }
 
 // Apply CSRF auth headers to a supertest request
