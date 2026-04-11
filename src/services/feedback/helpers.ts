@@ -24,7 +24,6 @@ export const calculateTrendDuration = (
     history: CheckInType[],
     current: CheckInType
 ): number => {
-    // Safety check: ensure current has valid state indicators
     if (
         current.moodScore == null
         || current.painLevel == null
@@ -34,7 +33,6 @@ export const calculateTrendDuration = (
     let count = 1
 
     for (const prev of history) {
-        // Safety: ensure prev has valid state indicators
         if (
             prev.moodScore === null
             || prev.painLevel === null
@@ -52,7 +50,6 @@ export const calculateTrendDuration = (
             break
     }
 
-    // Ensure always returns valid positive integer
     return Math.max(1, count)
 }
 

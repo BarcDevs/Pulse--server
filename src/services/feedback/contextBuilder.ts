@@ -27,7 +27,6 @@ export const buildInterventionContext = (
     }
 }
 
-// Determine trend direction: up (improving), down (worsening), or stable
 const determineTrendDirection = (
     current: CheckInType,
     history: CheckInType[]
