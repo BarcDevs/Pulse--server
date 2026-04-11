@@ -56,12 +56,9 @@ const generateInsight = async (
             !generatedContent
             || generatedContent.trim().length === 0
         ) {
-            throw new Error(
-                'Failed to generate insight content'
-            )
+            throw new Error('Failed to generate insight content')
         }
     } catch (error) {
-        // After retries exhausted, use fallback
         const errorMsg = error instanceof Error
             ? error.message
             : 'Unknown error'

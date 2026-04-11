@@ -94,7 +94,6 @@ const generateInterventionInsightInternal = async (
 
     const userLanguage = userTimezone || 'en'
 
-    // Use new orchestrator to generate insight
     const supportMessage = await generateInterventionInsight(
         userId,
         checkInId,
