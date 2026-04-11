@@ -1,0 +1,1206 @@
+{
+  "info": {
+    "_postman_id": "426b9edb-9e49-432f-80ef-ba4b112e9e97",
+    "name": "API Documentation #reference",
+    "description": "This template contains a boilerplate for documentation that you can quickly customize and reuse.\n\n### How to use this template:\n\n- Replace the content given brackets (()) with your API's details.\n- Tips are formatted in `codespan` - feel free to read and remove them.\n    \n\n---\n\n`Start with a brief overview of what your API offers.`\n\nThe ((product name)) provides many API products, tools, and resources that enable you to ((add product value here)).\n\n`You can also list the APIs you offer, link to the relevant pages, or do both in this section.`\n\n## **Getting started guide**\n\n`List the steps or points required to start using your APIs. Make sure to cover everything required to reach success with your API as quickly as possible.`\n\nTo start using the ((add APIs here)), you need to -\n\n`The points given below are from The Postman API's documentation. You can reference it to write your own getting started guide.`\n\n- You must use a valid API Key to send requests to the API endpoints. You can get your API key from Postman's [integrations dashboard](https://go.postman.co/settings/me/api-keys).\n- The API has [rate and usage limits](https://postman.postman.co/workspace/Collection-Templates~6311738d-2e70-441f-ae12-78caf078c5b7/collection/22517504-e9c28f47-1253-44af-a2f3-20dce4da1f18?ctx=documentation#rate-and-usage-limits).\n- The API only responds to HTTPS-secured communications. Any requests sent via HTTP return an HTTP 301 redirect to the corresponding HTTPS resources.\n- The API returns request responses in JSON format. When an API request returns an error, it is sent in the JSON response as an error key.\n    \n\n## Authentication\n\n`Add details on the authorization keys/tokens required, steps that cover how to get them, and the relevant error codes.`\n\nThe ((product name)) API uses ((add your API's authorization type)) for authentication.\n\n`The details given below are from the Postman API's documentation. You can reference it to write your own authentication section.`\n\nPostman uses API keys for authentication. You can generate a Postman API key in the [API keys](https://postman.postman.co/settings/me/api-keys) section of your Postman account settings.\n\nYou must include an API key in each request to the Postman API with the X-Api-Key request header.\n\n### Authentication error response\n\nIf an API key is missing, malformed, or invalid, you will receive an HTTP 401 Unauthorized response code.\n\n## Rate and usage limits\n\n`Use this section to cover your APIs' terms of use. Include API limits, constraints, and relevant error codes, so consumers understand the permitted API usage and practices.`\n\n`The example given below is from The Postman API's documentation. Use it as a reference to write your APIs' terms of use.`\n\nAPI access rate limits apply at a per-API key basis in unit time. The limit is 300 requests per minute. Also, depending on your plan, you may have usage limits. If you exceed either limit, your request will return an HTTP 429 Too Many Requests status code.\n\nEach API response returns the following set of headers to help you identify your use status:\n\n| Header | Description |\n| --- | --- |\n| `X-RateLimit-Limit` | The maximum number of requests that the consumer is permitted to make per minute. |\n| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window. |\n| `X-RateLimit-Reset` | The time at which the current rate limit window resets in UTC epoch seconds. |\n\n### 503 response\n\nAn HTTP `503` response from our servers indicates there is an unexpected spike in API access traffic. The server is usually operational within the next five minutes. If the outage persists or you receive any other form of an HTTP `5XX` error, [contact support](https://support.postman.com/hc/en-us/requests/new/).\n\n### **Need some help?**\n\n`Add links that customers can refer to whenever they need help.`\n\nIn case you have questions, go through our tutorials ((link to your video or help documentation here)). Or visit our FAQ page ((link to the relevant page)).\n\nOr you can check out our community forum, there’s a good chance our community has an answer for you. Visit our developer forum ((link to developer forum)) to review topics, ask questions, and learn from others.\n\n`You can also document or add links to libraries, code examples, and other resources needed to make a request.`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29597870"
+  },
+  "item": [
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"_csrf\", csrfToken)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"test@example.com\",\r\n    \"password\": \"testuser123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "signup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"sssssscohen99@gmail.com\",\r\n    \"password\": \"yuryubgygriugy\",\r\n    \"firstName\": \"john\",\r\n    \"lastName\": \"doe\"\r\n    // \"username\": \"user123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get current user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"csrfToken\", csrfToken)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"csrfToken\", csrfToken)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get csrf token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"csrfToken\", csrfToken)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forgot password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"csrfToken\", csrfToken)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/forgot-password/{{email}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "forgot-password",
+                "{{email}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reset password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const csrfToken = pm.response.json().data._csrf\r",
+                  "pm.environment.set(\"csrfToken\", csrfToken)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"test2@example.com\",\r\n    \"newPassword\": \"fakepassword123\",\r\n    \"userOTP\": 878085\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "The `/me` endpoints let you manage information about the authenticated user."
+    },
+    {
+      "name": "Forum",
+      "item": [
+        {
+          "name": "Post",
+          "item": [
+            {
+              "name": "get posts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts?filter=newest&limit=20",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts"
+                  ],
+                  "query": [
+                    {
+                      "key": "filter",
+                      "value": "newest"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get post by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create post",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"title\": \"something\",\r\n    \"body\": \"some long text\",\r\n    \"category\": \"fractures\",\r\n    \"tags\": [\"leg\", \"bones\"]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update post",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"csrfToken\": \"{{csrfToken}}\",\r\n    \"title\": \"something very painful\",\r\n    \"tags\": [\"leg\", \"pain\"]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete post",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Reply",
+          "item": [
+            {
+              "name": "get replies",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}",
+                    "replies"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create reply",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}",
+                    "reply"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete reply",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}",
+                    "reply",
+                    "{{replyId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update reply",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "x-csrf-token",
+                    "value": "{{_csrf}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"body\": \"That’s a very powerful milestone. Keep inspiring others!\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}",
+                    "reply",
+                    "{{replyId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Tag",
+          "item": [
+            {
+              "name": "get tags",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/tags",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "tags"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get tag by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/tags/{{tagId}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "tags",
+                    "{{tagId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "check in",
+      "item": [
+        {
+          "name": "get check ins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "check-in",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get check ins stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "check-in",
+                "stats"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "get check ins stats",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/{{apiVersion}}/check-in/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "check-in",
+                    "stats"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Security-Policy",
+                  "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                },
+                {
+                  "key": "Cross-Origin-Opener-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Cross-Origin-Resource-Policy",
+                  "value": "same-origin"
+                },
+                {
+                  "key": "Origin-Agent-Cluster",
+                  "value": "?1"
+                },
+                {
+                  "key": "Referrer-Policy",
+                  "value": "no-referrer"
+                },
+                {
+                  "key": "Strict-Transport-Security",
+                  "value": "max-age=15552000; includeSubDomains"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-DNS-Prefetch-Control",
+                  "value": "off"
+                },
+                {
+                  "key": "X-Download-Options",
+                  "value": "noopen"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "SAMEORIGIN"
+                },
+                {
+                  "key": "X-Permitted-Cross-Domain-Policies",
+                  "value": "none"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Origin, Accept-Encoding"
+                },
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "X-RateLimit-Limit",
+                  "value": "300"
+                },
+                {
+                  "key": "X-RateLimit-Remaining",
+                  "value": "290"
+                },
+                {
+                  "key": "Date",
+                  "value": "Fri, 03 Apr 2026 12:13:35 GMT"
+                },
+                {
+                  "key": "X-RateLimit-Reset",
+                  "value": "1775219195"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "227"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"e3-IPp7Nx9kFUOytD2XoaLm5uPHfjI\""
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Check-in stats retrieved\",\n    \"data\": {\n        \"totalCheckIns\": 7,\n        \"averageMoodScore\": 7,\n        \"averagePainLevel\": 5.142857142857143,\n        \"topActivities\": [\n            \"walking\",\n            \"meditation\",\n            \"reading\",\n            \"test\",\n            \"resting\"\n        ],\n        \"currentStreak\": 0,\n        \"longestStreak\": 2\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "check in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"moodScore\": 5,\r\n    \"painLevel\": 10,\r\n    \"activities\": [\"test\"],\r\n    \"notes\": \"test note\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "check-in",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get current profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "recovery goals",
+      "item": [
+        {
+          "name": "Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build a consistent sleep schedule\",\n  \"description\": \"Establish a regular sleep routine for better recovery\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "All Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Single Goal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Goal Title\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Milestone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"No screens 1 hour before bed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}",
+                "milestones"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"isCompleted\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}",
+                "milestones",
+                "{{milestoneId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Milestone",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}",
+                "milestones",
+                "{{milestoneId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Simple one-endpoint-at-a-time testing. No scripts, just raw requests for manual exploration. Replace {{goalId}} and {{milestoneId}} with actual values."
+    },
+    {
+      "name": "get server status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "swagger docs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api-docs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api-docs"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://farming-simulator.pstmn.io"
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "_csrf",
+      "value": ""
+    }
+  ]
+}
