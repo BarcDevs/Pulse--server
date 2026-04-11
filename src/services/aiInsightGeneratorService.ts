@@ -8,10 +8,12 @@ import {
     getFallbackContent,
     validateGeneratedInsight
 } from '../lib/aiInsight/validation/aiInsightValidator'
-import type { CheckInType } from '../types/data/CheckInType'
+import type {
+    CheckInType
+} from '../types/data/CheckInType'
 import logger from '../utils/logger'
 
-import { createProvider } from './aiProviders'
+import { createProvider } from './aiProviders/ProviderFactory'
 
 type GenerateInsightInput = {
     decision: InsightDecisionResult

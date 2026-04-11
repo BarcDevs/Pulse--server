@@ -1,16 +1,10 @@
 import type { InsightType } from '../../prisma/generated/prisma/enums'
-import type { AIInsightType } from '../types/data/CheckInType'
+import type {
+    AIInsightType,
+    CreateAIInsightInput
+} from '../types/data/CheckInType'
 import type { InsightDecisionMetadata } from '../types/insight'
 import Prisma from '../utils/PrismaClient'
-
-type CreateAIInsightInput = {
-    userId: string
-    checkInId: string
-    insightType: InsightType
-    title: string
-    content: string
-    metadata?: InsightDecisionMetadata | null
-}
 
 const createInsight = async (
     input: CreateAIInsightInput
@@ -21,6 +15,8 @@ const createInsight = async (
         insightType,
         title,
         content,
+        classification = 'baseline',
+        priority = 'normal',
         metadata
     } = input
 
@@ -37,11 +33,15 @@ const createInsight = async (
             type: insightType,
             title,
             content,
+            classification,
+            priority,
             ...(metadata && { metadata })
         },
         update: {
             title,
             content,
+            classification,
+            priority,
             ...(metadata && { metadata })
         }
     }

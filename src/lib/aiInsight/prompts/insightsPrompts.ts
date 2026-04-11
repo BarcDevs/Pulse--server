@@ -117,7 +117,8 @@ const generateTitle = (
     const titles: Record<InsightType, string> = {
         MOOD_DROP_ALERT: 'Mood Check-In',
         MOTIVATIONAL: 'Keep Going! 💪',
-        WEEKLY_SUMMARY: 'Weekly Reflection'
+        WEEKLY_SUMMARY: 'Weekly Reflection',
+        BAD_DAY_SUPPORT: 'Supportive Reflection'
     }
 
     return titles[insightType]
@@ -150,6 +151,11 @@ const buildPromptByType = (
                 checkIns,
                 metadata?.currentStreak,
                 metadata?.checkInCount
+            )
+
+        case 'BAD_DAY_SUPPORT':
+            throw new Error(
+                'BAD_DAY_SUPPORT insights are generated directly, not via AI'
             )
 
         default:

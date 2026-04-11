@@ -37,7 +37,9 @@ const FALLBACK_INSIGHTS = {
     MOTIVATIONAL:
         'Thank you for checking in with yourself today. Consistency is a powerful part of your journey.',
     WEEKLY_SUMMARY:
-        'You\'ve made time this week to reflect on your wellness. That dedication is something to acknowledge and build on.'
+        'You\'ve made time this week to reflect on your wellness. That dedication is something to acknowledge and build on.',
+    BAD_DAY_SUPPORT:
+        'You\'re noticing things are harder today. That awareness is the first step. Take what support feels right for you.'
 }
 
 export {

@@ -165,15 +165,17 @@ model DailyCheckIn {
 }
 
 model AIInsight {
-  id        String       @id @default(uuid())
-  checkInId String
-  type      InsightType
-  content   String
-  createdAt DateTime     @default(now())
-  title     String
-  userId    String
-  metadata  Json?
-  checkIn   DailyCheckIn @relation(fields: [checkInId], references: [id])
+  id              String       @id @default(uuid())
+  checkInId       String
+  type            InsightType
+  classification  String       @default("baseline")
+  priority        String       @default("normal")
+  content         String
+  createdAt       DateTime     @default(now())
+  title           String
+  userId          String
+  metadata        Json?
+  checkIn         DailyCheckIn @relation(fields: [checkInId], references: [id])
 
   @@unique([checkInId, type])
   @@index([userId, createdAt])
@@ -234,4 +236,5 @@ enum InsightType {
   MOOD_DROP_ALERT
   MOTIVATIONAL
   WEEKLY_SUMMARY
+  BAD_DAY_SUPPORT
 }

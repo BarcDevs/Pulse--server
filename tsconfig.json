@@ -20,6 +20,7 @@
     "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
     "isolatedModules": true,
+    "resolveJsonModule": true,
     // temporary turning off strict types to reduce build memory usage
     "strictFunctionTypes": false,
     "strictBindCallApply": false

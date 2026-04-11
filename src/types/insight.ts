@@ -1,7 +1,8 @@
 type InsightType =
-    'MOOD_DROP_ALERT' |
-    'MOTIVATIONAL' |
-    'WEEKLY_SUMMARY'
+    | 'MOOD_DROP_ALERT'
+    | 'MOTIVATIONAL'
+    | 'WEEKLY_SUMMARY'
+    | 'BAD_DAY_SUPPORT'
 
 type InsightDecisionMetadata = {
     currentStreak?: number

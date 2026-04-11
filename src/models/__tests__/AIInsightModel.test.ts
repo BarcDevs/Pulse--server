@@ -10,6 +10,8 @@ const createMockInsight = (
     userId: 'mock-user-id',
     checkInId: 'mock-check-in-id',
     type: 'MOTIVATIONAL' as InsightType,
+    classification: 'baseline',
+    priority: 'normal',
     title: 'Test Insight',
     content: 'This is test content',
     metadata: null,
@@ -51,11 +53,15 @@ describe('AIInsightModel', () => {
                         checkInId: 'mock-check-in-id',
                         type: 'MOTIVATIONAL',
                         title: 'Test Insight',
-                        content: 'This is test content'
+                        content: 'This is test content',
+                        classification: 'baseline',
+                        priority: 'normal'
                     },
                     update: {
                         title: 'Test Insight',
-                        content: 'This is test content'
+                        content: 'This is test content',
+                        classification: 'baseline',
+                        priority: 'normal'
                     }
                 })
         })
@@ -97,9 +103,9 @@ describe('AIInsightModel', () => {
 
         it('should handle all insight types', async () => {
             const types: Array<
-                'MOOD_DROP_ALERT' |
-                'MOTIVATIONAL' |
-                'WEEKLY_SUMMARY'
+                'MOOD_DROP_ALERT'
+                | 'MOTIVATIONAL'
+                | 'WEEKLY_SUMMARY'
             > = [
                 'MOOD_DROP_ALERT',
                 'MOTIVATIONAL',
