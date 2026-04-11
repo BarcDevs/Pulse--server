@@ -3,6 +3,7 @@ import typescript from 'typescript-eslint'
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
 import eslintPluginImport from 'eslint-plugin-import'
 import enforceObjectBreaking from './eslint-rules/enforce-object-breaking.js'
+import enforceFunctionCallBreaking from './eslint-rules/enforce-function-call-breaking.js'
 
 export default [
     js.configs.recommended,
@@ -26,7 +27,8 @@ export default [
             'import': eslintPluginImport,
             'custom-rules': {
                 rules: {
-                    'enforce-object-breaking': enforceObjectBreaking
+                    'enforce-object-breaking': enforceObjectBreaking,
+                    'enforce-function-call-breaking': enforceFunctionCallBreaking
                 }
             }
         },
@@ -125,14 +127,16 @@ export default [
             ],
 
             /** Custom code style rules */
-            'custom-rules/enforce-object-breaking': 'warn'
+            'custom-rules/enforce-object-breaking': 'warn',
+            'custom-rules/enforce-function-call-breaking': 'warn'
         }
     },
     {
         files: ['**/__tests__/**/*.{js,ts}', '**/*.test.{js,ts}'],
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
-            'no-console': 'off'
+            'no-console': 'off',
+            'custom-rules/enforce-function-call-breaking': 'off'
         }
     }
 ]

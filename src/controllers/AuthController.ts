@@ -54,11 +54,19 @@ export const login = async (
 
     const cookiesOptions = getCookiesOptions(remember)
 
-    res.cookie('accessToken', token, cookiesOptions)
-    res.cookie('_csrf', csrfSecret, {
-        ...cookiesOptions,
-        maxAge: hourInMs
-    })
+    res.cookie(
+        'accessToken',
+        token,
+        cookiesOptions
+    )
+    res.cookie(
+        '_csrf',
+        csrfSecret,
+        {
+            ...cookiesOptions,
+            maxAge: hourInMs
+        }
+    )
 
     successResponse<{
         token: string

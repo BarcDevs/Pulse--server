@@ -22,7 +22,11 @@ export const updateProfileSchema = Joi.object({
     dailyReminder: Joi.boolean().optional(),
     communityAlerts: Joi.boolean().optional(),
     profileVisibility: Joi.string()
-        .valid('onlyMe', 'friends', 'public')
+        .valid(
+            'onlyMe',
+            'friends',
+            'public'
+        )
         .optional(),
     anonymousParticipation: Joi.boolean().optional()
 })

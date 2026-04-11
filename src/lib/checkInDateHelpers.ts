@@ -34,6 +34,7 @@ const resolveCheckInDate = (
             `Invalid timezone '${timezoneName}' - falling back to UTC`
         )
         const today = new Date()
+        // eslint-disable-next-line custom-rules/enforce-function-call-breaking
         today.setUTCHours(0, 0, 0, 0)
         return today
     }
