@@ -1,3 +1,4 @@
+import { FEEDBACK_DETECTION } from '../../constants/feedback/detection'
 import type { CheckInType } from '../../types/data/CheckInType'
 import type { InterventionContext } from '../../types/feedback'
 
@@ -41,16 +42,18 @@ const determineTrendDirection = (
     const moodDelta = current.moodScore - baselineMood
     const painDelta = current.painLevel - baselinePain
 
-    // Threshold of 1.5 points to determine significant change
-    const threshold = 1.5
+    const significanceThreshold =
+        FEEDBACK_DETECTION.TREND.SIGNIFICANCE_THRESHOLD
 
-    if (moodDelta >= threshold || painDelta <= -threshold) {
-        return 'up'
-    }
+    if (
+        moodDelta >= significanceThreshold
+        || painDelta <= -significanceThreshold
+    ) return 'up'
 
-    if (moodDelta <= -threshold || painDelta >= threshold) {
-        return 'down'
-    }
+    if (
+        moodDelta <= -significanceThreshold
+        || painDelta >= significanceThreshold
+    ) return 'down'
 
     return 'stable'
 }
