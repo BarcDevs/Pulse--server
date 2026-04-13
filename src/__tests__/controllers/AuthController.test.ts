@@ -11,7 +11,7 @@ import {
 jest.mock('../../services/authService', () => ({
     ...jest.requireActual('../../services/authService'),
     login: jest.fn(),
-    register: jest.fn(),
+    signup: jest.fn(),
     getUser: jest.fn(),
     sendEmailWithOTP: jest.fn(),
     resetPassword: jest.fn(),
@@ -112,7 +112,7 @@ describe('AuthController', () => {
     describe('signup', () => {
         it('should create new user', async () => {
             const mockUser = createMockUser()
-            ;(authServices.register as jest.Mock)
+            ;(authServices.signup as jest.Mock)
                 .mockResolvedValue(mockUser)
 
             const req = createMockRequest({
@@ -128,7 +128,7 @@ describe('AuthController', () => {
 
             await authController.signup(req, res)
 
-            expect(authServices.register).toHaveBeenCalledWith(
+            expect(authServices.signup).toHaveBeenCalledWith(
                 expect.objectContaining({
                     firstName: 'John',
                     lastName: 'Doe',
@@ -157,7 +157,7 @@ describe('AuthController', () => {
                 const mockUser = createMockUser({
                     username: 'customuser'
                 })
-                ;(authServices.register as jest.Mock)
+                ;(authServices.signup as jest.Mock)
                     .mockResolvedValue(mockUser)
 
                 const req = createMockRequest({
@@ -174,7 +174,7 @@ describe('AuthController', () => {
 
                 await authController.signup(req, res)
 
-                expect(authServices.register).toHaveBeenCalledWith(
+                expect(authServices.signup).toHaveBeenCalledWith(
                     expect.objectContaining({
                         username: 'customuser'
                     })

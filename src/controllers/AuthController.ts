@@ -88,7 +88,7 @@ export const signup = async (
         )
 
     const newUserCreated: ServerUserType =
-        await authServices.register({
+        await authServices.signup({
             ...userData,
             username:
                 userData.username

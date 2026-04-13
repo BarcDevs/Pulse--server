@@ -65,7 +65,7 @@ const login = async (
     return createToken(user)
 }
 
-const register = async (
+const signup = async (
     newUser: NewUserType
 ): Promise<ServerUserType> => {
     const userExists: ServerUserType | null =
@@ -130,11 +130,11 @@ export {
     getUser,
     hashPassword,
     login,
-    register,
     removeResetPasswordOTP,
     resetPassword,
     sanitizeUserData,
     sendEmailWithOTP,
+    signup,
     updateUserData,
     updateUserPassword,
     verifyResetPasswordOTP

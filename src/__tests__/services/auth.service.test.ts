@@ -9,8 +9,8 @@ import {
     getCookiesOptions,
     hashPassword,
     login,
-    register,
     sanitizeUserData,
+    signup,
     verifyResetPasswordOTP
 } from '../../services/authService'
 import { prismaMock } from '../setup/jestSetup'
@@ -372,8 +372,8 @@ describe('Auth Service', () => {
         )
     })
 
-    // ==================== register ====================
-    describe('register', () => {
+    // ==================== signup ====================
+    describe('signup', () => {
         it(
             'should create user with hashed password',
             async () => {
@@ -390,7 +390,7 @@ describe('Auth Service', () => {
                     password: 'Password123!'
                 }
 
-                const result = await register(newUser)
+                const result = await signup(newUser)
 
                 expect(result).toBeDefined()
                 expect(prismaMock.user.create)
@@ -410,7 +410,7 @@ describe('Auth Service', () => {
                 password: 'Password123!'
             }
 
-            await expect(register(newUser))
+            await expect(signup(newUser))
                 .rejects
                 .toThrow('User already exists!')
         })
