@@ -2,13 +2,13 @@
   "info": {
     "_postman_id": "426b9edb-9e49-432f-80ef-ba4b112e9e97",
     "name": "API Documentation #reference",
-    "description": "This template contains a boilerplate for documentation that you can quickly customize and reuse.\n\n### How to use this template:\n\n- Replace the content given brackets (()) with your API's details.\n- Tips are formatted in `codespan` - feel free to read and remove them.\n    \n\n---\n\n`Start with a brief overview of what your API offers.`\n\nThe ((product name)) provides many API products, tools, and resources that enable you to ((add product value here)).\n\n`You can also list the APIs you offer, link to the relevant pages, or do both in this section.`\n\n## **Getting started guide**\n\n`List the steps or points required to start using your APIs. Make sure to cover everything required to reach success with your API as quickly as possible.`\n\nTo start using the ((add APIs here)), you need to -\n\n`The points given below are from The Postman API's documentation. You can reference it to write your own getting started guide.`\n\n- You must use a valid API Key to send requests to the API endpoints. You can get your API key from Postman's [integrations dashboard](https://go.postman.co/settings/me/api-keys).\n- The API has [rate and usage limits](https://postman.postman.co/workspace/Collection-Templates~6311738d-2e70-441f-ae12-78caf078c5b7/collection/22517504-e9c28f47-1253-44af-a2f3-20dce4da1f18?ctx=documentation#rate-and-usage-limits).\n- The API only responds to HTTPS-secured communications. Any requests sent via HTTP return an HTTP 301 redirect to the corresponding HTTPS resources.\n- The API returns request responses in JSON format. When an API request returns an error, it is sent in the JSON response as an error key.\n    \n\n## Authentication\n\n`Add details on the authorization keys/tokens required, steps that cover how to get them, and the relevant error codes.`\n\nThe ((product name)) API uses ((add your API's authorization type)) for authentication.\n\n`The details given below are from the Postman API's documentation. You can reference it to write your own authentication section.`\n\nPostman uses API keys for authentication. You can generate a Postman API key in the [API keys](https://postman.postman.co/settings/me/api-keys) section of your Postman account settings.\n\nYou must include an API key in each request to the Postman API with the X-Api-Key request header.\n\n### Authentication error response\n\nIf an API key is missing, malformed, or invalid, you will receive an HTTP 401 Unauthorized response code.\n\n## Rate and usage limits\n\n`Use this section to cover your APIs' terms of use. Include API limits, constraints, and relevant error codes, so consumers understand the permitted API usage and practices.`\n\n`The example given below is from The Postman API's documentation. Use it as a reference to write your APIs' terms of use.`\n\nAPI access rate limits apply at a per-API key basis in unit time. The limit is 300 requests per minute. Also, depending on your plan, you may have usage limits. If you exceed either limit, your request will return an HTTP 429 Too Many Requests status code.\n\nEach API response returns the following set of headers to help you identify your use status:\n\n| Header | Description |\n| --- | --- |\n| `X-RateLimit-Limit` | The maximum number of requests that the consumer is permitted to make per minute. |\n| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window. |\n| `X-RateLimit-Reset` | The time at which the current rate limit window resets in UTC epoch seconds. |\n\n### 503 response\n\nAn HTTP `503` response from our servers indicates there is an unexpected spike in API access traffic. The server is usually operational within the next five minutes. If the outage persists or you receive any other form of an HTTP `5XX` error, [contact support](https://support.postman.com/hc/en-us/requests/new/).\n\n### **Need some help?**\n\n`Add links that customers can refer to whenever they need help.`\n\nIn case you have questions, go through our tutorials ((link to your video or help documentation here)). Or visit our FAQ page ((link to the relevant page)).\n\nOr you can check out our community forum, there’s a good chance our community has an answer for you. Visit our developer forum ((link to developer forum)) to review topics, ask questions, and learn from others.\n\n`You can also document or add links to libraries, code examples, and other resources needed to make a request.`",
+    "description": "This template contains a boilerplate for documentation that you can quickly customize and reuse.\n\n### How to use this template:\n\n- Replace the content given brackets (()) with your API's details.\n- Tips are formatted in `codespan` - feel free to read and remove them.\n    \n\n---\n\n`Start with a brief overview of what your API offers.`\n\nThe ((product name)) provides many API products, tools, and resources that enable you to ((add product value here)).\n\n`You can also list the APIs you offer, link to the relevant pages, or do both in this section.`\n\n## **Getting started guide**\n\n`List the steps or points required to start using your APIs. Make sure to cover everything required to reach success with your API as quickly as possible.`\n\nTo start using the ((add APIs here)), you need to -\n\n`The points given below are from The Postman API's documentation. You can reference it to write your own getting started guide.`\n\n- You must use a valid API Key to send requests to the API endpoints. You can get your API key from Postman's [integrations dashboard](https://go.postman.co/settings/me/api-keys).\n- The API has [rate and usage limits](https://postman.postman.co/workspace/Collection-Templates~6311738d-2e70-441f-ae12-78caf078c5b7/collection/22517504-e9c28f47-1253-44af-a2f3-20dce4da1f18?ctx=documentation#rate-and-usage-limits).\n- The API only responds to HTTPS-secured communications. Any requests sent via HTTP return an HTTP 301 redirect to the corresponding HTTPS resources.\n- The API returns request responses in JSON format. When an API request returns an error, it is sent in the JSON response as an error key.\n    \n\n## Authentication\n\n`Add details on the authorization keys/tokens required, steps that cover how to get them, and the relevant error codes.`\n\nThe ((product name)) API uses ((add your API's authorization type)) for authentication.\n\n`The details given below are from the Postman API's documentation. You can reference it to write your own authentication section.`\n\nPostman uses API keys for authentication. You can generate a Postman API key in the [API keys](https://postman.postman.co/settings/me/api-keys) section of your Postman account settings.\n\nYou must include an API key in each request to the Postman API with the X-Api-Key request header.\n\n### Authentication error response\n\nIf an API key is missing, malformed, or invalid, you will receive an HTTP 401 Unauthorized response code.\n\n## Rate and usage limits\n\n`Use this section to cover your APIs' terms of use. Include API limits, constraints, and relevant error codes, so consumers understand the permitted API usage and practices.`\n\n`The example given below is from The Postman API's documentation. Use it as a reference to write your APIs' terms of use.`\n\nAPI access rate limits apply at a per-API key basis in unit time. The limit is 300 requests per minute. Also, depending on your plan, you may have usage limits. If you exceed either limit, your request will return an HTTP 429 Too Many Requests status code.\n\nEach API response returns the following set of headers to help you identify your use status:\n\n| Header | Description |\n| --- | --- |\n| `X-RateLimit-Limit` | The maximum number of requests that the consumer is permitted to make per minute. |\n| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window. |\n| `X-RateLimit-Reset` | The time at which the current rate limit window resets in UTC epoch seconds. |\n\n### 503 response\n\nAn HTTP `503` response from our servers indicates there is an unexpected spike in API access traffic. The server is usually operational within the next five minutes. If the outage persists or you receive any other form of an HTTP `5XX` error, [contact support](https://support.postman.com/hc/en-us/requests/new/).\n\n### **Need some help?**\n\n`Add links that customers can refer to whenever they need help.`\n\nIn case you have questions, go through our tutorials ((link to your video or help documentation here)). Or visit our FAQ page ((link to the relevant page)).\n\nOr you can check out our community forum, there\u00e2\u20ac\u2122s a good chance our community has an answer for you. Visit our developer forum ((link to developer forum)) to review topics, ask questions, and learn from others.\n\n`You can also document or add links to libraries, code examples, and other resources needed to make a request.`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "29597870"
   },
   "item": [
     {
-      "name": "User",
+      "name": "Auth",
       "item": [
         {
           "name": "login",
@@ -290,6 +290,157 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "google oauth sign-in",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "google"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "google oauth callback",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/google/callback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "google",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "confirm email",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/confirm-email",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "confirm-email"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"OTP\": 123456}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update user account",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "users",
+                "me"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"username\": \"johndoe\"}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update password",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/users/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "users",
+                "password"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"currentPassword\": \"old\", \"newPassword\": \"new\"}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete user account",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "users",
+                "me"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ]
+          },
+          "response": []
         }
       ],
       "description": "The `/me` endpoints let you manage information about the authenticated user."
@@ -399,7 +550,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"csrfToken\": \"{{csrfToken}}\",\r\n    \"title\": \"something very painful\",\r\n    \"tags\": [\"leg\", \"pain\"]\r\n}",
+                  "raw": "{,\r\n    \"title\": \"something very painful\",\r\n    \"tags\": [\"leg\", \"pain\"]\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -479,7 +630,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "raw": "{\r\n    \"body\": \"That\u00e2\u20ac\u2122s a powerful milestone. Keep inspiring others!\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -516,7 +667,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "raw": "{\r\n    \"body\": \"That\u00e2\u20ac\u2122s a powerful milestone. Keep inspiring others!\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -534,7 +685,7 @@
                     "forum",
                     "posts",
                     "{{postId}}",
-                    "reply"
+                    "replies"
                   ]
                 }
               },
@@ -553,7 +704,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"body\": \"That’s a powerful milestone. Keep inspiring others!\"\r\n}",
+                  "raw": "{\r\n    \"body\": \"That\u00e2\u20ac\u2122s a powerful milestone. Keep inspiring others!\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -561,7 +712,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -571,7 +722,7 @@
                     "forum",
                     "posts",
                     "{{postId}}",
-                    "reply",
+                    "replies",
                     "{{replyId}}"
                   ]
                 }
@@ -591,7 +742,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"body\": \"That’s a very powerful milestone. Keep inspiring others!\"\r\n}",
+                  "raw": "{\r\n    \"body\": \"That\u00e2\u20ac\u2122s a very powerful milestone. Keep inspiring others!\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -599,7 +750,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -609,7 +760,7 @@
                     "forum",
                     "posts",
                     "{{postId}}",
-                    "reply",
+                    "replies",
                     "{{replyId}}"
                   ]
                 }
@@ -916,6 +1067,34 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "update check-in",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/check-in",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "check-in"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"moodScore\": 8, \"notes\": \"Updated\"}"
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -936,6 +1115,156 @@
                 "api",
                 "{{apiVersion}}",
                 "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add health interests",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "health-interests"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"slugs\": [\"fitness\", \"nutrition\"]}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "remove health interest",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "health-interests",
+                "{{slug}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "add activity preferences",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "activities"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"slugs\": [\"running\", \"yoga\"]}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "remove activity preference",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "activities",
+                "{{slug}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "list health interests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/health-interests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "list",
+                "health-interests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "list activity preferences",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/activities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "profile",
+                "list",
+                "activities"
               ]
             }
           },
