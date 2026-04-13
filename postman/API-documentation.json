@@ -675,7 +675,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply",
+                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -1390,11 +1390,13 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/recovery-goals/{{goalId}}",
+              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
+                "api",
+                "{{apiVersion}}",
                 "recovery-goals",
                 "{{goalId}}"
               ]

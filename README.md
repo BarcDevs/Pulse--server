@@ -468,15 +468,16 @@ npm run seed     # Seed database with test data
 ### Manual Testing
 
 ```bash
-# Register a new user
-curl -X POST http://localhost:3000/api/auth/register \
+# Sign up a new user
+curl -X POST http://localhost:3000/api/v1/auth/signup \
   -H 'Content-Type: application/json' \
-  -d '{"email":"test@example.com","username":"testuser","password":"Password123","fullName":"Test User"}'
+  -d '{"email":"test@example.com","firstName":"Test","lastName":"User","password":"Password123"}'
 
 # Create a check-in (replace <token> with JWT from login)
-curl -X POST http://localhost:3000/api/checkins \
+curl -X POST http://localhost:3000/api/v1/check-in \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <token>' \
+  -H 'Cookie: accessToken=<token>' \
+  -H 'x-csrf-token: <csrfToken>' \
   -d '{"moodScore":7,"painLevel":3,"activities":["walking","stretching"],"notes":"Feeling better today"}'
 ```
 

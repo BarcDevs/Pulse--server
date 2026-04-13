@@ -10,7 +10,7 @@
       "name": "Auth Setup",
       "item": [
         {
-          "name": "1. Register User",
+          "name": "1. Signup User",
           "event": [
             {
               "listen": "test",
@@ -43,7 +43,7 @@
               "raw": "{\n  \"email\": \"progressinsights{{$timestamp}}@test.com\",\n  \"password\": \"TestPassword123!\",\n  \"username\": \"user{{$timestamp}}\",\n  \"firstName\": \"Progress\",\n  \"lastName\": \"Tester\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/register",
+              "raw": "{{base_url}}/api/{{apiVersion}}/auth/signup",
               "host": [
                 "{{base_url}}"
               ],
@@ -51,7 +51,7 @@
                 "api",
                 "{{apiVersion}}",
                 "auth",
-                "register"
+                "signup"
               ]
             }
           }
