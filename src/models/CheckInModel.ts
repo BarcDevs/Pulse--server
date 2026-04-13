@@ -115,3 +115,20 @@ export const getCheckInsForStats = async (
         },
         orderBy: { checkInDate: 'desc' }
     })
+
+export const getCheckInsForDateRange = async (
+    profileId: string,
+    startDate: Date,
+    endDate: Date
+): Promise<CheckInType[]> =>
+    (await Prisma.dailyCheckIn.findMany({
+        where: {
+            profileId,
+            checkInDate: {
+                gte: startDate,
+                lte: endDate
+            }
+        },
+        orderBy: { checkInDate: 'desc' },
+        include: { insights: true }
+    })) as CheckInType[]

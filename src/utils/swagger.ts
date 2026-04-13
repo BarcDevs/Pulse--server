@@ -184,6 +184,86 @@ const options: swaggerJsdoc.Options = {
                         currentStreak: { type: 'integer' },
                         longestStreak: { type: 'integer' }
                     }
+                },
+                ProgressInsightMetadata: {
+                    type: 'object',
+                    properties: {
+                        moodDelta: {
+                            type: 'number',
+                            description: 'Change in average mood (current vs previous period)'
+                        },
+                        painDelta: {
+                            type: 'number',
+                            description: 'Change in average pain (negative = improvement)'
+                        },
+                        activityConsistency: {
+                            type: 'number',
+                            description: 'Ratio of active days to total days (0-1)'
+                        }
+                    }
+                },
+                ProgressInsightPeriod: {
+                    type: 'object',
+                    properties: {
+                        currentStart: {
+                            type: 'string',
+                            format: 'date-time',
+                            description: 'Start of last 7 days'
+                        },
+                        currentEnd: {
+                            type: 'string',
+                            format: 'date-time',
+                            description: 'End of last 7 days'
+                        },
+                        previousStart: {
+                            type: 'string',
+                            format: 'date-time',
+                            description: 'Start of previous 7 days'
+                        },
+                        previousEnd: {
+                            type: 'string',
+                            format: 'date-time',
+                            description: 'End of previous 7 days'
+                        }
+                    }
+                },
+                ProgressInsightHighlights: {
+                    type: 'object',
+                    properties: {
+                        improvements: {
+                            type: 'array',
+                            items: { type: 'string' },
+                            description: 'Metrics that improved in current period'
+                        },
+                        regressions: {
+                            type: 'array',
+                            items: { type: 'string' },
+                            description: 'Metrics that declined in current period'
+                        }
+                    }
+                },
+                ProgressInsight: {
+                    type: 'object',
+                    properties: {
+                        summary: {
+                            type: 'string',
+                            description: 'AI-generated or fallback 2-4 sentence narrative'
+                        },
+                        trend: {
+                            type: 'string',
+                            enum: ['improving', 'declining', 'stable', 'mixed'],
+                            description: 'Trend classification based on metric changes'
+                        },
+                        highlights: {
+                            $ref: '#/components/schemas/ProgressInsightHighlights'
+                        },
+                        period: {
+                            $ref: '#/components/schemas/ProgressInsightPeriod'
+                        },
+                        metadata: {
+                            $ref: '#/components/schemas/ProgressInsightMetadata'
+                        }
+                    }
                 }
             }
         }

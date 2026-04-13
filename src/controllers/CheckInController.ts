@@ -8,10 +8,12 @@ import { checkInQuerySchema } from '../schemas/checkIn/checkInQuerySchema'
 import { newCheckInSchema } from '../schemas/checkIn/newCheckInSchema'
 import { updateCheckInSchema } from '../schemas/checkIn/updateCheckInSchema'
 import * as checkInService from '../services/checkInService'
+import * as progressInsightsService from '../services/progressInsightsService'
 import type {
     CheckInStatsType,
     CheckInType
 } from '../types/data/CheckInType'
+import type { ProgressInsight } from '../types/data/ProgressInsightType'
 
 export const getCheckIns = async (
     req: Request,
@@ -115,5 +117,24 @@ export const getCheckInStats = async (
         res,
         data,
         'Check-in stats retrieved'
+    )
+}
+
+export const getProgressInsights = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const data = await progressInsightsService
+        .generateProgressInsight(userId)
+
+    return successResponse<ProgressInsight>(
+        res,
+        data,
+        'Progress insights generated'
     )
 }

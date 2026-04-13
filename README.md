@@ -380,6 +380,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `POST` | `/api/v1/check-in` | Cookie + CSRF | Create today's check-in (409 if exists) |
 | `PATCH` | `/api/v1/check-in` | Cookie + CSRF | Update today's check-in (404 if none) |
 | `GET` | `/api/v1/check-in/stats` | Cookie | Get aggregated check-in stats |
+| `GET` | `/api/v1/check-in/progress-insights` | Cookie | Get weekly progress narrative (7-day vs 7-day comparison) |
 
 ### Forum *(protected)*
 

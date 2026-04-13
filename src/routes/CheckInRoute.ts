@@ -4,6 +4,7 @@ import {
     createCheckIn,
     getCheckIns,
     getCheckInStats,
+    getProgressInsights,
     updateCheckIn
 } from '../controllers/CheckInController'
 import {
@@ -220,6 +221,44 @@ router
     .get(
         isAuthenticated,
         getCheckInStats
+    )
+
+/**
+ * @swagger
+ * /api/v1/check-in/progress-insights:
+ *   get:
+ *     summary: Get weekly progress insights
+ *     description: >
+ *       Generates a weekly progress narrative by comparing the last 7 days
+ *       with the previous 7 days. Returns trend classification, key
+ *       improvements/regressions, and a generated summary.
+ *     tags: [Check-In]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Progress insights generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/ProgressInsight'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/progress-insights')
+    .get(
+        isAuthenticated,
+        getProgressInsights
     )
 
 export default router

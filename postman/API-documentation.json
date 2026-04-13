@@ -862,6 +862,60 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "get progress insights",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has progress insights', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.equal('Progress insights generated');",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Insight has all required fields', function () {",
+                  "    var insight = pm.response.json().data;",
+                  "    pm.expect(insight).to.have.property('summary');",
+                  "    pm.expect(insight).to.have.property('trend');",
+                  "    pm.expect(insight).to.have.property('highlights');",
+                  "    pm.expect(insight).to.have.property('period');",
+                  "    pm.expect(insight).to.have.property('metadata');",
+                  "});",
+                  "",
+                  "pm.test('Trend is valid', function () {",
+                  "    var insight = pm.response.json().data;",
+                  "    var validTrends = ['improving', 'declining', 'stable', 'mixed'];",
+                  "    pm.expect(validTrends).to.include(insight.trend);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/progress-insights",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "check-in",
+                "progress-insights"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

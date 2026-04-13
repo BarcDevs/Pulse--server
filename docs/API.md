@@ -756,6 +756,105 @@ Clears the `accessToken` cookie.
 
 ---
 
+### `GET /progress-insights`
+> Auth required · No CSRF needed (read-only)
+
+Generates a human-readable summary of recovery progress by comparing the last 7 days against the previous 7 days. Includes trend classification, metric deltas, and highlights.
+
+**Response `200`**
+```json
+{
+  "message": "Progress insights generated",
+  "data": {
+    "summary": "Your mood improved this week, averaging 8.0 compared to 6.0. Activity consistency increased to 80%.",
+    "trend": "improving",
+    "highlights": {
+      "improvements": ["mood improvement", "pain reduction"],
+      "regressions": []
+    },
+    "period": {
+      "currentStart": "ISO 8601 date",
+      "currentEnd": "ISO 8601 date",
+      "previousStart": "ISO 8601 date",
+      "previousEnd": "ISO 8601 date"
+    },
+    "metadata": {
+      "moodDelta": 2,
+      "painDelta": -1.5,
+      "activityConsistency": 0.8
+    }
+  }
+}
+```
+
+**Response fields**
+| Field | Type | Notes |
+|-------|------|-------|
+| `summary` | string | 2–4 sentence narrative (AI-generated or fallback) |
+| `trend` | string | One of: `improving`, `declining`, `stable`, `mixed` |
+| `highlights.improvements` | string[] | Metrics that improved (empty if stable/declining) |
+| `highlights.regressions` | string[] | Metrics that declined (empty if stable/improving) |
+| `period.currentStart` | ISO 8601 | Start of last 7 days |
+| `period.currentEnd` | ISO 8601 | End of last 7 days |
+| `period.previousStart` | ISO 8601 | Start of previous 7 days |
+| `period.previousEnd` | ISO 8601 | End of previous 7 days |
+| `metadata.moodDelta` | number | Mood change (current vs previous avg) |
+| `metadata.painDelta` | number | Pain change (current vs previous avg, negative = improvement) |
+| `metadata.activityConsistency` | number | Ratio of active days to total days (0–1) |
+
+**Behavior**
+
+- **Trend classification:** Based on changes across mood, pain, and activity:
+  - `improving` — 2+ metrics improved
+  - `declining` — 2+ metrics declined
+  - `stable` — all deltas within stable range (±0.25)
+  - `mixed` — conflicting metrics
+- **Insufficient data:** If user has < 2 check-ins in current period, returns fallback insight with trend `stable` and message "Not enough data yet to detect trends. Keep checking in to unlock insights."
+- **Caching:** Results cached for 10 minutes per unique time window to avoid redundant AI calls. Cache invalidates automatically on new check-in.
+- **AI failure:** If summary generation fails, returns deterministic fallback summary instead of error.
+
+**Errors:** `401` not authenticated
+
+**Examples**
+
+**Improving trend:**
+```json
+{
+  "trend": "improving",
+  "summary": "Your mood improved this week, averaging 8.0 compared to 6.0. Activity consistency increased to 80%.",
+  "highlights": { "improvements": ["mood improvement", "activity increase"], "regressions": [] }
+}
+```
+
+**Declining trend:**
+```json
+{
+  "trend": "declining",
+  "summary": "Your mood declined this week to 5.0 from 7.0. Pain levels increased slightly.",
+  "highlights": { "improvements": [], "regressions": ["mood decline", "pain increase"] }
+}
+```
+
+**Stable trend:**
+```json
+{
+  "trend": "stable",
+  "summary": "Your recovery remains stable this week. Mood averaged 7.0, consistent with the previous period.",
+  "highlights": { "improvements": [], "regressions": [] }
+}
+```
+
+**Mixed trend:**
+```json
+{
+  "trend": "mixed",
+  "summary": "Your recovery shows mixed signals this week. Mood improved to 8.0 while pain increased slightly.",
+  "highlights": { "improvements": ["mood improvement"], "regressions": ["pain increase"] }
+}
+```
+
+---
+
 ## Profile — `/api/v1/profile`
 
 ---
