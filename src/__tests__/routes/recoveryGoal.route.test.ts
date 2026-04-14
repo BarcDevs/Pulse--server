@@ -42,6 +42,16 @@ describe('Recovery Goals Routes', () => {
         }
 
         it(
+            'should return 401 when posting goal without auth token',
+            async () => {
+            const response = await supertest(App)
+                .post(endpoint)
+                .send(validBody)
+
+            expect(response.status).toBe(401)
+        })
+
+        it(
             'should return 201 and create goal with title and description',
             async () => {
             const mockUser = createMockUser()
@@ -90,16 +100,6 @@ describe('Recovery Goals Routes', () => {
 
             expect(response.status).toBe(201)
             expect(response.body.data.description).toBeNull()
-        })
-
-        it(
-            'should return 401 when posting goal without auth token',
-            async () => {
-            const response = await supertest(App)
-                .post(endpoint)
-                .send(validBody)
-
-            expect(response.status).toBe(401)
         })
 
         it('should return 401 for missing CSRF token', async () => {
