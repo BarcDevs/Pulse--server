@@ -18,7 +18,7 @@ export const createInsight = async (
         metadata
     } = input
 
-    const upsertData = {
+    return (await Prisma.aIInsight.upsert({
         where: {
             checkInId_type: {
                 checkInId,
@@ -42,11 +42,7 @@ export const createInsight = async (
             priority,
             ...(metadata && { metadata })
         }
-    }
-
-    return (await Prisma.aIInsight.upsert(
-        upsertData
-    )) as AIInsightType
+    })) as AIInsightType
 }
 
 export const getInsightsByUserId = async (
