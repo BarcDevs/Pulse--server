@@ -1,8 +1,8 @@
-const MIN_CONTENT_LENGTH = 20
-const MAX_CONTENT_LENGTH = 500
-const MAX_SENTENCES = 4
+export const MIN_CONTENT_LENGTH = 20
+export const MAX_CONTENT_LENGTH = 500
+export const MAX_SENTENCES = 4
 
-const HARD_BLOCK_PHRASES = [
+export const HARD_BLOCK_PHRASES = [
     'you may have',
     'you might have',
     'this may indicate',
@@ -14,7 +14,7 @@ const HARD_BLOCK_PHRASES = [
     'clinical condition'
 ]
 
-const MEDICAL_TERMS = [
+export const MEDICAL_TERMS = [
     'depression',
     'anxiety disorder',
     'mental disorder',
@@ -22,7 +22,7 @@ const MEDICAL_TERMS = [
     'disease'
 ]
 
-const DIAGNOSTIC_PHRASES = [
+export const DIAGNOSTIC_PHRASES = [
     'indicates',
     'suggests',
     'signs of',
@@ -31,7 +31,7 @@ const DIAGNOSTIC_PHRASES = [
     'might have'
 ]
 
-const FALLBACK_INSIGHTS = {
+export const FALLBACK_INSIGHTS = {
     MOOD_DROP_ALERT:
         'We noticed your mood has felt lower recently. Take a moment to check in with what may be weighing on you today. Noticing the pattern is already a meaningful step.',
     MOTIVATIONAL:
@@ -40,14 +40,4 @@ const FALLBACK_INSIGHTS = {
         'You\'ve made time this week to reflect on your wellness. That dedication is something to acknowledge and build on.',
     BAD_DAY_SUPPORT:
         'You\'re noticing things are harder today. That awareness is the first step. Take what support feels right for you.'
-}
-
-export {
-    DIAGNOSTIC_PHRASES,
-    FALLBACK_INSIGHTS,
-    HARD_BLOCK_PHRASES,
-    MAX_CONTENT_LENGTH,
-    MAX_SENTENCES,
-    MEDICAL_TERMS,
-    MIN_CONTENT_LENGTH
 }

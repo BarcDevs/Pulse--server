@@ -1,16 +1,16 @@
 import * as authModel from '../models/AuthModel'
 import logger from '../utils/logger'
 
-const toDateStr = (d: Date): string =>
+export const toDateStr = (d: Date): string =>
     d.toISOString().slice(0, 10)
 
-const prevDay = (dateStr: string): string => {
+export const prevDay = (dateStr: string): string => {
     const d = new Date(`${dateStr} T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() - 1)
     return toDateStr(d)
 }
 
-const resolveCheckInDate = (
+export const resolveCheckInDate = (
     timezone?: string | null
 ): Date => {
     const timezoneName = timezone ?? 'UTC'
@@ -40,7 +40,7 @@ const resolveCheckInDate = (
     }
 }
 
-const resolveTimestampInUserTimeZone = (
+export const resolveTimestampInUserTimeZone = (
     timezone?: string | null
 ): Date => {
     const timezoneName = timezone ?? 'UTC'
@@ -104,18 +104,10 @@ const resolveTimestampInUserTimeZone = (
     }
 }
 
-const resolveDate = async (
+export const resolveDate = async (
     userId: string
 ): Promise<Date> => {
     const userTimezone = await authModel
         .getUserTimezone(userId)
     return resolveCheckInDate(userTimezone)
-}
-
-export {
-    prevDay,
-    resolveCheckInDate,
-    resolveDate,
-    resolveTimestampInUserTimeZone,
-    toDateStr
 }

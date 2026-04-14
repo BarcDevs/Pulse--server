@@ -4,7 +4,7 @@ import type { ValidationResult } from 'joi'
 import { errorFactory } from '../errors/factory'
 import { ValidationError } from '../errors/ValidationError'
 
-const extractUserId = (req: Request): string => {
+export const extractUserId = (req: Request): string => {
     const { userId } = req
 
     if (!userId)
@@ -13,7 +13,7 @@ const extractUserId = (req: Request): string => {
     return userId
 }
 
-const validateAndExtract = <T>(
+export const validateAndExtract = <T>(
     schema: {
         validate: (
             data: unknown
@@ -24,8 +24,3 @@ const validateAndExtract = <T>(
     ValidationError.catchValidationErrors(
         schema.validate(data)
     )
-
-export {
-    extractUserId,
-    validateAndExtract
-}

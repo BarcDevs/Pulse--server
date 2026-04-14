@@ -104,7 +104,7 @@ const isSentenceCountValid = (
 
 // region Main Validator
 
-const validateGeneratedInsight = (
+export const validateGeneratedInsight = (
     title: string,
     content: string
 ): ValidationResult => {
@@ -130,7 +130,7 @@ const validateGeneratedInsight = (
 
 // region Fallback Content
 
-const getFallbackContent = (
+export const getFallbackContent = (
     insightType: InsightType
 ): string =>
     FALLBACK_INSIGHTS[insightType]
@@ -141,8 +141,7 @@ export {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
     countSentences,
-    getFallbackContent,
-    normalizeContent,
-    validateGeneratedInsight
-}
+    normalizeContent
+} from './validationHelpers'
+
 export type { ValidationResult }

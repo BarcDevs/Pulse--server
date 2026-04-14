@@ -7,13 +7,13 @@ import {
     minuteInMs
 } from '../time'
 
-const COOKIE_NAMES = {
+export const COOKIE_NAMES = {
     ACCESS_TOKEN: 'accessToken',
     CSRF_SECRET: '_csrf',
     OAUTH_STATE: 'oauth_state'
 }
 
-const buildAccessTokenCookieOptions = (
+export const buildAccessTokenCookieOptions = (
     remember: boolean
 ): CookieOptions => ({
     httpOnly: true,
@@ -22,23 +22,16 @@ const buildAccessTokenCookieOptions = (
     maxAge: remember ? 30 * dayInMs : dayInMs
 })
 
-const buildCSRFCookieOptions = (): CookieOptions => ({
+export const buildCSRFCookieOptions = (): CookieOptions => ({
     httpOnly: true,
     sameSite: !isDev ? 'none' : 'lax',
     secure: !isDev,
     maxAge: hourInMs
 })
 
-const buildOAuthStateCookieOptions = (): CookieOptions => ({
+export const buildOAuthStateCookieOptions = (): CookieOptions => ({
     httpOnly: true,
     sameSite: 'lax',
     secure: !isDev,
     maxAge: 10 * minuteInMs
 })
-
-export {
-    buildAccessTokenCookieOptions,
-    buildCSRFCookieOptions,
-    buildOAuthStateCookieOptions,
-    COOKIE_NAMES
-}

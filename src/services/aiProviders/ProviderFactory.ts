@@ -5,9 +5,9 @@ import { AnthropicProvider } from './AnthropicProvider'
 import { GoogleAIProvider } from './GoogleAIProvider'
 import { OpenAIProvider } from './OpenAIProvider'
 
-type ProviderType = 'google' | 'openai' | 'anthropic'
+export type ProviderType = 'google' | 'openai' | 'anthropic'
 
-const createProvider = (): AIProvider => {
+export const createProvider = (): AIProvider => {
     const providerType: ProviderType = (
         aiConfig.provider as ProviderType
     ) || 'google'
@@ -38,6 +38,3 @@ const getApiKeyForProvider = (
             return aiConfig.googleApiKey || ''
     }
 }
-
-export { createProvider }
-export type { ProviderType }

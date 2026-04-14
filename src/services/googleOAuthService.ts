@@ -14,7 +14,7 @@ const oAuth2Client = new OAuth2Client(
     googleOAuthConfig.redirectUri
 )
 
-type GoogleProfile = {
+export type GoogleProfile = {
     googleId: string
     email: string
     firstName: string
@@ -22,10 +22,10 @@ type GoogleProfile = {
     picture: string | null
 }
 
-const generateState = (): string =>
+export const generateState = (): string =>
     crypto.randomBytes(32).toString('hex')
 
-const validateState = (
+export const validateState = (
     cookieState: string | undefined,
     queryState: string | undefined
 ): boolean =>
@@ -33,7 +33,7 @@ const validateState = (
     && !!queryState
     && cookieState === queryState
 
-const buildAuthUrl = (state: string): string =>
+export const buildAuthUrl = (state: string): string =>
     oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: [
@@ -45,7 +45,7 @@ const buildAuthUrl = (state: string): string =>
         prompt: 'consent'
     })
 
-const exchangeCodeForTokens = async (
+export const exchangeCodeForTokens = async (
     code: string
 ) => {
     try {
@@ -62,7 +62,7 @@ const exchangeCodeForTokens = async (
     }
 }
 
-const fetchGoogleProfile = async (
+export const fetchGoogleProfile = async (
     idToken: string
 ): Promise<GoogleProfile> => {
     try {
@@ -245,7 +245,7 @@ const linkGoogleId = async (
     return user as ServerUserType
 }
 
-const findOrCreateUser = async (
+export const findOrCreateUser = async (
     profile: GoogleProfile
 ): Promise<ServerUserType> => {
     const existingByGoogleId =
@@ -264,7 +264,7 @@ const findOrCreateUser = async (
     return createGoogleUser(profile)
 }
 
-const handleCallback = async (
+export const handleCallback = async (
     code: string
 ): Promise<ServerUserType> => {
     const tokens =
@@ -283,15 +283,3 @@ const handleCallback = async (
 
     return findOrCreateUser(profile)
 }
-
-export {
-    buildAuthUrl,
-    exchangeCodeForTokens,
-    fetchGoogleProfile,
-    findOrCreateUser,
-    generateState,
-    handleCallback,
-    validateState
-}
-
-export type { GoogleProfile }

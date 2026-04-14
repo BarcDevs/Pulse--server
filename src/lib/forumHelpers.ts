@@ -3,7 +3,7 @@ import * as forumModel from '../models/ForumModel'
 import type { TagQuery } from '../types/query'
 import { capitalizeText } from '../utils/capitalizeText'
 
-const ensurePostExists = async (postId: string) => {
+export const ensurePostExists = async (postId: string) => {
     const post = await forumModel.getPost(postId)
     if (!post) {
         throw errorFactory.generic.notFound('Post')
@@ -11,7 +11,7 @@ const ensurePostExists = async (postId: string) => {
     return post
 }
 
-const extractRemovedTags = (
+export const extractRemovedTags = (
     prevTags: Array<{ name: string }> | undefined,
     newTagNames: string[] | undefined
 ) => {
@@ -23,7 +23,7 @@ const extractRemovedTags = (
     )
 }
 
-const resolveTags = async (
+export const resolveTags = async (
     options: TagQuery | {filter: 'id'; id: string}
 ) => {
     if (options.filter === 'id') {
@@ -45,7 +45,7 @@ const resolveTags = async (
     )
 }
 
-const validateOwnerHelper = async (
+export const validateOwnerHelper = async (
     schema: 'post' | 'reply',
     postId: string,
     userId: string,
@@ -74,11 +74,4 @@ const validateOwnerHelper = async (
         throw errorFactory.auth.unauthorized(
             `you are not the author of this ${schema}!`
         )
-}
-
-export {
-    ensurePostExists,
-    extractRemovedTags,
-    resolveTags,
-    validateOwnerHelper
 }

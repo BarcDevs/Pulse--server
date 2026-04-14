@@ -4,12 +4,12 @@ import jwt from 'jsonwebtoken'
 import { authConfig } from '../../config'
 import type { ServerUserType } from '../types/data/UserType'
 
-const hashPassword = (
+export const hashPassword = (
     password: string
 ): string =>
     bcrypt.hashSync(password, 10)
 
-const comparePassword = (
+export const comparePassword = (
     password: string,
     hashedPassword: string
 ): boolean =>
@@ -18,7 +18,7 @@ const comparePassword = (
         hashedPassword
     )
 
-const createToken = (
+export const createToken = (
     user: ServerUserType
 ): string => {
     const payload = {
@@ -36,10 +36,4 @@ const createToken = (
         authConfig.jwtSecret!,
         options
     )
-}
-
-export {
-    comparePassword,
-    createToken,
-    hashPassword
 }

@@ -2,7 +2,7 @@ import Csrf from 'csrf'
 
 const csrfProtection = new Csrf()
 
-const generateCSRFToken = () => {
+export const generateCSRFToken = () => {
     const csrfSecret = csrfProtection
         .secretSync()
     const csrfToken = csrfProtection
@@ -13,5 +13,3 @@ const generateCSRFToken = () => {
         csrfToken
     }
 }
-
-export { generateCSRFToken }

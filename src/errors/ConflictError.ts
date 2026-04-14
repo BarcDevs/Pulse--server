@@ -2,7 +2,7 @@ import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
 import { CustomError } from './CustomError'
 
-class ConflictError extends CustomError {
+export class ConflictError extends CustomError {
     statusCode = HttpStatusCodes.CONFLICT
 
     statusType = 'Conflict'
@@ -30,5 +30,3 @@ class ConflictError extends CustomError {
         ]
     }
 }
-
-export { ConflictError }

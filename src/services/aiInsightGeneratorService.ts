@@ -15,19 +15,19 @@ import logger from '../utils/logger'
 
 import { createProvider } from './aiProviders/ProviderFactory'
 
-type GenerateInsightInput = {
+export type GenerateInsightInput = {
     decision: InsightDecisionResult
     checkIns: CheckInType[]
     userId: string
     checkInId: string
 }
 
-type GenerateInsightOutput = {
+export type GenerateInsightOutput = {
     title: string
     content: string
 }
 
-const generateInsight = async (
+export const generateInsight = async (
     input: GenerateInsightInput
 ): Promise<GenerateInsightOutput> => {
     const { decision, checkIns } = input
@@ -103,10 +103,4 @@ const generateInsight = async (
         title,
         content: trimmedContent
     }
-}
-
-export { generateInsight }
-export type {
-    GenerateInsightInput,
-    GenerateInsightOutput
 }

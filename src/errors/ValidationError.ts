@@ -5,7 +5,7 @@ import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { CustomError } from './CustomError'
 import { errorFactory } from './factory'
 
-class ValidationError extends CustomError {
+export class ValidationError extends CustomError {
     statusCode = HttpStatusCodes.FORBIDDEN
 
     statusType = 'Validation Error'
@@ -43,5 +43,3 @@ class ValidationError extends CustomError {
         ]
     }
 }
-
-export { ValidationError }

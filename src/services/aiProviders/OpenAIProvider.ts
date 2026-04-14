@@ -10,7 +10,7 @@ import {
     type GenerateContentOutput
 } from './AIProvider'
 
-class OpenAIProvider extends AIProvider {
+export class OpenAIProvider extends AIProvider {
     private readonly modelId = aiConfig.openaiModel
 
     validateConfiguration(): void {
@@ -91,5 +91,3 @@ class OpenAIProvider extends AIProvider {
         return { content }
     }
 }
-
-export { OpenAIProvider }

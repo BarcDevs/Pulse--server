@@ -9,7 +9,7 @@ import { CustomError } from '../errors/CustomError'
 import type { ResponseType } from '../types/ResponseType'
 import logger from '../utils/logger'
 
-const errorHandler = (
+export const errorHandler = (
     err: Error,
     _req: Request,
     res: Response,
@@ -40,5 +40,3 @@ const errorHandler = (
         .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
         .json(response)
 }
-
-export { errorHandler }

@@ -16,7 +16,7 @@ import {
     hashPassword
 } from './authCrypto'
 
-const getCookiesOptions = (
+export const getCookiesOptions = (
     remember: boolean
 ) => ({
     httpOnly: true,
@@ -27,7 +27,7 @@ const getCookiesOptions = (
         : ms('1d')
 }) as CookieOptions
 
-const generateRandomUsername = () => {
+export const generateRandomUsername = () => {
     const timestamp = Date.now()
     const random = Math.floor(
         Math.random() * 10000
@@ -36,7 +36,7 @@ const generateRandomUsername = () => {
     return `user${timestamp}${random}`
 }
 
-const sanitizeUserData = (
+export const sanitizeUserData = (
     user: ServerUserType
 ): UserType =>
     Object.fromEntries(
@@ -49,7 +49,7 @@ const sanitizeUserData = (
         )
     ) as UserType
 
-const updateUserData = async (
+export const updateUserData = async (
     userId: string,
     updates: {
         firstName?: string
@@ -105,7 +105,7 @@ const updateUserData = async (
     )
 }
 
-const updateUserPassword = async (
+export const updateUserPassword = async (
     userId: string,
     currentPassword: string,
     newPassword: string
@@ -138,12 +138,4 @@ const updateUserPassword = async (
         userId,
         hashPassword(newPassword)
     )
-}
-
-export {
-    generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData,
-    updateUserData,
-    updateUserPassword
 }

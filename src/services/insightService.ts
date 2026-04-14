@@ -2,7 +2,7 @@ import logger from '../utils/logger'
 
 import { generateInsightForCheckIn } from './insightGenerationService'
 
-const generateInsightSafely = async (
+export const generateInsightSafely = async (
     userId: string,
     checkInId: string
 ): Promise<void> => {
@@ -24,5 +24,3 @@ const generateInsightSafely = async (
         )
     }
 }
-
-export { generateInsightSafely }

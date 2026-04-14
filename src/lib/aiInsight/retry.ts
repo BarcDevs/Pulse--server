@@ -9,7 +9,7 @@ type RetryConfig = {
     delayMs: number
 }
 
-const sleep = (ms: number): Promise<void> =>
+export const sleep = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
@@ -17,7 +17,7 @@ const sleep = (ms: number): Promise<void> =>
  * Non-retryable: validation/parsing errors from generated content
  * Retryable: network errors, API errors, unexpected response structure
  */
-const isRetryableError = (error: unknown): boolean => {
+export const isRetryableError = (error: unknown): boolean => {
     if (!(error instanceof Error)) return true
 
     const message = error.message.toLowerCase()
@@ -46,7 +46,7 @@ const isRetryableError = (error: unknown): boolean => {
  * @returns Promise<T> Result of operation
  * @throws Last error if all retries fail
  */
-const retryAsync = async <T>(
+export const retryAsync = async <T>(
     operation: () => Promise<T>,
     config: RetryConfig
 ): Promise<T> => {
@@ -76,9 +76,3 @@ const retryAsync = async <T>(
 }
 
 export type { RetryConfig }
-
-export {
-    isRetryableError,
-    retryAsync,
-     sleep
-}

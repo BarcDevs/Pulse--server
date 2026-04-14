@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-const sendEmail = (
+export const sendEmail = (
     email: string,
     subject: string,
     text: string
@@ -41,5 +41,3 @@ const sendEmail = (
         }
     )
 }
-
-export { sendEmail }

@@ -10,7 +10,7 @@ import {
     type GenerateContentOutput
 } from './AIProvider'
 
-class GoogleAIProvider extends AIProvider {
+export class GoogleAIProvider extends AIProvider {
     private readonly modelId = aiConfig.googleModel
 
     validateConfiguration(): void {
@@ -104,5 +104,3 @@ class GoogleAIProvider extends AIProvider {
         return { content }
     }
 }
-
-export { GoogleAIProvider }

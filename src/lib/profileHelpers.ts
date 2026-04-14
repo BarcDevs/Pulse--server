@@ -8,7 +8,7 @@ import type {
     ProfileType
 } from '../types/data/UserType'
 
-const ensureProfileExists = async (
+export const ensureProfileExists = async (
     userId: string
 ) => {
     const profile = await profileModel
@@ -21,7 +21,7 @@ const ensureProfileExists = async (
     return profile
 }
 
-const resolveHealthInterestSlug = async (
+export const resolveHealthInterestSlug = async (
     slug: string
 ) => {
     const interest = await profileModel
@@ -36,7 +36,7 @@ const resolveHealthInterestSlug = async (
     return interest
 }
 
-const resolveActivityPreferenceSlug = async (
+export const resolveActivityPreferenceSlug = async (
     slug: string
 ) => {
     const activity = await profileModel
@@ -51,7 +51,7 @@ const resolveActivityPreferenceSlug = async (
     return activity
 }
 
-const transformProfileWithInterests = (
+export const transformProfileWithInterests = (
     profile: ProfileType
 ): Omit<
     ProfileType,
@@ -92,11 +92,4 @@ const transformProfileWithInterests = (
                     ap !== undefined
             )
     }
-}
-
-export {
-    ensureProfileExists,
-    resolveActivityPreferenceSlug,
-    resolveHealthInterestSlug,
-    transformProfileWithInterests
 }

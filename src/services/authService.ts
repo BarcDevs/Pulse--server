@@ -4,7 +4,6 @@ import {
     createToken,
     hashPassword
 } from '../lib/authCrypto'
-import { generateCSRFToken } from '../lib/authCSRF'
 import {
     generateRandomUsername,
     getCookiesOptions,
@@ -23,7 +22,26 @@ import type {
     ServerUserType
 } from '../types/data/UserType'
 
-const getUser = async (
+export {
+    comparePassword,
+    createToken,
+    hashPassword
+} from '../lib/authCrypto'
+export { generateCSRFToken } from '../lib/authCSRF'
+export {
+    generateRandomUsername,
+    getCookiesOptions,
+    sanitizeUserData,
+    updateUserData,
+    updateUserPassword
+} from '../lib/authHelpers'
+export {
+    removeResetPasswordOTP,
+    sendEmailWithOTP,
+    verifyResetPasswordOTP
+} from '../lib/authOTP'
+
+export const getUser = async (
     by: 'email' | 'id',
     value: string
 ) => {
@@ -43,7 +61,7 @@ const getUser = async (
     return user
 }
 
-const login = async (
+export const login = async (
     email: string,
     password: string
 ): Promise<string> => {
@@ -65,7 +83,7 @@ const login = async (
     return createToken(user)
 }
 
-const signup = async (
+export const signup = async (
     newUser: NewUserType
 ): Promise<ServerUserType> => {
     const userExists: ServerUserType | null =
@@ -101,7 +119,7 @@ const signup = async (
     )
 }
 
-const resetPassword = async (
+export const resetPassword = async (
     userId: string,
     newPassword: string
 ): Promise<ServerUserType> =>
@@ -109,7 +127,7 @@ const resetPassword = async (
         password: hashPassword(newPassword)
     })
 
-const deactivateUser = async (
+export const deactivateUser = async (
     userId: string
 ): Promise<void> => {
     const user = await authModel.getUserById(userId)
@@ -118,24 +136,4 @@ const deactivateUser = async (
         throw errorFactory.generic.notFound('User')
 
     await authModel.disableUser(userId)
-}
-
-export {
-    comparePassword,
-    createToken,
-    deactivateUser,
-    generateCSRFToken,
-    generateRandomUsername,
-    getCookiesOptions,
-    getUser,
-    hashPassword,
-    login,
-    removeResetPasswordOTP,
-    resetPassword,
-    sanitizeUserData,
-    sendEmailWithOTP,
-    signup,
-    updateUserData,
-    updateUserPassword,
-    verifyResetPasswordOTP
 }

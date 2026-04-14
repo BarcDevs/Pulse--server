@@ -1,12 +1,7 @@
-const PASSWORD_HASH_ROUNDS = 10
+export const PASSWORD_HASH_ROUNDS = 10
 
-const OTP_CONFIG = {
+export const OTP_CONFIG = {
     LENGTH: 6,
     RANGE_MIN: 100000,
     RANGE_MAX: 900000
-}
-
-export {
-    OTP_CONFIG,
-    PASSWORD_HASH_ROUNDS
 }

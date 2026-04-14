@@ -10,7 +10,7 @@ import {
     type GenerateContentOutput
 } from './AIProvider'
 
-class AnthropicProvider extends AIProvider {
+export class AnthropicProvider extends AIProvider {
     private readonly modelId = aiConfig.anthropicModel
     private readonly apiVersion = '2024-06-01'
 
@@ -91,5 +91,3 @@ class AnthropicProvider extends AIProvider {
         return { content }
     }
 }
-
-export { AnthropicProvider }

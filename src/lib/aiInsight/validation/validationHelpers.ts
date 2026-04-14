@@ -4,10 +4,10 @@ import {
     MEDICAL_TERMS
 } from '../../../constants/aiInsight/validation'
 
-const normalizeContent = (content: string): string =>
+export const normalizeContent = (content: string): string =>
     content.replace(/\s+/g, ' ').trim()
 
-const countSentences = (content: string): number => {
+export const countSentences = (content: string): number => {
     const normalized = normalizeContent(content)
     const parts = normalized
         .split(/[.!?]+/)
@@ -16,7 +16,7 @@ const countSentences = (content: string): number => {
     return parts.length
 }
 
-const containsHardBlockPhrase = (
+export const containsHardBlockPhrase = (
     content: string
 ): boolean => {
     const normalized = normalizeContent(content)
@@ -26,7 +26,7 @@ const containsHardBlockPhrase = (
     )
 }
 
-const containsForbiddenMedicalContext = (
+export const containsForbiddenMedicalContext = (
     content: string
 ): boolean => {
     const normalized = normalizeContent(content)
@@ -40,11 +40,4 @@ const containsForbiddenMedicalContext = (
                 )
         )
     )
-}
-
-export {
-    containsForbiddenMedicalContext,
-    containsHardBlockPhrase,
-    countSentences,
-    normalizeContent
 }

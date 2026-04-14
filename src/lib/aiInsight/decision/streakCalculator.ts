@@ -1,6 +1,6 @@
 import { dayInMs } from '../../../constants/time'
 
-const calculateCurrentStreak = (
+export const calculateCurrentStreak = (
     checkInDates: Date[],
     timezone?: string
 ): number => {
@@ -60,5 +60,3 @@ const calculateCurrentStreak = (
 
     return streak
 }
-
-export { calculateCurrentStreak }

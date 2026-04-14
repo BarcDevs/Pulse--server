@@ -1,6 +1,6 @@
 import type { CheckInType } from '../../../types/data/CheckInType'
 
-const extractRecentActivities = (
+export const extractRecentActivities = (
     checkIns: CheckInType[],
     limit: number = 6
 ): string =>
@@ -9,7 +9,7 @@ const extractRecentActivities = (
         .slice(-limit)
         .join(', ')
 
-const calculateAverageMood = (
+export const calculateAverageMood = (
     checkIns: CheckInType[]
 ): string => {
     if (checkIns.length === 0) {
@@ -24,7 +24,7 @@ const calculateAverageMood = (
     return (sum / checkIns.length).toFixed(1)
 }
 
-const getTopActivities = (
+export const getTopActivities = (
     checkIns: CheckInType[],
     limit: number = 3
 ): string => {
@@ -42,22 +42,13 @@ const getTopActivities = (
         .join(', ')
 }
 
-const formatMoodTrend = (moodTrend?: number[]): string =>
+export const formatMoodTrend = (moodTrend?: number[]): string =>
     moodTrend?.length ? moodTrend.join(' → ') : 'not available'
 
-const formatStreakLine = (currentStreak?: number): string =>
+export const formatStreakLine = (currentStreak?: number): string =>
     currentStreak && currentStreak > 0
         ? `Current streak: ${currentStreak} day${currentStreak > 1 ? 's' : ''}`
         : 'The user is just beginning their check-in habit'
 
-const getLatestMood = (checkIns: CheckInType[]): string =>
+export const getLatestMood = (checkIns: CheckInType[]): string =>
     checkIns.at(-1)?.moodScore?.toString() ?? 'not available'
-
-export {
-    calculateAverageMood,
-    extractRecentActivities,
-    formatMoodTrend,
-    formatStreakLine,
-    getLatestMood,
-    getTopActivities
-}

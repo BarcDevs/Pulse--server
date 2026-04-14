@@ -1,6 +1,6 @@
 import type { CheckInType } from '../../../types/data/CheckInType'
 
-const isMoodDropping = (
+export const isMoodDropping = (
     checkIns: CheckInType[],
     consecutiveCount: number = 3
 ): boolean => {
@@ -35,5 +35,3 @@ const isMoodDropping = (
 
     return true
 }
-
-export { isMoodDropping }

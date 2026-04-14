@@ -7,14 +7,14 @@ import type {
 import { isMoodDropping } from './moodTrendDetector'
 import { calculateCurrentStreak } from './streakCalculator'
 
-class InvalidInsightInputError extends Error {
+export class InvalidInsightInputError extends Error {
     constructor(message: string) {
         super(message)
         this.name = 'InvalidInsightInputError'
     }
 }
 
-const decideInsightType = (
+export const decideInsightType = (
     checkIns: CheckInType[],
     timezone?: string
 ): InsightDecisionResult => {
@@ -107,9 +107,4 @@ const decideInsightType = (
         reason: 'Not enough data yet for a weekly summary',
         metadata
     }
-}
-
-export {
-    decideInsightType,
-    InvalidInsightInputError
 }

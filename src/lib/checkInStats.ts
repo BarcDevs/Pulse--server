@@ -10,7 +10,7 @@ type CheckInStatsData = Pick<
     | 'checkInDate'
 >
 
-const calculateStreaks = (
+export const calculateStreaks = (
     dates: Date[]
 ): {
     currentStreak: number
@@ -61,7 +61,7 @@ const calculateStreaks = (
     return { currentStreak, longestStreak }
 }
 
-const calculateAverageMood = (
+export const calculateAverageMood = (
     checkIns: CheckInStatsData[]
 ): number =>
     checkIns.length > 0
@@ -70,7 +70,7 @@ const calculateAverageMood = (
     ) / checkIns.length
         : 0
 
-const calculateAveragePain = (
+export const calculateAveragePain = (
     checkIns: CheckInStatsData[]
 ): number =>
     checkIns.length > 0
@@ -79,7 +79,7 @@ const calculateAveragePain = (
     ) / checkIns.length
         : 0
 
-const calculateTopActivities = (
+export const calculateTopActivities = (
     checkIns: CheckInStatsData[]
 ): string[] => {
     const activityCount = checkIns
@@ -96,11 +96,4 @@ const calculateTopActivities = (
         .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([name]) => name)
-}
-
-export {
-    calculateAverageMood,
-    calculateAveragePain,
-    calculateStreaks,
-    calculateTopActivities
 }

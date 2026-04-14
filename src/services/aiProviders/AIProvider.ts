@@ -1,16 +1,16 @@
-type AIProviderConfig = {
+export type AIProviderConfig = {
     apiKey: string
 }
 
-type GenerateContentInput = {
+export type GenerateContentInput = {
     prompt: string
 }
 
-type GenerateContentOutput = {
+export type GenerateContentOutput = {
     content: string
 }
 
-abstract class AIProvider {
+export abstract class AIProvider {
     protected apiKey: string
 
     constructor(config: AIProviderConfig) {
@@ -22,11 +22,4 @@ abstract class AIProvider {
     ): Promise<GenerateContentOutput>
 
     abstract validateConfiguration(): void
-}
-
-export { AIProvider }
-export type {
-    AIProviderConfig,
-    GenerateContentInput,
-    GenerateContentOutput
 }

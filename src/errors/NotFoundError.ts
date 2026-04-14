@@ -2,7 +2,7 @@ import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
 import { CustomError } from './CustomError'
 
-class NotFoundError extends CustomError {
+export class NotFoundError extends CustomError {
     statusCode = HttpStatusCodes.NOT_FOUND
 
     statusType = 'Not Found'
@@ -31,5 +31,3 @@ class NotFoundError extends CustomError {
         ]
     }
 }
-
-export { NotFoundError }
