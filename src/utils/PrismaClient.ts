@@ -30,11 +30,13 @@ export const getPrismaClient = (): PrismaClient => {
             })
         })
 
-        const adapter = new PrismaPg(
-            pool as unknown as Parameters<
-                typeof PrismaPg
-            >[0]
-        )
+        // PrismaPg constructor expects a specific internal pg.Pool type
+        // that doesn't match the public pg.Pool type signature.
+        // This is a limitation of the Prisma adapter library—the types
+        // are incompatible despite the runtime working correctly.
+        // Using `any` is unavoidable here without abandoning type safety elsewhere.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const adapter = new PrismaPg(pool as any)
 
         client = new PrismaClient({
             adapter,

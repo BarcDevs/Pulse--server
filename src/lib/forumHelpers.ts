@@ -1,5 +1,6 @@
 import { errorFactory } from '../errors/factory'
 import * as forumModel from '../models/ForumModel'
+import type { TagType } from '../types/data/TagType'
 import type { TagQuery } from '../types/query'
 import { capitalizeText } from '../utils/capitalizeText'
 
@@ -12,7 +13,7 @@ export const ensurePostExists = async (postId: string) => {
 }
 
 export const extractRemovedTags = (
-    prevTags: Array<{ name: string }> | undefined,
+    prevTags: TagType[] | undefined,
     newTagNames: string[] | undefined
 ) => {
     if (!prevTags || !newTagNames)

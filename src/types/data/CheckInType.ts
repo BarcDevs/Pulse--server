@@ -64,7 +64,7 @@ export type CheckInStatsType = {
 export type CreateAIInsightInput = {
     userId: string
     checkInId: string
-    insightType: string
+    insightType: InsightType
     title: string
     content: string
     classification?: 'baseline' | 'intervention'

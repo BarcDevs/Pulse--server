@@ -248,7 +248,7 @@ export const getTagsByPostId = async (id: string):
                 }
             }
         }
-    })) as TagType[]
+    })) as unknown as TagType[]
 
 export const createReply = async (reply: NewReplyType):
     Promise<ReplyType> => {
