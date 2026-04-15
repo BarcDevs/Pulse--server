@@ -25,7 +25,7 @@ model User {
   passwordUpdatedAt       DateTime  @default(now())
   deletedAt               DateTime?
 
-  profile         Profile?
+  profile Profile?
 
   @@index([email, createdAt, active])
 }
@@ -148,34 +148,48 @@ model Reply {
 }
 
 model DailyCheckIn {
-  id          String      @id @default(uuid())
-  profileId   String
-  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  checkInDate DateTime    @db.Date
-  moodScore   Int
-  painLevel   Int
-  activities  String[]
-  notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime?
-  insights    AIInsight[]
+  id              String              @id @default(uuid())
+  profileId       String
+  profile         Profile             @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  checkInDate     DateTime            @db.Date
+  moodScore       Int
+  painLevel       Int
+  activities      String[]
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime?
+  insights        AIInsight[]
+  recommendations PostRecommendation?
 
   @@unique([profileId, checkInDate])
   @@index([profileId, checkInDate])
 }
 
+model PostRecommendation {
+  id                String       @id @default(uuid())
+  userId            String
+  checkInId         String       @unique
+  checkIn           DailyCheckIn @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  items             Json // Array<{postId, score, contentType, breakdown}>
+  generatedAt       DateTime     @default(now())
+  generationPending Boolean      @default(false)
+  pendingSince      DateTime?
+
+  @@index([userId])
+}
+
 model AIInsight {
-  id              String       @id @default(uuid())
-  checkInId       String
-  type            InsightType
-  classification  String       @default("baseline")
-  priority        String       @default("normal")
-  content         String
-  createdAt       DateTime     @default(now())
-  title           String
-  userId          String
-  metadata        Json?
-  checkIn         DailyCheckIn @relation(fields: [checkInId], references: [id])
+  id             String       @id @default(uuid())
+  checkInId      String
+  type           InsightType
+  classification String       @default("baseline")
+  priority       String       @default("normal")
+  content        String
+  createdAt      DateTime     @default(now())
+  title          String
+  userId         String
+  metadata       Json?
+  checkIn        DailyCheckIn @relation(fields: [checkInId], references: [id])
 
   @@unique([checkInId, type])
   @@index([userId, createdAt])

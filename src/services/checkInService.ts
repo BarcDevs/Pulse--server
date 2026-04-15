@@ -22,6 +22,7 @@ import type { CheckInQuery } from '../types/query'
 import { Prisma } from '../utils/PrismaClient'
 
 import { generateInsightSafely } from './insightService'
+import { generateRecommendationsSafely } from './recommendationsService'
 
 export const getCheckIns = async (
     userId: string,
@@ -57,7 +58,7 @@ export const createCheckIn = async (
 
     if (existing) {
         const {
-            userId: _userId, 
+            userId: _userId,
             ...updateData
         } = data
         await checkInModel.updateCheckIn(
@@ -68,6 +69,11 @@ export const createCheckIn = async (
         )
 
         await generateInsightSafely(
+            data.userId,
+            existing.id
+        )
+
+        await generateRecommendationsSafely(
             data.userId,
             existing.id
         )
@@ -100,6 +106,11 @@ export const createCheckIn = async (
             checkIn.id
         )
 
+        await generateRecommendationsSafely(
+            data.userId,
+            checkIn.id
+        )
+
         const checkInWithInsights =
             await checkInModel
                 .findTodayCheckIn(
@@ -113,8 +124,7 @@ export const createCheckIn = async (
         }
     } catch (err) {
         if (
-            err
-            instanceof Prisma.PrismaClientKnownRequestError
+            err instanceof Prisma.PrismaClientKnownRequestError
             && err.code === 'P2002'
         )
             throw errorFactory.generic.conflict(
@@ -164,6 +174,11 @@ export const updateCheckIn = async (
     )
 
     await generateInsightSafely(
+        userId,
+        existing.id
+    )
+
+    await generateRecommendationsSafely(
         userId,
         existing.id
     )

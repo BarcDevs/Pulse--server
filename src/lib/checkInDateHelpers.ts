@@ -5,7 +5,7 @@ export const toDateStr = (d: Date): string =>
     d.toISOString().slice(0, 10)
 
 export const prevDay = (dateStr: string): string => {
-    const d = new Date(`${dateStr} T00:00:00Z`)
+    const d = new Date(`${dateStr}T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() - 1)
     return toDateStr(d)
 }

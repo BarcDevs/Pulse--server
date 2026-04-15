@@ -2,6 +2,8 @@
 import supertest from 'supertest'
 
 import App from '../../app'
+import * as insightService from '../../services/insightService'
+import * as recommendationsService from '../../services/recommendationsService'
 import type { CheckInType } from '../../types/data/CheckInType'
 import { prismaMock } from '../setup/jestSetup'
 import {
@@ -10,6 +12,9 @@ import {
     createMockUser,
     withCsrfAuth
 } from '../setup/testSetup'
+
+jest.mock('../../services/recommendationsService')
+jest.mock('../../services/insightService')
 
 const createMockCheckIn = (
     overrides?: Partial<CheckInType>
@@ -32,18 +37,23 @@ const createMockCheckIn = (
 
 describe('Check-in Routes', () => {
     beforeEach(() => {
+        jest.clearAllMocks()
         prismaMock.profile.findUnique
-            .mockImplementation(async () => ({
+            .mockResolvedValue({
                 id: 'test-profile-id-123',
                 userId: 'test-user-id-123',
                 timezone: null
-            }))
+            })
         prismaMock.profile.update
             .mockImplementation(async (args) => ({
                 id: 'test-profile-id-123',
                 userId: 'test-user-id-123',
                 ...args.data
             }))
+        jest.mocked(recommendationsService.generateRecommendationsSafely)
+            .mockResolvedValue(undefined)
+        jest.mocked(insightService.generateInsightSafely)
+            .mockResolvedValue(undefined)
     })
 
     // ==================== GET CHECK-INS ====================
@@ -506,22 +516,34 @@ describe('Check-in Routes', () => {
             const token = createAuthToken(mockUser)
             prismaMock.dailyCheckIn.findMany.mockResolvedValue([
                 {
+                    id: 'checkin-1',
+                    profileId: 'test-profile-id-123',
                     moodScore: 8,
                     painLevel: 2,
                     activities: [
                         'walking',
                         'yoga'
                     ],
-                    checkInDate: new Date('2026-03-02T00:00:00Z')
+                    notes: null,
+                    checkInDate: new Date('2026-03-02T00:00:00Z'),
+                    createdAt: new Date(),
+                    updatedAt: null,
+                    insights: []
                 },
                 {
+                    id: 'checkin-2',
+                    profileId: 'test-profile-id-123',
                     moodScore: 6,
                     painLevel: 4,
                     activities: [
                         'walking',
                         'reading'
                     ],
-                    checkInDate: new Date('2026-03-01T00:00:00Z')
+                    notes: null,
+                    checkInDate: new Date('2026-03-01T00:00:00Z'),
+                    createdAt: new Date(),
+                    updatedAt: null,
+                    insights: []
                 }
             ])
 

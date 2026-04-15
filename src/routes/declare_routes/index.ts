@@ -10,6 +10,7 @@ import authRoute from '../AuthRoute'
 import checkInRoute from '../CheckInRoute'
 import forumRoute from '../ForumRoute'
 import profileRoute from '../profileRoute'
+import recommendationsRoute from '../RecommendationsRoute'
 import recoveryGoalRoute from '../RecoveryGoalRoute'
 import userRoute from '../userRoute'
 
@@ -39,6 +40,7 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('check-in'), checkInRoute)
     app.use(baseRoute('forum'), forumRoute)
     app.use(baseRoute('profile'), profileRoute)
+    app.use(baseRoute('recommendations'), recommendationsRoute)
     app.use(baseRoute('recovery-goals'), recoveryGoalRoute)
     app.use(baseRoute('users'), userRoute)
 

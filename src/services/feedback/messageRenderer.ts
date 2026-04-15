@@ -43,14 +43,13 @@ export const renderInterventionMessage = async (
             }
         }
     } catch (error) {
-        logger.warn(
-            'AI rendering failed, falling back to locale', {
-                error: error instanceof Error
-                    ? error.message
-                    : 'Unknown error',
-                intent,
-                userLanguage
-            })
+        logger.warn('AI rendering failed, falling back to locale', {
+            error: error instanceof Error
+                ? error.message
+                : 'Unknown error',
+            intent,
+            userLanguage
+        })
     }
 
     const localeMessage = renderFallback(
