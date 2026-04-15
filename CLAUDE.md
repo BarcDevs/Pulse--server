@@ -6,6 +6,9 @@ HealEase Server — Node.js/Express TypeScript backend for a health/wellness for
 ## Architecture
 MVC: Controller → Service → Model → Database
 
+## Project Roadmap
+[HealEase Roadmap](https://www.notion.so/HealEase-Development-Timeline-3129e15469d28100be18df6e1ce0a984?source=copy_link)
+
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
