@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import * as authController from '../../controllers/AuthController'
+import * as authController from '../../controllers/authController'
 import * as authOTP from '../../lib/authOTP'
 import * as authServices from '../../services/authService'
 import {

@@ -1,7 +1,7 @@
 import type { Response } from 'express'
 
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import type { ResponseType } from '../types/ResponseType'
+import type { ResponseType } from '../types/responseType'
 
 export const successResponse = <T>(
     res: Response,

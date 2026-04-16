@@ -6,7 +6,7 @@ export type {
 export {
     decideInsightType,
     InvalidInsightInputError
-} from './decision/insightDecision'
+} from './decision/InsightDecision'
 export {
     isMoodDropping
 } from './decision/moodTrendDetector'

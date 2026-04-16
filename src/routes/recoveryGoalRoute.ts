@@ -9,7 +9,7 @@ import {
     getGoals,
     updateGoal,
     updateMilestone
-} from '../controllers/RecoveryGoalController'
+} from '../controllers/recoveryGoalController'
 import {
     csrfMiddleware,
     extractCsrfToken

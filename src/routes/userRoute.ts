@@ -4,7 +4,7 @@ import {
     deleteUser,
     updatePassword,
     updateUser
-} from '../controllers/UserController'
+} from '../controllers/userController'
 import {
     csrfMiddleware,
     extractCsrfToken

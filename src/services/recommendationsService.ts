@@ -11,9 +11,9 @@ import {
     computeSemanticSimilarity,
     scorePost
 } from '../lib/recommendations/scoring'
-import * as checkInModel from '../models/CheckInModel'
-import * as forumModel from '../models/ForumModel'
-import * as recommendationsModel from '../models/RecommendationsModel'
+import * as checkInModel from '../models/checkInModel'
+import * as forumModel from '../models/forumModel'
+import * as recommendationsModel from '../models/recommendationsModel'
 import type { PostType } from '../types/data/PostType'
 import type {
     CheckInState,

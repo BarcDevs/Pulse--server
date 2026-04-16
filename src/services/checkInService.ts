@@ -1,4 +1,4 @@
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     resolveDate,
     resolveTimestampInUserTimeZone
@@ -9,9 +9,9 @@ import {
     calculateStreaks,
     calculateTopActivities
 } from '../lib/checkInStats'
-import * as authModel from '../models/AuthModel'
-import * as checkInModel from '../models/CheckInModel'
-import { getProfileIdForUser } from '../models/CheckInModel'
+import * as authModel from '../models/authModel'
+import * as checkInModel from '../models/checkInModel'
+import { getProfileIdForUser } from '../models/checkInModel'
 import type {
     CheckInStatsType,
     CheckInType,
@@ -19,7 +19,7 @@ import type {
     UpdateCheckInType
 } from '../types/data/CheckInType'
 import type { CheckInQuery } from '../types/query'
-import { Prisma } from '../utils/PrismaClient'
+import { Prisma } from '../utils/prismaClient'
 
 import { generateInsightSafely } from './insightService'
 import { generateRecommendationsSafely } from './recommendationsService'
@@ -122,10 +122,10 @@ export const createCheckIn = async (
             checkIn: checkInWithInsights!,
             created: true
         }
-    } catch (err) {
+    } catch (err: unknown) {
         if (
             err instanceof Prisma.PrismaClientKnownRequestError
-            && err.code === 'P2002'
+            && (err as Prisma.PrismaClientKnownRequestError).code === 'P2002'
         )
             throw errorFactory.generic.conflict(
                 `Today's check-in`

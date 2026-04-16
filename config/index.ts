@@ -10,7 +10,7 @@ import type {
     EnvConfig,
     GoogleOAuthConfig,
     ServerConfig
-} from '../src/types/ConfigType'
+} from '../src/types/configType'
 
 const env: EnvConfig = config.get<EnvConfig>('env')
 const isDev = (env as string) === 'development'

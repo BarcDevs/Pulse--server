@@ -1,5 +1,5 @@
-import { errorFactory } from '../errors/factory'
-import * as profileModel from '../models/ProfileModel'
+import { errorFactory } from '../errors/factory/ErrorFactory'
+import * as profileModel from '../models/profileModel'
 import type {
     ActivityPreferenceType,
     HealthInterestType,

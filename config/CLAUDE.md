@@ -2,8 +2,8 @@
 
 ## Environment Variables
 - **NEVER** use `process.env` directly — always use exported config objects
-- `config/index.ts` is the **only** place where `config.get()` is called
-- All config is accessed via typed exports from `config/index.ts`
+- `config/ErrorFactory.ts` is the **only** place where `config.get()` is called
+- All config is accessed via typed exports from `config/ErrorFactory.ts`
 
 ## Config Files
 - `default.ts` — Default values
@@ -17,7 +17,7 @@
 2. Add mapping in `custom-environment-variables.ts`
 3. Add default/environment value in the appropriate config file
 4. Add to the type definition in `src/types/ConfigType.ts`
-5. Export from `config/index.ts`
+5. Export from `config/ErrorFactory.ts`
 
 ## Pattern
 ```typescript

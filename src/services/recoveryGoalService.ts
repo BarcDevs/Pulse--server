@@ -1,6 +1,6 @@
-import { errorFactory } from '../errors/factory'
-import * as RecoveryGoalModel from '../models/RecoveryGoalModel'
-import { getProfileIdForUser } from '../models/RecoveryGoalModel'
+import { errorFactory } from '../errors/factory/ErrorFactory'
+import * as RecoveryGoalModel from '../models/recoveryGoalModel'
+import { getProfileIdForUser } from '../models/recoveryGoalModel'
 import type {
     MilestoneType,
     NewRecoveryGoalType,

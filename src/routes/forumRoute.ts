@@ -12,7 +12,7 @@ import {
     getTags,
     updatePost,
     updateReply
-} from '../controllers/ForumController'
+} from '../controllers/forumController'
 import {
     csrfMiddleware,
     extractCsrfToken

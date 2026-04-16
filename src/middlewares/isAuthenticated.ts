@@ -6,7 +6,7 @@ import type {
 import jwt from 'jsonwebtoken'
 
 import { authConfig } from '../../config'
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import type { UserType } from '../types/data/UserType'
 
 export const isAuthenticated = (

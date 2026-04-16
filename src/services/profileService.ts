@@ -4,7 +4,7 @@ import {
     resolveHealthInterestSlug,
     transformProfileWithInterests
 } from '../lib/profileHelpers'
-import * as profileModel from '../models/ProfileModel'
+import * as profileModel from '../models/profileModel'
 
 type UpdateProfileData = {
     image?: string | null

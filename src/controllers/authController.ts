@@ -10,7 +10,7 @@ import {
     hourInMs,
     minuteInMs
 } from '../constants/time'
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
 import { createToken } from '../lib/authCrypto'
 import { generateCSRFToken } from '../lib/authCSRF'

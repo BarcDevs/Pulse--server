@@ -1,7 +1,7 @@
 import type { Request } from 'express'
 import type { ValidationResult } from 'joi'
 
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
 
 export const extractUserId = (req: Request): string => {

@@ -6,7 +6,7 @@ import type {
     PostRecommendationItem,
     RecommendationSnapshot
 } from '../types/data/RecommendationType'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 import { postInclude } from './queries/postQuery'
 

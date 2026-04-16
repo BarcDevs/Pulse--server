@@ -1,4 +1,4 @@
-import * as authModel from '../models/AuthModel'
+import * as authModel from '../models/authModel'
 import logger from '../utils/logger'
 
 export const toDateStr = (d: Date): string =>

@@ -13,7 +13,7 @@ import {
 } from '../setup/testSetup'
 
 // Mock error factory
-jest.mock('../../errors/factory', () => ({
+jest.mock('../../errors/factory/ErrorFactory', () => ({
     errorFactory: {
         auth: {
             unauthorized: jest.fn(() => {

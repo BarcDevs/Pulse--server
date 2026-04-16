@@ -1,5 +1,5 @@
-import { errorFactory } from '../errors/factory'
-import * as forumModel from '../models/ForumModel'
+import { errorFactory } from '../errors/factory/ErrorFactory'
+import * as forumModel from '../models/forumModel'
 import type { TagType } from '../types/data/TagType'
 import type { TagQuery } from '../types/query'
 import { capitalizeText } from '../utils/capitalizeText'

@@ -11,7 +11,7 @@ import {
     me,
     resetPassword,
     signup
-} from '../controllers/AuthController'
+} from '../controllers/authController'
 import {
     csrfMiddleware,
     extractCsrfToken

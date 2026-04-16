@@ -4,9 +4,9 @@ import { OAuth2Client } from 'google-auth-library'
 import { googleOAuthConfig } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
-import * as authModel from '../models/AuthModel'
+import * as authModel from '../models/authModel'
 import type { ServerUserType } from '../types/data/UserType'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 const oAuth2Client = new OAuth2Client(
     googleOAuthConfig.clientId,

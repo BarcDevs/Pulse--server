@@ -2,7 +2,7 @@ import type {
     NewUserType,
     ServerUserType
 } from '../types/data/UserType'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 export const getUserById = async (id: string):
     Promise<ServerUserType | null> => {

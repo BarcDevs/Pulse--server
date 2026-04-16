@@ -5,7 +5,7 @@ import { authConfig, isDev } from '../../config'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
-import * as authModel from '../models/AuthModel'
+import * as authModel from '../models/authModel'
 import type {
     ServerUserType,
     UserType

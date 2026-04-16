@@ -1,7 +1,7 @@
 // @ts-nocheck
 /* eslint-ignore-file */
 import * as cache from '../../lib/cache/progressInsightsCache'
-import * as checkInModel from '../../models/CheckInModel'
+import * as checkInModel from '../../models/checkInModel'
 import * as progressInsightsService from '../../services/progressInsightsService'
 
 jest.mock('../../models/CheckInModel')

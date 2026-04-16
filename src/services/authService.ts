@@ -1,10 +1,10 @@
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
     createToken,
     hashPassword
 } from '../lib/authCrypto'
-import * as authModel from '../models/AuthModel'
+import * as authModel from '../models/authModel'
 import type {
     NewUserType,
     ServerUserType

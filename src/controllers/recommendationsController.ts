@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import { successResponse } from '../responses/success'
 import * as recommendationsService from '../services/recommendationsService'
 import type { RecommendationFeedResponse } from '../types/data/RecommendationType'
