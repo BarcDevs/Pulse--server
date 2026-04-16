@@ -47,14 +47,6 @@ export type InterventionContext = {
     }>
 }
 
-// Tone rules (shared by AI + fallback)
-export type ToneRules = {
-    supportive: true
-    nonClinical: true
-    concise: true
-    nonJudgmental: true
-}
-
 // Locale message structure (language-specific)
 export type LocaleMessages = Record<
     LowStateDetectionReason,
@@ -108,7 +100,3 @@ export type InterventionMetadata = {
     fallbackUsed?: boolean
 }
 
-export type MessageTemplate = {
-    intro: string
-    validation: string
-}

@@ -29,10 +29,6 @@ export type UpdateRecoveryGoalType = {
     description?: string
 }
 
-export type NewMilestoneType = {
-    goalId: string
-    title: string
-}
 
 export type UpdateMilestoneType = {
     title?: string

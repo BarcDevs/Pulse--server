@@ -3,11 +3,15 @@ import type { Request, Response } from 'express'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { errorFactory } from '../errors/factory'
 import { ValidationError } from '../errors/ValidationError'
-import { sanitizeUserData } from '../lib/authHelpers'
+import {
+    sanitizeUserData,
+    updateUserData,
+    updateUserPassword
+} from '../lib/authHelpers'
 import { successResponse } from '../responses/success'
 import { updatePasswordSchema } from '../schemas/user/updatePasswordSchema'
 import { updateUserSchema } from '../schemas/user/updateUserSchema'
-import * as authServices from '../services/authService'
+import { deactivateUser } from '../services/authService'
 import type { UserType } from '../types/data/UserType'
 
 export const updateUser = async (
@@ -25,7 +29,7 @@ export const updateUser = async (
         )
 
     const updatedUser =
-        await authServices.updateUserData(
+        await updateUserData(
             userId,
             validatedData
         )
@@ -51,12 +55,11 @@ export const updatePassword = async (
             updatePasswordSchema.validate(req.body)
         )
 
-    const updatedUser = await authServices
-        .updateUserPassword(
-            userId,
-            validatedData.currentPassword,
-            validatedData.newPassword
-        )
+    const updatedUser = await updateUserPassword(
+        userId,
+        validatedData.currentPassword,
+        validatedData.newPassword
+    )
 
     successResponse<{user: UserType}>(
         res,
@@ -74,7 +77,7 @@ export const deleteUser = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
-    await authServices.deactivateUser(userId)
+    await deactivateUser(userId)
 
     successResponse(
         res,

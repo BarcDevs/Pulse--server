@@ -12,6 +12,18 @@ import {
 } from '../constants/time'
 import { errorFactory } from '../errors/factory'
 import { ValidationError } from '../errors/ValidationError'
+import { createToken } from '../lib/authCrypto'
+import { generateCSRFToken } from '../lib/authCSRF'
+import {
+    generateRandomUsername,
+    getCookiesOptions,
+    sanitizeUserData
+} from '../lib/authHelpers'
+import {
+    removeResetPasswordOTP,
+    sendEmailWithOTP,
+    verifyResetPasswordOTP
+} from '../lib/authOTP'
 import { successResponse } from '../responses/success'
 import { confirmEmailSchema } from '../schemas/auth/confirmEmailSchema'
 import { forgotPasswordSchema } from '../schemas/auth/forgotPasswordSchema'
@@ -19,14 +31,6 @@ import { loginSchema } from '../schemas/auth/loginSchema'
 import { resetPasswordSchema } from '../schemas/auth/resetPasswordSchema'
 import { signupSchema } from '../schemas/auth/signupSchema'
 import * as authServices from '../services/authService'
-import {
-    generateCSRFToken,
-    generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData,
-    sendEmailWithOTP,
-    verifyResetPasswordOTP
-} from '../services/authService'
 import * as googleOAuthService from '../services/googleOAuthService'
 import type {
     ServerUserType,
@@ -259,7 +263,7 @@ export const resetPassword = async (
         throw errorFactory.auth.resetPassword()
 
     await authServices.resetPassword(user.id, newPassword)
-    await authServices.removeResetPasswordOTP(user.id)
+    await removeResetPasswordOTP(user.id)
 
     successResponse<{
         user: UserType
@@ -321,7 +325,7 @@ export const googleCallback = async (
             code
         )
 
-    const token = authServices.createToken(user)
+    const token = createToken(user)
     const {
         csrfSecret,
         csrfToken: _csrf

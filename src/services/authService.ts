@@ -4,42 +4,11 @@ import {
     createToken,
     hashPassword
 } from '../lib/authCrypto'
-import {
-    generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData,
-    updateUserData,
-    updateUserPassword
-} from '../lib/authHelpers'
-import {
-    removeResetPasswordOTP,
-    sendEmailWithOTP,
-    verifyResetPasswordOTP
-} from '../lib/authOTP'
 import * as authModel from '../models/AuthModel'
 import type {
     NewUserType,
     ServerUserType
 } from '../types/data/UserType'
-
-export {
-    comparePassword,
-    createToken,
-    hashPassword
-} from '../lib/authCrypto'
-export { generateCSRFToken } from '../lib/authCSRF'
-export {
-    generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData,
-    updateUserData,
-    updateUserPassword
-} from '../lib/authHelpers'
-export {
-    removeResetPasswordOTP,
-    sendEmailWithOTP,
-    verifyResetPasswordOTP
-} from '../lib/authOTP'
 
 export const getUser = async (
     by: 'email' | 'id',

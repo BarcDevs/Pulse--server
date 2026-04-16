@@ -14,9 +14,6 @@ import type { ReplyType } from '../../types/data/ReplyType'
 import type { TagType } from '../../types/data/TagType'
 import type { ServerUserType } from '../../types/data/UserType'
 
-// Re-export prismaMock from jestSetup for backward compatibility
-export { prismaMock } from './jestSetup'
-
 // ==================== TEST TYPES ====================
 export type MockRequest = {
     body?: Record<string, unknown>
@@ -226,4 +223,4 @@ export const createMockNext = (): NextFunction =>
 export {
     createToken,
     hashPassword
-} from '../../services/authService'
+} from '../../lib/authCrypto'
