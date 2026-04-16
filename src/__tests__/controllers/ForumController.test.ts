@@ -1,8 +1,8 @@
 // @ts-nocheck
 import type { Request, Response } from 'express'
 
-import * as forumController from '../controllers/forumController'
 import * as forumService from '../../services/forumService'
+import * as forumController from '../controllers/forumController'
 import {
     createMockPost,
     createMockReply,
