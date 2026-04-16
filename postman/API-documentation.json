@@ -39,9 +39,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/login",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/login",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -68,9 +68,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/signup",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/signup",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -102,9 +102,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/me",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/me",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -146,9 +146,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/logout",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/logout",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -192,9 +192,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/refresh",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/refresh",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -226,9 +226,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/forgot-password/{{email}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/forgot-password/{{email}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -277,9 +277,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/reset-password",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/reset-password",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -296,9 +296,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/google",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/google",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -315,9 +315,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/google/callback",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/google/callback",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -335,9 +335,9 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/confirm-email",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/auth/confirm-email",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -364,9 +364,9 @@
           "request": {
             "method": "PATCH",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/users/me",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/users/me",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -393,9 +393,9 @@
           "request": {
             "method": "PATCH",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/users/password",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/users/password",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -422,9 +422,9 @@
           "request": {
             "method": "DELETE",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/users/me",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/users/me",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -457,9 +457,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts?filter=newest&limit=20",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts?filter=newest&limit=20",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -487,9 +487,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -523,9 +523,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -558,9 +558,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -594,9 +594,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -638,9 +638,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -675,9 +675,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -712,9 +712,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -750,9 +750,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -778,9 +778,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/tags",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/tags",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -798,9 +798,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/forum/tags/{{tagId}}",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/forum/tags/{{tagId}}",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -826,9 +826,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in/",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -846,9 +846,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/stats",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in/stats",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -865,9 +865,9 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/{{apiVersion}}/check-in/stats",
+                  "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in/stats",
                   "host": [
-                    "{{base_url}}"
+                    "{{baseUrl}}}"
                   ],
                   "path": [
                     "api",
@@ -1000,9 +1000,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in/",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1054,9 +1054,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/progress-insights",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in/progress-insights",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1073,9 +1073,9 @@
           "request": {
             "method": "PATCH",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/check-in",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1107,9 +1107,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1125,9 +1125,9 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/health-interests",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1154,9 +1154,9 @@
           "request": {
             "method": "DELETE",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/health-interests/{{slug}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/health-interests/{{slug}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1180,9 +1180,9 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/activities",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1209,9 +1209,9 @@
           "request": {
             "method": "DELETE",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/activities/{{slug}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/activities/{{slug}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1235,9 +1235,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/health-interests",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/list/health-interests",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1255,9 +1255,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/profile/list/activities",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/profile/list/activities",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1294,9 +1294,9 @@
               "raw": "{\n  \"title\": \"Build a consistent sleep schedule\",\n  \"description\": \"Establish a regular sleep routine for better recovery\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1332,9 +1332,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1365,9 +1365,9 @@
               "raw": "{\n  \"title\": \"Updated Goal Title\",\n  \"description\": \"Updated description\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1390,9 +1390,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1423,9 +1423,9 @@
               "raw": "{\n  \"title\": \"No screens 1 hour before bed\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1457,9 +1457,9 @@
               "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"isCompleted\": false\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1484,9 +1484,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
+              "raw": "{{baseUrl}}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}}"
               ],
               "path": [
                 "api",
@@ -1509,9 +1509,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/status",
+          "raw": "{{baseUrl}}}/api/status",
           "host": [
-            "{{base_url}}"
+            "{{baseUrl}}}"
           ],
           "path": [
             "api",
@@ -1527,9 +1527,9 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api-docs",
+          "raw": "{{baseUrl}}}/api-docs",
           "host": [
-            "{{base_url}}"
+            "{{baseUrl}}}"
           ],
           "path": [
             "api-docs"
