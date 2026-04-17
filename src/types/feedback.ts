@@ -9,7 +9,7 @@ export type DetectionRuleResult = {
     triggered: boolean
     reason?: LowStateDetectionReason
     weight: number
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
 }
 
 export type LowStateResult = {
