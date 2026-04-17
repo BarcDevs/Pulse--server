@@ -5,11 +5,29 @@ export type LowStateDetectionReason =
     | 'HIGH_PAIN'
     | 'NEGATIVE_TREND'
 
+export type LowMoodMetadata = {
+    moodScore: number
+}
+
+export type HighPainMetadata = {
+    painLevel: number
+}
+
+export type NegativeTrendMetadata = {
+    moodDelta: number
+    painDelta: number
+    trendDuration: number
+}
+
 export type DetectionRuleResult = {
     triggered: boolean
     reason?: LowStateDetectionReason
     weight: number
-    metadata?: Record<string, unknown>
+    metadata?: (
+        | LowMoodMetadata
+        | HighPainMetadata
+        | NegativeTrendMetadata
+    )
 }
 
 export type LowStateResult = {

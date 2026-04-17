@@ -12,6 +12,12 @@ import {
     calculateTrendDuration
 } from './helpers'
 
+type NegativeTrendMetadata = {
+    moodDelta: number
+    painDelta: number
+    trendDuration: number
+}
+
 export const detectLowMood = (
     current: CheckInType
 ): DetectionRuleResult => {
@@ -144,17 +150,20 @@ export const detectLowState = (
 
     const deltas: Record<string, number> = {}
     triggeredRules.forEach(r => {
-        if (r.metadata?.moodDelta !== undefined) {
-            deltas.moodDelta = r.metadata.moodDelta
+        if (r.metadata && 'moodDelta' in r.metadata) {
+            const metadata = r.metadata as NegativeTrendMetadata
+            deltas.moodDelta = metadata.moodDelta
         }
-        if (r.metadata?.painDelta !== undefined) {
-            deltas.painDelta = r.metadata.painDelta
+        if (r.metadata && 'painDelta' in r.metadata) {
+            const metadata = r.metadata as NegativeTrendMetadata
+            deltas.painDelta = metadata.painDelta
         }
     })
 
-    const trendDuration = triggeredRules
-            .find(r => r.metadata?.trendDuration)?.metadata?.trendDuration
-        || 1
+    const trendDuration = (
+        triggeredRules.find(r => r.reason === 'NEGATIVE_TREND')
+            ?.metadata as NegativeTrendMetadata | undefined
+    )?.trendDuration || 1
 
     return {
         lowState: {

@@ -5,6 +5,7 @@ import {
     detectNegativeTrend
 } from '../../../services/feedback/interventionEngine'
 import type { CheckInType } from '../../../types/data/CheckInType'
+import type { NegativeTrendMetadata } from '../../../types/feedback'
 
 const createMockCheckIn = (
     overrides?: Partial<CheckInType>
@@ -122,7 +123,8 @@ describe('Intervention Engine - Detection Rules', () => {
 
             expect(result.triggered).toBe(true)
             expect(result.reason).toBe('NEGATIVE_TREND')
-            expect(result.metadata?.moodDelta).toBe(2)
+            const meta = result.metadata as NegativeTrendMetadata
+            expect(meta?.moodDelta).toBe(2)
         })
 
         it('should trigger on pain increase with sparse history', () => {
@@ -140,7 +142,8 @@ describe('Intervention Engine - Detection Rules', () => {
             const result = detectNegativeTrend(current, history)
 
             expect(result.triggered).toBe(true)
-            expect(result.metadata?.painDelta).toBe(2)
+            const meta = result.metadata as NegativeTrendMetadata
+            expect(meta?.painDelta).toBe(2)
         })
 
         it('should not trigger if delta < 2', () => {
@@ -191,7 +194,8 @@ describe('Intervention Engine - Detection Rules', () => {
             const result = detectNegativeTrend(current, history)
 
             expect(result.triggered).toBe(true)
-            expect(result.metadata?.trendDuration).toBeGreaterThan(0)
+            const meta = result.metadata as NegativeTrendMetadata
+            expect(meta?.trendDuration).toBeGreaterThan(0)
         })
 
         it('should calculate trendDuration when trend triggers', () => {
@@ -214,7 +218,8 @@ describe('Intervention Engine - Detection Rules', () => {
             const result = detectNegativeTrend(current, history)
 
             expect(result.triggered).toBe(true)
-            expect(result.metadata?.trendDuration).toBeGreaterThan(0)
+            const meta = result.metadata as NegativeTrendMetadata
+            expect(meta?.trendDuration).toBeGreaterThan(0)
         })
     })
 })
@@ -300,7 +305,12 @@ describe('Intervention Engine - Edge Cases', () => {
 
     it('should handle null/undefined activity safely', () => {
         const current = createMockCheckIn({ activities: [] })
-        const history = [createMockCheckIn({ activities: null as any })]
+        const history = [
+            Object.assign(
+                createMockCheckIn({ activities: [] }),
+                { activities: null }
+            ) as CheckInType
+        ]
 
         const { lowState } = detectLowState(current, history)
 
