@@ -10,6 +10,6 @@
 - `loggerMiddleWare.ts` — Request logging
 
 ## Rules
-- Declare and apply all middleware centrally in `middlewares/index.ts`
+- Declare and apply all middleware centrally in `middlewares/ErrorFactory.ts`
 - camelCase filenames
 - Each file has a single responsibility

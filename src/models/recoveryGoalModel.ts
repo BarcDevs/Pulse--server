@@ -1,9 +1,9 @@
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import type {
     MilestoneType,
     RecoveryGoalType
 } from '../types/data/RecoveryGoalType'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 export const getProfileIdForUser = async (
     userId: string
@@ -147,7 +147,8 @@ export const createMilestoneWithinTransaction = async (data: {
     goalId: string
     title: string
 }): Promise<MilestoneType> =>
-    Prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Prisma.$transaction(async (tx: any) => {
         const goal = await tx.recoveryGoal.findUnique({
             where: { id: data.goalId }
         })

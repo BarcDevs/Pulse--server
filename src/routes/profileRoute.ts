@@ -9,7 +9,7 @@ import {
     removeActivityPreference,
     removeHealthInterest,
     updateProfile
-} from '../controllers/ProfileController'
+} from '../controllers/profileController'
 import {
     csrfMiddleware,
     extractCsrfToken

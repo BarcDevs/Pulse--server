@@ -1,9 +1,9 @@
 import { decideInsightType } from '../lib/aiInsight'
 import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import { getFallbackContent } from '../lib/aiInsight/validation/aiInsightValidator'
-import * as aiInsightModel from '../models/AIInsightModel'
-import { getUserTimezone } from '../models/AuthModel'
-import * as checkInModel from '../models/CheckInModel'
+import * as aiInsightModel from '../models/aiInsightModel'
+import { getUserTimezone } from '../models/authModel'
+import * as checkInModel from '../models/checkInModel'
 import type { CheckInType } from '../types/data/CheckInType'
 import logger from '../utils/logger'
 

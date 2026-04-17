@@ -9,7 +9,7 @@ export type DetectionRuleResult = {
     triggered: boolean
     reason?: LowStateDetectionReason
     weight: number
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
 }
 
 export type LowStateResult = {
@@ -45,14 +45,6 @@ export type InterventionContext = {
         type: 'consistency' | 'spike' | 'drop' | 'recovery'
         value: number
     }>
-}
-
-// Tone rules (shared by AI + fallback)
-export type ToneRules = {
-    supportive: true
-    nonClinical: true
-    concise: true
-    nonJudgmental: true
 }
 
 // Locale message structure (language-specific)
@@ -108,7 +100,3 @@ export type InterventionMetadata = {
     fallbackUsed?: boolean
 }
 
-export type MessageTemplate = {
-    intro: string
-    validation: string
-}

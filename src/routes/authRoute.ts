@@ -11,7 +11,7 @@ import {
     me,
     resetPassword,
     signup
-} from '../controllers/AuthController'
+} from '../controllers/authController'
 import {
     csrfMiddleware,
     extractCsrfToken
@@ -96,7 +96,7 @@ router.route('/login').post(login)
  *                 type: string
  *               username:
  *                 type: string
- *                 description: Optional — auto-generated if omitted
+ *                 description: Optional - auto-generated if omitted
  *               email:
  *                 type: string
  *                 format: email

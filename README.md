@@ -79,7 +79,7 @@ backend/
 │   │
 │   ├── types/
 │   │   ├── express.d.ts         # Extends Express Request with userId and other custom fields
-│   │   └── index.ts             # Shared domain types (User, Checkin, Post, etc.)
+│   │   └── ErrorFactory.ts             # Shared domain types (User, Checkin, Post, etc.)
 │   │
 │   └── server.ts                # App entry point; registers middleware, routes, and starts server
 │

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import { errorFactory } from '../errors/factory'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     ValidationError
 } from '../errors/ValidationError'

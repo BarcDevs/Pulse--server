@@ -11,7 +11,7 @@ import type {
 } from '../types/data/ReplyType'
 import type { TagType } from '../types/data/TagType'
 import type { PostQuery } from '../types/query'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 import {
     connectTags,

@@ -1,7 +1,7 @@
 import type { AIInsight } from '../../../prisma/generated/prisma/client'
 import type { InsightType } from '../../../prisma/generated/prisma/enums'
 import { prismaMock } from '../../__tests__/setup/jestSetup'
-import * as aiInsightModel from '../AIInsightModel'
+import * as aiInsightModel from '../aiInsightModel'
 
 const createMockInsight = (
     overrides?: Record<string, unknown>

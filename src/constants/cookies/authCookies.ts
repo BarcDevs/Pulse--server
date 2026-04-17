@@ -3,7 +3,7 @@ import type { CookieOptions } from 'express'
 import { isDev } from '../../../config'
 import {
     dayInMs,
-    hourInMs, 
+    hourInMs,
     minuteInMs
 } from '../time'
 

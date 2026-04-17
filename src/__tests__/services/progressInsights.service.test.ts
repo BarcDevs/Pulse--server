@@ -1,7 +1,7 @@
 // @ts-nocheck
 /* eslint-ignore-file */
 import * as cache from '../../lib/cache/progressInsightsCache'
-import * as checkInModel from '../../models/CheckInModel'
+import * as checkInModel from '../../models/checkInModel'
 import * as progressInsightsService from '../../services/progressInsightsService'
 
 jest.mock('../../models/CheckInModel')
@@ -211,7 +211,7 @@ describe('Progress Insights Service', () => {
                     checkInModel,
                     'getCheckInsForDateRange'
                 ).mockImplementation(
-                    async (_, start, end) => {
+                    async (_, start, _end) => {
                         const now = new Date()
                         const sevenDaysAgo = new Date(
                             now.getTime() - 604800000
@@ -262,7 +262,7 @@ describe('Progress Insights Service', () => {
                     checkInModel,
                     'getCheckInsForDateRange'
                 ).mockImplementation(
-                    async (_, start, end) => {
+                    async (_, start, _end) => {
                         const now = new Date()
                         const sevenDaysAgo = new Date(
                             now.getTime() - 604800000

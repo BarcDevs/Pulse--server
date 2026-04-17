@@ -2,8 +2,6 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import * as checkInModel from '../../models/CheckInModel'
-import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthToken,
     createMockUser

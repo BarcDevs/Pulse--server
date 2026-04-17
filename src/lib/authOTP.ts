@@ -1,7 +1,7 @@
 import ms from 'ms'
 
 import { authConfig } from '../../config'
-import * as authModel from '../models/AuthModel'
+import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
 
 export const generateResetPasswordOTP = (): {

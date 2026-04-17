@@ -2,7 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
-import { errorFactory } from '../../errors/factory'
+import { errorFactory } from '../../errors/factory/ErrorFactory'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,

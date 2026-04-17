@@ -3,7 +3,7 @@ import type {
     ProfileActivityPreference,
     ProfileHealthInterest
 } from '../../prisma/generated/prisma/client'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 type ProfileData = Partial<
     Pick<

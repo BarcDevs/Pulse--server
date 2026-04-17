@@ -4,8 +4,8 @@ import {
     resolveTags,
     validateOwnerHelper
 } from '../lib/forumHelpers'
-import { getTagsByPostId } from '../models/ForumModel'
-import * as forumModel from '../models/ForumModel'
+import { getTagsByPostId } from '../models/forumModel'
+import * as forumModel from '../models/forumModel'
 import type {
     NewPostType,
     UpdatePostType

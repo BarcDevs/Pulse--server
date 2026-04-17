@@ -14,8 +14,8 @@ import {
     classifyTrend,
     computeDeltas
 } from '../lib/progressInsights/trendClassifier'
-import * as checkInModel from '../models/CheckInModel'
-import { getProfileIdForUser } from '../models/CheckInModel'
+import * as checkInModel from '../models/checkInModel'
+import { getProfileIdForUser } from '../models/checkInModel'
 import type { ProgressInsight } from '../types/data/ProgressInsightType'
 import logger from '../utils/logger'
 

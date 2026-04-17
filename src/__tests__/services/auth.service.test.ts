@@ -4,14 +4,18 @@ import jwt from 'jsonwebtoken'
 import {
     comparePassword,
     createToken,
-    generateCSRFToken,
+    hashPassword
+} from '../../lib/authCrypto'
+import { generateCSRFToken } from '../../lib/authCSRF'
+import {
     generateRandomUsername,
     getCookiesOptions,
-    hashPassword,
+    sanitizeUserData
+} from '../../lib/authHelpers'
+import { verifyResetPasswordOTP } from '../../lib/authOTP'
+import {
     login,
-    sanitizeUserData,
-    signup,
-    verifyResetPasswordOTP
+    signup
 } from '../../services/authService'
 import { prismaMock } from '../setup/jestSetup'
 import { createMockUser } from '../setup/testSetup'

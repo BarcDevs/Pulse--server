@@ -36,13 +36,6 @@ export type NewCheckInType = {
     notes?: string
 }
 
-export type CheckInDataType = {
-    profileId: string
-    moodScore: number
-    painLevel: number
-    activities: string[]
-    notes?: string
-}
 
 export type UpdateCheckInType = {
     userId: string

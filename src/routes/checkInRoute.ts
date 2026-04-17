@@ -6,7 +6,7 @@ import {
     getCheckInStats,
     getProgressInsights,
     updateCheckIn
-} from '../controllers/CheckInController'
+} from '../controllers/checkInController'
 import {
     csrfMiddleware,
     extractCsrfToken

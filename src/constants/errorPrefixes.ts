@@ -1,9 +1,0 @@
-export enum ErrorPrefixes {
-    FETCH = '[FETCH ERROR] ',
-    CREATE = '[CREATE ERROR] ',
-    UPDATE = '[UPDATE ERROR] ',
-    DELETE = '[DELETE ERROR] ',
-    REGISTRATION = '[REGISTRATION ERROR] ',
-    VALIDATION = '[VALIDATION ERROR] ',
-    AUTH = '[AUTHENTICATION ERROR] ',
-}

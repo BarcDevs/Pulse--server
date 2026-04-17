@@ -2,7 +2,7 @@ import type {
     AIInsightType,
     CreateAIInsightInput
 } from '../types/data/CheckInType'
-import Prisma from '../utils/PrismaClient'
+import Prisma from '../utils/prismaClient'
 
 export const createInsight = async (
     input: CreateAIInsightInput

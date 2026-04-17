@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 
-import * as authController from '../../controllers/AuthController'
+import * as authController from '../../controllers/authController'
+import * as authOTP from '../../lib/authOTP'
 import * as authServices from '../../services/authService'
 import {
     createMockRequest,
@@ -13,8 +14,13 @@ jest.mock('../../services/authService', () => ({
     login: jest.fn(),
     signup: jest.fn(),
     getUser: jest.fn(),
-    sendEmailWithOTP: jest.fn(),
     resetPassword: jest.fn(),
+    deactivateUser: jest.fn()
+}))
+
+jest.mock('../../lib/authOTP', () => ({
+    ...jest.requireActual('../../lib/authOTP'),
+    sendEmailWithOTP: jest.fn(),
     removeResetPasswordOTP: jest.fn()
 }))
 
@@ -323,7 +329,7 @@ describe('AuthController', () => {
     // ==================== FORGOT PASSWORD ====================
     describe('forgotPassword', () => {
         it('should send OTP email', async () => {
-            ;(authServices.sendEmailWithOTP as jest.Mock)
+            ;(authOTP.sendEmailWithOTP as jest.Mock)
                 .mockResolvedValue(undefined)
 
             const req = createMockRequest({
@@ -336,7 +342,7 @@ describe('AuthController', () => {
 
             await authController.forgotPassword(req, res)
 
-            expect(authServices.sendEmailWithOTP).toHaveBeenCalledWith(
+            expect(authOTP.sendEmailWithOTP).toHaveBeenCalledWith(
                 'test@test.com'
             )
             expect(res.status)
@@ -473,7 +479,7 @@ describe('AuthController', () => {
                     .mockResolvedValue(mockUser)
                 ;(authServices.resetPassword as jest.Mock)
                     .mockResolvedValue(undefined)
-                ;(authServices.removeResetPasswordOTP as jest.Mock)
+                ;(authOTP.removeResetPasswordOTP as jest.Mock)
                     .mockResolvedValue(undefined)
 
                 const req = createMockRequest({
@@ -492,7 +498,7 @@ describe('AuthController', () => {
                     mockUser.id,
                     'NewPassword1'
                 )
-                expect(authServices.removeResetPasswordOTP)
+                expect(authOTP.removeResetPasswordOTP)
                     .toHaveBeenCalledWith(mockUser.id)
                 expect(res.status)
                     .toHaveBeenCalledWith(200)
