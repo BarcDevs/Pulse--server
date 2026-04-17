@@ -1,441 +1,711 @@
 {
-    "info": {
-        "name": "HealEase — Forum",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "name": "HealEase - Forum",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
     },
-    "variable": [
-        { "key": "baseUrl", "value": "http://localhost:4000" },
-        { "key": "csrfToken", "value": "" },
-        { "key": "postId", "value": "" },
-        { "key": "replyId", "value": "" },
-        { "key": "tagId", "value": "" }
-    ],
-    "item": [
+    {
+      "key": "apiVersion",
+      "value": "v1"
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "postId",
+      "value": ""
+    },
+    {
+      "key": "replyId",
+      "value": ""
+    },
+    {
+      "key": "tagId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth Errors",
+      "item": [
         {
-            "name": "Login",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Captures CSRF token', () => {",
-                            "    const csrfToken = pm.response.json().data._csrf",
-                            "    pm.environment.set('csrfToken', csrfToken)",
-                            "    pm.expect(csrfToken).to.be.a('string')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Get Posts Without Authentication",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('testEmail', 'user@test.com')",
+                  "pm.environment.set('testPassword', 'testpass123')"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
                 ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testuser123\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/login",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "login"]
-                }
+                "type": "text/javascript"
+              }
             }
-        },
-        {
-            "name": "Get Posts",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns array of posts', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json.data).to.be.an('array')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts?limit=10&page=1&filter=newest",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts"],
-                    "query": [
-                        { "key": "limit", "value": "10" },
-                        { "key": "page", "value": "1" },
-                        { "key": "filter", "value": "newest" }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "Create Post",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns created post', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.environment.set('postId', json.data.id)",
-                            "    pm.expect(json.message).to.eql('Post created successfully')",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data).to.have.property('title')",
-                            "    pm.expect(json.data).to.have.property('body')",
-                            "    pm.expect(json.data).to.have.property('authorId')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"title\": \"My recovery journey so far\",\n    \"body\": \"It has been three weeks and I am feeling much better.\",\n    \"category\": \"General\",\n    \"tags\": [\"recovery\", \"progress\"]\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts"]
-                }
-            }
-        },
-        {
-            "name": "Get Post",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns single post', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.id).to.eql(pm.environment.get('postId'))",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}"]
-                }
-            }
-        },
-        {
-            "name": "Update Post",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns updated post', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.title).to.eql('My recovery journey — week 3')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "PUT",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"title\": \"My recovery journey — week 3\",\n    \"body\": \"Updated body with more detail about my progress.\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}"]
-                }
-            }
-        },
-        {
-            "name": "Get Replies",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns array of replies', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.be.an('array')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}/reply",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}", "reply"]
-                }
-            }
-        },
-        {
-            "name": "Create Reply",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns created reply', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.environment.set('replyId', json.data.id)",
-                            "    pm.expect(json.message).to.eql('Reply created successfully')",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data).to.have.property('body')",
-                            "    pm.expect(json.data).to.have.property('postId')",
-                            "    pm.expect(json.data).to.have.property('authorId')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"body\": \"Great post! Keep going, you are doing amazing.\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}/reply",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}", "reply"]
-                }
-            }
-        },
-        {
-            "name": "Update Reply",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns updated reply', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.body).to.eql('Updated — keep pushing forward!')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "PUT",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"body\": \"Updated — keep pushing forward!\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}/reply/{{replyId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}", "reply", "{{replyId}}"]
-                }
-            }
-        },
-        {
-            "name": "Delete Reply",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns success message', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.message).to.include('deleted')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "DELETE",
-                "header": [
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}/reply/{{replyId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}", "reply", "{{replyId}}"]
-                }
-            }
-        },
-        {
-            "name": "Delete Post",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns success message', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.message).to.include('deleted')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "DELETE",
-                "header": [
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
-                ],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/posts/{{postId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "posts", "{{postId}}"]
-                }
-            }
-        },
-        {
-            "name": "Get Tags",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns array of tags', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.be.an('array')",
-                            "    if (json.data.length > 0) {",
-                            "        pm.environment.set('tagId', json.data[0].id)",
-                            "    }",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/tags?limit=10&page=1",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "tags"],
-                    "query": [
-                        { "key": "limit", "value": "10" },
-                        { "key": "page", "value": "1" }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "Get Tag",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns single tag', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('id')",
-                            "    pm.expect(json.data.id).to.eql(pm.environment.get('tagId'))",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/forum/tags/{{tagId}}",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "forum", "tags", "{{tagId}}"]
-                }
-            }
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "name": "Login",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"{{testPassword}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Sets csrfToken and token', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.environment.set('csrfToken', data._csrf)",
+                  "    pm.environment.set('token', data.token)",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Forum Tests",
+      "item": [
+        {
+          "name": "Get Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns array of posts', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json).to.have.property('message')",
+                  "    pm.expect(json.data).to.be.an('array')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts?limit=10&page=1&filter=newest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "filter",
+                  "value": "newest"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns created post', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.environment.set('postId', json.data.id)",
+                  "    pm.expect(json.message).to.eql('Post created successfully')",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data).to.have.property('title')",
+                  "    pm.expect(json.data).to.have.property('body')",
+                  "    pm.expect(json.data).to.have.property('authorId')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"My recovery journey so far\",\n    \"body\": \"It has been three weeks and I am feeling much better.\",\n    \"category\": \"General\",\n    \"tags\": [\"recovery\", \"progress\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns single post', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data.id).to.eql(pm.environment.get('postId'))",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns updated post', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data.title).to.eql('My recovery journey \u00e2\u20ac\u201d week 3')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"My recovery journey \u00e2\u20ac\u201d week 3\",\n    \"body\": \"Updated body with more detail about my progress.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Replies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns array of replies', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.be.an('array')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "reply"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Reply",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns created reply', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.environment.set('replyId', json.data.id)",
+                  "    pm.expect(json.message).to.eql('Reply created successfully')",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data).to.have.property('body')",
+                  "    pm.expect(json.data).to.have.property('postId')",
+                  "    pm.expect(json.data).to.have.property('authorId')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"body\": \"Great post! Keep going, you are doing amazing.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "reply"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Reply",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns updated reply', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data.body).to.eql('Updated \u00e2\u20ac\u201d keep pushing forward!')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"body\": \"Updated \u00e2\u20ac\u201d keep pushing forward!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "reply",
+                "{{replyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Reply",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns success message', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.message).to.include('deleted')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply/{{replyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "reply",
+                "{{replyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns success message', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.message).to.include('deleted')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns array of tags', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.be.an('array')",
+                  "    if (json.data.length > 0) {",
+                  "        pm.environment.set('tagId', json.data[0].id)",
+                  "    }",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/tags?limit=10&page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "tags"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => {",
+                  "    pm.response.to.have.status(200)",
+                  "})",
+                  "",
+                  "pm.test('Returns single tag', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.have.property('id')",
+                  "    pm.expect(json.data.id).to.eql(pm.environment.get('tagId'))",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/tags/{{tagId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "tags",
+                "{{tagId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "item": [
+        {
+          "name": "Logout",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

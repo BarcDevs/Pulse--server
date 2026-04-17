@@ -1,314 +1,421 @@
 {
-    "info": {
-        "name": "HealEase — Auth",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "name": "HealEase - Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
     },
-    "variable": [
-        { "key": "baseUrl", "value": "http://localhost:4000" },
-        { "key": "csrfToken", "value": "" },
-        { "key": "otp", "value": "" }
-    ],
-    "item": [
+    {
+      "key": "apiVersion",
+      "value": "v1"
+    },
+    {
+      "key": "_csrf",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": ""
+    },
+    {
+      "key": "testPassword",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth Errors",
+      "item": [
         {
-            "name": "Login",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns message and data', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json).to.have.property('data')",
-                            "})",
-                            "",
-                            "pm.test('Data contains _csrf token', () => {",
-                            "    const csrfToken = pm.response.json().data._csrf",
-                            "    pm.environment.set('csrfToken', csrfToken)",
-                            "    pm.expect(csrfToken).to.be.a('string')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Login with Missing Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"password\": \"TestPass123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('testEmail', 'user@test.com')",
+                  "pm.environment.set('testPassword', 'testpass123')"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
                 ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testuser123\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/login",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "login"]
-                }
+                "type": "text/javascript"
+              }
             }
+          ]
         },
         {
-            "name": "Signup",
-            "event": [
-                {
-                    "listen": "prerequest",
-                    "script": {
-                        "exec": [
-                            "const ts = Date.now()",
-                            "const r = Math.floor(Math.random() * 999999)",
-                            "pm.environment.set('signupEmail', `signup${ts}${r}@example.com`)",
-                            "pm.environment.set('signupUsername', `user${r}`)"
-                        ],
-                        "type": "text/javascript"
-                    }
-                },
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 201', () => {",
-                            "    pm.response.to.have.status(201)",
-                            "})",
-                            "",
-                            "pm.test('Returns created user', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json.data).to.have.property('user')",
-                            "    pm.expect(json.data.user).to.have.property('id')",
-                            "    pm.expect(json.data.user).to.have.property('email')",
-                            "    pm.environment.set('signupUserId', json.data.user.id)",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Login with Missing Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
                 ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"username\": \"{{signupUsername}}\",\n    \"email\": \"{{signupEmail}}\",\n    \"password\": \"TestUser123\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/signup",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "signup"]
-                }
+                "type": "text/javascript"
+              }
             }
+          ]
         },
         {
-            "name": "Get CSRF Token",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns fresh CSRF token', () => {",
-                            "    const csrfToken = pm.response.json().data._csrf",
-                            "    pm.environment.set('csrfToken', csrfToken)",
-                            "    pm.expect(csrfToken).to.be.a('string')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Login with Wrong Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/csrf",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "csrf"]
-                }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"WrongPassword123\"}"
             }
-        },
-        {
-            "name": "Get Me",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns current user', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('user')",
-                            "    pm.expect(json.data.user).to.have.property('id')",
-                            "    pm.expect(json.data.user).to.have.property('email')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/me",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "me"]
-                }
-            }
-        },
-        {
-            "name": "Forgot Password",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns success message', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "})",
-                            "",
-                            "pm.test('Captures OTP from response (dev mode)', () => {",
-                            "    const json = pm.response.json()",
-                            "    if (json.data && json.data.OTP) {",
-                            "        pm.environment.set('otp', json.data.OTP)",
-                            "        pm.expect(json.data.OTP).to.be.a('number')",
-                            "    }",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/forgot-password/test@example.com",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "forgot-password", "test@example.com"]
-                }
-            }
-        },
-        {
-            "name": "Confirm Email",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 201', () => {",
-                            "    pm.response.to.have.status(201)",
-                            "})",
-                            "",
-                            "pm.test('Returns confirmed user', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json.data).to.have.property('user')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
                 ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"OTP\": {{otp}}\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/confirm-email",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "confirm-email"]
-                }
+                "type": "text/javascript"
+              }
             }
+          ]
         },
         {
-            "name": "Reset Password",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns updated user', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "    pm.expect(json.data).to.have.property('user')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Get Me Without Authentication",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "PUT",
-                "header": [
-                    { "key": "Content-Type", "value": "application/json" },
-                    { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
                 ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n    \"email\": \"test@example.com\",\n    \"newPassword\": \"newPass1\",\n    \"userOTP\": {{otp}}\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/reset-password",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "reset-password"]
-                }
+                "type": "text/javascript"
+              }
             }
+          ]
         },
         {
-            "name": "Logout",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test('Status 200', () => {",
-                            "    pm.response.to.have.status(200)",
-                            "})",
-                            "",
-                            "pm.test('Returns success message', () => {",
-                            "    const json = pm.response.json()",
-                            "    pm.expect(json).to.have.property('message')",
-                            "})"
-                        ],
-                        "type": "text/javascript"
-                    }
-                }
+          "name": "Refresh CSRF Without Authentication",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/v1/auth/logout",
-                    "host": ["{{baseUrl}}"],
-                    "path": ["api", "v1", "auth", "logout"]
-                }
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "refresh"
+              ]
             }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "name": "Login",
+      "item": [
+        {
+          "name": "Login with Correct Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"{{testPassword}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns token', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('token')",
+                  "    pm.environment.set('token', data.token)",
+                  "})",
+                  "pm.test('Returns _csrf', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('_csrf')",
+                  "    pm.environment.set('_csrf', data._csrf)",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authenticated Tests",
+      "item": [
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))",
+                  "pm.test(\"Returns user data\", () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property(\"user\")",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh CSRF Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))",
+                  "pm.test(\"Returns new CSRF token\", () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property(\"_csrf\")",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "item": [
+        {
+          "name": "Logout",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

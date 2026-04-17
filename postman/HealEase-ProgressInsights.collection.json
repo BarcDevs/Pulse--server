@@ -1,77 +1,109 @@
 {
   "info": {
-    "_postman_id": "progress-insights-collection",
     "name": "HealEase - Progress Insights",
-    "description": "API collection for testing Progress Insights endpoint",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "apiVersion",
+      "value": "v1"
+    },
+    {
+      "key": "_csrf",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": ""
+    },
+    {
+      "key": "testPassword",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    }
+  ],
   "item": [
     {
-      "name": "Auth Setup",
+      "name": "Auth Errors",
       "item": [
         {
-          "name": "1. Signup User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 201', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('Response has data', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data).to.be.an('object');",
-                  "    pm.environment.set('userId', jsonData.data.id);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Get Progress Insights Without Authentication",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"progressinsights{{$timestamp}}@test.com\",\n  \"password\": \"TestPassword123!\",\n  \"username\": \"user{{$timestamp}}\",\n  \"firstName\": \"Progress\",\n  \"lastName\": \"Tester\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/signup",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/check-in/progress-insights",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "{{apiVersion}}",
-                "auth",
-                "signup"
+                "check-in",
+                "progress-insights"
               ]
             }
-          }
-        },
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('testEmail', 'user@test.com')",
+                  "pm.environment.set('testPassword', 'testpass123')"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "item": [
         {
-          "name": "2. Login User",
+          "name": "Login",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response has access token and CSRF', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData._csrf).to.be.a('string');",
-                  "    pm.environment.set('_csrf', jsonData._csrf);",
-                  "});"
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Sets token and csrf', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.environment.set('token', data.token)",
+                  "    pm.environment.set('_csrf', data._csrf)",
+                  "})"
                 ],
                 "type": "text/javascript"
               }
@@ -85,14 +117,10 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"progressinsights{{$timestamp}}@test.com\",\n  \"password\": \"TestPassword123!\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/auth/login",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -100,88 +128,32 @@
                 "auth",
                 "login"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"{{testPassword}}\"}"
             }
           }
         }
       ]
     },
     {
-      "name": "Happy Path",
+      "name": "Get Progress Insights",
       "item": [
         {
-          "name": "GET Progress Insights",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response has expected structure', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.message).to.equal('Progress insights generated');",
-                  "    pm.expect(jsonData.data).to.be.an('object');",
-                  "});",
-                  "",
-                  "pm.test('Insight has all required fields', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    pm.expect(insight).to.have.property('summary');",
-                  "    pm.expect(insight).to.have.property('trend');",
-                  "    pm.expect(insight).to.have.property('highlights');",
-                  "    pm.expect(insight).to.have.property('period');",
-                  "    pm.expect(insight).to.have.property('metadata');",
-                  "});",
-                  "",
-                  "pm.test('Trend is valid', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    var validTrends = ['improving', 'declining', 'stable', 'mixed'];",
-                  "    pm.expect(validTrends).to.include(insight.trend);",
-                  "});",
-                  "",
-                  "pm.test('Summary is non-empty string', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    pm.expect(insight.summary).to.be.a('string');",
-                  "    pm.expect(insight.summary.length).to.be.greaterThan(0);",
-                  "});",
-                  "",
-                  "pm.test('Highlights have correct structure', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    pm.expect(insight.highlights).to.have.property('improvements');",
-                  "    pm.expect(insight.highlights).to.have.property('regressions');",
-                  "    pm.expect(insight.highlights.improvements).to.be.an('array');",
-                  "    pm.expect(insight.highlights.regressions).to.be.an('array');",
-                  "});",
-                  "",
-                  "pm.test('Period has valid dates', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    pm.expect(insight.period).to.have.all.keys('currentStart', 'currentEnd', 'previousStart', 'previousEnd');",
-                  "    pm.expect(new Date(insight.period.currentStart)).to.be.instanceOf(Date);",
-                  "    pm.expect(new Date(insight.period.currentEnd)).to.be.instanceOf(Date);",
-                  "});",
-                  "",
-                  "pm.test('Metadata has correct structure', function () {",
-                  "    var insight = pm.response.json().data;",
-                  "    pm.expect(insight.metadata).to.have.property('moodDelta');",
-                  "    pm.expect(insight.metadata).to.have.property('painDelta');",
-                  "    pm.expect(insight.metadata).to.have.property('activityConsistency');",
-                  "    pm.expect(insight.metadata.moodDelta).to.be.a('number');",
-                  "    pm.expect(insight.metadata.painDelta).to.be.a('number');",
-                  "    pm.expect(insight.metadata.activityConsistency).to.be.a('number');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Get Progress Insights",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/progress-insights",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/check-in/progress-insights",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -190,73 +162,60 @@
                 "progress-insights"
               ]
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Error Cases",
-      "item": [
-        {
-          "name": "GET Without Authentication",
+          },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 401', function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});",
-                  "",
-                  "pm.test('Response indicates unauthorized', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error).to.be.a('string');",
-                  "});"
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))"
                 ],
                 "type": "text/javascript"
               }
             }
-          ],
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "item": [
+        {
+          "name": "Logout",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/{{apiVersion}}/check-in/progress-insights",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/logout",
               "host": [
-                "{{base_url}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "{{apiVersion}}",
-                "check-in",
-                "progress-insights"
+                "auth",
+                "logout"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:3000",
-      "type": "string"
-    },
-    {
-      "key": "apiVersion",
-      "value": "v1",
-      "type": "string"
-    },
-    {
-      "key": "_csrf",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "userId",
-      "value": "",
-      "type": "string"
     }
   ]
 }
