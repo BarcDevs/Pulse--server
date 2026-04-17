@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["**/*.test.ts", "**/*.test.js", "**/__tests__/**"],
   "env": {
     "browser": true,
     "es2021": true
@@ -67,5 +68,14 @@
         ]
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.js", "**/__tests__/**"],
+      "rules": {
+        "@typescript-eslint/no-require-imports": "off",
+        "custom-rules/enforce-object-breaking": "off"
+      }
+    }
+  ]
 }

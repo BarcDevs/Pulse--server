@@ -136,6 +136,8 @@ export default [
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
             'no-console': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
+            'custom-rules/enforce-object-breaking': 'off',
             'custom-rules/enforce-function-call-breaking': 'off'
         }
     }

@@ -211,7 +211,6 @@ describe('Progress Insights Service', () => {
                     checkInModel,
                     'getCheckInsForDateRange'
                 ).mockImplementation(
-                    // eslint-disable-next-line custom-rules/enforce-object-breaking
                     async (_, start, _end) => {
                         const now = new Date()
                         const sevenDaysAgo = new Date(
@@ -263,7 +262,7 @@ describe('Progress Insights Service', () => {
                     checkInModel,
                     'getCheckInsForDateRange'
                 ).mockImplementation(
-                    async (_, start, end) => {
+                    async (_, start, _end) => {
                         const now = new Date()
                         const sevenDaysAgo = new Date(
                             now.getTime() - 604800000
