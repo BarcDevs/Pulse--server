@@ -1,3 +1,4 @@
+import { Prisma } from '../../prisma/generated/prisma/client'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     resolveDate,
@@ -19,7 +20,6 @@ import type {
     UpdateCheckInType
 } from '../types/data/CheckInType'
 import type { CheckInQuery } from '../types/query'
-import { Prisma } from '../utils/prismaClient'
 
 import { generateInsightSafely } from './insightService'
 import { generateRecommendationsSafely } from './recommendationsService'

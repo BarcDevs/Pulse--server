@@ -4,13 +4,10 @@ import { PrismaPg } from '@prisma/adapter-pg'
 
 import { databaseConfig, isDev } from '../../config'
 import {
-    Prisma as PrismaNamespace,
     PrismaClient
 } from '../../prisma/generated/prisma/client'
 
 import logger from './logger'
-
-export { PrismaNamespace as Prisma }
 
 let client: PrismaClient
 
