@@ -1,6 +1,6 @@
 import type { CheckInType } from '../../types/data/CheckInType'
 import type { CheckInState } from '../../types/data/RecommendationType'
-import { calculateCurrentStreak } from '../aiInsight'
+import { calculateCurrentStreak } from '../aiInsight/decision/streakCalculator'
 
 const STOP_WORDS = new Set([
     'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'by', 'for',

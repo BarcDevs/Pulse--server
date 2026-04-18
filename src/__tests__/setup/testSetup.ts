@@ -218,9 +218,3 @@ export const createMockResponse = (): MockResponse => {
 
 export const createMockNext = (): NextFunction =>
     jest.fn() as unknown as NextFunction
-
-// ==================== RE-EXPORTS ====================
-export {
-    createToken,
-    hashPassword
-} from '../../lib/authCrypto'

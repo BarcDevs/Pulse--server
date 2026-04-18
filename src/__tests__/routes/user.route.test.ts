@@ -2,11 +2,11 @@
 import supertest from 'supertest'
 
 import App from '../../app'
+import { hashPassword } from '../../lib/authCrypto'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
     createMockUser,
-    hashPassword,
     withCsrfAuth
 } from '../setup/testSetup'
 

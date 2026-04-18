@@ -1,4 +1,4 @@
-import { decideInsightType } from '../lib/aiInsight'
+import { decideInsightType } from '../lib/aiInsight/decision/InsightDecision'
 import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import { getFallbackContent } from '../lib/aiInsight/validation/aiInsightValidator'
 import * as aiInsightModel from '../models/aiInsightModel'

@@ -136,12 +136,3 @@ export const getFallbackContent = (
     FALLBACK_INSIGHTS[insightType]
 
 // endregion
-
-export {
-    containsForbiddenMedicalContext,
-    containsHardBlockPhrase,
-    countSentences,
-    normalizeContent
-} from './validationHelpers'
-
-export type { ValidationResult }

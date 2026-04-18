@@ -1,4 +1,3 @@
-import type { InsightDecisionResult } from '../lib/aiInsight'
 import {
     buildPromptByType,
     generateTitle
@@ -11,6 +10,7 @@ import {
 import type {
     CheckInType
 } from '../types/data/CheckInType'
+import type { InsightDecisionResult } from '../types/insight'
 import logger from '../utils/logger'
 
 import { createProvider } from './aiProviders/ProviderFactory'

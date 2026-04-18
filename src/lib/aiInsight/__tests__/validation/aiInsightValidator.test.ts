@@ -1,11 +1,13 @@
 import {
+    getFallbackContent,
+    validateGeneratedInsight
+} from '../../validation/aiInsightValidator'
+import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
     countSentences,
-    getFallbackContent,
-    normalizeContent,
-    validateGeneratedInsight
-} from '../../validation/aiInsightValidator'
+    normalizeContent
+} from '../../validation/validationHelpers'
 
 describe('normalizeContent', () => {
     it('should trim whitespace', () => {
