@@ -206,13 +206,10 @@ export const getTags = async (
                 name: { contains: search }
             }
         } : {}),
-        include: {
-            _count: {
-                select: {
-                    posts: true,
-                    followers: true
-                }
-            }
+        select: {
+            id: true,
+            name: true,
+            slug: true
         }
     })) as TagType[]
 
@@ -221,6 +218,14 @@ export const getTag = async (id: string):
     (await Prisma.tag.findUnique({
         where: {
             id
+        },
+        include: {
+            _count: {
+                select: {
+                    posts: true,
+                    followers: true
+                }
+            }
         }
     })) as TagType | null
 

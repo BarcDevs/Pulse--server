@@ -21,8 +21,8 @@ const createMockPost = (overrides?: Partial<PostType>): PostType => ({
     views: 100,
     category: 'fitness',
     tags: [
-        { id: 't1', name: 'walking', createdAt: new Date() },
-        { id: 't2', name: 'pain-management', createdAt: new Date() }
+        { id: 't1', name: 'walking', slug: 'walking', createdAt: new Date() },
+        { id: 't2', name: 'pain-management', slug: 'pain-management', createdAt: new Date() }
     ],
     replies: [],
     _count: { replies: 3 },

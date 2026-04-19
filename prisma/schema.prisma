@@ -225,6 +225,7 @@ model Milestone {
 model Tag {
   id          String         @id @default(uuid())
   name        String         @unique
+  slug        String         @unique
   description String?
   createdAt   DateTime       @default(now())
   followers   ProfileToTag[]

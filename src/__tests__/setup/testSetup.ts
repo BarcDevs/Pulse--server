@@ -152,6 +152,7 @@ export const createMockTag = (
 ): TagType => ({
     id: 'test-tag-id-123',
     name: 'test-tag',
+    slug: 'test-tag',
     description: 'A test tag',
     createdAt: new Date(),
     ...overrides

@@ -58,7 +58,8 @@ export const connectTags = (tags: string[]) => ({
             name: tag
         },
         create: {
-            name: tag
+            name: tag,
+            slug: tag.toLowerCase().replace(/\s+/g, '-')
         }
     }))
 })
