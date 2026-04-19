@@ -220,12 +220,18 @@ describe('Forum Routes', () => {
             async () => {
                 const mockUser = createMockUser()
                 const mockPost = createMockPost()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
                 const {
                     token,
                     csrfSecret,
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
                 prismaMock.post.create
                     .mockResolvedValue(mockPost)
 
@@ -659,6 +665,10 @@ describe('Forum Routes', () => {
                 const mockUser = createMockUser()
                 const mockPost = createMockPost()
                 const mockReply = createMockReply()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
                 const {
                     token,
                     csrfSecret,
@@ -667,6 +677,8 @@ describe('Forum Routes', () => {
 
                 prismaMock.post.findUnique
                     .mockResolvedValue(mockPost)
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
                 prismaMock.reply.create
                     .mockResolvedValue(mockReply)
 

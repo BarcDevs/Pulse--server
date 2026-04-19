@@ -1,3 +1,4 @@
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     ensurePostExists,
     extractRemovedTags,
@@ -6,6 +7,7 @@ import {
 } from '../lib/forumHelpers'
 import { getTagsByPostId } from '../models/forumModel'
 import * as forumModel from '../models/forumModel'
+import * as profileModel from '../models/profileModel'
 import type {
     NewPostType,
     UpdatePostType
@@ -47,7 +49,22 @@ export const getPostsCount = async (
 
 export const createPost = async (
     post: NewPostType
-) => forumModel.createPost(post)
+) => {
+    const { authorId: userId } = post
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile) {
+        throw errorFactory.generic
+            .notFound('User profile')
+    }
+
+    return forumModel.createPost({
+        ...post,
+        authorId: profile.id
+    })
+}
 
 export const updatePost = async (
     id: string,
@@ -90,8 +107,22 @@ export const getTag = async (
 export const createReply = async (
     reply: NewReplyType
 ) => {
+    const { authorId: userId } = reply
+
     await ensurePostExists(reply.postId)
-    return forumModel.createReply(reply)
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile) {
+        throw errorFactory.generic
+            .notFound('User profile')
+    }
+
+    return forumModel.createReply({
+        ...reply,
+        authorId: profile.id
+    })
 }
 
 export const getReplies = async (

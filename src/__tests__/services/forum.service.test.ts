@@ -205,6 +205,12 @@ describe('Forum Service', () => {
     describe('createPost', () => {
         it('should create post with tags', async () => {
             const mockPost = createMockPost()
+            const mockProfile = {
+                id: 'profile-id',
+                userId: 'user-id'
+            }
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
             prismaMock.post.create
                 .mockResolvedValue(mockPost)
 
@@ -349,8 +355,14 @@ describe('Forum Service', () => {
         it('should create reply', async () => {
             const mockPost = createMockPost()
             const mockReply = createMockReply()
+            const mockProfile = {
+                id: 'profile-id',
+                userId: 'user-id'
+            }
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
             prismaMock.reply.create
                 .mockResolvedValue(mockReply)
 
