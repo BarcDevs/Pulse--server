@@ -221,9 +221,6 @@ export const getTag = async (id: string):
     (await Prisma.tag.findUnique({
         where: {
             id
-        },
-        include: {
-            posts: true // todo limit posts
         }
     })) as TagType | null
 
