@@ -1577,7 +1577,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://farming-simulator.pstmn.io"
+      "value": "http://localhost:4000"
     },
     {
       "key": "csrfToken",
