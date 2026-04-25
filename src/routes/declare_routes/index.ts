@@ -44,5 +44,5 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('recovery-goals'), recoveryGoalRoute)
     app.use(baseRoute('users'), userRoute)
 
-    app.use('*', errorHandler)
+    app.use(errorHandler)
 }
