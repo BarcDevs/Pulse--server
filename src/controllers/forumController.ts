@@ -67,7 +67,7 @@ export const getPost = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
+    const { postId } = req.params as Record<string, string>
 
     const data = (await forumService
         .getPosts(undefined, postId)) as PostType
@@ -90,7 +90,7 @@ export const updatePost = async (
         ValidationError.catchValidationErrors(
             updatePostSchema.validate(req.body)
         )
-    const { postId } = req.params
+    const { postId } = req.params as Record<string, string>
     const { userId } = req || {}
 
     if (!userId)
@@ -116,7 +116,7 @@ export const deletePost = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
+    const { postId } = req.params as Record<string, string>
     const { userId } = req || {}
 
     if (!userId)
@@ -148,7 +148,7 @@ export const createReply = async (
             newReplySchema.validate(req.body)
         )
     const { userId } = req || {}
-    const { postId } = req.params
+    const { postId } = req.params as Record<string, string>
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -170,7 +170,7 @@ export const getReplies = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params
+    const { postId } = req.params as Record<string, string>
 
     const data = (
         await forumService.getReplies(postId)
@@ -195,7 +195,7 @@ export const updateReply = async (
         ValidationError.catchValidationErrors(
             updateReplySchema.validate(req.body)
         )
-    const { replyId, postId } = req.params
+    const { replyId, postId } = req.params as Record<string, string>
     const { userId } = req || {}
 
     if (!userId)
@@ -225,7 +225,7 @@ export const deleteReply = async (
     req: Request,
     res: Response
 ) => {
-    const { replyId, postId } = req.params
+    const { replyId, postId } = req.params as Record<string, string>
     const { userId } = req || {}
 
     if (!userId)
@@ -276,7 +276,7 @@ export const getTag = async (
     req: Request,
     res: Response
 ) => {
-    const { tagId } = req.params
+    const { tagId } = req.params as Record<string, string>
 
     const data = await forumService.getTag(tagId)
 
