@@ -133,6 +133,8 @@ model Post {
   category  String
   replies   Reply[]
   tags      Tag[]     @relation("PostToTag")
+
+  @@index([authorId])
 }
 
 model Reply {
@@ -145,6 +147,8 @@ model Reply {
   votes     Json      @default("{\"upvotes\": 0, \"upvotedBy\": []}")
   postId    String
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
 }
 
 model DailyCheckIn {
@@ -182,69 +186,97 @@ model AIInsight {
   id             String       @id @default(uuid())
   checkInId      String
   type           InsightType
-  classification String       @default("baseline")
-  priority       String       @default("normal")
   content        String
   createdAt      DateTime     @default(now())
   title          String
   userId         String
   metadata       Json?
+  classification String       @default("baseline")
+  priority       String       @default("normal")
   checkIn        DailyCheckIn @relation(fields: [checkInId], references: [id])
 
   @@unique([checkInId, type])
   @@index([userId, createdAt])
 }
 
+model Tag {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?
+  createdAt   DateTime      @default(now())
+  slug        String        @unique
+  posts       Post[]        @relation("PostToTag")
+  profiles    ProfileToTag[]
+}
+
+model ProfileToTag {
+  id        String   @id @default(uuid())
+  profileId String
+  tagId     String
+  addedAt   DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, tagId])
+  @@index([profileId])
+  @@index([tagId])
+}
+
 model RecoveryGoal {
-  id          String      @id @default(cuid())
+  id          String       @id @default(cuid())
   profileId   String
-  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  title       String      @db.VarChar(150)
-  description String?     @db.Text
+  profile     Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title       String       @db.VarChar(150)
+  description String?      @db.Text
+  category    GoalCategory
+  isPrimary   Boolean      @default(false)
+  status      GoalStatus   @default(ACTIVE)
+  targetDate  DateTime?    @db.Date
   milestones  Milestone[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@index([profileId])
 }
 
 model Milestone {
-  id          String       @id @default(cuid())
+  id          String          @id @default(cuid())
   goalId      String
-  goal        RecoveryGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  title       String       @db.VarChar(150)
-  isCompleted Boolean      @default(false)
+  goal        RecoveryGoal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String          @db.VarChar(150)
+  description String?         @db.Text
   order       Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  status      MilestoneStatus @default(LOCKED)
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@unique([goalId, order])
   @@index([goalId])
 }
 
-model Tag {
-  id          String         @id @default(uuid())
-  name        String         @unique
-  slug        String         @unique
-  description String?
-  createdAt   DateTime       @default(now())
-  followers   ProfileToTag[]
-  posts       Post[]         @relation("PostToTag")
-}
-
-model ProfileToTag {
-  A       String
-  B       String
-  Profile Profile @relation(fields: [A], references: [id], onDelete: Cascade)
-  Tag     Tag     @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@unique([A, B], map: "_ProfileToTag_AB_unique")
-  @@map("_ProfileToTag")
-}
-
 enum Role {
   USER
   ADMIN
+}
+
+enum GoalCategory {
+  PHYSICAL
+  MENTAL
+  LIFESTYLE
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ABANDONED
+}
+
+enum MilestoneStatus {
+  LOCKED
+  ACTIVE
+  COMPLETED
 }
 
 enum InsightType {

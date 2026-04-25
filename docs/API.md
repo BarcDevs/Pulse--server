@@ -1111,6 +1111,9 @@ Create a new recovery goal for the current user.
 |-------|------|----------|-------|
 | `title` | string | yes | Max 150 chars |
 | `description` | string | no | Max 1000 chars |
+| `category` | string | yes | `physical` · `mental` · `lifestyle` |
+| `targetDate` | string | no | ISO 8601 date string |
+| `isPrimary` | boolean | no | Default: `false` · Only one per user |
 
 **Response `201`**
 ```json
@@ -1118,24 +1121,28 @@ Create a new recovery goal for the current user.
   "message": "Goal created successfully",
   "data": {
     "id": "clh1234567890abcdef",
-    "userId": "user-123",
+    "profileId": "profile-123",
     "title": "Build a consistent sleep schedule",
     "description": "Establish a regular sleep routine for better recovery",
-    "milestones": [],
+    "category": "lifestyle",
+    "isPrimary": true,
+    "status": "active",
+    "targetDate": "2026-07-23",
+    "progress": 0,
     "createdAt": "2026-04-08T10:00:00Z",
     "updatedAt": "2026-04-08T10:00:00Z"
   }
 }
 ```
 
-**Errors:** `400` validation · `401` not authenticated or invalid CSRF
+**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `409` if `isPrimary=true` and primary goal already exists
 
 ---
 
 ### `GET /`
 > Auth required
 
-Retrieve all recovery goals for the current user with their milestones.
+Retrieve all recovery goals for the current user with progress calculated.
 
 **Response `200`**
 ```json
@@ -1144,20 +1151,14 @@ Retrieve all recovery goals for the current user with their milestones.
   "data": [
     {
       "id": "clh1234567890abcdef",
-      "userId": "user-123",
+      "profileId": "profile-123",
       "title": "Build a consistent sleep schedule",
-      "description": "Establish a regular sleep routine for better recovery",
-      "milestones": [
-        {
-          "id": "mil1234567890abcdef",
-          "goalId": "clh1234567890abcdef",
-          "title": "No screens 1 hour before bed",
-          "isCompleted": false,
-          "order": 0,
-          "createdAt": "2026-04-08T10:05:00Z",
-          "updatedAt": "2026-04-08T10:05:00Z"
-        }
-      ],
+      "description": "Establish a regular sleep routine",
+      "category": "lifestyle",
+      "isPrimary": true,
+      "status": "active",
+      "targetDate": "2026-07-23",
+      "progress": 0.5,
       "createdAt": "2026-04-08T10:00:00Z",
       "updatedAt": "2026-04-08T10:00:00Z"
     }
@@ -1172,7 +1173,7 @@ Retrieve all recovery goals for the current user with their milestones.
 ### `GET /:goalId`
 > Auth required
 
-Retrieve a single recovery goal with all its milestones.
+Retrieve a single recovery goal with all its milestones and progress.
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1184,23 +1185,32 @@ Retrieve a single recovery goal with all its milestones.
 {
   "message": "Goal retrieved successfully",
   "data": {
-    "id": "clh1234567890abcdef",
-    "userId": "user-123",
-    "title": "Build a consistent sleep schedule",
-    "description": "Establish a regular sleep routine for better recovery",
+    "goal": {
+      "id": "clh1234567890abcdef",
+      "profileId": "profile-123",
+      "title": "Build a consistent sleep schedule",
+      "description": "Establish a regular sleep routine",
+      "category": "lifestyle",
+      "isPrimary": true,
+      "status": "active",
+      "targetDate": "2026-07-23",
+      "progress": 0.5,
+      "createdAt": "2026-04-08T10:00:00Z",
+      "updatedAt": "2026-04-08T10:00:00Z"
+    },
     "milestones": [
       {
         "id": "mil1234567890abcdef",
         "goalId": "clh1234567890abcdef",
         "title": "No screens 1 hour before bed",
-        "isCompleted": false,
-        "order": 0,
+        "description": "Reduce blue light exposure",
+        "order": 1,
+        "status": "active",
+        "completedAt": null,
         "createdAt": "2026-04-08T10:05:00Z",
         "updatedAt": "2026-04-08T10:05:00Z"
       }
-    ],
-    "createdAt": "2026-04-08T10:00:00Z",
-    "updatedAt": "2026-04-08T10:00:00Z"
+    ]
   }
 }
 ```
@@ -1212,7 +1222,7 @@ Retrieve a single recovery goal with all its milestones.
 ### `PATCH /:goalId`
 > Auth + CSRF required · Owner only
 
-Update a recovery goal.
+Update a recovery goal. Cannot modify milestones on non-active goals.
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1224,6 +1234,9 @@ Update a recovery goal.
 |-------|------|-------|
 | `title` | string | Max 150 chars |
 | `description` | string | Max 1000 chars |
+| `status` | string | `paused` · `abandoned` only (others are computed) |
+| `targetDate` | string | ISO 8601 date string, null to clear |
+| `isPrimary` | boolean | Setting to `true` clears `isPrimary` from all other user goals |
 
 **Response `200`**
 ```json
@@ -1231,10 +1244,14 @@ Update a recovery goal.
   "message": "Goal updated successfully",
   "data": {
     "id": "clh1234567890abcdef",
-    "userId": "user-123",
-    "title": "Build a consistent sleep schedule (Updated)",
+    "profileId": "profile-123",
+    "title": "Updated title",
     "description": "Updated description",
-    "milestones": [],
+    "category": "lifestyle",
+    "isPrimary": true,
+    "status": "paused",
+    "targetDate": "2026-08-23",
+    "progress": 0.5,
     "createdAt": "2026-04-08T10:00:00Z",
     "updatedAt": "2026-04-08T10:15:00Z"
   }
@@ -1248,7 +1265,7 @@ Update a recovery goal.
 ### `DELETE /:goalId`
 > Auth + CSRF required · Owner only
 
-Delete a recovery goal and all its milestones.
+Delete a recovery goal and all its milestones (cascading delete).
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1259,7 +1276,7 @@ Delete a recovery goal and all its milestones.
 ```json
 {
   "message": "Goal deleted successfully",
-  "data": {}
+  "data": null
 }
 ```
 
@@ -1270,7 +1287,7 @@ Delete a recovery goal and all its milestones.
 ### `POST /:goalId/milestones`
 > Auth + CSRF required
 
-Add a milestone to a recovery goal. Order is auto-assigned server-side (0-indexed).
+Create milestones for a goal. First milestone is `active`, rest are `locked`. Goal must be active.
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1280,32 +1297,39 @@ Add a milestone to a recovery goal. Order is auto-assigned server-side (0-indexe
 **Body**
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `title` | string | yes | Max 150 chars |
+| `milestones` | array | yes | 1-8 items, see structure below |
+| `milestones[].title` | string | yes | Max 150 chars |
+| `milestones[].description` | string | no | Max 1000 chars |
+| `milestones[].order` | number | yes | Positive integer, unique per goal |
 
 **Response `201`**
 ```json
 {
-  "message": "Milestone created successfully",
-  "data": {
-    "id": "mil1234567890abcdef",
-    "goalId": "clh1234567890abcdef",
-    "title": "No screens 1 hour before bed",
-    "isCompleted": false,
-    "order": 0,
-    "createdAt": "2026-04-08T10:05:00Z",
-    "updatedAt": "2026-04-08T10:05:00Z"
-  }
+  "message": "Milestones created successfully",
+  "data": [
+    {
+      "id": "mil1234567890abcdef",
+      "goalId": "clh1234567890abcdef",
+      "title": "Establish bedtime routine",
+      "description": "Set consistent sleep times",
+      "order": 1,
+      "status": "active",
+      "completedAt": null,
+      "createdAt": "2026-04-08T10:05:00Z",
+      "updatedAt": "2026-04-08T10:05:00Z"
+    }
+  ]
 }
 ```
 
-**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `404` goal not found · `409` maximum 4 milestones per goal exceeded
+**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `404` goal not found · `409` goal not active or max 8 milestones exceeded
 
 ---
 
 ### `PATCH /:goalId/milestones/:milestoneId`
 > Auth + CSRF required · Owner only
 
-Update a milestone (title and/or completion status).
+Update a milestone (title, description, order). Cannot modify completed milestones. Goal must be active.
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1317,7 +1341,8 @@ Update a milestone (title and/or completion status).
 | Field | Type | Notes |
 |-------|------|-------|
 | `title` | string | Max 150 chars |
-| `isCompleted` | boolean | Mark as complete or incomplete |
+| `description` | string | Max 1000 chars, null to clear |
+| `order` | number | Positive integer, must be unique per goal |
 
 **Response `200`**
 ```json
@@ -1326,23 +1351,25 @@ Update a milestone (title and/or completion status).
   "data": {
     "id": "mil1234567890abcdef",
     "goalId": "clh1234567890abcdef",
-    "title": "No screens 1 hour before bed",
-    "isCompleted": true,
-    "order": 0,
+    "title": "Updated title",
+    "description": "Updated description",
+    "order": 2,
+    "status": "locked",
+    "completedAt": null,
     "createdAt": "2026-04-08T10:05:00Z",
     "updatedAt": "2026-04-08T10:15:00Z"
   }
 }
 ```
 
-**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `404` milestone not found
+**Errors:** `400` validation · `401` not authenticated or invalid CSRF · `404` milestone not found · `409` goal not active or milestone already completed
 
 ---
 
 ### `DELETE /:goalId/milestones/:milestoneId`
 > Auth + CSRF required · Owner only
 
-Delete a milestone from a recovery goal.
+Delete a milestone from a goal. Goal must be active.
 
 **Path Parameters**
 | Param | Type | Notes |
@@ -1354,8 +1381,65 @@ Delete a milestone from a recovery goal.
 ```json
 {
   "message": "Milestone deleted successfully",
-  "data": {}
+  "data": null
 }
 ```
 
-**Errors:** `401` not authenticated or invalid CSRF · `404` milestone not found
+**Errors:** `401` not authenticated or invalid CSRF · `404` milestone not found · `409` goal not active
+
+---
+
+### `PATCH /:goalId/milestones/:milestoneId/complete`
+> Auth + CSRF required
+
+Mark a milestone as completed and automatically advance the next milestone to `active`. Last completed milestone completes the goal. Idempotent: completing an already-completed milestone succeeds without duplicate advancement.
+
+**Path Parameters**
+| Param | Type | Notes |
+|-------|------|-------|
+| `goalId` | string | The goal ID |
+| `milestoneId` | string | The milestone ID |
+
+**Response `200`**
+```json
+{
+  "message": "Milestone completed successfully",
+  "data": null
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` milestone or goal not found · `409` goal not active or milestone is locked
+
+---
+
+### `PATCH /:goalId/complete`
+> Auth + CSRF required
+
+Manually mark a goal as completed. Goal must be active and all milestones must be completed.
+
+**Path Parameters**
+| Param | Type | Notes |
+|-------|------|-------|
+| `goalId` | string | The goal ID |
+
+**Response `200`**
+```json
+{
+  "message": "Goal completed successfully",
+  "data": {
+    "id": "clh1234567890abcdef",
+    "profileId": "profile-123",
+    "title": "Build a consistent sleep schedule",
+    "description": "Establish a regular sleep routine",
+    "category": "lifestyle",
+    "isPrimary": true,
+    "status": "completed",
+    "targetDate": "2026-07-23",
+    "progress": 1,
+    "createdAt": "2026-04-08T10:00:00Z",
+    "updatedAt": "2026-04-08T10:30:00Z"
+  }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` goal not found · `409` goal not active, has no milestones, or has incomplete milestones

@@ -6,46 +6,809 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:4000",
-      "type": "string"
+      "value": "http://localhost:4000"
     },
     {
       "key": "apiVersion",
-      "value": "v1",
-      "type": "string"
-    },
-    {
-      "key": "testEmail",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "testPassword",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string"
+      "value": "v1"
     },
     {
       "key": "_csrf",
-      "value": "",
-      "type": "string"
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": ""
+    },
+    {
+      "key": "testPassword",
+      "value": ""
+    },
+    {
+      "key": "profileId",
+      "value": ""
     },
     {
       "key": "goalId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "milestoneId",
-      "value": "",
-      "type": "string"
+      "value": ""
     }
   ],
   "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "signup"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"recoverygoals_test_{{$timestamp}}@test.com\", \"password\": \"Test@123456\", \"username\": \"testuser_{{$timestamp}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201))",
+                  "const data = pm.response.json().data",
+                  "pm.environment.set('testEmail', data.email)",
+                  "pm.environment.set('testPassword', 'Test@123456')"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\", \"password\": \"{{testPassword}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "const data = pm.response.json().data",
+                  "pm.environment.set('token', data.token)",
+                  "pm.environment.set('_csrf', data._csrf)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile (for profileId)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "const data = pm.response.json().data",
+                  "pm.environment.set('profileId', data.id)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Create Goal",
+      "item": [
+        {
+          "name": "Create Goal - Happy Path",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Physical Recovery\", \"description\": \"Get back to exercising regularly\", \"category\": \"physical\", \"targetDate\": \"2026-06-30\", \"isPrimary\": true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201))",
+                  "pm.test('Response has correct structure', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('id')",
+                  "    pm.expect(data).to.have.property('profileId')",
+                  "    pm.expect(data).to.have.property('title')",
+                  "    pm.expect(data).to.have.property('category')",
+                  "    pm.expect(data).to.have.property('status')",
+                  "    pm.expect(data).to.have.property('progress')",
+                  "})",
+                  "const data = pm.response.json().data",
+                  "pm.environment.set('goalId', data.id)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Goal - Minimal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Mental Wellness\", \"category\": \"mental\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201))",
+                  "pm.test('Has default status active', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data.status).to.equal('active')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Goal - Missing title",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"category\": \"physical\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400))"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Goal - Invalid category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Test\", \"category\": \"invalid\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 400', () => pm.response.to.have.status(400))"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Get All Goals",
+      "item": [
+        {
+          "name": "Get All Goals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns array of goals', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(Array.isArray(data)).to.be.true",
+                  "    if (data.length > 0) {",
+                  "        pm.expect(data[0]).to.have.property('id')",
+                  "        pm.expect(data[0]).to.have.property('progress')",
+                  "    }",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Get Single Goal",
+      "item": [
+        {
+          "name": "Get Goal with Milestones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns goal and milestones separately', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('goal')",
+                  "    pm.expect(data).to.have.property('milestones')",
+                  "    pm.expect(data.goal).to.have.property('progress')",
+                  "    pm.expect(Array.isArray(data.milestones)).to.be.true",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Goal - Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/nonexistent-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "nonexistent-id"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 404', () => pm.response.to.have.status(404))"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Update Goal",
+      "item": [
+        {
+          "name": "Update Goal - Title",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Updated Recovery Goal\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Title updated', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data.title).to.equal('Updated Recovery Goal')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Goal - Status to Paused",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"paused\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Status changed to paused', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data.status).to.equal('paused')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Create Milestones",
+      "item": [
+        {
+          "name": "Create Milestones - Happy Path",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}/milestones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}", "milestones"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"milestones\": [{\"title\": \"Week 1: Start light walking\", \"description\": \"Begin with 15-minute walks\", \"order\": 1}, {\"title\": \"Week 2: Increase duration\", \"description\": \"Extend to 30-minute walks\", \"order\": 2}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201))",
+                  "pm.test('Returns array of milestones', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(Array.isArray(data)).to.be.true",
+                  "    pm.expect(data[0].status).to.equal('active')",
+                  "    pm.expect(data[1].status).to.equal('locked')",
+                  "})",
+                  "const data = pm.response.json().data",
+                  "if (data.length > 0) pm.environment.set('milestoneId', data[0].id)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Update Milestone",
+      "item": [
+        {
+          "name": "Update Milestone - Title",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Updated milestone title\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Complete Milestone",
+      "item": [
+        {
+          "name": "Complete Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}/milestones/{{milestoneId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}", "milestones", "{{milestoneId}}", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Complete Goal",
+      "item": [
+        {
+          "name": "Complete Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Delete Milestone",
+      "item": [
+        {
+          "name": "Delete Milestone",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}", "milestones", "{{milestoneId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Delete Goal",
+      "item": [
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/goals/{{goalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "goals", "{{goalId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Auth Errors",
       "item": [
