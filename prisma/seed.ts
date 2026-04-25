@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { Pool } from 'pg'
+import bcrypt from 'bcrypt'
 
 import { PrismaPg } from '@prisma/adapter-pg'
 
@@ -22,6 +23,9 @@ const prisma = new PrismaClient({
             ? ['query', 'info', 'warn', 'error']
             : undefined
 })
+
+const hashPassword = (password: string): string =>
+    bcrypt.hashSync(password, 10)
 
 async function main() {
     const healthInterests = [
@@ -180,6 +184,68 @@ async function main() {
         }
     ]
 
+    console.info('Seeding test users...')
+    const testUsers = [
+        {
+            firstName: 'Alice',
+            lastName: 'Johnson',
+            username: 'alice_j',
+            email: 'alice@example.com',
+            password: 'password123'
+        },
+        {
+            firstName: 'Bob',
+            lastName: 'Smith',
+            username: 'bob_smith',
+            email: 'bob@example.com',
+            password: 'password123'
+        },
+        {
+            firstName: 'Carol',
+            lastName: 'Williams',
+            username: 'carol_w',
+            email: 'carol@example.com',
+            password: 'password123'
+        },
+        {
+            firstName: 'David',
+            lastName: 'Brown',
+            username: 'david_b',
+            email: 'david@example.com',
+            password: 'password123'
+        },
+        {
+            firstName: 'Emma',
+            lastName: 'Davis',
+            username: 'emma_d',
+            email: 'emma@example.com',
+            password: 'password123'
+        }
+    ]
+
+    const createdUsers = []
+    for (const userData of testUsers) {
+        const user = await prisma.user.upsert({
+            where: { email: userData.email },
+            update: {},
+            create: {
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                username: userData.username,
+                email: userData.email,
+                password: hashPassword(userData.password),
+                profile: {
+                    create: {
+                        timezone: 'America/New_York',
+                        bio: `I'm ${userData.firstName}, a member of the HealEase community.`
+                    }
+                }
+            },
+            include: { profile: true }
+        })
+        createdUsers.push(user)
+    }
+
     console.info('Seeding health interests...')
     for (const interest of healthInterests) {
         await prisma.healthInterest.upsert({
@@ -198,14 +264,156 @@ async function main() {
         })
     }
 
-    console.info('Seeding goals and milestones...')
-    const users = await prisma.user.findMany({ take: 5 })
+    console.info('Seeding check-in data...')
+    const today = new Date()
+    for (let i = 0; i < createdUsers.length; i++) {
+        const user = createdUsers[i]
+        const profile = user.profile
 
-    if (users.length > 0) {
-        for (const user of users) {
-            const profile = await prisma.profile.findUnique({
-                where: { userId: user.id }
+        // Create 7 days of check-ins
+        for (let day = 6; day >= 0; day--) {
+            const checkInDate = new Date(today)
+            checkInDate.setDate(checkInDate.getDate() - day)
+            checkInDate.setHours(0, 0, 0, 0)
+
+            await prisma.dailyCheckIn.upsert({
+                where: {
+                    profileId_checkInDate: {
+                        profileId: profile!.id,
+                        checkInDate
+                    }
+                },
+                update: {},
+                create: {
+                    profileId: profile!.id,
+                    checkInDate,
+                    moodScore: Math.floor(Math.random() * 10) + 1,
+                    painLevel: Math.floor(Math.random() * 10) + 1,
+                    activities: ['meditation', 'walking'],
+                    notes: `Check-in for ${checkInDate.toISOString().split('T')[0]}`
+                }
             })
+        }
+    }
+
+    console.info('Seeding AI insights...')
+    const insightTypes = [
+        'MOOD_DROP_ALERT',
+        'MOTIVATIONAL',
+        'WEEKLY_SUMMARY',
+        'BAD_DAY_SUPPORT'
+    ]
+
+    for (let i = 0; i < createdUsers.length; i++) {
+        const user = createdUsers[i]
+        const profile = user.profile!
+
+        // Get check-ins for this user
+        const checkIns = await prisma.dailyCheckIn.findMany({
+            where: { profileId: profile.id },
+            orderBy: { checkInDate: 'desc' }
+        })
+
+        // Add insights to some check-ins
+        for (let j = 0; j < Math.min(3, checkIns.length); j++) {
+            const checkIn = checkIns[j]
+            const insightType = insightTypes[j % insightTypes.length]
+
+            const insightContent = {
+                MOOD_DROP_ALERT: `Your mood has been declining over the past few days. Consider reaching out to a friend or trying a relaxation technique.`,
+                MOTIVATIONAL: `Great job maintaining your wellness routine! Keep up this positive momentum.`,
+                WEEKLY_SUMMARY: `This week you had ${checkIns.length} check-ins with an average mood of ${Math.round(checkIns.reduce((sum, c) => sum + c.moodScore, 0) / checkIns.length)}. You are doing great!`,
+                BAD_DAY_SUPPORT: `We notice you are having a tough day. Remember that setbacks are part of the journey. Be kind to yourself.`
+            }
+
+            const insightTitle = {
+                MOOD_DROP_ALERT: 'Mood Decline Alert',
+                MOTIVATIONAL: 'Keep Going!',
+                WEEKLY_SUMMARY: 'Weekly Summary',
+                BAD_DAY_SUPPORT: 'You Got This'
+            }
+
+            await prisma.aIInsight.create({
+                data: {
+                    checkInId: checkIn.id,
+                    userId: user.id,
+                    type: insightType as any,
+                    content: insightContent[insightType as keyof typeof insightContent],
+                    title: insightTitle[insightType as keyof typeof insightTitle],
+                    classification: 'baseline',
+                    priority: j === 0 ? 'high' : 'normal',
+                    metadata: {
+                        checkInCount: checkIns.length,
+                        averageMood: Math.round(checkIns.reduce((sum, c) => sum + c.moodScore, 0) / checkIns.length)
+                    }
+                }
+            })
+        }
+    }
+
+    console.info('Seeding posts...')
+    const tags = [
+        { name: 'Mental Health', slug: 'mental-health' },
+        { name: 'Physical Health', slug: 'physical-health' },
+        { name: 'Recovery', slug: 'recovery' },
+        { name: 'Wellness Tips', slug: 'wellness-tips' }
+    ]
+
+    for (const tag of tags) {
+        await prisma.tag.upsert({
+            where: { slug: tag.slug },
+            update: {},
+            create: tag
+        })
+    }
+
+    const postTitles = [
+        'Tips for improving daily mood tracking',
+        'My recovery journey so far',
+        'How meditation has helped my stress levels',
+        'Best exercises for pain management',
+        'Building a consistent wellness routine'
+    ]
+
+    const postBodies = [
+        'I have found that tracking my mood daily has been incredibly helpful. Here are my top tips for getting started...',
+        'It has been 3 months since I started my recovery journey. I wanted to share what has worked for me...',
+        'Meditation has completely transformed how I handle stress. Even just 10 minutes a day makes a difference...',
+        'After dealing with chronic pain for years, I finally found exercises that work for me. Let me share them...',
+        'Building a consistent wellness routine is challenging but so rewarding. Here is my approach...'
+    ]
+
+    for (let i = 0; i < postTitles.length; i++) {
+        const author = createdUsers[i % createdUsers.length]
+        const post = await prisma.post.create({
+            data: {
+                title: postTitles[i],
+                body: postBodies[i],
+                authorId: author.profile!.id,
+                category: 'wellness',
+                tags: {
+                    connect: [
+                        { slug: tags[i % tags.length].slug }
+                    ]
+                }
+            }
+        })
+
+        // Add a reply to each post
+        const replier = createdUsers[(i + 1) % createdUsers.length]
+        await prisma.reply.create({
+            data: {
+                body: 'Great post! Thanks for sharing your experience. This resonates with me.',
+                authorId: replier.profile!.id,
+                postId: post.id
+            }
+        })
+    }
+
+    console.info('Seeding goals and milestones...')
+    if (createdUsers.length > 0) {
+        for (const user of createdUsers) {
+            const profile = user.profile
 
             if (!profile) continue
 
