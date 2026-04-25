@@ -6,6 +6,7 @@
   ],
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
+    "rootDir": ".",
     "target": "es2022",
     "lib": [
       "ES2021.String",
@@ -13,7 +14,6 @@
     ],
     "module": "CommonJS",
     "sourceMap": true,
-    "rootDir": ".",
     "outDir": "dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

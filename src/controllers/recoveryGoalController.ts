@@ -71,7 +71,7 @@ export const getGoal = async (
     res: Response
 ) => {
     const { userId } = req
-    const { goalId } = req.params as { goalId: string }
+    const { goalId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -96,7 +96,7 @@ export const updateGoal = async (
             updateGoalSchema.validate(req.body)
         )
     const { userId } = req
-    const { goalId } = req.params as { goalId: string }
+    const { goalId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -118,7 +118,7 @@ export const deleteGoal = async (
     res: Response
 ) => {
     const { userId } = req
-    const { goalId } = req.params as { goalId: string }
+    const { goalId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -140,7 +140,7 @@ export const createMilestones = async (
             newMilestoneSchema.validate(req.body)
         )
     const { userId } = req
-    const { goalId } = req.params as { goalId: string }
+    const { goalId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -172,7 +172,7 @@ export const updateMilestone = async (
             updateMilestoneSchema.validate(req.body)
         )
     const { userId } = req
-    const { milestoneId } = req.params as { milestoneId: string }
+    const { milestoneId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(milestoneId, 'milestoneId')
 
@@ -194,7 +194,7 @@ export const deleteMilestone = async (
     res: Response
 ) => {
     const { userId } = req
-    const { milestoneId } = req.params as { milestoneId: string }
+    const { milestoneId } = req.params as Record<string, string>
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(milestoneId, 'milestoneId')
 
