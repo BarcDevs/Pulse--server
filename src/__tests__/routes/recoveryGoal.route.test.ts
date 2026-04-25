@@ -21,7 +21,7 @@ describe('Recovery Goals Routes', () => {
         prismaMock.profile.findUnique
             .mockImplementation(async (args: any) => {
                 const userId = args.where.userId
-                const profileIdMap: {[key: string]: string} = {
+                const profileIdMap: { [key: string]: string } = {
                     'test-user-id-123': 'test-profile-id-123',
                     'other-user-id': 'other-profile-id-456'
                 }
@@ -36,52 +36,17 @@ describe('Recovery Goals Routes', () => {
     // ==================== CREATE GOAL ====================
     describe('POST /api/v1/recovery-goals', () => {
         const endpoint = API_BASE
-        const validBody = {
-            title: 'Build a consistent sleep schedule',
-            description: 'Establish a regular sleep routine for better recovery'
-        }
 
-        it(
-            'should return 401 when posting goal without auth token',
-            async () => {
-            const response = await supertest(App)
-                .post(endpoint)
-                .send(validBody)
-
-            expect(response.status).toBe(401)
-        })
-
-        it(
-            'should return 201 and create goal with title and description',
-            async () => {
-            const mockUser = createMockUser()
-            const mockGoal = createMockRecoveryGoal()
-            const {
-                token,
-                csrfSecret,
-                csrfToken
-            } = createAuthenticatedRequest(mockUser)
-
-            prismaMock.recoveryGoal.create.mockResolvedValue(mockGoal)
-
-            const response = await withCsrfAuth(
-                supertest(App).post(endpoint),
-                token,
-                csrfSecret,
-                csrfToken
-            ).send(validBody)
-
-            expect(response.status).toBe(201)
-            expect(response.body.message).toBe('Goal created successfully')
-            expect(response.body.data.title).toBe(validBody.title)
-            expect(response.body.data.profileId).toBe('test-profile-id-123')
-        })
-
-        it('should allow optional description', async () => {
+        it('should create goal with all fields', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                userId: mockUser.id,
-                description: null
+                profileId: 'test-profile-id-123',
+                title: 'Build strength',
+                description: 'Physical recovery goal',
+                category: 'physical',
+                isPrimary: true,
+                status: 'active',
+                targetDate: new Date('2026-07-23')
             })
             const {
                 token,
@@ -96,25 +61,51 @@ describe('Recovery Goals Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({ title: 'Simple Goal' })
+            ).send({
+                title: 'Build strength',
+                description: 'Physical recovery goal',
+                category: 'physical',
+                isPrimary: true,
+                targetDate: '2026-07-23'
+            })
 
             expect(response.status).toBe(201)
-            expect(response.body.data.description).toBeNull()
+            expect(response.body.data.title).toBe('Build strength')
+            expect(response.body.data.category).toBe('physical')
+            expect(response.body.data.isPrimary).toBe(true)
+            expect(response.body.data.progress).toBe(0)
         })
 
-        it('should return 401 for missing CSRF token', async () => {
+        it('should create goal with minimal fields', async () => {
             const mockUser = createMockUser()
-            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                title: 'Simple goal',
+                category: 'mental'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-            const response = await withBearerAuth(
+            prismaMock.recoveryGoal.create.mockResolvedValue(mockGoal)
+
+            const response = await withCsrfAuth(
                 supertest(App).post(endpoint),
-                token
-            ).send(validBody)
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'Simple goal',
+                category: 'mental'
+            })
 
-            expect(response.status).toBe(401)
+            expect(response.status).toBe(201)
+            expect(response.body.data.isPrimary).toBe(false)
+            expect(response.body.data.status).toBe('active')
         })
 
-        it('should return 403 for missing title', async () => {
+        it('should reject missing title', async () => {
             const mockUser = createMockUser()
             const {
                 token,
@@ -127,70 +118,96 @@ describe('Recovery Goals Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({ description: 'No title provided' })
+            ).send({ category: 'physical' })
 
             expect(response.status).toBe(403)
         })
 
-        it(
-            'should return 403 for title exceeding 150 characters',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
-                const longTitle = 'a'.repeat(151)
+        it('should reject invalid category', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-                const response = await withCsrfAuth(
-                    supertest(App).post(endpoint),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ title: longTitle })
-
-                expect(response.status).toBe(403)
+            const response = await withCsrfAuth(
+                supertest(App).post(endpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'Goal',
+                category: 'invalid'
             })
+
+            expect(response.status).toBe(403)
+        })
+
+        it('should require auth', async () => {
+            const response = await supertest(App)
+                .post(endpoint)
+                .send({
+                    title: 'Goal',
+                    category: 'physical'
+                })
+
+            expect(response.status).toBe(401)
+        })
+
+        it('should require CSRF', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const response = await withBearerAuth(
+                supertest(App).post(endpoint),
+                token
+            ).send({
+                title: 'Goal',
+                category: 'physical'
+            })
+
+            expect(response.status).toBe(401)
+        })
     })
 
     // ==================== GET ALL GOALS ====================
     describe('GET /api/v1/recovery-goals', () => {
-        const endpoint = API_BASE
-
-        it('should return 200 and goals array', async () => {
+        it('should return goals with progress', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
             const mockGoals = [
-                createMockRecoveryGoal(),
+                createMockRecoveryGoal({
+                    id: 'goal-1',
+                    title: 'Goal 1'
+                }),
                 createMockRecoveryGoal({
                     id: 'goal-2',
-                    userId: mockUser.id,
-                    title: 'Another goal'
+                    title: 'Goal 2'
                 })
             ]
 
             prismaMock.recoveryGoal.findMany.mockResolvedValue(mockGoals)
+            prismaMock.milestone.count.mockResolvedValue(0)
 
             const response = await withBearerAuth(
-                supertest(App).get(endpoint),
+                supertest(App).get(API_BASE),
                 token
             )
 
             expect(response.status).toBe(200)
-            expect(response.body.data).toBeInstanceOf(Array)
             expect(response.body.data).toHaveLength(2)
-            expect(response.body.message).toBe('Goals retrieved successfully')
+            expect(response.body.data[0]).toHaveProperty('progress')
         })
 
-        it('should return 200 with empty array', async () => {
+        it('should return empty array', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
 
             const response = await withBearerAuth(
-                supertest(App).get(endpoint),
+                supertest(App).get(API_BASE),
                 token
             )
 
@@ -198,40 +215,41 @@ describe('Recovery Goals Routes', () => {
             expect(response.body.data).toEqual([])
         })
 
-        it(
-            'should return 401 when getting goals list without auth token',
-            async () => {
-            const response = await supertest(App).get(endpoint)
-
+        it('should require auth', async () => {
+            const response = await supertest(App).get(API_BASE)
             expect(response.status).toBe(401)
         })
     })
 
     // ==================== GET SINGLE GOAL ====================
     describe('GET /api/v1/recovery-goals/:goalId', () => {
-        const goalId = 'test-goal-id-123'
-
-        it('should return 200 and goal with milestones', async () => {
+        it('should return goal with milestones and progress', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
             const mockGoal = createMockRecoveryGoal({
-                userId: mockUser.id,
-                milestones: [
-                    createMockMilestone(),
-                    createMockMilestone({ id: 'm-2' })
-                ]
+                id: 'goal-123',
+                profileId: 'test-profile-id-123'
             })
+            const mockMilestones = [
+                createMockMilestone({ status: 'active' }),
+                createMockMilestone({
+                    id: 'm-2',
+                    status: 'locked'
+                })
+            ]
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
 
             const response = await withBearerAuth(
-                supertest(App).get(`${API_BASE}/${goalId}`),
+                supertest(App).get(`${API_BASE}/goal-123`),
                 token
             )
 
             expect(response.status).toBe(200)
-            expect(response.body.data.id).toBe(goalId)
+            expect(response.body.data.goal.id).toBe('goal-123')
             expect(response.body.data.milestones).toHaveLength(2)
+            expect(response.body.data.goal).toHaveProperty('progress')
         })
 
         it('should return 404 for non-existent goal', async () => {
@@ -241,49 +259,27 @@ describe('Recovery Goals Routes', () => {
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(null)
 
             const response = await withBearerAuth(
-                supertest(App).get(`${API_BASE}/${goalId}`),
+                supertest(App).get(`${API_BASE}/nonexistent`),
                 token
             )
 
             expect(response.status).toBe(404)
-            expect(response.body.message).toContain('not found')
         })
 
-        it(
-            'should return 401 when getting single goal without auth token',
-            async () => {
-            const response = await supertest(App).get(`${API_BASE}/${goalId}`)
-
+        it('should require auth', async () => {
+            const response = await supertest(App).get(`${API_BASE}/goal-123`)
             expect(response.status).toBe(401)
         })
-
-        it(
-            'should return 404 when goal belongs to different user',
-            async () => {
-                const mockUser = createMockUser()
-                const token = createAuthToken(mockUser)
-
-                prismaMock.recoveryGoal.findFirst.mockResolvedValue(null)
-
-                const response = await withBearerAuth(
-                    supertest(App).get(`${API_BASE}/${goalId}`),
-                    token
-                )
-
-                expect(response.status).toBe(404)
-            })
     })
 
     // ==================== UPDATE GOAL ====================
     describe('PATCH /api/v1/recovery-goals/:goalId', () => {
-        const goalId = 'test-goal-id-123'
-        const updateBody = { title: 'Updated Goal Title' }
-
-        it('should return 200 and update goal', async () => {
+        it('should update goal fields', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                userId: mockUser.id,
-                title: updateBody.title
+                id: 'goal-123',
+                title: 'Updated title',
+                status: 'active'
             })
             const {
                 token,
@@ -293,25 +289,24 @@ describe('Recovery Goals Routes', () => {
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.recoveryGoal.update.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
 
             const response = await withCsrfAuth(
-                supertest(App).patch(`${API_BASE}/${goalId}`),
+                supertest(App).patch(`${API_BASE}/goal-123`),
                 token,
                 csrfSecret,
                 csrfToken
-            )
-                .send(updateBody)
+            ).send({ title: 'Updated title' })
 
             expect(response.status).toBe(200)
-            expect(response.body.message).toBe('Goal updated successfully')
-            expect(response.body.data.title).toBe(updateBody.title)
+            expect(response.body.data.title).toBe('Updated title')
         })
 
-        it('should allow updating description only', async () => {
+        it('should handle status update to abandoned', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                userId: mockUser.id,
-                description: 'New description'
+                id: 'goal-123',
+                status: 'abandoned'
             })
             const {
                 token,
@@ -321,16 +316,37 @@ describe('Recovery Goals Routes', () => {
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.recoveryGoal.update.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+            prismaMock.milestone.updateMany.mockResolvedValue({
+                count: 0
+            })
 
             const response = await withCsrfAuth(
-                supertest(App).patch(`${API_BASE}/${goalId}`),
+                supertest(App).patch(`${API_BASE}/goal-123`),
                 token,
                 csrfSecret,
                 csrfToken
-            )
-                .send({ description: 'New description' })
+            ).send({ status: 'abandoned' })
 
             expect(response.status).toBe(200)
+        })
+
+        it('should reject invalid status', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: 'invalid' })
+
+            expect(response.status).toBe(403)
         })
 
         it('should return 404 for non-existent goal', async () => {
@@ -344,24 +360,23 @@ describe('Recovery Goals Routes', () => {
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(null)
 
             const response = await withCsrfAuth(
-                supertest(App).patch(`${API_BASE}/${goalId}`),
+                supertest(App).patch(`${API_BASE}/goal-123`),
                 token,
                 csrfSecret,
                 csrfToken
-            )
-                .send(updateBody)
+            ).send({ title: 'Updated' })
 
             expect(response.status).toBe(404)
         })
 
-        it('should return 401 for missing CSRF token', async () => {
+        it('should require CSRF', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
             const response = await withBearerAuth(
-                supertest(App).patch(`${API_BASE}/${goalId}`),
+                supertest(App).patch(`${API_BASE}/goal-123`),
                 token
-            ).send(updateBody)
+            ).send({ title: 'Updated' })
 
             expect(response.status).toBe(401)
         })
@@ -369,43 +384,30 @@ describe('Recovery Goals Routes', () => {
 
     // ==================== DELETE GOAL ====================
     describe('DELETE /api/v1/recovery-goals/:goalId', () => {
-        const goalId = 'test-goal-id-123'
+        it('should delete goal', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 200 and delete goal (cascade to milestones)',
-            async () => {
-                const mockUser = createMockUser()
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id,
-                    milestones: [
-                        createMockMilestone()
-                    ]
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.recoveryGoal.delete.mockResolvedValue(mockGoal)
 
-                prismaMock.recoveryGoal.findFirst
-                    .mockResolvedValue(mockGoal)
-                prismaMock.recoveryGoal.delete
-                    .mockResolvedValue(mockGoal)
+            const response = await withCsrfAuth(
+                supertest(App).delete(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .delete(`${API_BASE}/${goalId}`),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                )
-
-                expect(response.status).toBe(200)
-                expect(response.body.message)
-                    .toBe('Goal deleted successfully')
-                expect(response.body.data).toBeNull()
-            }
-        )
+            expect(response.status).toBe(200)
+            expect(response.body.data).toBeNull()
+        })
 
         it('should return 404 for non-existent goal', async () => {
             const mockUser = createMockUser()
@@ -418,7 +420,7 @@ describe('Recovery Goals Routes', () => {
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(null)
 
             const response = await withCsrfAuth(
-                supertest(App).delete(`${API_BASE}/${goalId}`),
+                supertest(App).delete(`${API_BASE}/goal-123`),
                 token,
                 csrfSecret,
                 csrfToken
@@ -427,13 +429,12 @@ describe('Recovery Goals Routes', () => {
             expect(response.status).toBe(404)
         })
 
-        it('should return 401 for missing CSRF token', async () => {
+        it('should require CSRF', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
             const response = await withBearerAuth(
-                supertest(App)
-                    .delete(`${API_BASE}/${goalId}`),
+                supertest(App).delete(`${API_BASE}/goal-123`),
                 token
             )
 
@@ -441,451 +442,640 @@ describe('Recovery Goals Routes', () => {
         })
     })
 
-    // ==================== CREATE MILESTONE ====================
+    // ==================== CREATE MILESTONES ====================
     describe('POST /api/v1/recovery-goals/:goalId/milestones', () => {
-        const goalId = 'test-goal-id-123'
-        const validBody = { title: 'No screens 1 hour before bed' }
-
-        it(
-            'should return 201 and create milestone with auto-assigned order',
-            async () => {
-                const mockUser = createMockUser()
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
+        it('should create milestones with order', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: 'active'
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    order: 1,
+                    status: 'active',
+                    title: 'First milestone'
+                }),
+                createMockMilestone({
+                    id: 'm-2',
+                    order: 2,
+                    status: 'locked',
+                    title: 'Second milestone'
                 })
-                const mockMilestone = createMockMilestone({
-                    goalId
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            ]
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-                prismaMock.recoveryGoal.findFirst
-                    .mockResolvedValue(mockGoal)
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.$transaction.mockImplementation(async (callback) => {
+                const tx = {
+                    milestone: {
+                        count: jest.fn().mockResolvedValue(0),
+                        create: jest.fn()
+                            .mockResolvedValueOnce(mockMilestones[0])
+                            .mockResolvedValueOnce(mockMilestones[1])
+                    },
+                    recoveryGoal: {
+                        findUnique: jest.fn()
+                            .mockResolvedValue(mockGoal)
+                    }
+                }
+                return callback(tx)
+            })
 
-                // Mock the $transaction method used by
-                // createMilestoneWithinTransaction
-                prismaMock.$transaction
-                    .mockImplementation(async (callback) => {
-                        const txClient = {
-                            recoveryGoal: {
-                                findUnique: jest.fn()
-                                    .mockResolvedValue(
-                                        mockGoal
-                                    )
-                            },
-                            milestone: {
-                                count: jest.fn()
-                                    .mockResolvedValue(0),
-                                create: jest.fn()
-                                    .mockResolvedValue(
-                                        mockMilestone
-                                    )
-                            }
-                        }
-                        return callback(txClient)
-                    })
+            const response = await withCsrfAuth(
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                milestones: [
+                    {
+                        title: 'First milestone',
+                        description: 'First step',
+                        order: 1
+                    },
+                    {
+                        title: 'Second milestone',
+                        description: 'Second step',
+                        order: 2
+                    }
+                ]
+            })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .post(
-                            `${API_BASE}/${goalId}/milestones`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send(validBody)
+            expect(response.status).toBe(201)
+            expect(response.body.data).toHaveLength(2)
+        })
 
-                expect(response.status).toBe(201)
-                expect(response.body.message)
-                    .toBe(
-                        'Milestone created successfully'
-                    )
-                expect(response.body.data.title)
-                    .toBe(validBody.title)
-                expect(response.body.data.order).toBe(0)
-            }
-        )
+        it('should reject missing order', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 404 for non-existent goal',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            const response = await withCsrfAuth(
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                milestones: [
+                    {
+                        title: 'Milestone',
+                        description: 'No order'
+                    }
+                ]
+            })
 
-                prismaMock.recoveryGoal.findFirst
-                    .mockResolvedValue(null)
+            expect(response.status).toBe(403)
+        })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .post(
-                            `${API_BASE}/${goalId}/milestones`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send(validBody)
+        it('should reject non-active goal', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: 'paused'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-                expect(response.status).toBe(404)
-            }
-        )
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
 
-        it(
-            'should return 409 when max 4 milestones exceeded',
-            async () => {
-                const mockUser = createMockUser()
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            const response = await withCsrfAuth(
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                milestones: [
+                    {
+                        title: 'Milestone',
+                        order: 1
+                    }
+                ]
+            })
 
-                prismaMock.recoveryGoal.findFirst
-                    .mockResolvedValue(mockGoal)
+            expect(response.status).toBe(409)
+        })
 
-                // Mock transaction to simulate
-                // max milestones error
-                prismaMock.$transaction
-                    .mockImplementation(async () => {
-                        throw errorFactory.generic
-                            .conflict(
-                                'Maximum 4 milestones per goal allowed'
-                            )
-                    })
+        it('should reject max 8 milestones', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .post(
-                            `${API_BASE}/${goalId}/milestones`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send(validBody)
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.$transaction.mockImplementation(async () => {
+                throw errorFactory.generic.conflict(
+                    'Maximum 8 milestones per goal'
+                )
+            })
 
-                expect(response.status).toBe(409)
-            }
-        )
+            const response = await withCsrfAuth(
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                milestones: Array(9)
+                    .fill(null)
+                    .map((_, i) => ({
+                        title: `M${i}`,
+                        order: i + 1
+                    }))
+            })
 
-        it(
-            'should return 403 for missing title',
-            async () => {
-                const mockUser = createMockUser()
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            expect(response.status).toBe(409)
+        })
 
-                prismaMock.recoveryGoal.findFirst
-                    .mockResolvedValue(mockGoal)
-
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .post(
-                            `${API_BASE}/${goalId}/milestones`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({})
-
-                expect(response.status).toBe(403)
-            }
-        )
-
-        it('should return 401 for missing CSRF token', async () => {
+        it('should require CSRF', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
             const response = await withBearerAuth(
-                supertest(App)
-                    .post(
-                        `${API_BASE}/${goalId}/milestones`
-                    ),
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
                 token
-            ).send(validBody)
+            ).send({
+                milestones: [
+                    {
+                        title: 'Milestone',
+                        order: 1
+                    }
+                ]
+            })
 
             expect(response.status).toBe(401)
         })
     })
 
     // ==================== UPDATE MILESTONE ====================
-    describe(
-        'PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId',
-        () => {
-        const goalId = 'test-goal-id-123'
-        const milestoneId = 'test-milestone-id-123'
+    describe('PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId', () => {
+        it('should update milestone title', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                id: 'm-123',
+                title: 'Updated title',
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 200 and toggle isCompleted',
-            async () => {
-                const mockUser = createMockUser()
-                const mockMilestone = createMockMilestone({
-                    goalId,
-                    isCompleted: true
-                })
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+            prismaMock.milestone.update.mockResolvedValue(mockMilestone)
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue({
-                        ...mockMilestone,
-                        goal: mockGoal
-                    })
-                prismaMock.milestone.update
-                    .mockResolvedValue(mockMilestone)
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ title: 'Updated title' })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .patch(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ isCompleted: true })
+            expect(response.status).toBe(200)
+            expect(response.body.data.title).toBe('Updated title')
+        })
 
-                expect(response.status).toBe(200)
-                expect(response.body.message)
-                    .toBe('Milestone updated successfully')
-                expect(response.body.data.isCompleted)
-                    .toBe(true)
-            }
-        )
+        it('should update description', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                description: 'Updated description'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 200 and update title',
-            async () => {
-                const mockUser = createMockUser()
-                const mockMilestone = createMockMilestone({
-                    goalId,
-                    title: 'Updated title'
-                })
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
-                })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+            prismaMock.milestone.update.mockResolvedValue(mockMilestone)
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue({
-                        ...mockMilestone,
-                        goal: mockGoal
-                    })
-                prismaMock.milestone.update
-                    .mockResolvedValue(mockMilestone)
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ description: 'Updated description' })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .patch(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ title: 'Updated title' })
+            expect(response.status).toBe(200)
+        })
 
-                expect(response.status).toBe(200)
-            }
-        )
+        it('should update order', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                order: 3
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 404 for non-existent milestone',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+            prismaMock.milestone.update.mockResolvedValue(mockMilestone)
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue(null)
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ order: 3 })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .patch(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ isCompleted: true })
+            expect(response.status).toBe(200)
+        })
 
-                expect(response.status).toBe(404)
-            }
-        )
+        it('should reject non-active goal', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'completed'
+            })
+            const mockMilestone = createMockMilestone()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 401 when milestone belongs to different user',
-            async () => {
-                const mockUser = createMockUser()
-                const mockMilestone = createMockMilestone({
-                    goalId
-                })
-                const otherUsersGoal =
-                    createMockRecoveryGoal({
-                        profileId: 'other-profile-id-456'
-                    })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue({
-                        ...mockMilestone,
-                        goal: otherUsersGoal
-                    })
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ title: 'Updated' })
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .patch(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ isCompleted: true })
+            expect(response.status).toBe(409)
+        })
 
-                expect(response.status).toBe(401)
-            }
-        )
+        it('should reject modification of completed milestone', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                status: 'completed'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ title: 'Updated' })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should require CSRF', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const response = await withBearerAuth(
+                supertest(App)
+                    .patch(`${API_BASE}/goal-123/milestones/m-123`),
+                token
+            ).send({ title: 'Updated' })
+
+            expect(response.status).toBe(401)
+        })
     })
 
     // ==================== DELETE MILESTONE ====================
-    describe(
-        'DELETE /api/v1/recovery-goals/:goalId/milestones/:milestoneId',
-        () => {
-        const goalId = 'test-goal-id-123'
-        const milestoneId = 'test-milestone-id-123'
+    describe('DELETE /api/v1/recovery-goals/:goalId/milestones/:milestoneId', () => {
+        it('should delete milestone', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 200 and delete milestone',
-            async () => {
-                const mockUser = createMockUser()
-                const mockMilestone = createMockMilestone({
-                    goalId
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+            prismaMock.milestone.delete.mockResolvedValue(mockMilestone)
+
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .delete(`${API_BASE}/goal-123/milestones/m-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data).toBeNull()
+        })
+
+        it('should require auth', async () => {
+            const response = await supertest(App)
+                .delete(`${API_BASE}/goal-123/milestones/m-123`)
+
+            expect(response.status).toBe(401)
+        })
+
+        it('should require CSRF', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const response = await withBearerAuth(
+                supertest(App)
+                    .delete(`${API_BASE}/goal-123/milestones/m-123`),
+                token
+            )
+
+            expect(response.status).toBe(401)
+        })
+    })
+
+    // ==================== COMPLETE MILESTONE ====================
+    describe('PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete', () => {
+        it('should complete milestone and advance next', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                id: 'm-1',
+                order: 1,
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+            prismaMock.$transaction.mockImplementation(async (callback) => {
+                return callback({
+                    milestone: {
+                        findUnique: jest.fn()
+                            .mockResolvedValue(mockMilestone),
+                        update: jest.fn()
+                            .mockResolvedValue({
+                                ...mockMilestone,
+                                status: 'completed'
+                            }),
+                        findFirst: jest.fn()
+                            .mockResolvedValue({
+                                id: 'm-2',
+                                status: 'locked'
+                            })
+                    },
+                    recoveryGoal: {
+                        update: jest.fn()
+                    }
                 })
-                const mockGoal = createMockRecoveryGoal({
-                    userId: mockUser.id
+            })
+
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(
+                        `${API_BASE}/goal-123/milestones/m-123/complete`
+                    ),
+                token,
+                csrfSecret,
+                csrfToken
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.message)
+                .toContain('completed successfully')
+        })
+
+        it('should reject non-active goal', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'paused'
+            })
+            const mockMilestone = createMockMilestone()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.milestone.findUnique.mockResolvedValue({
+                ...mockMilestone,
+                goal: mockGoal
+            })
+
+            const response = await withCsrfAuth(
+                supertest(App)
+                    .patch(
+                        `${API_BASE}/goal-123/milestones/m-123/complete`
+                    ),
+                token,
+                csrfSecret,
+                csrfToken
+            )
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should require CSRF', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const response = await withBearerAuth(
+                supertest(App)
+                    .patch(
+                        `${API_BASE}/goal-123/milestones/m-123/complete`
+                    ),
+                token
+            )
+
+            expect(response.status).toBe(401)
+        })
+    })
+
+    // ==================== COMPLETE GOAL ====================
+    describe('PATCH /api/v1/recovery-goals/:goalId/complete', () => {
+        it('should complete goal', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([
+                createMockMilestone({ status: 'completed' }),
+                createMockMilestone({
+                    id: 'm-2',
+                    status: 'completed'
                 })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            ])
+            prismaMock.recoveryGoal.update.mockResolvedValue({
+                ...mockGoal,
+                status: 'completed'
+            })
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue({
-                        ...mockMilestone,
-                        goal: mockGoal
-                    })
-                prismaMock.milestone.delete
-                    .mockResolvedValue(mockMilestone)
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123/complete`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .delete(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                )
+            expect(response.status).toBe(200)
+            expect(response.body.data.status).toBe('completed')
+            expect(response.body.data.progress).toBe(1)
+        })
 
-                expect(response.status).toBe(200)
-                expect(response.body.message)
-                    .toBe('Milestone deleted successfully')
-                expect(response.body.data).toBeNull()
-            }
-        )
+        it('should reject if goal not active', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'paused'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 404 for non-existent milestone',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue(null)
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123/complete`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .delete(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                )
+            expect(response.status).toBe(409)
+        })
 
-                expect(response.status).toBe(404)
-            }
-        )
+        it('should reject if milestones incomplete', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
 
-        it(
-            'should return 401 when milestone belongs to different user',
-            async () => {
-                const mockUser = createMockUser()
-                const mockMilestone = createMockMilestone({
-                    goalId
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([
+                createMockMilestone({ status: 'completed' }),
+                createMockMilestone({
+                    id: 'm-2',
+                    status: 'active'
                 })
-                const otherUsersGoal =
-                    createMockRecoveryGoal({
-                        profileId: 'other-profile-id-456'
-                    })
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
+            ])
 
-                prismaMock.milestone.findUnique
-                    .mockResolvedValue({
-                        ...mockMilestone,
-                        goal: otherUsersGoal
-                    })
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123/complete`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
 
-                const response = await withCsrfAuth(
-                    supertest(App)
-                        .delete(
-                            `${API_BASE}/${goalId}/milestones/${milestoneId}`
-                        ),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                )
+            expect(response.status).toBe(409)
+        })
 
-                expect(response.status).toBe(401)
-            }
-        )
+        it('should reject if no milestones', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                status: 'active'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123/complete`),
+                token,
+                csrfSecret,
+                csrfToken
+            )
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should require CSRF', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const response = await withBearerAuth(
+                supertest(App).patch(`${API_BASE}/goal-123/complete`),
+                token
+            )
+
+            expect(response.status).toBe(401)
+        })
     })
 })

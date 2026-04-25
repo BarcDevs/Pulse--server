@@ -14,5 +14,16 @@ export const updateGoalSchema =
             .string()
             .max(1000)
             .allow(null, '')
+            .optional(),
+        status: joi
+            .string()
+            .valid('paused', 'abandoned')
+            .optional(),
+        targetDate: joi
+            .string()
+            .isoDate()
+            .optional(),
+        isPrimary: joi
+            .boolean()
             .optional()
     })

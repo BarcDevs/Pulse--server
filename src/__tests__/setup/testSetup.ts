@@ -128,7 +128,10 @@ export const createMockRecoveryGoal = (
     profileId: 'test-profile-id-123',
     title: 'Build a consistent sleep schedule',
     description: 'Establish a regular sleep routine',
-    milestones: [],
+    category: 'lifestyle',
+    isPrimary: false,
+    status: 'active',
+    targetDate: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides
@@ -140,8 +143,10 @@ export const createMockMilestone = (
     id: 'test-milestone-id-123',
     goalId: 'test-goal-id-123',
     title: 'No screens 1 hour before bed',
-    isCompleted: false,
+    description: null,
+    status: 'active',
     order: 0,
+    completedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides

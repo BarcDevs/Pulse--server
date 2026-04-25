@@ -9,7 +9,14 @@ export const updateMilestoneSchema = joi.object<
         .string()
         .max(150)
         .optional(),
-    isCompleted: joi
-        .boolean()
+    description: joi
+        .string()
+        .max(1000)
+        .allow(null, '')
+        .optional(),
+    order: joi
+        .number()
+        .integer()
+        .min(1)
         .optional()
 })

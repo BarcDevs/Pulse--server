@@ -11,7 +11,8 @@ import { updateMilestoneSchema } from '../schemas/recoveryGoal/updateMilestoneSc
 import * as recoveryGoalService from '../services/recoveryGoalService'
 import type {
     MilestoneType,
-    RecoveryGoalType
+    RecoveryGoalType,
+    RecoveryGoalWithProgress
 } from '../types/data/RecoveryGoalType'
 
 // Validate that ID is a non-empty string (CUID format)
@@ -41,7 +42,7 @@ export const createGoal = async (
         userId,
         validatedData
     )
-    successResponse<RecoveryGoalType>(
+    successResponse<RecoveryGoalWithProgress>(
         res,
         goal,
         'Goal created successfully',
@@ -70,17 +71,17 @@ export const getGoal = async (
     res: Response
 ) => {
     const { userId } = req
-    const { goalId } = req.params
+    const { goalId } = req.params as { goalId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
-    const goal = await recoveryGoalService.getGoal(
+    const result = await recoveryGoalService.getGoal(
         goalId,
         userId
     )
-    successResponse<RecoveryGoalType>(
+    successResponse(
         res,
-        goal,
+        result,
         'Goal retrieved successfully',
         HttpStatusCodes.OK
     )
@@ -95,7 +96,7 @@ export const updateGoal = async (
             updateGoalSchema.validate(req.body)
         )
     const { userId } = req
-    const { goalId } = req.params
+    const { goalId } = req.params as { goalId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -104,7 +105,7 @@ export const updateGoal = async (
         userId,
         validatedData
     )
-    successResponse<RecoveryGoalType>(
+    successResponse<RecoveryGoalWithProgress>(
         res,
         goal,
         'Goal updated successfully',
@@ -117,7 +118,7 @@ export const deleteGoal = async (
     res: Response
 ) => {
     const { userId } = req
-    const { goalId } = req.params
+    const { goalId } = req.params as { goalId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
@@ -130,7 +131,7 @@ export const deleteGoal = async (
     )
 }
 
-export const addMilestone = async (
+export const createMilestones = async (
     req: Request,
     res: Response
 ) => {
@@ -139,19 +140,25 @@ export const addMilestone = async (
             newMilestoneSchema.validate(req.body)
         )
     const { userId } = req
-    const { goalId } = req.params
+    const { goalId } = req.params as { goalId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
-    const milestone = await recoveryGoalService.addMilestone(
+    const milestones = await recoveryGoalService.createMilestones(
         goalId,
         userId,
-        validatedData
+        validatedData as {
+            milestones: Array<{
+                title: string
+                description?: string
+                order: number
+            }>
+        }
     )
-    successResponse<MilestoneType>(
+    successResponse(
         res,
-        milestone,
-        'Milestone created successfully',
+        milestones,
+        'Milestones created successfully',
         HttpStatusCodes.CREATED
     )
 }
@@ -165,7 +172,7 @@ export const updateMilestone = async (
             updateMilestoneSchema.validate(req.body)
         )
     const { userId } = req
-    const { milestoneId } = req.params
+    const { milestoneId } = req.params as { milestoneId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(milestoneId, 'milestoneId')
 
@@ -187,7 +194,7 @@ export const deleteMilestone = async (
     res: Response
 ) => {
     const { userId } = req
-    const { milestoneId } = req.params
+    const { milestoneId } = req.params as { milestoneId: string }
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(milestoneId, 'milestoneId')
 
@@ -199,6 +206,53 @@ export const deleteMilestone = async (
         res,
         null,
         'Milestone deleted successfully',
+        HttpStatusCodes.OK
+    )
+}
+
+export const completeMilestone = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+    const { goalId, milestoneId } = req.params as {
+        goalId: string
+        milestoneId: string
+    }
+    if (!userId) throw errorFactory.auth.unauthorized()
+    validateId(goalId, 'goalId')
+    validateId(milestoneId, 'milestoneId')
+
+    await recoveryGoalService.completeMilestone(
+        milestoneId,
+        goalId,
+        userId
+    )
+    successResponse(
+        res,
+        null,
+        'Milestone completed successfully',
+        HttpStatusCodes.OK
+    )
+}
+
+export const completeGoal = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+    const { goalId } = req.params as { goalId: string }
+    if (!userId) throw errorFactory.auth.unauthorized()
+    validateId(goalId, 'goalId')
+
+    const goal = await recoveryGoalService.completeGoal(
+        goalId,
+        userId
+    )
+    successResponse<RecoveryGoalWithProgress>(
+        res,
+        goal,
+        'Goal completed successfully',
         HttpStatusCodes.OK
     )
 }

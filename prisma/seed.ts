@@ -198,6 +198,159 @@ async function main() {
         })
     }
 
+    console.info('Seeding goals and milestones...')
+    const users = await prisma.user.findMany({ take: 5 })
+
+    if (users.length > 0) {
+        for (const user of users) {
+            const profile = await prisma.profile.findUnique({
+                where: { userId: user.id }
+            })
+
+            if (!profile) continue
+
+            const activeGoal = await prisma.recoveryGoal.create({
+                data: {
+                    profileId: profile.id,
+                    title: 'Build consistent exercise habit',
+                    description: 'Exercise 3 times per week',
+                    category: 'PHYSICAL',
+                    status: 'ACTIVE',
+                    isPrimary: false,
+                    targetDate: new Date(
+                        Date.now() + 90 * 24 * 60 * 60 * 1000
+                    )
+                }
+            })
+
+            await prisma.milestone.createMany({
+                data: [
+                    {
+                        goalId: activeGoal.id,
+                        title: 'Complete first week of workouts',
+                        description: 'Exercise at least 3 times this week',
+                        order: 1,
+                        status: 'COMPLETED',
+                        completedAt: new Date()
+                    },
+                    {
+                        goalId: activeGoal.id,
+                        title: 'Reach 2 weeks consistency',
+                        description: 'Maintain schedule for another week',
+                        order: 2,
+                        status: 'ACTIVE'
+                    },
+                    {
+                        goalId: activeGoal.id,
+                        title: 'Build to 4 weeks streak',
+                        description: 'Keep it going for the full month',
+                        order: 3,
+                        status: 'LOCKED'
+                    }
+                ]
+            })
+
+            const completedGoal = await prisma.recoveryGoal.create({
+                data: {
+                    profileId: profile.id,
+                    title: 'Improve sleep quality',
+                    description: 'Sleep 8 hours per night',
+                    category: 'LIFESTYLE',
+                    status: 'COMPLETED',
+                    isPrimary: false
+                }
+            })
+
+            await prisma.milestone.createMany({
+                data: [
+                    {
+                        goalId: completedGoal.id,
+                        title: 'Establish bedtime routine',
+                        description: 'Set consistent sleep and wake times',
+                        order: 1,
+                        status: 'COMPLETED',
+                        completedAt: new Date(
+                            Date.now() - 10 * 24 * 60 * 60 * 1000
+                        )
+                    },
+                    {
+                        goalId: completedGoal.id,
+                        title: 'No screens 1 hour before bed',
+                        description: 'Reduce blue light exposure',
+                        order: 2,
+                        status: 'COMPLETED',
+                        completedAt: new Date(
+                            Date.now() - 5 * 24 * 60 * 60 * 1000
+                        )
+                    }
+                ]
+            })
+
+            const pausedGoal = await prisma.recoveryGoal.create({
+                data: {
+                    profileId: profile.id,
+                    title: 'Stress management practice',
+                    description: 'Daily meditation and breathing',
+                    category: 'MENTAL',
+                    status: 'PAUSED',
+                    isPrimary: false
+                }
+            })
+
+            await prisma.milestone.createMany({
+                data: [
+                    {
+                        goalId: pausedGoal.id,
+                        title: 'Learn meditation basics',
+                        description: 'Complete a beginner meditation course',
+                        order: 1,
+                        status: 'COMPLETED',
+                        completedAt: new Date(
+                            Date.now() - 30 * 24 * 60 * 60 * 1000
+                        )
+                    },
+                    {
+                        goalId: pausedGoal.id,
+                        title: 'Practice daily for 2 weeks',
+                        description: 'Meditate for at least 10 minutes each day',
+                        order: 2,
+                        status: 'LOCKED'
+                    }
+                ]
+            })
+
+            const abandonedGoal = await prisma.recoveryGoal.create({
+                data: {
+                    profileId: profile.id,
+                    title: 'Learn a new language',
+                    description: 'Spanish language learning',
+                    category: 'MENTAL',
+                    status: 'ABANDONED',
+                    isPrimary: false
+                }
+            })
+
+            await prisma.milestone.createMany({
+                data: [
+                    {
+                        goalId: abandonedGoal.id,
+                        title: 'Complete beginner course',
+                        description: 'Finish introductory Spanish lessons',
+                        order: 1,
+                        status: 'LOCKED'
+                    },
+                    {
+                        goalId: abandonedGoal.id,
+                        title: 'Practice conversational Spanish',
+                        description: 'Have simple conversations with native speakers',
+                        order: 2,
+                        status: 'LOCKED'
+                    }
+                ]
+            })
+        }
+    }
+
     console.info('Seed data created successfully')
 }
 

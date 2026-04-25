@@ -1,0 +1,1 @@
+export const MAX_MILESTONES_PER_GOAL = 8

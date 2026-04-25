@@ -1,8 +1,10 @@
 import { Router } from 'express'
 
 import {
-    addMilestone,
+    completeGoal,
+    completeMilestone,
     createGoal,
+    createMilestones,
     deleteGoal,
     deleteMilestone,
     getGoal,
@@ -167,7 +169,7 @@ router
  * @swagger
  * /api/v1/recovery-goals/{goalId}/milestones:
  *   post:
- *     summary: Add a milestone to a recovery goal
+ *     summary: Create milestones for a recovery goal
  *     tags: [Recovery Milestones]
  *     security:
  *       - cookieAuth: []
@@ -185,15 +187,31 @@ router
  *         application/json:
  *           schema:
  *             type: object
- *             required: [title]
+ *             required: [milestones]
  *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 150
- *                 description: Milestone title
+ *               milestones:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 8
+ *                 items:
+ *                   type: object
+ *                   required: [title, order]
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                       maxLength: 150
+ *                       description: Milestone title
+ *                     description:
+ *                       type: string
+ *                       maxLength: 1000
+ *                       description: Optional milestone description
+ *                     order:
+ *                       type: integer
+ *                       minimum: 1
+ *                       description: Milestone order (required, client-provided)
  *     responses:
  *       201:
- *         description: Milestone created (order auto-assigned server-side)
+ *         description: Milestones created successfully
  *       400:
  *         description: Invalid input
  *       401:
@@ -201,7 +219,7 @@ router
  *       404:
  *         description: Goal not found
  *       409:
- *         description: Maximum 4 milestones per goal exceeded
+ *         description: Goal not active or maximum 8 milestones per goal exceeded
  */
 router
     .route('/:goalId/milestones')
@@ -209,14 +227,14 @@ router
         isAuthenticated,
         extractCsrfToken,
         csrfMiddleware,
-        addMilestone
+        createMilestones
     )
 
 /**
  * @swagger
  * /api/v1/recovery-goals/{goalId}/milestones/{milestoneId}:
  *   patch:
- *     summary: Update a milestone (title and/or completion status)
+ *     summary: Update a milestone (title, description, and/or order)
  *     tags: [Recovery Milestones]
  *     security:
  *       - cookieAuth: []
@@ -244,8 +262,12 @@ router
  *               title:
  *                 type: string
  *                 maxLength: 150
- *               isCompleted:
- *                 type: boolean
+ *               description:
+ *                 type: string
+ *                 maxLength: 1000
+ *               order:
+ *                 type: integer
+ *                 minimum: 1
  *     responses:
  *       200:
  *         description: Milestone updated successfully
@@ -253,6 +275,8 @@ router
  *         description: Unauthorized or milestone belongs to different user
  *       404:
  *         description: Milestone not found
+ *       409:
+ *         description: Cannot modify completed milestones
  *   delete:
  *     summary: Delete a milestone
  *     tags: [Recovery Milestones]
@@ -293,6 +317,82 @@ router
         extractCsrfToken,
         csrfMiddleware,
         deleteMilestone
+    )
+
+/**
+ * @swagger
+ * /api/v1/recovery-goals/{goalId}/milestones/{milestoneId}/complete:
+ *   patch:
+ *     summary: Mark milestone as completed and advance to next
+ *     tags: [Recovery Milestones]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The goal ID
+ *       - in: path
+ *         name: milestoneId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The milestone ID
+ *     responses:
+ *       200:
+ *         description: Milestone completed, next advanced
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Milestone or goal not found
+ *       409:
+ *         description: Goal not active or milestone cannot be completed
+ */
+router
+    .route('/:goalId/milestones/:milestoneId/complete')
+    .patch(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        completeMilestone
+    )
+
+/**
+ * @swagger
+ * /api/v1/recovery-goals/{goalId}/complete:
+ *   patch:
+ *     summary: Manually mark goal as completed
+ *     tags: [Recovery Goals]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The goal ID
+ *     responses:
+ *       200:
+ *         description: Goal completed successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Goal not found
+ *       409:
+ *         description: Cannot complete goal with incomplete milestones
+ */
+router
+    .route('/:goalId/complete')
+    .patch(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        completeGoal
     )
 
 export default router
