@@ -5,6 +5,8 @@
     "dist"
   ],
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "rootDir": ".",
     "target": "es2022",
     "lib": [
       "ES2021.String",
@@ -21,6 +23,7 @@
     "tsBuildInfoFile": "./.tsbuildinfo",
     "isolatedModules": true,
     "resolveJsonModule": true,
+    "types": ["jest", "node"],
     // temporary turning off strict types to reduce build memory usage
     "strictFunctionTypes": false,
     "strictBindCallApply": false
