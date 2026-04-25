@@ -22,11 +22,11 @@
     },
     {
       "key": "testEmail",
-      "value": ""
+      "value": "alice@example.com"
     },
     {
       "key": "testPassword",
-      "value": ""
+      "value": "password123"
     }
   ],
   "event": [
@@ -74,8 +74,8 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.environment.set('testEmail', 'user@test.com')",
-                  "pm.environment.set('testPassword', 'testpass123')"
+                  "pm.environment.set('testEmail', 'alice@example.com')",
+                  "pm.environment.set('testPassword', 'password123')"
                 ]
               }
             },
