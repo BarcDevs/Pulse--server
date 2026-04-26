@@ -47,7 +47,7 @@ export const login = async (
         password,
         remember
     } = ValidationError.catchValidationErrors(
-        loginSchema.validate(req.body)
+        loginSchema.safeParse(req.body)
     )
 
     const token = await authServices.login(email, password)
@@ -88,7 +88,7 @@ export const signup = async (
 ) => {
     const userData =
         ValidationError.catchValidationErrors(
-            signupSchema.validate(req.body)
+            signupSchema.safeParse(req.body)
         )
 
     const newUserCreated: ServerUserType =
@@ -182,7 +182,7 @@ export const forgotPassword = async (
 ) => {
     const { email } =
         ValidationError.catchValidationErrors(
-            forgotPasswordSchema.validate(
+            forgotPasswordSchema.safeParse(
                 { email: req.params.email }
             )
         )
@@ -204,7 +204,7 @@ export const confirmEmail = async (
 ) => {
     const { OTP, email } =
         ValidationError.catchValidationErrors(
-            confirmEmailSchema.validate(req.body)
+            confirmEmailSchema.safeParse(req.body)
         )
 
     const user: ServerUserType | null =
@@ -242,7 +242,7 @@ export const resetPassword = async (
         newPassword,
         userOTP
     } = ValidationError.catchValidationErrors(
-        resetPasswordSchema.validate(req.body)
+        resetPasswordSchema.safeParse(req.body)
     )
 
     const user: ServerUserType | null =

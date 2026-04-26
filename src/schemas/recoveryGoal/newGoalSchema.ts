@@ -1,32 +1,9 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { NewRecoveryGoalType } from '../../types/data/RecoveryGoalType'
-
-export const newGoalSchema = joi.object<
-    NewRecoveryGoalType
->({
-    title: joi
-        .string()
-        .max(150)
-        .required(),
-    description: joi
-        .string()
-        .max(1000)
-        .allow(null, '')
-        .optional(),
-    category: joi
-        .string()
-        .valid(
-            'physical',
-            'mental',
-            'lifestyle'
-        )
-        .required(),
-    targetDate: joi
-        .string()
-        .isoDate()
-        .optional(),
-    isPrimary: joi
-        .boolean()
-        .optional()
+export const newGoalSchema = z.object({
+    title: z.string().max(150),
+    description: z.string().max(1000).optional(),
+    category: z.enum(['physical', 'mental', 'lifestyle']),
+    targetDate: z.string().datetime({ offset: true }).optional(),
+    isPrimary: z.boolean().optional()
 })

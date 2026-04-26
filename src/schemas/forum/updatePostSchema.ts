@@ -1,23 +1,12 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { UpdatePostType } from '../../types/data/PostType'
-
-export const updatePostSchema = joi.object<
-    Omit<UpdatePostType, 'removeTags'>
->({
-    title: joi.string(),
-    body: joi.string(),
-    category: joi.string(),
-    tags: joi
-        .array()
-        .items(joi.string()),
-    vote: joi
-        .object({
-            userId: joi
-                .string()
-                .required(),
-            vote: joi
-                .valid('up')
-                .required()
-        })
+export const updatePostSchema = z.object({
+    title: z.string().optional(),
+    body: z.string().optional(),
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    vote: z.object({
+        userId: z.string(),
+        vote: z.literal('up')
+    }).optional()
 })

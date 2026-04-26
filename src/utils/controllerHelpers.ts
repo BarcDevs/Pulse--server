@@ -1,5 +1,5 @@
 import type { Request } from 'express'
-import type { ValidationResult } from 'joi'
+import type { ZodSchema } from 'zod'
 
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
@@ -13,14 +13,10 @@ export const extractUserId = (req: Request): string => {
     return userId
 }
 
-export const validateAndExtract = <T>(
-    schema: {
-        validate: (
-            data: unknown
-        ) => ValidationResult<T>
-    },
+export const validateAndExtract = <T,>(
+    schema: ZodSchema,
     data: unknown
 ): T =>
     ValidationError.catchValidationErrors(
-        schema.validate(data)
-    )
+        schema.safeParse(data)
+    ) as T

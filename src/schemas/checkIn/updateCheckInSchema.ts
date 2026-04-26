@@ -1,34 +1,13 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { UpdateCheckInType } from '../../types/data/CheckInType'
-
-export const updateCheckInSchema = joi
-    .object<
-        Omit<UpdateCheckInType, 'userId'>
-    >({
-        moodScore: joi
-            .number()
-            .integer()
-            .min(1)
-            .max(10),
-        painLevel: joi
-            .number()
-            .integer()
-            .min(1)
-            .max(10),
-        activities: joi
-            .array()
-            .items(
-                joi
-                    .string()
-                    .min(0)
-                    .max(100)
-            )
-            .optional(),
-        notes: joi
-            .string()
-            .max(500)
-            .allow(null, '')
-            .optional()
+export const updateCheckInSchema = z
+    .object({
+        moodScore: z.number().int().min(1).max(10).optional(),
+        painLevel: z.number().int().min(1).max(10).optional(),
+        activities: z.array(z.string().max(100)).optional(),
+        notes: z.string().max(500).optional()
     })
-    .min(1)
+    .refine(
+        obj => Object.values(obj).some(v => v !== undefined),
+        'At least one field must be provided'
+    )

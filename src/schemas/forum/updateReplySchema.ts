@@ -1,15 +1,9 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { UpdateReplyType } from '../../types/data/ReplyType'
-
-export const updateReplySchema =
-    joi.object<UpdateReplyType>({
-        body: joi.string(),
-        vote: joi.object({
-            userId: joi.string()
-                .required(),
-            vote: joi
-                .valid('up')
-                .required()
-        })
-    })
+export const updateReplySchema = z.object({
+    body: z.string().optional(),
+    vote: z.object({
+        userId: z.string(),
+        vote: z.literal('up')
+    }).optional()
+})

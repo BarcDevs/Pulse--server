@@ -25,7 +25,7 @@ export const updateUser = async (
 
     const validatedData = ValidationError
         .catchValidationErrors(
-            updateUserSchema.validate(req.body)
+            updateUserSchema.safeParse(req.body)
         )
 
     const updatedUser =
@@ -52,7 +52,7 @@ export const updatePassword = async (
 
     const validatedData = ValidationError
         .catchValidationErrors(
-            updatePasswordSchema.validate(req.body)
+            updatePasswordSchema.safeParse(req.body)
         )
 
     const updatedUser = await updateUserPassword(

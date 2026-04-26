@@ -9,13 +9,13 @@ describe('Auth Schemas', () => {
     // ==================== LOGIN SCHEMA ====================
     describe('loginSchema', () => {
         it('should validate correct login data', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'test@test.com',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeUndefined()
-            expect(result.value).toEqual({
+            expect(result.data).toEqual({
                 email: 'test@test.com',
                 password: 'Password123!'
             })
@@ -24,41 +24,41 @@ describe('Auth Schemas', () => {
         it(
             'should validate with optional remember field',
             () => {
-                const result = loginSchema.validate({
+                const result = loginSchema.safeParse({
                     email: 'test@test.com',
                     password: 'Password123!',
                     remember: true
                 })
 
                 expect(result.error).toBeUndefined()
-                expect(result.value.remember).toBe(true)
+                expect(result.data.remember).toBe(true)
             }
         )
 
         it('should reject invalid email format', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'invalid-email',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject email with invalid TLD', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'test@test.org',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should accept email with .com TLD', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'test@example.com',
                 password: 'Password123!'
             })
@@ -67,7 +67,7 @@ describe('Auth Schemas', () => {
         })
 
         it('should accept email with .net TLD', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'test@example.net',
                 password: 'Password123!'
             })
@@ -76,35 +76,35 @@ describe('Auth Schemas', () => {
         })
 
         it('should reject missing email', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject missing password', () => {
-            const result = loginSchema.validate({
+            const result = loginSchema.safeParse({
                 email: 'test@test.com'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('password')
         })
 
         it(
             'should reject password shorter than 8 characters',
             () => {
-                const result = loginSchema.validate({
+                const result = loginSchema.safeParse({
                     email: 'test@test.com',
                     password: 'Pass1!'
                 })
 
                 expect(result.error).toBeDefined()
-                expect(result.error?.details[0].path)
+                expect(result.error?.issues[0].path)
                     .toContain('password')
             }
         )
@@ -112,13 +112,13 @@ describe('Auth Schemas', () => {
         it(
             'should reject password without required pattern',
             () => {
-                const result = loginSchema.validate({
+                const result = loginSchema.safeParse({
                     email: 'test@test.com',
                     password: 'password'
                 })
 
                 expect(result.error).toBeDefined()
-                expect(result.error?.details[0].path)
+                expect(result.error?.issues[0].path)
                     .toContain('password')
             }
         )
@@ -127,7 +127,7 @@ describe('Auth Schemas', () => {
     // ==================== SIGNUP SCHEMA ====================
     describe('signupSchema', () => {
         it('should validate correct signup data', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'john@test.com',
@@ -138,7 +138,7 @@ describe('Auth Schemas', () => {
         })
 
         it('should validate with optional username', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 lastName: 'Doe',
                 username: 'johndoe',
@@ -147,37 +147,37 @@ describe('Auth Schemas', () => {
             })
 
             expect(result.error).toBeUndefined()
-            expect(result.value.username).toBe('johndoe')
+            expect(result.data.username).toBe('johndoe')
         })
 
         it('should reject missing firstName', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 lastName: 'Doe',
                 email: 'john@test.com',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('firstName')
         })
 
         it('should reject missing lastName', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 email: 'john@test.com',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('lastName')
         })
 
         it(
             'should reject non-alphanumeric firstName',
             () => {
-                const result = signupSchema.validate({
+                const result = signupSchema.safeParse({
                     firstName: 'John@123',
                     lastName: 'Doe',
                     email: 'john@test.com',
@@ -185,7 +185,7 @@ describe('Auth Schemas', () => {
                 })
 
                 expect(result.error).toBeDefined()
-                expect(result.error?.details[0].path)
+                expect(result.error?.issues[0].path)
                     .toContain('firstName')
             }
         )
@@ -193,7 +193,7 @@ describe('Auth Schemas', () => {
         it(
             'should reject non-alphanumeric lastName',
             () => {
-                const result = signupSchema.validate({
+                const result = signupSchema.safeParse({
                     firstName: 'John',
                     lastName: 'Doe@123',
                     email: 'john@test.com',
@@ -201,25 +201,25 @@ describe('Auth Schemas', () => {
                 })
 
                 expect(result.error).toBeDefined()
-                expect(result.error?.details[0].path)
+                expect(result.error?.issues[0].path)
                     .toContain('lastName')
             }
         )
 
         it('should reject missing email', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 lastName: 'Doe',
                 password: 'Password123!'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject invalid email', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'invalid-email',
@@ -227,19 +227,19 @@ describe('Auth Schemas', () => {
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject missing password', () => {
-            const result = signupSchema.validate({
+            const result = signupSchema.safeParse({
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'john@test.com'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('password')
         })
     })
@@ -247,7 +247,7 @@ describe('Auth Schemas', () => {
     // ==================== FORGOT PASSWORD SCHEMA ====================
     describe('forgotPasswordSchema', () => {
         it('should validate correct email', () => {
-            const result = forgotPasswordSchema.validate({
+            const result = forgotPasswordSchema.safeParse({
                 email: 'test@test.com'
             })
 
@@ -255,15 +255,15 @@ describe('Auth Schemas', () => {
         })
 
         it('should reject missing email', () => {
-            const result = forgotPasswordSchema.validate({})
+            const result = forgotPasswordSchema.safeParse({})
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject invalid email format', () => {
-            const result = forgotPasswordSchema.validate({
+            const result = forgotPasswordSchema.safeParse({
                 email: 'invalid-email'
             })
 
@@ -271,7 +271,7 @@ describe('Auth Schemas', () => {
         })
 
         it('should reject email with invalid TLD', () => {
-            const result = forgotPasswordSchema.validate({
+            const result = forgotPasswordSchema.safeParse({
                 email: 'test@test.org'
             })
 
@@ -282,7 +282,7 @@ describe('Auth Schemas', () => {
     // ==================== CONFIRM EMAIL SCHEMA ====================
     describe('confirmEmailSchema', () => {
         it('should validate correct data', () => {
-            const result = confirmEmailSchema.validate({
+            const result = confirmEmailSchema.safeParse({
                 email: 'test@test.com',
                 OTP: 123456
             })
@@ -291,27 +291,27 @@ describe('Auth Schemas', () => {
         })
 
         it('should reject missing email', () => {
-            const result = confirmEmailSchema.validate({
+            const result = confirmEmailSchema.safeParse({
                 OTP: 123456
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject missing OTP', () => {
-            const result = confirmEmailSchema.validate({
+            const result = confirmEmailSchema.safeParse({
                 email: 'test@test.com'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('OTP')
         })
 
         it('should reject invalid email', () => {
-            const result = confirmEmailSchema.validate({
+            const result = confirmEmailSchema.safeParse({
                 email: 'invalid-email',
                 OTP: 123456
             })
@@ -320,7 +320,7 @@ describe('Auth Schemas', () => {
         })
 
         it('should accept numeric OTP', () => {
-            const result = confirmEmailSchema.validate({
+            const result = confirmEmailSchema.safeParse({
                 email: 'test@test.com',
                 OTP: 999999
             })
@@ -332,7 +332,7 @@ describe('Auth Schemas', () => {
     // ==================== RESET PASSWORD SCHEMA ====================
     describe('resetPasswordSchema', () => {
         it('should validate correct data', () => {
-            const result = resetPasswordSchema.validate({
+            const result = resetPasswordSchema.safeParse({
                 email: 'test@test.com',
                 newPassword: 'NewPassword1',
                 userOTP: 123456
@@ -344,7 +344,7 @@ describe('Auth Schemas', () => {
         it(
             'should validate password with special characters',
             () => {
-                const result = resetPasswordSchema.validate({
+                const result = resetPasswordSchema.safeParse({
                     email: 'test@test.com',
                     newPassword: 'P@ssword123!',
                     userOTP: 123456
@@ -355,49 +355,49 @@ describe('Auth Schemas', () => {
         )
 
         it('should reject missing email', () => {
-            const result = resetPasswordSchema.validate({
+            const result = resetPasswordSchema.safeParse({
                 newPassword: 'NewPassword1',
                 userOTP: 123456
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('email')
         })
 
         it('should reject missing newPassword', () => {
-            const result = resetPasswordSchema.validate({
+            const result = resetPasswordSchema.safeParse({
                 email: 'test@test.com',
                 userOTP: 123456
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('newPassword')
         })
 
         it('should reject missing userOTP', () => {
-            const result = resetPasswordSchema.validate({
+            const result = resetPasswordSchema.safeParse({
                 email: 'test@test.com',
                 newPassword: 'NewPassword1'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('userOTP')
         })
 
         it(
             'should reject newPassword shorter than 8 characters',
             () => {
-                const result = resetPasswordSchema.validate({
+                const result = resetPasswordSchema.safeParse({
                     email: 'test@test.com',
                     newPassword: 'Short1',
                     userOTP: 123456
                 })
 
                 expect(result.error).toBeDefined()
-                expect(result.error?.details[0].path)
+                expect(result.error?.issues[0].path)
                     .toContain('newPassword')
             }
         )
@@ -405,7 +405,7 @@ describe('Auth Schemas', () => {
         it(
             'should reject password with no digits',
             () => {
-                const result = resetPasswordSchema.validate({
+                const result = resetPasswordSchema.safeParse({
                     email: 'test@test.com',
                     newPassword: 'NoDigitsHere',
                     userOTP: 123456
@@ -418,7 +418,7 @@ describe('Auth Schemas', () => {
         it(
             'should reject password with no letters',
             () => {
-                const result = resetPasswordSchema.validate({
+                const result = resetPasswordSchema.safeParse({
                     email: 'test@test.com',
                     newPassword: '12345678',
                     userOTP: 123456
@@ -429,7 +429,7 @@ describe('Auth Schemas', () => {
         )
 
         it('should reject invalid email', () => {
-            const result = resetPasswordSchema.validate({
+            const result = resetPasswordSchema.safeParse({
                 email: 'invalid-email',
                 newPassword: 'NewPassword1',
                 userOTP: 123456

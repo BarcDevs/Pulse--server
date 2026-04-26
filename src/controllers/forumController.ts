@@ -22,7 +22,7 @@ export const getPosts = async (
     const validatedQuery =
         req.query
         && ValidationError.catchValidationErrors(
-            postQuerySchema.validate(req.query)
+            postQuerySchema.safeParse(req.query)
         )
 
     const data = (
@@ -45,7 +45,7 @@ export const createPost = async (
 ) => {
     const validatedData =
         ValidationError.catchValidationErrors(
-            newPostSchema.validate(req.body)
+            newPostSchema.safeParse(req.body)
         )
     const { userId } = req || {}
 
@@ -88,7 +88,7 @@ export const updatePost = async (
 ) => {
     const validatedData =
         ValidationError.catchValidationErrors(
-            updatePostSchema.validate(req.body)
+            updatePostSchema.safeParse(req.body)
         )
     const { postId } = req.params as { postId: string }
     const { userId } = req || {}
@@ -145,7 +145,7 @@ export const createReply = async (
 ) => {
     const validatedData =
         ValidationError.catchValidationErrors(
-            newReplySchema.validate(req.body)
+            newReplySchema.safeParse(req.body)
         )
     const { userId } = req || {}
     const { postId } = req.params as { postId: string }
@@ -193,7 +193,7 @@ export const updateReply = async (
 ) => {
     const validatedData =
         ValidationError.catchValidationErrors(
-            updateReplySchema.validate(req.body)
+            updateReplySchema.safeParse(req.body)
         )
     const { replyId, postId } = req.params as { replyId: string, postId: string }
     const { userId } = req || {}
@@ -256,7 +256,7 @@ export const getTags = async (
     const validatedQuery =
         req.query
         && ValidationError.catchValidationErrors(
-            tagQuerySchema.validate(req.query)
+            tagQuerySchema.safeParse(req.query)
         )
 
     const data = await forumService

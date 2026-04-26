@@ -1,4 +1,4 @@
-import type { ValidationResult } from 'joi'
+import type { ZodError } from 'zod'
 
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
@@ -19,16 +19,20 @@ export class ValidationError extends CustomError {
         Object.setPrototypeOf(this, ValidationError.prototype)
     }
 
-    static catchValidationErrors = <T>(
-        validatedRes: ValidationResult<T>
+    static catchValidationErrors = <T,>(
+        result: {
+            success?: boolean
+            data?: T
+            error?: ZodError
+        }
     ): T => {
-        if (!validatedRes.error) return validatedRes.value as T
-        const errorMessage = validatedRes.error!.message
-        const errorProperty = validatedRes.error!.details[0].path[0]
+        if (result.success) return result.data as T
+        const issue = result.error!.issues[0]
+        const errorProperty = String(issue.path[0]) || 'unknown'
 
         throw errorFactory.validation.generic(
-            errorMessage,
-            errorProperty as string
+            issue.message,
+            errorProperty
         )
     }
 

@@ -170,31 +170,39 @@ Clears the `accessToken` cookie.
 ---
 
 ### `GET /forgot-password/:email`
+> Rate limited: 5 requests per 15 minutes
 
 **Params:** `email` — the account email to send OTP to
 
 **Response `200`**
 ```json
-{ "message": "OTP sent", "data": {} }
+{
+  "message": "If the email exists, we sent you an OTP",
+  "data": { "OTP": null }
+}
 ```
 
-**Errors:** `400` validation · `404` email not found
+**Dev Mode:** OTP returned in response for testing (null in production)
+
+**Errors:** `400` validation error
+
+**Security Note:** Returns 200 for both existent and non-existent emails to prevent user enumeration
 
 ---
 
 ### `POST /confirm-email`
-> CSRF required
+> Rate limited: 5 requests per 15 minutes
 
 **Body**
-| Field   | Type   | Required |
-|---------|--------|----------|
-| `email` | string | yes      |
-| `OTP`   | number | yes      |
+| Field   | Type   | Required | Notes                              |
+|---------|--------|----------|-----------------------------------|
+| `email` | string | yes      | Valid `.com` / `.net` email        |
+| `OTP`   | number | yes      | 6-digit OTP from forgot-password   |
 
 **Response `201`**
 ```json
 {
-  "message": "Email confirmed",
+  "message": "Email confirmed successfully",
   "data": {
     "user": {
       "id": "string",
@@ -202,31 +210,32 @@ Clears the `accessToken` cookie.
       "lastName": "string",
       "username": "string",
       "email": "string",
-      "role": "USER | ADMIN",
-      "image?": "string"
+      "role": "USER | ADMIN"
     }
   }
 }
 ```
 
 **Errors:** `400` invalid or expired OTP
+
+**Security Note:** CSRF not required (stateless OTP validation)
 
 ---
 
 ### `PUT /reset-password`
-> CSRF required
+> Rate limited: 5 requests per 15 minutes
 
 **Body**
-| Field         | Type   | Required | Notes                            |
-|---------------|--------|----------|----------------------------------|
-| `email`       | string | yes      | Valid `.com` / `.net` email      |
-| `newPassword` | string | yes      | Min 8 chars, alphanumeric        |
-| `userOTP`     | number | yes      | OTP received via forgot-password |
+| Field         | Type   | Required | Notes                                        |
+|---------------|--------|----------|----------------------------------------------|
+| `email`       | string | yes      | Valid `.com` / `.net` email                  |
+| `newPassword` | string | yes      | Min 8 chars, requires letter + digit (special chars allowed) |
+| `userOTP`     | number | yes      | 6-digit OTP from forgot-password             |
 
 **Response `200`**
 ```json
 {
-  "message": "Password reset successfully",
+  "message": "Password has changed successfully",
   "data": {
     "user": {
       "id": "string",
@@ -234,14 +243,15 @@ Clears the `accessToken` cookie.
       "lastName": "string",
       "username": "string",
       "email": "string",
-      "role": "USER | ADMIN",
-      "image?": "string"
+      "role": "USER | ADMIN"
     }
   }
 }
 ```
 
 **Errors:** `400` invalid or expired OTP
+
+**Security Note:** CSRF not required (stateless OTP validation) · Returns 200 for both existent and non-existent emails to prevent user enumeration
 
 ---
 

@@ -361,16 +361,24 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 ### Authentication
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/login` | — | Login and receive JWT cookie |
-| `POST` | `/api/v1/auth/signup` | — | Register new user |
-| `GET` | `/api/v1/auth/csrf` | — | Get CSRF token |
-| `GET` | `/api/v1/auth/logout` | Cookie | Logout and clear session |
-| `GET` | `/api/v1/auth/me` | Cookie | Get current user profile |
-| `GET` | `/api/v1/auth/forgot-password/:email` | — | Send password reset email |
-| `POST` | `/api/v1/auth/confirm-email` | — | Confirm email address |
-| `PUT` | `/api/v1/auth/reset-password` | — | Reset password with token |
+**Postman Collection:** [`postman/HealEase-Auth.collection.json`](postman/HealEase-Auth.collection.json)
+
+| Method | Endpoint | Auth | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/v1/auth/login` | — | — | Login and receive JWT cookie |
+| `POST` | `/api/v1/auth/signup` | — | — | Register new user |
+| `GET` | `/api/v1/auth/csrf` | — | — | Get CSRF token |
+| `GET` | `/api/v1/auth/logout` | Cookie | — | Logout and clear session |
+| `GET` | `/api/v1/auth/me` | Cookie | — | Get current user profile |
+| `GET` | `/api/v1/auth/forgot-password/:email` | — | 5/15min | Send password reset OTP to email |
+| `POST` | `/api/v1/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
+| `PUT` | `/api/v1/auth/reset-password` | — | 5/15min | Reset password with OTP |
+
+**Password Requirements:**
+- Minimum 8 characters
+- Must contain at least one letter (a-z, A-Z)
+- Must contain at least one digit (0-9)
+- Special characters allowed (!, @, #, $, etc.)
 
 ### Check-ins *(protected)*
 
@@ -582,6 +590,6 @@ fix/*       # bug fixes
 
 ## License
 
-MIT © [Bar Cohen](https://bardevs.com)
+HealEase © [Bar Cohen](https://bardevs.com)
 
 For support or questions: [barcprodevelopments@gmail.com](mailto:barcprodevelopments@gmail.com) · [LinkedIn](https://www.linkedin.com/in/barcohendev)

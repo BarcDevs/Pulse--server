@@ -14,7 +14,7 @@ src/
 ├── models/      # Data access layer (see src/models/CLAUDE.md)
 ├── responses/
 ├── routes/      # Route definitions (see src/routes/CLAUDE.md)
-├── schemas/     # Joi validation (see src/schemas/CLAUDE.md)
+├── schemas/     # Zod validation (see src/schemas/CLAUDE.md)
 ├── services/    # Business logic (see src/services/CLAUDE.md)
 ├── types/       # TypeScript types (see src/types/CLAUDE.md)
 └── utils/

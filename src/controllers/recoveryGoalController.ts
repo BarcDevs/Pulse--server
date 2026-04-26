@@ -33,7 +33,7 @@ export const createGoal = async (
 ) => {
     const validatedData = ValidationError
         .catchValidationErrors(
-            newGoalSchema.validate(req.body)
+            newGoalSchema.safeParse(req.body)
         )
     const { userId } = req
     if (!userId) throw errorFactory.auth.unauthorized()
@@ -93,7 +93,7 @@ export const updateGoal = async (
 ) => {
     const validatedData = ValidationError
         .catchValidationErrors(
-            updateGoalSchema.validate(req.body)
+            updateGoalSchema.safeParse(req.body)
         )
     const { userId } = req
     const { goalId } = req.params as Record<string, string>
@@ -137,7 +137,7 @@ export const createMilestones = async (
 ) => {
     const validatedData = ValidationError
         .catchValidationErrors(
-            newMilestoneSchema.validate(req.body)
+            newMilestoneSchema.safeParse(req.body)
         )
     const { userId } = req
     const { goalId } = req.params as Record<string, string>
@@ -169,7 +169,7 @@ export const updateMilestone = async (
 ) => {
     const validatedData = ValidationError
         .catchValidationErrors(
-            updateMilestoneSchema.validate(req.body)
+            updateMilestoneSchema.safeParse(req.body)
         )
     const { userId } = req
     const { milestoneId } = req.params as Record<string, string>
