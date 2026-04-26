@@ -200,13 +200,13 @@ describe('Forum Routes', () => {
         )
 
         it(
-            'should return 403 for invalid limit (over 100)',
+            'should return 400 for invalid limit (over 100)',
             async () => {
                 const response = await supertest(App)
                     .get(postsEndpoint)
                     .query({ limit: 200 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
             }
         )
     })
@@ -295,7 +295,7 @@ describe('Forum Routes', () => {
         )
 
         it(
-            'should return 403 for missing title',
+            'should return 400 for missing title',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -315,14 +315,14 @@ describe('Forum Routes', () => {
                     tags: ['tag1']
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('title')
             }
         )
 
         it(
-            'should return 403 for missing body',
+            'should return 400 for missing body',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -342,14 +342,14 @@ describe('Forum Routes', () => {
                     tags: ['tag1']
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('body')
             }
         )
 
         it(
-            'should return 403 for missing category',
+            'should return 400 for missing category',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -369,14 +369,14 @@ describe('Forum Routes', () => {
                     tags: ['tag1']
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('category')
             }
         )
 
         it(
-            'should return 403 for missing tags',
+            'should return 400 for missing tags',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -396,7 +396,7 @@ describe('Forum Routes', () => {
                     category: 'general'
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('tags')
             }
@@ -714,7 +714,7 @@ describe('Forum Routes', () => {
             }
         )
 
-        it('should return 403 for missing body', async () => {
+        it('should return 400 for missing body', async () => {
             const mockUser = createMockUser()
             const {
                 token,
@@ -733,7 +733,7 @@ describe('Forum Routes', () => {
                 .set('x-csrf-token', csrfToken)
                 .send({})
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
             expect(response.body.error[0].statusType)
                 .toBe('Validation Error')
         })

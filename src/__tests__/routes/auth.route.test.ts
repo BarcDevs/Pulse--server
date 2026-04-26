@@ -63,7 +63,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing email',
+            'should return 400 for missing email',
             async () => {
                 const response = await supertest(App)
                     .post(loginEndpoint)
@@ -71,7 +71,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].error)
@@ -82,7 +82,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing password',
+            'should return 400 for missing password',
             async () => {
                 const response = await supertest(App)
                     .post(loginEndpoint)
@@ -90,7 +90,7 @@ describe('Auth Routes', () => {
                         email: 'test@test.com'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].error)
@@ -101,7 +101,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for invalid email format',
+            'should return 400 for invalid email format',
             async () => {
                 const response = await supertest(App)
                     .post(loginEndpoint)
@@ -110,7 +110,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -119,7 +119,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for email with invalid TLD',
+            'should return 400 for email with invalid TLD',
             async () => {
                 const response = await supertest(App)
                     .post(loginEndpoint)
@@ -128,7 +128,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -137,7 +137,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for password too short',
+            'should return 400 for password too short',
             async () => {
                 const response = await supertest(App)
                     .post(loginEndpoint)
@@ -146,7 +146,7 @@ describe('Auth Routes', () => {
                         password: 'short'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -249,7 +249,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing firstName',
+            'should return 400 for missing firstName',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -259,7 +259,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -268,7 +268,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing lastName',
+            'should return 400 for missing lastName',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -278,7 +278,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -287,7 +287,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing email',
+            'should return 400 for missing email',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -297,7 +297,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -306,7 +306,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for missing password',
+            'should return 400 for missing password',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -316,7 +316,7 @@ describe('Auth Routes', () => {
                         email: 'john@test.com'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -325,7 +325,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for invalid email format',
+            'should return 400 for invalid email format',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -336,7 +336,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -345,7 +345,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for invalid firstName (non-alphanumeric)',
+            'should return 400 for invalid firstName (non-alphanumeric)',
             async () => {
                 const response = await supertest(App)
                     .post(signupEndpoint)
@@ -356,7 +356,7 @@ describe('Auth Routes', () => {
                         password: 'Password123!'
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -668,28 +668,28 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 403 for invalid email format',
+            'should return 400 for invalid email format',
             async () => {
                 const response = await supertest(App)
                     .get(
                         '/api/v1/auth/forgot-password/invalid-email'
                     )
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
             }
         )
 
         it(
-            'should return 403 for email with invalid TLD',
+            'should return 400 for email with invalid TLD',
             async () => {
                 const response = await supertest(App)
                     .get(
                         '/api/v1/auth/forgot-password/test@test.org'
                     )
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
             }
         )
     })

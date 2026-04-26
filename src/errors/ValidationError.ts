@@ -6,7 +6,7 @@ import { errorFactory } from './factory/ErrorFactory'
 import { CustomError } from './CustomError'
 
 export class ValidationError extends CustomError {
-    statusCode = HttpStatusCodes.FORBIDDEN
+    statusCode = HttpStatusCodes.BAD_REQUEST
 
     statusType = 'Validation Error'
 

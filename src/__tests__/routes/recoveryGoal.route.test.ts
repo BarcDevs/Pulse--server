@@ -120,7 +120,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             ).send({ category: 'physical' })
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
         })
 
         it('should reject invalid category', async () => {
@@ -141,7 +141,7 @@ describe('Recovery Goals Routes', () => {
                 category: 'invalid'
             })
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
         })
 
         it('should require auth', async () => {
@@ -346,7 +346,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             ).send({ status: 'invalid' })
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
         })
 
         it('should return 404 for non-existent goal', async () => {
@@ -532,7 +532,7 @@ describe('Recovery Goals Routes', () => {
                 ]
             })
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
         })
 
         it('should reject non-active goal', async () => {

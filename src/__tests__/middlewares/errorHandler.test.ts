@@ -55,7 +55,7 @@ describe('errorHandler Middleware', () => {
                 errorHandler(error, req, res, next)
 
                 expect(res.status).toHaveBeenCalledWith(
-                    HttpStatusCodes.FORBIDDEN
+                    HttpStatusCodes.BAD_REQUEST
                 )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({

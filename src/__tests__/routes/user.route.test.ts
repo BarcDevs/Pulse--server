@@ -230,7 +230,7 @@ describe('User Routes', () => {
             )
         })
 
-        it('should return 403 for invalid username length',
+        it('should return 400 for invalid username length',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -246,7 +246,7 @@ describe('User Routes', () => {
                     csrfToken
                 ).send({ username: 'ab' })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -254,7 +254,7 @@ describe('User Routes', () => {
             }
         )
 
-        it('should return 403 for invalid email format',
+        it('should return 400 for invalid email format',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -270,7 +270,7 @@ describe('User Routes', () => {
                     csrfToken
                 ).send({ email: 'invalid-email' })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -381,7 +381,7 @@ describe('User Routes', () => {
                 newPassword: 'weak'
             })
 
-            expect(response.status).toBe(403)
+            expect(response.status).toBe(400)
             expect(response.body.error[0].statusType)
                 .toBe('Validation Error')
             expect(response.body.error[0].property)
@@ -409,7 +409,7 @@ describe('User Routes', () => {
                     newPassword: '12345678'
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
             }
@@ -436,13 +436,13 @@ describe('User Routes', () => {
                     newPassword: 'OnlyLetters'
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
             }
         )
 
-        it('should return 403 for missing currentPassword',
+        it('should return 400 for missing currentPassword',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -460,7 +460,7 @@ describe('User Routes', () => {
                     newPassword: 'NewPassword456!'
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
@@ -468,7 +468,7 @@ describe('User Routes', () => {
             }
         )
 
-        it('should return 403 for missing newPassword',
+        it('should return 400 for missing newPassword',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -486,7 +486,7 @@ describe('User Routes', () => {
                     currentPassword: 'OldPassword123!'
                 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)

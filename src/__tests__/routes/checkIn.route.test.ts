@@ -120,7 +120,7 @@ describe('Check-in Routes', () => {
         )
 
         it(
-            'should return 403 for invalid limit (over 100)',
+            'should return 400 for invalid limit (over 100)',
             async () => {
                 const mockUser = createMockUser()
                 const token = createAuthToken(mockUser)
@@ -132,7 +132,7 @@ describe('Check-in Routes', () => {
                     ])
                     .query({ limit: 200 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
             }
         )
     })
@@ -242,7 +242,7 @@ describe('Check-in Routes', () => {
         )
 
         it(
-            'should return 403 for missing moodScore',
+            'should return 400 for missing moodScore',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -263,14 +263,14 @@ describe('Check-in Routes', () => {
                         activities: ['walking']
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('moodScore')
             }
         )
 
         it(
-            'should return 403 for missing painLevel',
+            'should return 400 for missing painLevel',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -291,14 +291,14 @@ describe('Check-in Routes', () => {
                         activities: ['walking']
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('painLevel')
             }
         )
 
         it(
-            'should return 403 for missing activities',
+            'should return 400 for missing activities',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -319,14 +319,14 @@ describe('Check-in Routes', () => {
                         painLevel: 3
                     })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('activities')
             }
         )
 
         it(
-            'should return 403 for moodScore out of range',
+            'should return 400 for moodScore out of range',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -344,14 +344,14 @@ describe('Check-in Routes', () => {
                     .set('x-csrf-token', csrfToken)
                     .send({ ...validBody, moodScore: 11 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('moodScore')
             }
         )
 
         it(
-            'should return 403 for painLevel out of range',
+            'should return 400 for painLevel out of range',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -369,7 +369,7 @@ describe('Check-in Routes', () => {
                     .set('x-csrf-token', csrfToken)
                     .send({ ...validBody, painLevel: 0 })
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
                 expect(response.body.error[0].property)
                     .toBe('painLevel')
             }
@@ -484,7 +484,7 @@ describe('Check-in Routes', () => {
         )
 
         it(
-            'should return 403 for empty body',
+            'should return 400 for empty body',
             async () => {
                 const mockUser = createMockUser()
                 const {
@@ -502,7 +502,7 @@ describe('Check-in Routes', () => {
                     .set('x-csrf-token', csrfToken)
                     .send({})
 
-                expect(response.status).toBe(403)
+                expect(response.status).toBe(400)
             }
         )
     })

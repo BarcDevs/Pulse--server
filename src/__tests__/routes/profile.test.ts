@@ -328,7 +328,7 @@ describe('Profile Routes', () => {
                     timezone: 'invalid-timezone'
                 })
 
-                expect(res.status).toBe(403)
+                expect(res.status).toBe(400)
                 expect(
                     res.body.error[0].property
                 ).toBe('timezone')
@@ -351,7 +351,7 @@ describe('Profile Routes', () => {
                     csrfToken
                 ).send({ theme: 'invalid' })
 
-                expect(res.status).toBe(403)
+                expect(res.status).toBe(400)
                 expect(
                     res.body.error[0].property
                 ).toBe('theme')
@@ -375,7 +375,7 @@ describe('Profile Routes', () => {
                     csrfToken
                 ).send({ bio: longBio })
 
-                expect(res.status).toBe(403)
+                expect(res.status).toBe(400)
                 expect(
                     res.body.error[0].property
                 ).toBe('bio')
@@ -398,7 +398,7 @@ describe('Profile Routes', () => {
                     csrfToken
                 ).send({ image: 'not-a-url' })
 
-                expect(res.status).toBe(403)
+                expect(res.status).toBe(400)
             }
         )
 
@@ -626,7 +626,7 @@ describe('Profile Routes', () => {
                         csrfToken
                     ).send({})
 
-                    expect(res.status).toBe(403)
+                    expect(res.status).toBe(400)
                     expect(res.body.error).toBeDefined()
                 }
             )
@@ -650,7 +650,7 @@ describe('Profile Routes', () => {
                         csrfToken
                     ).send({ slugs: [] })
 
-                    expect(res.status).toBe(403)
+                    expect(res.status).toBe(400)
                     expect(res.body.error).toBeDefined()
                 }
             )
@@ -752,7 +752,7 @@ describe('Profile Routes', () => {
                             csrfToken
                         )
 
-                    expect(res.status).toBe(403)
+                    expect(res.status).toBe(400)
                 }
             )
         }
@@ -953,7 +953,7 @@ describe('Profile Routes', () => {
                         csrfToken
                     ).send({})
 
-                    expect(res.status).toBe(403)
+                    expect(res.status).toBe(400)
                     expect(res.body.error).toBeDefined()
                 }
             )
