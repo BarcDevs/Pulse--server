@@ -699,22 +699,100 @@ describe('Auth Routes', () => {
         const confirmEmailEndpoint = '/api/v1/auth/confirm-email'
 
         it(
-            'should return 401 without valid CSRF token',
+            'should confirm email with valid OTP',
             async () => {
-                const futureDate = new Date(
-                    Date.now() + 1000 * 60 * 60
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    }
                 )
-                const mockUser = createMockUser({
-                    resetPasswordOTP: 123456,
-                    resetPasswordExpiration: futureDate
-                })
-                prismaMock.user.findUnique
-                    .mockResolvedValue(mockUser)
 
                 const response = await supertest(App)
                     .post(confirmEmailEndpoint)
                     .send({
-                        email: 'test@test.com',
+                        email: mockUser.email,
+                        OTP
+                    })
+
+                expect(response.status).toBe(201)
+                expect(response.body.data.user.email).toBe(
+                    mockUser.email
+                )
+            }
+        )
+
+        it(
+            'should return 400 for expired OTP',
+            async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() - 1000
+                        )
+                    }
+                )
+
+                const response = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        OTP
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 400 for wrong OTP',
+            async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    }
+                )
+
+                const response = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        OTP: 999999
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 401 for non-existent user',
+            async () => {
+                prismaMock.user.findUnique.mockResolvedValue(
+                    null
+                )
+
+                const response = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: 'nonexistent@test.com',
                         OTP: 123456
                     })
 
@@ -723,7 +801,7 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 401 for missing email (CSRF fails first)',
+            'should return 400 for missing email',
             async () => {
                 const response = await supertest(App)
                     .post(confirmEmailEndpoint)
@@ -731,12 +809,12 @@ describe('Auth Routes', () => {
                         OTP: 123456
                     })
 
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(400)
             }
         )
 
         it(
-            'should return 401 for missing OTP (CSRF fails first)',
+            'should return 400 for missing OTP',
             async () => {
                 const response = await supertest(App)
                     .post(confirmEmailEndpoint)
@@ -744,12 +822,12 @@ describe('Auth Routes', () => {
                         email: 'test@test.com'
                     })
 
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(400)
             }
         )
 
         it(
-            'should return 401 for invalid email format (CSRF fails first)',
+            'should return 400 for invalid email format',
             async () => {
                 const response = await supertest(App)
                     .post(confirmEmailEndpoint)
@@ -758,7 +836,7 @@ describe('Auth Routes', () => {
                         OTP: 123456
                     })
 
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(400)
             }
         )
     })
@@ -768,21 +846,172 @@ describe('Auth Routes', () => {
         const resetPasswordEndpoint = '/api/v1/auth/reset-password'
 
         it(
-            'should return 401 for missing email (CSRF fails first)',
+            'should reset password with valid OTP',
             async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+                const newPassword = 'NewPassword456!'
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    }
+                )
+
+                prismaMock.user.update.mockResolvedValue({
+                    ...mockUser,
+                    password: 'hashed-password',
+                    passwordUpdatedAt: new Date()
+                })
+
                 const response = await supertest(App)
                     .put(resetPasswordEndpoint)
                     .send({
-                        newPassword: 'NewPassword123!',
-                        userOTP: 123456
+                        email: mockUser.email,
+                        newPassword,
+                        userOTP: OTP
                     })
 
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(200)
+                expect(response.body.data.user.email).toBe(
+                    mockUser.email
+                )
+                expect(
+                    prismaMock.user.update
+                ).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        where: {
+                            id: mockUser.id,
+                            active: true
+                        }
+                    })
+                )
             }
         )
 
         it(
-            'should return 401 for missing newPassword (CSRF fails first)',
+            'should return 400 for expired OTP',
+            async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() - 1000
+                        )
+                    }
+                )
+
+                const response = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        newPassword: 'NewPassword456!',
+                        userOTP: OTP
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 400 for wrong OTP',
+            async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    }
+                )
+
+                const response = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        newPassword: 'NewPassword456!',
+                        userOTP: 999999
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 200 for non-existent email (user enumeration safety)',
+            async () => {
+                prismaMock.user.findUnique.mockResolvedValue(
+                    null
+                )
+
+                const response = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: 'nonexistent@test.com',
+                        newPassword: 'NewPassword456!',
+                        userOTP: 123456
+                    })
+
+                expect(response.status).toBe(200)
+            }
+        )
+
+        it(
+            'should return 400 for invalid password format',
+            async () => {
+                const mockUser = createMockUser()
+                const OTP = 123456
+
+                prismaMock.user.findUnique.mockResolvedValue(
+                    {
+                        ...mockUser,
+                        resetPasswordOTP: OTP,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    }
+                )
+
+                const response = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        newPassword: 'invalidpass',
+                        userOTP: OTP
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 400 for missing email',
+            async () => {
+                const response = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        newPassword: 'NewPassword456!',
+                        userOTP: 123456
+                    })
+
+                expect(response.status).toBe(400)
+            }
+        )
+
+        it(
+            'should return 400 for missing newPassword',
             async () => {
                 const response = await supertest(App)
                     .put(resetPasswordEndpoint)
@@ -791,52 +1020,21 @@ describe('Auth Routes', () => {
                         userOTP: 123456
                     })
 
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(400)
             }
         )
 
         it(
-            'should return 401 for missing userOTP (CSRF fails first)',
+            'should return 400 for missing userOTP',
             async () => {
                 const response = await supertest(App)
                     .put(resetPasswordEndpoint)
                     .send({
                         email: 'test@test.com',
-                        newPassword: 'NewPassword123!'
+                        newPassword: 'NewPassword456!'
                     })
 
-                expect(response.status).toBe(401)
-            }
-        )
-
-        it(
-            'should return 401 for invalid email format (CSRF fails first)',
-            async () => {
-                const response = await supertest(App)
-                    .put(resetPasswordEndpoint)
-                    .send({
-                        email: 'invalid-email',
-                        newPassword: 'NewPassword123!',
-                        userOTP: 123456
-                    })
-
-                expect(response.status).toBe(401)
-            }
-        )
-
-        it(
-            'should return 401 for extra fields (CSRF fails first)',
-            async () => {
-                const response = await supertest(App)
-                    .put(resetPasswordEndpoint)
-                    .send({
-                        email: 'test@test.com',
-                        newPassword: 'NewPassword123!',
-                        userOTP: 123456,
-                        extraField: 'not allowed'
-                    })
-
-                expect(response.status).toBe(401)
+                expect(response.status).toBe(400)
             }
         )
     })

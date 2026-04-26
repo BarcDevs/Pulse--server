@@ -36,7 +36,8 @@ export class AuthFactory {
         new AuthError(
             `Could not reset password! ${message ?? 'please try again!'}`,
             undefined,
-            'Reset Password'
+            'Reset Password',
+            HttpStatusCodes.BAD_REQUEST
         )
 
     static conflict = (message: string) =>

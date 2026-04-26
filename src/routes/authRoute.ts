@@ -12,11 +12,8 @@ import {
     resetPassword,
     signup
 } from '../controllers/authController'
-import {
-    csrfMiddleware,
-    extractCsrfToken
-} from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { otpRateLimiter } from '../middlewares/rateLimiting'
 
 const router = Router()
 
@@ -180,8 +177,6 @@ router
  *   post:
  *     summary: Verify OTP to confirm ownership of the email address
  *     tags: [Auth]
- *     security:
- *       - csrfToken: []
  *     requestBody:
  *       required: true
  *       content:
@@ -221,8 +216,7 @@ router
 router
     .route('/confirm-email')
     .post(
-        extractCsrfToken,
-        csrfMiddleware,
+        otpRateLimiter,
         confirmEmail
     )
 
@@ -358,9 +352,13 @@ router.route('/me').get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+// OTP-based endpoints don't require CSRF - stateless validation via OTP
 router
     .route('/forgot-password/:email')
-    .get(forgotPassword)
+    .get(
+        otpRateLimiter,
+        forgotPassword
+    )
 
 /**
  * @swagger
@@ -368,8 +366,6 @@ router
  *   put:
  *     summary: Reset password using a verified OTP
  *     tags: [Auth]
- *     security:
- *       - csrfToken: []
  *     requestBody:
  *       required: true
  *       content:
@@ -409,11 +405,11 @@ router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+// OTP-based endpoints don't require CSRF - stateless validation via OTP
 router
     .route('/reset-password')
     .put(
-        extractCsrfToken,
-        csrfMiddleware,
+        otpRateLimiter,
         resetPassword
     )
 
