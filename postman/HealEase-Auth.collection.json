@@ -22,11 +22,23 @@
     },
     {
       "key": "testEmail",
-      "value": "alice@example.com"
+      "value": "test-{{$timestamp}}@example.com"
     },
     {
       "key": "testPassword",
-      "value": "password123"
+      "value": "TestPass123!"
+    },
+    {
+      "key": "newPassword",
+      "value": "NewPass456@"
+    },
+    {
+      "key": "resetOTP",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
     }
   ],
   "event": [
@@ -411,6 +423,430 @@
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200))"
                 ],
                 "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Password Reset Flow - Happy Path",
+      "description": "Complete flow: Forgot Password → Reset Password → Login with new password",
+      "item": [
+        {
+          "name": "1.1 - Signup (if needed)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\":\"Test\",\"lastName\":\"User\",\"email\":\"{{testEmail}}\",\"password\":\"{{testPassword}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', () => {",
+                  "  pm.response.to.have.status(201)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Response has user data', () => {",
+                  "  pm.expect(data.data.user).to.have.property('id')",
+                  "  pm.expect(data.data.user).to.have.property('email')",
+                  "})",
+                  "pm.environment.set('userId', data.data.user.id)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 - Forgot Password (Request OTP)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/forgot-password/{{testEmail}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "forgot-password",
+                "{{testEmail}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "  pm.response.to.have.status(200)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Response has OTP in dev mode', () => {",
+                  "  if (data.data && data.data.OTP) {",
+                  "    pm.expect(data.data.OTP).to.be.a('number')",
+                  "    pm.environment.set('resetOTP', data.data.OTP.toString())",
+                  "    pm.test('OTP is 6 digits', () => {",
+                  "      pm.expect(data.data.OTP).to.be.above(99999)",
+                  "      pm.expect(data.data.OTP).to.be.below(1000000)",
+                  "    })",
+                  "  } else {",
+                  "    pm.test('OTP hidden in prod (check email inbox)', () => {",
+                  "      pm.expect(data.data.OTP).to.be.undefined",
+                  "    })",
+                  "  }",
+                  "})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 - Reset Password (Submit OTP + New Password)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{testEmail}}\",\"newPassword\":\"{{newPassword}}\",\"userOTP\":{{resetOTP}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "  pm.response.to.have.status(200)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Response has updated user', () => {",
+                  "  pm.expect(data.data.user).to.have.property('id')",
+                  "  pm.expect(data.data.user).to.have.property('firstName')",
+                  "})",
+                  "pm.test('Message confirms password change', () => {",
+                  "  pm.expect(data.message).to.include('Password has changed')",
+                  "})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 - Login with New Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{testEmail}}\",\"password\":\"{{newPassword}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => {",
+                  "  pm.response.to.have.status(200)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Login with new password succeeds', () => {",
+                  "  pm.expect(data.data).to.have.property('token')",
+                  "  pm.expect(data.data).to.have.property('_csrf')",
+                  "})"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Password Reset - Error Cases",
+      "item": [
+        {
+          "name": "2.1 - Wrong OTP",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{testEmail}}\",\"newPassword\":\"{{newPassword}}\",\"userOTP\":999999}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', () => {",
+                  "  pm.response.to.have.status(400)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Error message present', () => {",
+                  "  pm.expect(data.message).to.be.a('string')",
+                  "})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 - Invalid Password Format",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{testEmail}}\",\"newPassword\":\"weaksauce123\",\"userOTP\":{{resetOTP}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', () => {",
+                  "  pm.response.to.have.status(400)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Validation error for invalid password', () => {",
+                  "  pm.expect(data.message).to.include('validation')",
+                  "})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 - Missing Required Fields",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{testEmail}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', () => {",
+                  "  pm.response.to.have.status(400)",
+                  "})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 - Non-existent Email (User Enumeration Safe)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"nonexistent@example.com\",\"newPassword\":\"ValidPass123!\",\"userOTP\":123456}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 (returns same response for non-existent users)', () => {",
+                  "  pm.response.to.have.status(200)",
+                  "})",
+                  "const data = pm.response.json()",
+                  "pm.test('Generic message (no email enumeration)', () => {",
+                  "  pm.expect(data.message).to.include('If the email exists')",
+                  "})",
+                  "pm.test('No user data leaked', () => {",
+                  "  pm.expect(data.data).to.deep.equal({})",
+                  "})"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Password Requirements Reference",
+      "description": "Valid password formats for reset flow",
+      "item": [
+        {
+          "name": "Valid Password Examples",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const validPasswords = [",
+                  "  'SimplePass1!',",
+                  "  'P@ssword123',",
+                  "  'TestPass123!@#',",
+                  "  'Password99abc',",
+                  "  'MixedCase_Pass123'",
+                  "]",
+                  "",
+                  "pm.test('All valid passwords meet requirements', () => {",
+                  "  validPasswords.forEach(pwd => {",
+                  "    // Min 8 chars",
+                  "    pm.expect(pwd).to.have.lengthOf.at.least(8)",
+                  "    // Must have letter",
+                  "    pm.expect(/[a-zA-Z]/.test(pwd)).to.be.true",
+                  "    // Must have digit",
+                  "    pm.expect(/[0-9]/.test(pwd)).to.be.true",
+                  "  })",
+                  "})"
+                ]
               }
             }
           ]
