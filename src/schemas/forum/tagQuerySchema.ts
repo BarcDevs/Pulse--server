@@ -1,10 +1,8 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { TagQuery } from '../../types/query'
-
-export const tagQuerySchema = joi.object<TagQuery>({
-    limit: joi.number().integer().max(100),
-    page: joi.number().integer(),
-    filter: joi.string().valid('popular'),
-    search: joi.string()
+export const tagQuerySchema = z.object({
+    limit: z.number().int().max(100).optional(),
+    page: z.number().int().optional(),
+    filter: z.literal('popular').optional(),
+    search: z.string().optional()
 })

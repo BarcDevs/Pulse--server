@@ -1,19 +1,12 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { PostQuery } from '../../types/query'
+import { PostFilter } from '../../types/query'
 
-export const postQuerySchema = joi.object<PostQuery>({
-    limit: joi.number().integer().max(100),
-    page: joi.number().integer(),
-    filter: joi
-        .string()
-        .valid(
-            'newest',
-            'popular',
-            'hot',
-            'unanswered'
-        ),
-    search: joi.string(),
-    tag: joi.string(),
-    category: joi.string()
+export const postQuerySchema = z.object({
+    limit: z.number().int().max(100).optional(),
+    page: z.number().int().optional(),
+    filter: z.nativeEnum(PostFilter).optional(),
+    search: z.string().optional(),
+    tag: z.string().optional(),
+    category: z.string().optional()
 })

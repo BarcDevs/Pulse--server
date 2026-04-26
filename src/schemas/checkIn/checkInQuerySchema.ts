@@ -1,13 +1,5 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { CheckInQuery } from '../../types/query'
-
-export const checkInQuerySchema = joi
-    .object<CheckInQuery>({
-        limit: joi
-            .number()
-            .integer()
-            .min(1)
-            .max(100)
-            .optional()
-    })
+export const checkInQuerySchema = z.object({
+    limit: z.number().int().min(1).max(100).optional()
+})

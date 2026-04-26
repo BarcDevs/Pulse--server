@@ -1,22 +1,7 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-import type { UpdateMilestoneType } from '../../types/data/RecoveryGoalType'
-
-export const updateMilestoneSchema = joi.object<
-    UpdateMilestoneType
->({
-    title: joi
-        .string()
-        .max(150)
-        .optional(),
-    description: joi
-        .string()
-        .max(1000)
-        .allow(null, '')
-        .optional(),
-    order: joi
-        .number()
-        .integer()
-        .min(1)
-        .optional()
+export const updateMilestoneSchema = z.object({
+    title: z.string().max(150).optional(),
+    description: z.string().max(1000).optional(),
+    order: z.number().int().min(1).optional()
 })

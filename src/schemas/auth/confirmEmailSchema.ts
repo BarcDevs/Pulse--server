@@ -1,16 +1,6 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-// todo: replace joi with zod
-export const confirmEmailSchema = joi.object<{
-    email: string
-    OTP: number
-}>({
-    email: joi
-        .string()
-        .email({
-            minDomainSegments: 2,
-            tlds: { allow: ['com', 'net'] }
-        })
-        .required(),
-    OTP: joi.number().required()
+export const confirmEmailSchema = z.object({
+    email: z.string().email(),
+    OTP: z.number()
 })

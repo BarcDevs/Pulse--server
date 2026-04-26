@@ -1,16 +1,11 @@
-import joi from 'joi'
-
-import type { NewUserType } from '../../types/data/UserType'
+import { z } from 'zod'
 
 import { PASSWORD_FORMAT } from './passwordFormat'
 
-export const signupSchema = joi.object<NewUserType>({
-    firstName: joi.string().alphanum().required(),
-    lastName: joi.string().alphanum().required(),
-    username: joi.string(),
-    email: joi
-        .string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-        .required(),
-    password: joi.string().regex(PASSWORD_FORMAT).min(8).required()
+export const signupSchema = z.object({
+    firstName: z.string().regex(/^[a-zA-Z0-9]+$/),
+    lastName: z.string().regex(/^[a-zA-Z0-9]+$/),
+    username: z.string().optional(),
+    email: z.string().email(),
+    password: z.string().regex(PASSWORD_FORMAT).min(8)
 })

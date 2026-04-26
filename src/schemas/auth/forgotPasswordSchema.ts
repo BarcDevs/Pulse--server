@@ -1,16 +1,5 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-export const forgotPasswordSchema =
-    joi.object<{
-        email: string
-    }>({
-        email: joi
-            .string()
-            .email({
-                minDomainSegments: 2,
-                tlds: {
-                    allow: ['com', 'net']
-                }
-            })
-            .required()
-    })
+export const forgotPasswordSchema = z.object({
+    email: z.string().email()
+})

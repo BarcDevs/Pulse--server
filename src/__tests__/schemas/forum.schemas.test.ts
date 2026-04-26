@@ -10,7 +10,7 @@ describe('Forum Schemas', () => {
     // ==================== NEW POST SCHEMA ====================
     describe('newPostSchema', () => {
         it('should validate correct post data', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general',
@@ -24,55 +24,55 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject missing title', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 body: 'Post content',
                 category: 'general',
                 tags: ['tag1']
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('title')
         })
 
         it('should reject missing body', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 category: 'general',
                 tags: ['tag1']
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('body')
         })
 
         it('should reject missing category', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 tags: ['tag1']
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('category')
         })
 
         it('should reject missing tags', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general'
             })
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('tags')
         })
 
         it('should accept empty tags array', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general',
@@ -83,7 +83,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should accept multiple tags', () => {
-            const result = newPostSchema.validate({
+            const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general',
@@ -96,14 +96,14 @@ describe('Forum Schemas', () => {
             })
 
             expect(result.error).toBeUndefined()
-            expect(result.value.tags).toHaveLength(4)
+            expect(result.data.tags).toHaveLength(4)
         })
     })
 
     // ==================== UPDATE POST SCHEMA ====================
     describe('updatePostSchema', () => {
         it('should validate with only title', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 title: 'Updated Title'
             })
 
@@ -111,7 +111,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with only body', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 body: 'Updated body'
             })
 
@@ -119,7 +119,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with only category', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 category: 'health'
             })
 
@@ -127,7 +127,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with only tags', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 tags: [
                     'newTag1',
                     'newTag2'
@@ -138,7 +138,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with vote object', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 vote: {
                     userId: 'user-123',
                     vote: 'up'
@@ -149,7 +149,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject vote down', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 vote: {
                     userId: 'user-123',
                     vote: 'down'
@@ -160,7 +160,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject invalid vote value', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 vote: {
                     userId: 'user-123',
                     vote: 'invalid'
@@ -171,7 +171,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject vote without userId', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 vote: {
                     vote: 'up'
                 }
@@ -181,7 +181,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject vote without vote value', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 vote: {
                     userId: 'user-123'
                 }
@@ -191,13 +191,13 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate empty object', () => {
-            const result = updatePostSchema.validate({})
+            const result = updatePostSchema.safeParse({})
 
             expect(result.error).toBeUndefined()
         })
 
         it('should validate multiple fields', () => {
-            const result = updatePostSchema.validate({
+            const result = updatePostSchema.safeParse({
                 title: 'Updated Title',
                 body: 'Updated body',
                 category: 'health',
@@ -211,7 +211,7 @@ describe('Forum Schemas', () => {
     // ==================== NEW REPLY SCHEMA ====================
     describe('newReplySchema', () => {
         it('should validate correct reply data', () => {
-            const result = newReplySchema.validate({
+            const result = newReplySchema.safeParse({
                 body: 'Reply content'
             })
 
@@ -219,15 +219,15 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject missing body', () => {
-            const result = newReplySchema.validate({})
+            const result = newReplySchema.safeParse({})
 
             expect(result.error).toBeDefined()
-            expect(result.error?.details[0].path)
+            expect(result.error?.issues[0].path)
                 .toContain('body')
         })
 
         it('should reject empty body string', () => {
-            const result = newReplySchema.validate({
+            const result = newReplySchema.safeParse({
                 body: ''
             })
 
@@ -238,7 +238,7 @@ describe('Forum Schemas', () => {
     // ==================== UPDATE REPLY SCHEMA ====================
     describe('updateReplySchema', () => {
         it('should validate with body', () => {
-            const result = updateReplySchema.validate({
+            const result = updateReplySchema.safeParse({
                 body: 'Updated reply'
             })
 
@@ -246,7 +246,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with vote', () => {
-            const result = updateReplySchema.validate({
+            const result = updateReplySchema.safeParse({
                 vote: {
                     userId: 'user-123',
                     vote: 'up'
@@ -257,13 +257,13 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate empty object', () => {
-            const result = updateReplySchema.validate({})
+            const result = updateReplySchema.safeParse({})
 
             expect(result.error).toBeUndefined()
         })
 
         it('should reject invalid vote value', () => {
-            const result = updateReplySchema.validate({
+            const result = updateReplySchema.safeParse({
                 vote: {
                     userId: 'user-123',
                     vote: 'invalid'
@@ -277,13 +277,13 @@ describe('Forum Schemas', () => {
     // ==================== POST QUERY SCHEMA ====================
     describe('postQuerySchema', () => {
         it('should validate empty query', () => {
-            const result = postQuerySchema.validate({})
+            const result = postQuerySchema.safeParse({})
 
             expect(result.error).toBeUndefined()
         })
 
         it('should validate with limit', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 limit: 10
             })
 
@@ -291,7 +291,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with page', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 page: 1
             })
 
@@ -299,7 +299,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with filter newest', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 filter: 'newest'
             })
 
@@ -307,7 +307,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with filter popular', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 filter: 'popular'
             })
 
@@ -315,7 +315,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with filter hot', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 filter: 'hot'
             })
 
@@ -323,7 +323,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with filter unanswered', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 filter: 'unanswered'
             })
 
@@ -331,7 +331,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject invalid filter', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 filter: 'invalid'
             })
 
@@ -339,7 +339,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with search', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 search: 'test query'
             })
 
@@ -347,7 +347,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with tag', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 tag: 'javascript'
             })
 
@@ -355,7 +355,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with category', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 category: 'health'
             })
 
@@ -363,7 +363,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject limit over 100', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 limit: 200
             })
 
@@ -371,7 +371,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with multiple query params', () => {
-            const result = postQuerySchema.validate({
+            const result = postQuerySchema.safeParse({
                 limit: 10,
                 page: 1,
                 filter: 'newest',
@@ -386,13 +386,13 @@ describe('Forum Schemas', () => {
     // ==================== TAG QUERY SCHEMA ====================
     describe('tagQuerySchema', () => {
         it('should validate empty query', () => {
-            const result = tagQuerySchema.validate({})
+            const result = tagQuerySchema.safeParse({})
 
             expect(result.error).toBeUndefined()
         })
 
         it('should validate with limit', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 limit: 10
             })
 
@@ -400,7 +400,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with page', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 page: 1
             })
 
@@ -408,7 +408,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with filter popular', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 filter: 'popular'
             })
 
@@ -416,7 +416,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject invalid filter', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 filter: 'newest'
             })
 
@@ -424,7 +424,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with search', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 search: 'java'
             })
 
@@ -432,7 +432,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should reject limit over 100', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 limit: 150
             })
 
@@ -440,7 +440,7 @@ describe('Forum Schemas', () => {
         })
 
         it('should validate with multiple query params', () => {
-            const result = tagQuerySchema.validate({
+            const result = tagQuerySchema.safeParse({
                 limit: 20,
                 page: 2,
                 filter: 'popular',

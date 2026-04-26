@@ -26,7 +26,7 @@ export const getCheckIns = async (
 
     const validatedQuery =
         ValidationError.catchValidationErrors(
-            checkInQuerySchema.validate(req.query)
+            checkInQuerySchema.safeParse(req.query)
         )
 
     const data = await checkInService.getCheckIns(
@@ -52,7 +52,7 @@ export const createCheckIn = async (
 
     const validatedData =
         ValidationError.catchValidationErrors(
-            newCheckInSchema.validate(req.body)
+            newCheckInSchema.safeParse(req.body)
         )
 
     const {
@@ -86,7 +86,7 @@ export const updateCheckIn = async (
 
     const validatedData =
         ValidationError.catchValidationErrors(
-            updateCheckInSchema.validate(req.body)
+            updateCheckInSchema.safeParse(req.body)
         )
 
     const data = await checkInService.updateCheckIn({

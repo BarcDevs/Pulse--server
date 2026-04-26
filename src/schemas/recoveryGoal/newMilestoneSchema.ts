@@ -1,27 +1,11 @@
-import joi from 'joi'
+import { z } from 'zod'
 
-export const newMilestoneSchema = joi.object({
-    milestones: joi
-        .array()
-        .items(
-            joi.object({
-                title: joi
-                    .string()
-                    .max(150)
-                    .required(),
-                description: joi
-                    .string()
-                    .max(1000)
-                    .allow(null, '')
-                    .optional(),
-                order: joi
-                    .number()
-                    .integer()
-                    .min(1)
-                    .required()
-            })
-        )
-        .min(1)
-        .max(8)
-        .required()
+export const newMilestoneSchema = z.object({
+    milestones: z.array(
+        z.object({
+            title: z.string().max(150),
+            description: z.string().max(1000).optional(),
+            order: z.number().int().min(1)
+        })
+    ).min(1).max(8)
 })

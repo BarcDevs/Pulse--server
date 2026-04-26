@@ -46,7 +46,7 @@ export const updateProfile = async (
 
     const validatedData =
         ValidationError.catchValidationErrors(
-            updateProfileSchema.validate(
+            updateProfileSchema.safeParse(
                 req.body
             )
         )
@@ -75,7 +75,7 @@ export const addHealthInterests = async (
 
     const validatedData =
         ValidationError.catchValidationErrors(
-            addHealthInterestsSchema.validate(
+            addHealthInterestsSchema.safeParse(
                 req.body
             )
         )
@@ -109,7 +109,7 @@ export const removeHealthInterest = async (
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.validate({ slug })
+            slugParamSchema.safeParse({ slug })
         )
 
     await profileService.removeHealthInterest(
@@ -140,7 +140,7 @@ export const addActivityPreferences = async (
 
     const validatedData =
         ValidationError.catchValidationErrors(
-            addActivityPreferencesSchema.validate(
+            addActivityPreferencesSchema.safeParse(
                 req.body
             )
         )
@@ -174,7 +174,7 @@ export const removeActivityPreference = async (
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.validate({ slug })
+            slugParamSchema.safeParse({ slug })
         )
 
     await profileService
