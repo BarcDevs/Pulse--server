@@ -3,6 +3,9 @@ export default {
     transform: {
         '^.+\\.ts$': 'ts-jest'
     },
+    transformIgnorePatterns: [
+        'node_modules/(?!(@exodus|html-encoding-sniffer|jsdom)/)'
+    ],
     testMatch: [
         '**/*.spec.ts',
         '**/*.test.ts'

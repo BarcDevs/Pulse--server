@@ -22,6 +22,17 @@ jest.mock('../../utils/emailSender', () => ({
     sendEmail: jest.fn()
 }))
 
+// Mock jsdom to avoid ESM issues
+jest.mock('jsdom', () => ({
+    JSDOM: jest.fn(() => ({
+        window: {
+            document: {},
+            location: {},
+            navigator: {}
+        }
+    }))
+}))
+
 // Reset mocks before each test
 beforeEach(() => {
     mockReset(prismaMock)
