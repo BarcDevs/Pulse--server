@@ -94,7 +94,7 @@ describe('Sanitization Middleware', () => {
             expect(next).toHaveBeenCalled()
         })
 
-        it('should set body to null for empty body', () => {
+        it('should initialize empty body to object', () => {
             const req = createMockRequest({
                 body: {}
             }) as Request
@@ -104,7 +104,20 @@ describe('Sanitization Middleware', () => {
 
             sanitizeData(req, res, next)
 
-            expect(req.body).toBeNull()
+            expect(req.body).toEqual({})
+            expect(next).toHaveBeenCalled()
+        })
+
+        it('should handle undefined body gracefully', () => {
+            const req = createMockRequest() as Request
+            req.body = undefined
+
+            const res = createMockResponse() as Response
+            const next = createMockNext()
+
+            sanitizeData(req, res, next)
+
+            expect(req.body).toEqual({})
             expect(next).toHaveBeenCalled()
         })
 

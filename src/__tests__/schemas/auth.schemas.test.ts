@@ -341,6 +341,19 @@ describe('Auth Schemas', () => {
             expect(result.error).toBeUndefined()
         })
 
+        it(
+            'should validate password with special characters',
+            () => {
+                const result = resetPasswordSchema.validate({
+                    email: 'test@test.com',
+                    newPassword: 'P@ssword123!',
+                    userOTP: 123456
+                })
+
+                expect(result.error).toBeUndefined()
+            }
+        )
+
         it('should reject missing email', () => {
             const result = resetPasswordSchema.validate({
                 newPassword: 'NewPassword1',
@@ -386,6 +399,32 @@ describe('Auth Schemas', () => {
                 expect(result.error).toBeDefined()
                 expect(result.error?.details[0].path)
                     .toContain('newPassword')
+            }
+        )
+
+        it(
+            'should reject password with no digits',
+            () => {
+                const result = resetPasswordSchema.validate({
+                    email: 'test@test.com',
+                    newPassword: 'NoDigitsHere',
+                    userOTP: 123456
+                })
+
+                expect(result.error).toBeDefined()
+            }
+        )
+
+        it(
+            'should reject password with no letters',
+            () => {
+                const result = resetPasswordSchema.validate({
+                    email: 'test@test.com',
+                    newPassword: '12345678',
+                    userOTP: 123456
+                })
+
+                expect(result.error).toBeDefined()
             }
         )
 

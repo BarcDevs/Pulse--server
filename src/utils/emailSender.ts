@@ -13,11 +13,11 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-export const sendEmail = (
+export const sendEmail = async (
     email: string,
     subject: string,
     text: string
-) => {
+): Promise<void> => {
     const mailOptions = {
         from: emailConfig.emailUser!,
         to: email,
@@ -25,19 +25,15 @@ export const sendEmail = (
         text
     }
 
-    transporter.sendMail(
-        mailOptions,
-        (error, info) => {
-            if (error) {
-                console.error(
-                    'Error sending email:',
-                    error.message
-                )
-            } else {
-                console.info(
-                    `Email sent: ${info.response}`
-                )
-            }
-        }
-    )
+    try {
+        const info =
+            await transporter.sendMail(mailOptions)
+        console.info(`Email sent: ${info.response}`)
+    } catch (error) {
+        const message = error instanceof Error
+            ? error.message
+            : 'Unknown error'
+        console.error('Error sending email:', message)
+        throw error
+    }
 }

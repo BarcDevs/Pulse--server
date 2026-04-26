@@ -92,9 +92,10 @@ export const resetPassword = async (
     userId: string,
     newPassword: string
 ): Promise<ServerUserType> =>
-    authModel.updateUser(userId, {
-        password: hashPassword(newPassword)
-    })
+    authModel.updatePassword(
+        userId,
+        hashPassword(newPassword)
+    )
 
 export const deactivateUser = async (
     userId: string

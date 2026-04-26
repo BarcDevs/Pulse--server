@@ -21,7 +21,7 @@ import {
 } from '../lib/authHelpers'
 import {
     removeResetPasswordOTP,
-    sendEmailWithOTP,
+    sendForgotPasswordOTP,
     verifyResetPasswordOTP
 } from '../lib/authOTP'
 import { successResponse } from '../responses/success'
@@ -187,14 +187,14 @@ export const forgotPassword = async (
             )
         )
 
-    const otpCode = await sendEmailWithOTP(email)
+    const otpCode = await sendForgotPasswordOTP(email)
 
     const OTP = isDev ? otpCode : null
 
     successResponse(
         res,
         { OTP },
-        'We have sent you an email with an OTP to confirm your email! Please check your email.'
+        'We have sent you an email with an OTP to reset your password! Please check your email.'
     )
 }
 
@@ -213,15 +213,14 @@ export const confirmEmail = async (
             email
         )
 
-    const OTPValid =
-        user
-        && verifyResetPasswordOTP(
+    if (
+        !user
+        || !verifyResetPasswordOTP(
             user.resetPasswordOTP!,
             user.resetPasswordExpiration!,
             OTP
         )
-
-    if (!OTPValid)
+    )
         throw errorFactory.validation.otpError()
 
     successResponse<{
@@ -252,9 +251,17 @@ export const resetPassword = async (
             email
         )
 
+    if (!user) {
+        successResponse(
+            res,
+            {},
+            'If the email exists, password reset instructions have been sent.'
+        )
+        return
+    }
+
     if (
-        !user
-        || !verifyResetPasswordOTP(
+        !verifyResetPasswordOTP(
             user.resetPasswordOTP!,
             user.resetPasswordExpiration!,
             userOTP
@@ -262,14 +269,26 @@ export const resetPassword = async (
     )
         throw errorFactory.auth.resetPassword()
 
-    await authServices.resetPassword(user.id, newPassword)
-    await removeResetPasswordOTP(user.id)
+    const updatedUser =
+        await authServices.resetPassword(
+            user.id,
+            newPassword
+        )
+
+    removeResetPasswordOTP(user.id).catch(
+        (err) => {
+            console.error(
+                'Failed to clear OTP:',
+                err
+            )
+        }
+    )
 
     successResponse<{
         user: UserType
     }>(
         res,
-        { user: sanitizeUserData(user) },
+        { user: sanitizeUserData(updatedUser) },
         'Password has changed successfully!'
     )
 }
@@ -286,7 +305,9 @@ export const googleSignIn = async (
 
     res.cookie('oauth_state', state, {
         httpOnly: true,
-        sameSite: isDev ? 'none' : 'lax',
+        sameSite: isDev
+            ? 'none'
+            : 'lax',
         secure: true,
         maxAge: 10 * minuteInMs
     })

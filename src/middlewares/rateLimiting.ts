@@ -13,3 +13,10 @@ export const rateLimiter = rateLimit({
             || req.path === '/api/v1/auth/csrf'
     }
 })
+
+export const otpRateLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: 5, // Strict limit: 5 requests per 15 minutes per IP for OTP endpoints
+    message:
+        'Too many OTP requests from this IP, please try again after 15 minutes'
+})

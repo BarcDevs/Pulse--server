@@ -20,7 +20,8 @@ jest.mock('../../services/authService', () => ({
 
 jest.mock('../../lib/authOTP', () => ({
     ...jest.requireActual('../../lib/authOTP'),
-    sendEmailWithOTP: jest.fn(),
+    sendForgotPasswordOTP: jest.fn(),
+    sendConfirmEmailOTP: jest.fn(),
     removeResetPasswordOTP: jest.fn()
 }))
 
@@ -329,8 +330,8 @@ describe('AuthController', () => {
     // ==================== FORGOT PASSWORD ====================
     describe('forgotPassword', () => {
         it('should send OTP email', async () => {
-            ;(authOTP.sendEmailWithOTP as jest.Mock)
-                .mockResolvedValue(undefined)
+            ;(authOTP.sendForgotPasswordOTP as jest.Mock)
+                .mockResolvedValue(123456)
 
             const req = createMockRequest({
                 params: {
@@ -342,7 +343,7 @@ describe('AuthController', () => {
 
             await authController.forgotPassword(req, res)
 
-            expect(authOTP.sendEmailWithOTP).toHaveBeenCalledWith(
+            expect(authOTP.sendForgotPasswordOTP).toHaveBeenCalledWith(
                 'test@test.com'
             )
             expect(res.status)

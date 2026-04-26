@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto'
 import ms from 'ms'
 
 import { authConfig } from '../../config'
@@ -8,9 +9,7 @@ export const generateResetPasswordOTP = (): {
     OTP: number
     OTPExpiration: Date
 } => {
-    const OTP = Math.floor(
-        100000 + Math.random() * 900000
-    )
+    const OTP = randomInt(100000, 1000000)
     const OTPExpiration = new Date(
         Date.now() + ms(authConfig.otp_expiration)
     )
@@ -25,10 +24,7 @@ export const removeResetPasswordOTP = async (
         userId,
         {
             resetPasswordOTP: null,
-            resetPasswordExpiration: null,
-            passwordUpdatedAt: new Date(
-                Date.now()
-            )
+            resetPasswordExpiration: null
         }
     )
 }
@@ -45,7 +41,7 @@ export const verifyResetPasswordOTP = (
     )
 }
 
-export const sendEmailWithOTP = async (
+export const sendForgotPasswordOTP = async (
     email: string
 ): Promise<boolean | number> => {
     const user =
@@ -64,10 +60,38 @@ export const sendEmailWithOTP = async (
         }
     )
 
-    sendEmail(
+    await sendEmail(
+        email,
+        'Reset Your Password',
+        `Your OTP to reset your password is: ${OTP}`
+    )
+
+    return OTP
+}
+
+export const sendConfirmEmailOTP = async (
+    email: string
+): Promise<boolean | number> => {
+    const user =
+        await authModel.getUserByEmail(email)
+
+    if (!user) return false
+
+    const { OTP, OTPExpiration } =
+        generateResetPasswordOTP()
+
+    await authModel.setUserOTP(
+        user.id,
+        {
+            resetPasswordOTP: OTP,
+            resetPasswordExpiration: OTPExpiration
+        }
+    )
+
+    await sendEmail(
         email,
         'Confirm Email',
-        `here is your OTP for confirm email: ${OTP}`
+        `Your OTP to confirm your email is: ${OTP}`
     )
 
     return OTP

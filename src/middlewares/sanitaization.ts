@@ -11,8 +11,6 @@ const { JSDOM } = jsdom
 const { window } = new JSDOM('')
 const DOMPurify = createDOMPurify(window)
 
-const isBodyEmpty = (req: Request) => Object.keys(req.body).length === 0
-
 const extractCsrfToken = (req: Request) => {
     const { csrfToken } = req.body
 
@@ -42,16 +40,15 @@ export const sanitizeData = (
     _res: Response,
     next: NextFunction
 ) => {
+    if (!req.body) {
+        req.body = {}
+    }
+
     Object.keys(req.body).forEach((key) => {
         req.body[key] = sanitize(req.body[key])
     })
 
     extractCsrfToken(req)
-
-    if (isBodyEmpty(req)) {
-        req.body = null
-        return next()
-    }
 
     return next()
 }
