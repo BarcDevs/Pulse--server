@@ -11,7 +11,7 @@ import type { PrismaClient } from '../../../prisma/generated/prisma/client'
 export const prismaMock = mockDeep<PrismaClient>() as DeepMockProxy<PrismaClient>
 
 // Setup Prisma mock
-jest.mock('../../utils/PrismaClient', () => ({
+jest.mock('../../utils/prismaClient', () => ({
     __esModule: true,
     default: prismaMock
 }))
