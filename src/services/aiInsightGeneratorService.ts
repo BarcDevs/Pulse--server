@@ -41,7 +41,7 @@ export const generateInsight = async (
     const provider = createProvider()
     const title = generateTitle(decision.type)
 
-    let generatedContent: string = ''
+    let generatedContent: string
 
     try {
         // Retry with: max 2 retries, 1000ms delay = 3 total attempts
