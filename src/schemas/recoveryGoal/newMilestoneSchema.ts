@@ -6,7 +6,9 @@ export const newMilestoneSchema = z.object({
             title: z.string()
                 .max(150)
                 .describe('Milestone title is required'),
-            description: z.string().max(1000).optional(),
+            description: z.string()
+                .max(1000)
+                .optional(),
             order: z.number()
                 .int()
                 .min(1)
