@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { Pool } from 'pg'
 import bcrypt from 'bcrypt'
+import { Pool } from 'pg'
 
 import { PrismaPg } from '@prisma/adapter-pg'
 
