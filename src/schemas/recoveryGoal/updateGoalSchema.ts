@@ -15,6 +15,10 @@ export const updateGoalSchema = z.object({
     ]).optional(),
     targetDate: z.string()
         .datetime({ offset: true })
+        .refine(
+            (date) => new Date(date) > new Date(),
+            'Target date must be in the future'
+        )
         .optional(),
     isPrimary: z.boolean().optional()
 })
