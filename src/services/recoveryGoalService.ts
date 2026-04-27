@@ -1,3 +1,4 @@
+import { MAX_ACTIVE_GOALS } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import * as RecoveryGoalModel from '../models/recoveryGoalModel'
 import { getProfileIdForUser } from '../models/recoveryGoalModel'
@@ -31,6 +32,21 @@ export const createGoal = async (
 ): Promise<RecoveryGoalWithProgress> => {
     if (!userId) throw errorFactory.auth.unauthorized()
     const profileId = await getProfileIdForUser(userId)
+
+    const allGoals = await RecoveryGoalModel
+        .getGoalsByProfileId(profileId)
+    const activeGoals = allGoals.filter(
+        (g) =>
+            g.status !== 'completed'
+            && g.status !== 'abandoned'
+    )
+
+    if (activeGoals.length >= MAX_ACTIVE_GOALS) {
+        throw errorFactory.generic.conflict(
+            `Cannot create more than ${MAX_ACTIVE_GOALS} active goals. `
+            + 'Complete or abandon some goals to create new ones.'
+        )
+    }
 
     if (data.isPrimary) {
         await RecoveryGoalModel.setPrimaryGoal(profileId, '')

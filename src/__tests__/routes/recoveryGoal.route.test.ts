@@ -169,6 +169,122 @@ describe('Recovery Goals Routes', () => {
 
             expect(response.status).toBe(401)
         })
+
+        it('should reject creation when exceeding active goals limit', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            const activeGoals = Array.from({ length: 5 }).map(
+                (_, i) =>
+                    createMockRecoveryGoal({
+                        id: `goal-${i}`,
+                        profileId: 'test-profile-id-123',
+                        status: 'active'
+                    })
+            )
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValueOnce(
+                activeGoals
+            )
+
+            const response = await withCsrfAuth(
+                supertest(App).post(endpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'New Goal',
+                category: 'physical'
+            })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should allow creation when goals are completed', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            const completedGoals = Array.from({ length: 5 }).map(
+                (_, i) =>
+                    createMockRecoveryGoal({
+                        id: `goal-${i}`,
+                        profileId: 'test-profile-id-123',
+                        status: 'completed'
+                    })
+            )
+            const newGoal = createMockRecoveryGoal({
+                profileId: 'test-profile-id-123',
+                title: 'New Goal',
+                category: 'physical'
+            })
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValueOnce(
+                completedGoals
+            )
+            prismaMock.recoveryGoal.create.mockResolvedValueOnce(newGoal)
+
+            const response = await withCsrfAuth(
+                supertest(App).post(endpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'New Goal',
+                category: 'physical'
+            })
+
+            expect(response.status).toBe(201)
+            expect(response.body.data.title).toBe('New Goal')
+        })
+
+        it('should allow creation when goals are abandoned', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            const abandonedGoals = Array.from({ length: 5 }).map(
+                (_, i) =>
+                    createMockRecoveryGoal({
+                        id: `goal-${i}`,
+                        profileId: 'test-profile-id-123',
+                        status: 'abandoned'
+                    })
+            )
+            const newGoal = createMockRecoveryGoal({
+                profileId: 'test-profile-id-123',
+                title: 'New Goal',
+                category: 'mental'
+            })
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValueOnce(
+                abandonedGoals
+            )
+            prismaMock.recoveryGoal.create.mockResolvedValueOnce(newGoal)
+
+            const response = await withCsrfAuth(
+                supertest(App).post(endpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'New Goal',
+                category: 'mental'
+            })
+
+            expect(response.status).toBe(201)
+            expect(response.body.data.title).toBe('New Goal')
+        })
     })
 
     // ==================== GET ALL GOALS ====================
