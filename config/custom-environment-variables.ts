@@ -6,8 +6,8 @@ export default {
     database: {
         url: 'DEV_DATABASE_URL'
     },
-    jwt: {
-        secret: 'JWT_SECRET'
+    auth: {
+        jwtSecret: 'JWT_SECRET'
     },
     email: {
         user: 'EMAIL_USER',

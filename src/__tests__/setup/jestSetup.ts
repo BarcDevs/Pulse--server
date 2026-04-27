@@ -1,4 +1,5 @@
 // @ts-nocheck
+import dotenv from 'dotenv'
 import {
     type DeepMockProxy,
     mockDeep,
@@ -6,6 +7,8 @@ import {
 } from 'jest-mock-extended'
 
 import type { PrismaClient } from '../../../prisma/generated/prisma/client'
+
+dotenv.config()
 
 // Create the mock instance that will be shared across all tests
 export const prismaMock = mockDeep<PrismaClient>() as DeepMockProxy<PrismaClient>
