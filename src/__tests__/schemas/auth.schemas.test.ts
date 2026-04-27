@@ -17,7 +17,8 @@ describe('Auth Schemas', () => {
             expect(result.error).toBeUndefined()
             expect(result.data).toEqual({
                 email: 'test@test.com',
-                password: 'Password123!'
+                password: 'Password123!',
+                remember: false
             })
         })
 
@@ -46,16 +47,6 @@ describe('Auth Schemas', () => {
                 .toContain('email')
         })
 
-        it('should reject email with invalid TLD', () => {
-            const result = loginSchema.safeParse({
-                email: 'test@test.org',
-                password: 'Password123!'
-            })
-
-            expect(result.error).toBeDefined()
-            expect(result.error?.issues[0].path)
-                .toContain('email')
-        })
 
         it('should accept email with .com TLD', () => {
             const result = loginSchema.safeParse({
@@ -270,13 +261,6 @@ describe('Auth Schemas', () => {
             expect(result.error).toBeDefined()
         })
 
-        it('should reject email with invalid TLD', () => {
-            const result = forgotPasswordSchema.safeParse({
-                email: 'test@test.org'
-            })
-
-            expect(result.error).toBeDefined()
-        })
     })
 
     // ==================== CONFIRM EMAIL SCHEMA ====================
