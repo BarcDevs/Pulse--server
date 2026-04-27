@@ -2,6 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
+import { MAX_ACTIVE_GOALS } from '../../config/recoveryGoals'
 import { errorFactory } from '../../errors/factory/ErrorFactory'
 import { prismaMock } from '../setup/jestSetup'
 import {
@@ -178,7 +179,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
-            const activeGoals = Array.from({ length: 5 }).map(
+            const activeGoals = Array.from({ length: MAX_ACTIVE_GOALS }).map(
                 (_, i) =>
                     createMockRecoveryGoal({
                         id: `goal-${i}`,
