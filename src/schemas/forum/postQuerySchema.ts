@@ -3,11 +3,11 @@ import { z } from 'zod'
 import { PostFilter } from '../../types/query'
 
 export const postQuerySchema = z.object({
-    limit: z.number()
+    limit: z.coerce.number()
         .int()
         .max(100)
         .optional(),
-    page: z.number()
+    page: z.coerce.number()
         .int()
         .optional(),
     filter: z.enum(PostFilter).optional(),
