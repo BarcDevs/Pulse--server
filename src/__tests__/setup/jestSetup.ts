@@ -22,15 +22,10 @@ jest.mock('../../utils/emailSender', () => ({
     sendEmail: jest.fn()
 }))
 
-// Mock jsdom to avoid ESM issues
-jest.mock('jsdom', () => ({
-    JSDOM: jest.fn(() => ({
-        window: {
-            document: {},
-            location: {},
-            navigator: {}
-        }
-    }))
+// Mock sanitization middleware to avoid jsdom ESM issues
+jest.mock('../../middlewares/sanitaization', () => ({
+    sanitizeData: jest.fn((_req, _res, next) => next()),
+    extractCsrfToken: jest.fn()
 }))
 
 // Reset mocks before each test
