@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 export const forgotPasswordSchema = z.object({
-    email: z.string()
+    email: z.string('Email is required')
         .email()
-        .describe('Email is required')
 })

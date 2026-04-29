@@ -22,10 +22,23 @@ jest.mock('../../utils/emailSender', () => ({
     sendEmail: jest.fn()
 }))
 
+
+// Mock rate limiters to prevent test requests from hitting limits
+jest.mock('../../middlewares/rateLimiting', () => ({
+    rateLimiter: jest.fn((_req, _res, next) => next()),
+    otpRateLimiter: jest.fn((_req, _res, next) => next())
+}))
+
 // Mock sanitization middleware to avoid jsdom ESM issues
 jest.mock('../../middlewares/sanitaization', () => ({
     sanitizeData: jest.fn((_req, _res, next) => next()),
     extractCsrfToken: jest.fn()
+}))
+
+// Mock rate limiters to prevent test requests from hitting limits
+jest.mock('../../middlewares/rateLimiting', () => ({
+    rateLimiter: jest.fn((_req, _res, next) => next()),
+    otpRateLimiter: jest.fn((_req, _res, next) => next())
 }))
 
 // Reset mocks before each test
