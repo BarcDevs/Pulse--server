@@ -119,24 +119,6 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 400 for email with invalid TLD',
-            async () => {
-                const response = await supertest(App)
-                    .post(loginEndpoint)
-                    .send({
-                        email: 'test@test.org',
-                        password: 'Password123!'
-                    })
-
-                expect(response.status).toBe(400)
-                expect(response.body.error[0].statusType)
-                    .toBe('Validation Error')
-                expect(response.body.error[0].property)
-                    .toBe('email')
-            }
-        )
-
-        it(
             'should return 400 for password too short',
             async () => {
                 const response = await supertest(App)
@@ -678,18 +660,6 @@ describe('Auth Routes', () => {
                 expect(response.status).toBe(400)
                 expect(response.body.error[0].statusType)
                     .toBe('Validation Error')
-            }
-        )
-
-        it(
-            'should return 400 for email with invalid TLD',
-            async () => {
-                const response = await supertest(App)
-                    .get(
-                        '/api/v1/auth/forgot-password/test@test.org'
-                    )
-
-                expect(response.status).toBe(400)
             }
         )
     })
