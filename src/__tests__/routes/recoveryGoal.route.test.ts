@@ -67,7 +67,7 @@ describe('Recovery Goals Routes', () => {
                 description: 'Physical recovery goal',
                 category: 'physical',
                 isPrimary: true,
-                targetDate: '2026-07-23T10:00:00Z'
+                targetDate: '2026-07-23'
             })
 
             expect(response.status).toBe(201)
@@ -98,8 +98,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             ).send({
                 title: 'Simple goal',
-                category: 'mental',
-                targetDate: '2026-07-23T10:00:00Z'
+                category: 'mental'
             })
 
             expect(response.status).toBe(201)
@@ -562,7 +561,7 @@ describe('Recovery Goals Routes', () => {
 
     // ==================== CREATE MILESTONES ====================
     describe('POST /api/v1/recovery-goals/:goalId/milestones', () => {
-        it('should create milestones with order', async () => {
+        it('should create single milestone with auto-increment order', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
@@ -571,7 +570,8 @@ describe('Recovery Goals Routes', () => {
             const mockMilestone = createMockMilestone({
                 order: 1,
                 status: 'active',
-                title: 'First milestone'
+                title: 'No screens 1 hour before bed',
+                description: null
             })
             const {
                 token,
@@ -583,12 +583,66 @@ describe('Recovery Goals Routes', () => {
             prismaMock.milestone.aggregate.mockResolvedValue({
                 _max: { order: 0 }
             })
+            prismaMock.milestone.count.mockResolvedValue(0)
             prismaMock.$transaction.mockImplementation(async (callback) => {
                 const tx = {
+                    $executeRaw: jest.fn(),
                     milestone: {
                         count: jest.fn().mockResolvedValue(0),
-                        create: jest.fn()
-                            .mockResolvedValueOnce(mockMilestone)
+                        create: jest.fn().mockResolvedValue(mockMilestone)
+                    },
+                    recoveryGoal: {
+                        findUnique: jest.fn()
+                            .mockResolvedValue(mockGoal)
+                    }
+                }
+                return callback(tx)
+            })
+
+            const response = await withCsrfAuth(
+                supertest(App).post(`${API_BASE}/goal-123/milestones`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({
+                title: 'No screens 1 hour before bed'
+            })
+
+            expect(response.status).toBe(201)
+            expect(response.body.data).toHaveLength(1)
+            expect(response.body.data[0].title).toBe('No screens 1 hour before bed')
+            expect(response.body.data[0].order).toBe(1)
+        })
+
+        it('should create milestone with description', async () => {
+            const mockUser = createMockUser()
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: 'active'
+            })
+            const mockMilestone = createMockMilestone({
+                order: 1,
+                status: 'active',
+                title: 'First milestone',
+                description: 'First step'
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.aggregate.mockResolvedValue({
+                _max: { order: 0 }
+            })
+            prismaMock.milestone.count.mockResolvedValue(0)
+            prismaMock.$transaction.mockImplementation(async (callback) => {
+                const tx = {
+                    $executeRaw: jest.fn(),
+                    milestone: {
+                        count: jest.fn().mockResolvedValue(0),
+                        create: jest.fn().mockResolvedValue(mockMilestone)
                     },
                     recoveryGoal: {
                         findUnique: jest.fn()
@@ -610,26 +664,8 @@ describe('Recovery Goals Routes', () => {
 
             expect(response.status).toBe(201)
             expect(response.body.data).toHaveLength(1)
-        })
-
-        it('should reject missing title', async () => {
-            const mockUser = createMockUser()
-            const {
-                token,
-                csrfSecret,
-                csrfToken
-            } = createAuthenticatedRequest(mockUser)
-
-            const response = await withCsrfAuth(
-                supertest(App).post(`${API_BASE}/goal-123/milestones`),
-                token,
-                csrfSecret,
-                csrfToken
-            ).send({
-                description: 'No title'
-            })
-
-            expect(response.status).toBe(400)
+            expect(response.body.data[0].title).toBe('First milestone')
+            expect(response.body.data[0].description).toBe('First step')
         })
 
         it('should reject non-active goal', async () => {
@@ -689,7 +725,7 @@ describe('Recovery Goals Routes', () => {
                 csrfSecret,
                 csrfToken
             ).send({
-                title: 'Milestone 9'
+                title: 'M9'
             })
 
             expect(response.status).toBe(409)

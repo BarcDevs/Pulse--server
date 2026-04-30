@@ -169,7 +169,7 @@ router
  * @swagger
  * /api/v1/recovery-goals/{goalId}/milestones:
  *   post:
- *     summary: Create a milestone for a recovery goal
+ *     summary: Create milestones for a recovery goal
  *     tags: [Recovery Milestones]
  *     security:
  *       - cookieAuth: []
@@ -187,19 +187,31 @@ router
  *         application/json:
  *           schema:
  *             type: object
- *             required: [title]
+ *             required: [milestones]
  *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 150
- *                 description: Milestone title
- *               description:
- *                 type: string
- *                 maxLength: 1000
- *                 description: Optional milestone description
+ *               milestones:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 8
+ *                 items:
+ *                   type: object
+ *                   required: [title, order]
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                       maxLength: 150
+ *                       description: Milestone title
+ *                     description:
+ *                       type: string
+ *                       maxLength: 1000
+ *                       description: Optional milestone description
+ *                     order:
+ *                       type: integer
+ *                       minimum: 1
+ *                       description: Milestone order (required, client-provided)
  *     responses:
  *       201:
- *         description: Milestone created successfully
+ *         description: Milestones created successfully
  *       400:
  *         description: Invalid input
  *       401:

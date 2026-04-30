@@ -144,10 +144,8 @@ export const createMilestones = async (
     if (!userId) throw errorFactory.auth.unauthorized()
     validateId(goalId, 'goalId')
 
-    const maxOrder = await recoveryGoalService
+    const nextOrder = await recoveryGoalService
         .getMaxMilestoneOrder(goalId, userId)
-    const nextOrder = (maxOrder ?? 0) + 1
-
     const milestones = await recoveryGoalService.createMilestones(
         goalId,
         userId,
@@ -155,7 +153,7 @@ export const createMilestones = async (
             milestones: [
                 {
                     title: validatedData.title,
-                    description: validatedData.description || null,
+                    description: validatedData.description,
                     order: nextOrder
                 }
             ]
@@ -164,7 +162,7 @@ export const createMilestones = async (
     successResponse(
         res,
         milestones,
-        'Milestone created successfully',
+        'Milestones created successfully',
         HttpStatusCodes.CREATED
     )
 }
