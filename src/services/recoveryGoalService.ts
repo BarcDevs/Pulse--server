@@ -208,13 +208,29 @@ export const deleteGoal = async (
     await RecoveryGoalModel.deleteGoal(id)
 }
 
+export const getMaxMilestoneOrder = async (
+    goalId: string,
+    userId: string
+): Promise<number | null> => {
+    if (!userId) throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(userId)
+
+    const goal = await RecoveryGoalModel.getGoalById(
+        goalId,
+        profileId
+    )
+    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+
+    return RecoveryGoalModel.getMaxMilestoneOrder(goalId)
+}
+
 export const createMilestones = async (
     goalId: string,
     userId: string,
     data: {
         milestones: Array<{
             title: string
-            description?: string
+            description?: string | null
             order: number
         }>
     }

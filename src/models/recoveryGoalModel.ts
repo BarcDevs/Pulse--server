@@ -138,6 +138,16 @@ export const countMilestonesByGoalId = async (
     })
 }
 
+export const getMaxMilestoneOrder = async (
+    goalId: string
+): Promise<number | null> => {
+    const result = await Prisma.milestone.aggregate({
+        where: { goalId },
+        _max: { order: true }
+    })
+    return result._max.order
+}
+
 export const createMilestonesInBatch = async (data: {
     goalId: string
     milestones: Array<{

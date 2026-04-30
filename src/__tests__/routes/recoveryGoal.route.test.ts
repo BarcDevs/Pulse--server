@@ -67,7 +67,7 @@ describe('Recovery Goals Routes', () => {
                 description: 'Physical recovery goal',
                 category: 'physical',
                 isPrimary: true,
-                targetDate: '2026-07-23'
+                targetDate: '2026-07-23T10:00:00Z'
             })
 
             expect(response.status).toBe(201)
@@ -98,7 +98,8 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             ).send({
                 title: 'Simple goal',
-                category: 'mental'
+                category: 'mental',
+                targetDate: '2026-07-23T10:00:00Z'
             })
 
             expect(response.status).toBe(201)
@@ -567,19 +568,11 @@ describe('Recovery Goals Routes', () => {
                 id: 'goal-123',
                 status: 'active'
             })
-            const mockMilestones = [
-                createMockMilestone({
-                    order: 1,
-                    status: 'active',
-                    title: 'First milestone'
-                }),
-                createMockMilestone({
-                    id: 'm-2',
-                    order: 2,
-                    status: 'locked',
-                    title: 'Second milestone'
-                })
-            ]
+            const mockMilestone = createMockMilestone({
+                order: 1,
+                status: 'active',
+                title: 'First milestone'
+            })
             const {
                 token,
                 csrfSecret,
@@ -587,13 +580,15 @@ describe('Recovery Goals Routes', () => {
             } = createAuthenticatedRequest(mockUser)
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.aggregate.mockResolvedValue({
+                _max: { order: 0 }
+            })
             prismaMock.$transaction.mockImplementation(async (callback) => {
                 const tx = {
                     milestone: {
                         count: jest.fn().mockResolvedValue(0),
                         create: jest.fn()
-                            .mockResolvedValueOnce(mockMilestones[0])
-                            .mockResolvedValueOnce(mockMilestones[1])
+                            .mockResolvedValueOnce(mockMilestone)
                     },
                     recoveryGoal: {
                         findUnique: jest.fn()
@@ -609,25 +604,15 @@ describe('Recovery Goals Routes', () => {
                 csrfSecret,
                 csrfToken
             ).send({
-                milestones: [
-                    {
-                        title: 'First milestone',
-                        description: 'First step',
-                        order: 1
-                    },
-                    {
-                        title: 'Second milestone',
-                        description: 'Second step',
-                        order: 2
-                    }
-                ]
+                title: 'First milestone',
+                description: 'First step'
             })
 
             expect(response.status).toBe(201)
-            expect(response.body.data).toHaveLength(2)
+            expect(response.body.data).toHaveLength(1)
         })
 
-        it('should reject missing order', async () => {
+        it('should reject missing title', async () => {
             const mockUser = createMockUser()
             const {
                 token,
@@ -641,12 +626,7 @@ describe('Recovery Goals Routes', () => {
                 csrfSecret,
                 csrfToken
             ).send({
-                milestones: [
-                    {
-                        title: 'Milestone',
-                        description: 'No order'
-                    }
-                ]
+                description: 'No title'
             })
 
             expect(response.status).toBe(400)
@@ -665,6 +645,9 @@ describe('Recovery Goals Routes', () => {
             } = createAuthenticatedRequest(mockUser)
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.aggregate.mockResolvedValue({
+                _max: { order: 0 }
+            })
 
             const response = await withCsrfAuth(
                 supertest(App).post(`${API_BASE}/goal-123/milestones`),
@@ -672,12 +655,7 @@ describe('Recovery Goals Routes', () => {
                 csrfSecret,
                 csrfToken
             ).send({
-                milestones: [
-                    {
-                        title: 'Milestone',
-                        order: 1
-                    }
-                ]
+                title: 'Milestone'
             })
 
             expect(response.status).toBe(409)
@@ -696,6 +674,9 @@ describe('Recovery Goals Routes', () => {
             } = createAuthenticatedRequest(mockUser)
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.aggregate.mockResolvedValue({
+                _max: { order: 8 }
+            })
             prismaMock.$transaction.mockImplementation(async () => {
                 throw errorFactory.generic.conflict(
                     'Maximum 8 milestones per goal'
@@ -708,12 +689,7 @@ describe('Recovery Goals Routes', () => {
                 csrfSecret,
                 csrfToken
             ).send({
-                milestones: Array(9)
-                    .fill(null)
-                    .map((_, i) => ({
-                        title: `M${i}`,
-                        order: i + 1
-                    }))
+                title: 'Milestone 9'
             })
 
             expect(response.status).toBe(409)
@@ -727,12 +703,7 @@ describe('Recovery Goals Routes', () => {
                 supertest(App).post(`${API_BASE}/goal-123/milestones`),
                 token
             ).send({
-                milestones: [
-                    {
-                        title: 'Milestone',
-                        order: 1
-                    }
-                ]
+                title: 'Milestone'
             })
 
             expect(response.status).toBe(401)
