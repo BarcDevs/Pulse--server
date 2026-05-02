@@ -154,6 +154,12 @@ export const updateGoal = async (
     )
     if (!goal) throw errorFactory.generic.notFound('Goal not found')
 
+    if (goal.status === GoalStatus.COMPLETED && data.status !== undefined) {
+        throw errorFactory.generic.conflict(
+            'Cannot change status of completed goals'
+        )
+    }
+
     const updateData: Record<string, unknown> = {}
 
     if (data.title !== undefined)
