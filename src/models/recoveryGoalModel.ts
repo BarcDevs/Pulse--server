@@ -1,9 +1,12 @@
 import { MAX_MILESTONES_PER_GOAL } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import type {
-    GoalStatus,
     MilestoneType,
     RecoveryGoalType
+} from '../types/data/RecoveryGoalType'
+import {
+    GoalStatus,
+    MilestoneStatus
 } from '../types/data/RecoveryGoalType'
 import Prisma from '../utils/prismaClient'
 import {
@@ -47,7 +50,7 @@ export const createGoal = async (
             description: data.description || null,
             category: data.category.toUpperCase(),
             isPrimary: data.isPrimary || false,
-            status: 'ACTIVE',
+            status: GoalStatus.ACTIVE,
             targetDate: data.targetDate || null
         }
     })
@@ -181,8 +184,8 @@ export const createMilestonesInBatch = async (data: {
                     order: data.milestones[i].order,
                     status:
                         data.setFirstActive && i === 0
-                            ? 'ACTIVE'
-                            : 'LOCKED'
+                            ? MilestoneStatus.ACTIVE
+                            : MilestoneStatus.LOCKED
                 }
             })
             milestones.push(convertMilestoneToDTO(milestone))
@@ -241,10 +244,10 @@ export const completeMilestoneAndAdvance = async (
         if (!milestone)
             throw errorFactory.generic.notFound('Milestone not found')
 
-        if (milestone.status === 'COMPLETED')
+        if (milestone.status === MilestoneStatus.COMPLETED)
             return
 
-        if (milestone.status !== 'ACTIVE')
+        if (milestone.status !== MilestoneStatus.ACTIVE)
             throw errorFactory.generic.conflict(
                 'Only ACTIVE milestones can be completed'
             )
@@ -252,7 +255,7 @@ export const completeMilestoneAndAdvance = async (
         await tx.milestone.update({
             where: { id: milestoneId },
             data: {
-                status: 'COMPLETED',
+                status: MilestoneStatus.COMPLETED,
                 completedAt: new Date()
             }
         })
@@ -260,7 +263,7 @@ export const completeMilestoneAndAdvance = async (
         const nextMilestone = await tx.milestone.findFirst({
             where: {
                 goalId,
-                status: { not: 'COMPLETED' }
+                status: { not: MilestoneStatus.COMPLETED }
             },
             orderBy: { order: 'asc' }
         })
@@ -268,12 +271,12 @@ export const completeMilestoneAndAdvance = async (
         if (nextMilestone) {
             await tx.milestone.update({
                 where: { id: nextMilestone.id },
-                data: { status: 'ACTIVE' }
+                data: { status: MilestoneStatus.ACTIVE }
             })
         } else {
             await tx.recoveryGoal.update({
                 where: { id: goalId },
-                data: { status: 'COMPLETED' }
+                data: { status: GoalStatus.COMPLETED }
             })
         }
     })
@@ -285,9 +288,9 @@ export const lockNonCompletedMilestones = async (
     await Prisma.milestone.updateMany({
         where: {
             goalId,
-            status: { not: 'COMPLETED' }
+            status: { not: MilestoneStatus.COMPLETED }
         },
-        data: { status: 'LOCKED' }
+        data: { status: MilestoneStatus.LOCKED }
     })
 }
 

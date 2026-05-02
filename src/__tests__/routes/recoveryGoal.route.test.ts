@@ -4,6 +4,10 @@ import supertest from 'supertest'
 import App from '../../app'
 import { MAX_ACTIVE_GOALS } from '../../config/recoveryGoals'
 import { errorFactory } from '../../errors/factory/ErrorFactory'
+import {
+    GoalStatus,
+    MilestoneStatus
+} from '../../types/data/RecoveryGoalType'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
@@ -42,7 +46,7 @@ describe('Recovery Goals Routes', () => {
             description: null,
             category: 'physical',
             isPrimary: false,
-            status: 'ACTIVE',
+            status: GoalStatus.ACTIVE,
             targetDate: null,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -56,7 +60,7 @@ describe('Recovery Goals Routes', () => {
             goalId: 'test-goal-id-123',
             title: 'Test Milestone',
             description: null,
-            status: 'ACTIVE',
+            status: MilestoneStatus.ACTIVE,
             order: 0,
             completedAt: null,
             createdAt: new Date(),
@@ -83,7 +87,7 @@ describe('Recovery Goals Routes', () => {
                 description: 'Physical recovery goal',
                 category: 'physical',
                 isPrimary: true,
-                status: 'active',
+                status: GoalStatus.ACTIVE,
                 targetDate: new Date('2026-07-23')
             })
             const {
@@ -140,7 +144,7 @@ describe('Recovery Goals Routes', () => {
 
             expect(response.status).toBe(201)
             expect(response.body.data.isPrimary).toBe(false)
-            expect(response.body.data.status).toBe('active')
+            expect(response.body.data.status).toBe(GoalStatus.ACTIVE)
         })
 
         it('should reject missing title', async () => {
@@ -221,7 +225,7 @@ describe('Recovery Goals Routes', () => {
                     createMockRecoveryGoal({
                         id: `goal-${i}`,
                         profileId: 'test-profile-id-123',
-                        status: 'active'
+                        status: GoalStatus.ACTIVE
                     })
             )
 
@@ -255,7 +259,7 @@ describe('Recovery Goals Routes', () => {
                     createMockRecoveryGoal({
                         id: `goal-${i}`,
                         profileId: 'test-profile-id-123',
-                        status: 'completed'
+                        status: GoalStatus.COMPLETED
                     })
             )
             const newGoal = createMockRecoveryGoal({
@@ -296,7 +300,7 @@ describe('Recovery Goals Routes', () => {
                     createMockRecoveryGoal({
                         id: `goal-${i}`,
                         profileId: 'test-profile-id-123',
-                        status: 'abandoned'
+                        status: GoalStatus.ABANDONED
                     })
             )
             const newGoal = createMockRecoveryGoal({
@@ -385,10 +389,10 @@ describe('Recovery Goals Routes', () => {
                 profileId: 'test-profile-id-123'
             })
             const mockMilestones = [
-                createMockMilestone({ status: 'active' }),
+                createMockMilestone({ status: MilestoneStatus.ACTIVE }),
                 createMockMilestone({
                     id: 'm-2',
-                    status: 'locked'
+                    status: MilestoneStatus.LOCKED
                 })
             ]
 
@@ -433,7 +437,7 @@ describe('Recovery Goals Routes', () => {
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
                 title: 'Updated title',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -460,7 +464,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
-                status: 'abandoned'
+                status: GoalStatus.ABANDONED
             })
             const {
                 token,
@@ -480,7 +484,7 @@ describe('Recovery Goals Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            ).send({ status: 'abandoned' })
+            ).send({ status: GoalStatus.ABANDONED })
 
             expect(response.status).toBe(200)
         })
@@ -602,11 +606,11 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 order: 1,
-                status: 'active',
+                status: GoalStatus.ACTIVE,
                 title: 'No screens 1 hour before bed',
                 description: null
             })
@@ -655,11 +659,11 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 order: 1,
-                status: 'active',
+                status: GoalStatus.ACTIVE,
                 title: 'First milestone',
                 description: 'First step'
             })
@@ -710,7 +714,7 @@ describe('Recovery Goals Routes', () => {
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
                 profileId: 'test-profile-id-123',
-                status: 'paused'
+                status: GoalStatus.PAUSED
             })
             const {
                 token,
@@ -740,7 +744,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -790,12 +794,12 @@ describe('Recovery Goals Routes', () => {
         it('should update milestone title', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 id: 'm-123',
                 title: 'Updated title',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -824,7 +828,7 @@ describe('Recovery Goals Routes', () => {
         it('should update description', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 description: 'Updated description'
@@ -855,7 +859,7 @@ describe('Recovery Goals Routes', () => {
         it('should update order', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 order: 3
@@ -887,7 +891,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 profileId: 'test-profile-id-123',
-                status: 'completed'
+                status: GoalStatus.COMPLETED
             })
             const mockMilestone = createMockMilestone()
             const {
@@ -917,10 +921,10 @@ describe('Recovery Goals Routes', () => {
         it('should reject modification of completed milestone', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
-                status: 'completed'
+                status: GoalStatus.COMPLETED
             })
             const {
                 token,
@@ -963,7 +967,7 @@ describe('Recovery Goals Routes', () => {
         it('should delete milestone', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone()
             const {
@@ -1017,12 +1021,12 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 profileId: 'test-profile-id-123',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const mockMilestone = createMockMilestone({
                 id: 'm-1',
                 order: 1,
-                status: 'ACTIVE'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -1045,12 +1049,12 @@ describe('Recovery Goals Routes', () => {
                         update: jest.fn()
                             .mockResolvedValue({
                                 ...mockMilestone,
-                                status: 'COMPLETED'
+                                status: GoalStatus.COMPLETED
                             }),
                         findFirst: jest.fn()
                             .mockResolvedValue({
                                 id: 'm-2',
-                                status: 'LOCKED'
+                                status: MilestoneStatus.LOCKED
                             })
                     },
                     recoveryGoal: {
@@ -1077,7 +1081,7 @@ describe('Recovery Goals Routes', () => {
         it('should reject non-active goal', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'paused'
+                status: GoalStatus.PAUSED
             })
             const mockMilestone = createMockMilestone()
             const {
@@ -1090,6 +1094,7 @@ describe('Recovery Goals Routes', () => {
                 ...mockMilestone,
                 goal: mockGoal
             })
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
 
             const response = await withCsrfAuth(
                 supertest(App)
@@ -1126,7 +1131,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -1136,15 +1141,15 @@ describe('Recovery Goals Routes', () => {
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.milestone.findMany.mockResolvedValue([
-                createMockMilestone({ status: 'completed' }),
+                createMockMilestone({ status: GoalStatus.COMPLETED }),
                 createMockMilestone({
                     id: 'm-2',
-                    status: 'completed'
+                    status: GoalStatus.COMPLETED
                 })
             ])
             prismaMock.recoveryGoal.update.mockResolvedValue({
                 ...mockGoal,
-                status: 'completed'
+                status: GoalStatus.COMPLETED
             })
 
             const response = await withCsrfAuth(
@@ -1155,14 +1160,14 @@ describe('Recovery Goals Routes', () => {
             )
 
             expect(response.status).toBe(200)
-            expect(response.body.data.status).toBe('completed')
+            expect(response.body.data.status).toBe(GoalStatus.COMPLETED)
             expect(response.body.data.progress).toBe(1)
         })
 
         it('should reject if goal not active', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'paused'
+                status: GoalStatus.PAUSED
             })
             const {
                 token,
@@ -1185,7 +1190,7 @@ describe('Recovery Goals Routes', () => {
         it('should reject if milestones incomplete', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,
@@ -1195,10 +1200,10 @@ describe('Recovery Goals Routes', () => {
 
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.milestone.findMany.mockResolvedValue([
-                createMockMilestone({ status: 'completed' }),
+                createMockMilestone({ status: GoalStatus.COMPLETED }),
                 createMockMilestone({
                     id: 'm-2',
-                    status: 'active'
+                    status: GoalStatus.ACTIVE
                 })
             ])
 
@@ -1215,7 +1220,7 @@ describe('Recovery Goals Routes', () => {
         it('should reject if no milestones', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
-                status: 'active'
+                status: GoalStatus.ACTIVE
             })
             const {
                 token,

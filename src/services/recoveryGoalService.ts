@@ -10,6 +10,10 @@ import type {
     UpdateMilestoneType,
     UpdateRecoveryGoalType
 } from '../types/data/RecoveryGoalType'
+import {
+    GoalStatus,
+    MilestoneStatus
+} from '../types/data/RecoveryGoalType'
 
 const computeProgress = (
     completedCount: number,
@@ -20,7 +24,7 @@ const computeProgress = (
 }
 
 const assertGoalActive = (goal: RecoveryGoalType): void => {
-    if (goal.status !== 'active')
+    if (goal.status !== GoalStatus.ACTIVE)
         throw errorFactory.generic.conflict(
             'Cannot modify milestones on non-active goals'
         )
@@ -37,8 +41,8 @@ export const createGoal = async (
         .getGoalsByProfileId(profileId)
     const activeGoals = allGoals.filter(
         (g) =>
-            g.status !== 'completed'
-            && g.status !== 'abandoned'
+            g.status !== GoalStatus.COMPLETED
+            && g.status !== GoalStatus.ABANDONED
     )
 
     if (activeGoals.length >= MAX_ACTIVE_GOALS) {
@@ -93,7 +97,7 @@ export const getGoal = async (
         .getMilestonesByGoalId(id)
 
     const completedCount = milestones.filter(
-        m => m.status === 'completed'
+        m => m.status === MilestoneStatus.COMPLETED
     ).length
     const progress = computeProgress(
         completedCount,
@@ -125,7 +129,7 @@ export const getUserGoals = async (
                 goal.id
             )
             const completedCount = milestones.filter(
-                m => m.status === 'completed'
+                m => m.status === MilestoneStatus.COMPLETED
             ).length
             const progress = computeProgress(completedCount, count)
 
@@ -161,8 +165,8 @@ export const updateGoal = async (
             ? new Date(data.targetDate)
             : null
 
-    if (data.status === 'abandoned') {
-        updateData.status = 'ABANDONED'
+    if (data.status === GoalStatus.ABANDONED) {
+        updateData.status = GoalStatus.ABANDONED
         await RecoveryGoalModel.lockNonCompletedMilestones(id)
     }
 
@@ -185,7 +189,7 @@ export const updateGoal = async (
     const milestones = await RecoveryGoalModel
         .getMilestonesByGoalId(id)
     const completedCount = milestones.filter(
-        m => m.status === 'completed'
+        m => m.status === MilestoneStatus.COMPLETED
     ).length
     const progress = computeProgress(
         completedCount,
@@ -291,7 +295,7 @@ export const updateMilestone = async (
 
     assertGoalActive(goal)
 
-    if (milestone.status === 'completed')
+    if (milestone.status === MilestoneStatus.COMPLETED)
         throw errorFactory.generic.conflict(
             'Cannot modify completed milestones'
         )
@@ -375,7 +379,7 @@ export const completeGoal = async (
     )
     if (!goal) throw errorFactory.generic.notFound('Goal not found')
 
-    if (goal.status !== 'active')
+    if (goal.status !== GoalStatus.ACTIVE)
         throw errorFactory.generic.conflict('Goal is not active')
 
     const milestones = await RecoveryGoalModel
@@ -387,7 +391,7 @@ export const completeGoal = async (
         )
 
     const allCompleted = milestones.every(
-        m => m.status === 'completed'
+        m => m.status === MilestoneStatus.COMPLETED
     )
     if (!allCompleted)
         throw errorFactory.generic.conflict(
@@ -397,7 +401,7 @@ export const completeGoal = async (
     const updated = await RecoveryGoalModel.updateGoal(
         id,
         {
-            status: 'completed'
+            status: GoalStatus.COMPLETED
         }
     )
     if (!updated) throw errorFactory.generic.notFound('Goal not found')

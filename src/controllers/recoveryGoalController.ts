@@ -12,7 +12,8 @@ import * as recoveryGoalService from '../services/recoveryGoalService'
 import type {
     MilestoneType,
     RecoveryGoalType,
-    RecoveryGoalWithProgress
+    RecoveryGoalWithProgress,
+    UpdateRecoveryGoalType
 } from '../types/data/RecoveryGoalType'
 
 // Validate that ID is a non-empty string (CUID format)
@@ -103,7 +104,7 @@ export const updateGoal = async (
     const goal = await recoveryGoalService.updateGoal(
         goalId,
         userId,
-        validatedData
+        validatedData as UpdateRecoveryGoalType
     )
     successResponse<RecoveryGoalWithProgress>(
         res,

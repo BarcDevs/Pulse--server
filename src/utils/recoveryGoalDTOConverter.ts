@@ -31,12 +31,12 @@ type RawMilestone = {
 export const convertGoalToDTO = (goal: RawGoal): RecoveryGoalType => ({
     ...goal,
     category: goal.category.toLowerCase() as RecoveryGoalType['category'],
-    status: goal.status.toLowerCase() as RecoveryGoalType['status']
+    status: goal.status as RecoveryGoalType['status']
 })
 
 export const convertMilestoneToDTO = (
     milestone: RawMilestone
 ): MilestoneType => ({
     ...milestone,
-    status: milestone.status.toLowerCase() as MilestoneType['status']
+    status: milestone.status as MilestoneType['status']
 })

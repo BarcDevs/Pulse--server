@@ -10,6 +10,10 @@ import type {
     MilestoneType,
     RecoveryGoalType
 } from '../../types/data/RecoveryGoalType'
+import {
+    GoalStatus,
+    MilestoneStatus
+} from '../../types/data/RecoveryGoalType'
 import type { ReplyType } from '../../types/data/ReplyType'
 import type { TagType } from '../../types/data/TagType'
 import type { ServerUserType } from '../../types/data/UserType'
@@ -130,7 +134,7 @@ export const createMockRecoveryGoal = (
     description: 'Establish a regular sleep routine',
     category: 'lifestyle',
     isPrimary: false,
-    status: 'active',
+    status: GoalStatus.ACTIVE,
     targetDate: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -144,7 +148,7 @@ export const createMockMilestone = (
     goalId: 'test-goal-id-123',
     title: 'No screens 1 hour before bed',
     description: null,
-    status: 'active',
+    status: MilestoneStatus.ACTIVE,
     order: 0,
     completedAt: null,
     createdAt: new Date(),

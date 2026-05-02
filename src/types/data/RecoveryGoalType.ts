@@ -1,6 +1,17 @@
 export type GoalCategory = 'physical' | 'mental' | 'lifestyle'
-export type GoalStatus = 'active' | 'completed' | 'paused' | 'abandoned'
-export type MilestoneStatus = 'locked' | 'active' | 'completed'
+
+export enum MilestoneStatus {
+    LOCKED = 'LOCKED',
+    ACTIVE = 'ACTIVE',
+    COMPLETED = 'COMPLETED'
+}
+
+export enum GoalStatus {
+    ACTIVE = 'ACTIVE',
+    COMPLETED = 'COMPLETED',
+    PAUSED = 'PAUSED',
+    ABANDONED = 'ABANDONED'
+}
 
 export type MilestoneType = {
     id: string
@@ -42,7 +53,7 @@ export type NewRecoveryGoalType = {
 export type UpdateRecoveryGoalType = {
     title?: string
     description?: string
-    status?: Extract<GoalStatus, 'paused' | 'abandoned'>
+    status?: Extract<GoalStatus, 'PAUSED' | 'ABANDONED'>
     targetDate?: string
     isPrimary?: boolean
 }

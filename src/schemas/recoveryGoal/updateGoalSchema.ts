@@ -10,8 +10,8 @@ export const updateGoalSchema = z.object({
         .max(1000)
         .optional(),
     status: caseInsensitiveEnum([
-        'paused',
-        'abandoned'
+        'PAUSED',
+        'ABANDONED'
     ]).optional(),
     targetDate: z.string()
         .datetime({ offset: true })
