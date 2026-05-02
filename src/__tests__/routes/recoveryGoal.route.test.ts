@@ -19,6 +19,7 @@ const API_BASE = '/api/v1/recovery-goals'
 
 describe('Recovery Goals Routes', () => {
     beforeEach(() => {
+        jest.clearAllMocks()
         prismaMock.profile.findUnique
             .mockImplementation(async (args: any) => {
                 const userId = args.where.userId
@@ -32,6 +33,42 @@ describe('Recovery Goals Routes', () => {
                     userId
                 }
             })
+        prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+        prismaMock.recoveryGoal.create.mockResolvedValue({} as any)
+        prismaMock.recoveryGoal.findFirst.mockResolvedValue({
+            id: 'test-goal-id-123',
+            profileId: 'test-profile-id-123',
+            title: 'Test Goal',
+            description: null,
+            category: 'physical',
+            isPrimary: false,
+            status: 'ACTIVE',
+            targetDate: null,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as any)
+        prismaMock.recoveryGoal.update.mockResolvedValue({} as any)
+        prismaMock.recoveryGoal.delete.mockResolvedValue({} as any)
+        prismaMock.milestone.findMany.mockResolvedValue([])
+        prismaMock.milestone.create.mockResolvedValue({} as any)
+        prismaMock.milestone.findFirst.mockResolvedValue({
+            id: 'test-milestone-id-123',
+            goalId: 'test-goal-id-123',
+            title: 'Test Milestone',
+            description: null,
+            status: 'ACTIVE',
+            order: 0,
+            completedAt: null,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        } as any)
+        prismaMock.milestone.update.mockResolvedValue({} as any)
+        prismaMock.milestone.delete.mockResolvedValue({} as any)
+        prismaMock.milestone.count.mockResolvedValue(0)
+        prismaMock.milestone.aggregate.mockResolvedValue({
+            _max: { order: null }
+        })
+        prismaMock.milestone.findUnique.mockResolvedValue(null)
     })
 
     // ==================== CREATE GOAL ====================
@@ -67,7 +104,7 @@ describe('Recovery Goals Routes', () => {
                 description: 'Physical recovery goal',
                 category: 'physical',
                 isPrimary: true,
-                targetDate: '2026-07-23'
+                targetDate: '2026-07-23T00:00:00Z'
             })
 
             expect(response.status).toBe(201)
@@ -672,6 +709,7 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
                 id: 'goal-123',
+                profileId: 'test-profile-id-123',
                 status: 'paused'
             })
             const {
@@ -680,6 +718,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
+            prismaMock.recoveryGoal.findFirst.mockReset()
             prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.milestone.aggregate.mockResolvedValue({
                 _max: { order: 0 }
@@ -847,6 +886,7 @@ describe('Recovery Goals Routes', () => {
         it('should reject non-active goal', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
+                profileId: 'test-profile-id-123',
                 status: 'completed'
             })
             const mockMilestone = createMockMilestone()
@@ -860,6 +900,8 @@ describe('Recovery Goals Routes', () => {
                 ...mockMilestone,
                 goal: mockGoal
             })
+            prismaMock.recoveryGoal.findFirst.mockReset()
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
 
             const response = await withCsrfAuth(
                 supertest(App)
@@ -974,12 +1016,13 @@ describe('Recovery Goals Routes', () => {
         it('should complete milestone and advance next', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
+                profileId: 'test-profile-id-123',
                 status: 'active'
             })
             const mockMilestone = createMockMilestone({
                 id: 'm-1',
                 order: 1,
-                status: 'active'
+                status: 'ACTIVE'
             })
             const {
                 token,
@@ -991,20 +1034,23 @@ describe('Recovery Goals Routes', () => {
                 ...mockMilestone,
                 goal: mockGoal
             })
+            prismaMock.recoveryGoal.findFirst.mockReset()
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
             prismaMock.$transaction.mockImplementation(async (callback) => {
                 return callback({
+                    $executeRaw: jest.fn().mockResolvedValue(undefined),
                     milestone: {
                         findUnique: jest.fn()
                             .mockResolvedValue(mockMilestone),
                         update: jest.fn()
                             .mockResolvedValue({
                                 ...mockMilestone,
-                                status: 'completed'
+                                status: 'COMPLETED'
                             }),
                         findFirst: jest.fn()
                             .mockResolvedValue({
                                 id: 'm-2',
-                                status: 'locked'
+                                status: 'LOCKED'
                             })
                     },
                     recoveryGoal: {

@@ -25,11 +25,15 @@ export const updateProfileSchema = z.object({
 })
 
 export const addHealthInterestsSchema = z.object({
-    slugs: z.array(z.string().max(50))
+    slugs: z.array(
+        z.string().max(50)
+    ).min(1, 'At least one health interest is required')
 })
 
 export const addActivityPreferencesSchema = z.object({
-    slugs: z.array(z.string().max(50))
+    slugs: z.array(
+        z.string().max(50)
+    ).min(1, 'At least one activity preference is required')
 })
 
 export const slugParamSchema = z.object({

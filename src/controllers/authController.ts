@@ -213,9 +213,11 @@ export const confirmEmail = async (
             email
         )
 
+    if (!user)
+        throw errorFactory.auth.unauthorized()
+
     if (
-        !user
-        || !verifyResetPasswordOTP(
+        !verifyResetPasswordOTP(
             user.resetPasswordOTP!,
             user.resetPasswordExpiration!,
             OTP

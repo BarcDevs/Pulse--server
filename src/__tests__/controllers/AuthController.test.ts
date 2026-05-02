@@ -479,7 +479,7 @@ describe('AuthController', () => {
                 ;(authServices.getUser as jest.Mock)
                     .mockResolvedValue(mockUser)
                 ;(authServices.resetPassword as jest.Mock)
-                    .mockResolvedValue(undefined)
+                    .mockResolvedValue(mockUser)
                 ;(authOTP.removeResetPasswordOTP as jest.Mock)
                     .mockResolvedValue(undefined)
 
@@ -538,7 +538,7 @@ describe('AuthController', () => {
         })
 
         it(
-            'should throw error for non-existent user',
+            'should return generic message for non-existent user',
             async () => {
                 ;(authServices.getUser as jest.Mock)
                     .mockResolvedValue(null)
@@ -553,9 +553,15 @@ describe('AuthController', () => {
 
                 const res = createMockResponse() as unknown as Response
 
-                await expect(
-                    authController.resetPassword(req, res)
-                ).rejects.toThrow()
+                await authController.resetPassword(req, res)
+
+                expect(res.status)
+                    .toHaveBeenCalledWith(200)
+                expect(res.json).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        message: expect.stringContaining('If the email exists')
+                    })
+                )
             }
         )
     })

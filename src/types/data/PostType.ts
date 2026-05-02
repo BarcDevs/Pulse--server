@@ -26,7 +26,7 @@ export type NewPostType = {
     body: string
     category: string
     authorId: string
-    tags: string[]
+    tags?: string[]
 }
 
 export type UpdatePostType = Partial<

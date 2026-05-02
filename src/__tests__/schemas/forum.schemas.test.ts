@@ -59,16 +59,14 @@ describe('Forum Schemas', () => {
                 .toContain('category')
         })
 
-        it('should reject missing tags', () => {
+        it('should accept missing tags', () => {
             const result = newPostSchema.safeParse({
                 title: 'Test Post',
                 body: 'Post content',
                 category: 'general'
             })
 
-            expect(result.error).toBeDefined()
-            expect(result.error?.issues[0].path)
-                .toContain('tags')
+            expect(result.error).toBeUndefined()
         })
 
         it('should accept empty tags array', () => {

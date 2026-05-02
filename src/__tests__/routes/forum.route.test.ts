@@ -376,14 +376,24 @@ describe('Forum Routes', () => {
         )
 
         it(
-            'should return 400 for missing tags',
+            'should accept missing tags',
             async () => {
                 const mockUser = createMockUser()
+                const mockPost = createMockPost()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
                 const {
                     token,
                     csrfSecret,
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
+                prismaMock.post.create
+                    .mockResolvedValue(mockPost)
 
                 const response = await withCsrfAuth(
                     supertest(App).post(postsEndpoint),
@@ -396,9 +406,7 @@ describe('Forum Routes', () => {
                     category: 'general'
                 })
 
-                expect(response.status).toBe(400)
-                expect(response.body.error[0].property)
-                    .toBe('tags')
+                expect(response.status).toBe(200)
             }
         )
     })

@@ -53,7 +53,7 @@ export class OpenAIProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json()
+                const errorData = await response.json() as any
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Intentionally suppress JSON parse errors
@@ -67,7 +67,7 @@ export class OpenAIProvider extends AIProvider {
             )
         }
 
-        const data = await response.json()
+        const data = await response.json() as any
 
         if (
             !data.choices

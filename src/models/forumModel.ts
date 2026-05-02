@@ -76,7 +76,7 @@ export const createPost = async (post: NewPostType):
                 }
             },
             tags: {
-                ...connectTags(tags)
+                ...connectTags(tags || [])
             }
         } as PrismaTypes.PostCreateInput,
         include: postInclude('single')

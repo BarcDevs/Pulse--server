@@ -53,7 +53,7 @@ export class AnthropicProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json()
+                const errorData = await response.json() as any
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Ignore JSON parse errors
@@ -67,7 +67,7 @@ export class AnthropicProvider extends AIProvider {
             )
         }
 
-        const data = await response.json()
+        const data = await response.json() as any
 
         if (
             !data.content
@@ -80,7 +80,7 @@ export class AnthropicProvider extends AIProvider {
             )
         }
 
-        const content = data.content[0].text
+        const content = data.content[0].text as string
 
         if (!content || content.trim().length === 0) {
             throw new Error(

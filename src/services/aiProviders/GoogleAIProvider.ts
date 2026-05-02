@@ -55,7 +55,7 @@ export class GoogleAIProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json()
+                const errorData = await response.json() as any
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Ignore JSON parse errors
@@ -69,7 +69,7 @@ export class GoogleAIProvider extends AIProvider {
             )
         }
 
-        const data = await response.json()
+        const data = await response.json() as any
 
         if (data.candidates?.[0]?.finishReason !== 'STOP') {
             logger.warn('Google AI: incomplete response', {
