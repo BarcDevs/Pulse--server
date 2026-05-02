@@ -1,0 +1,2398 @@
+
+> express-ts-api@0.0.0 test
+> NODE_ENV=test jest --detectOpenHandles --forceExit --coverage
+
+(node:69752) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+FAIL src/__tests__/routes/recoveryGoal.route.test.ts
+  ● Console
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:88:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at next (src/middlewares/loggerMiddleWare.ts:29:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (src/middlewares/index.ts:26:21)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at compression (node_modules/compression/index.js:243:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at internalNext (node_modules/helmet/index.cjs:531:6)
+      at xXssProtectionMiddleware (node_modules/helmet/index.cjs:311:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPoweredByMiddleware (node_modules/helmet/index.cjs:304:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPermittedCrossDomainPoliciesMiddleware (node_modules/helmet/index.cjs:297:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xFrameOptionsMiddleware (node_modules/helmet/index.cjs:281:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDownloadOptionsMiddleware (node_modules/helmet/index.cjs:261:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDnsPrefetchControlMiddleware (node_modules/helmet/index.cjs:254:3)
+
+  ● Recovery Goals Routes › POST /api/v1/recovery-goals › should create goal with all fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 400
+
+    [0m [90m 51 |[39m             })
+     [90m 52 |[39m             [36mconst[39m {
+    [31m[1m>[22m[39m[90m 53 |[39m                 token[33m,[39m
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 54 |[39m                 csrfSecret[33m,[39m
+     [90m 55 |[39m                 csrfToken
+     [90m 56 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:53:37)
+
+  ● Recovery Goals Routes › POST /api/v1/recovery-goals › should create goal with minimal fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+    [0m [90m 69 |[39m                 isPrimary[33m:[39m [36mtrue[39m[33m,[39m
+     [90m 70 |[39m                 targetDate[33m:[39m [32m'2026-07-23'[39m
+    [31m[1m>[22m[39m[90m 71 |[39m             })
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 72 |[39m
+     [90m 73 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m201[39m)
+     [90m 74 |[39m             expect(response[33m.[39mbody[33m.[39mdata[33m.[39mtitle)[33m.[39mtoBe([32m'Build strength'[39m)[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:71:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update milestone title
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 465 |[39m
+     [90m 466 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m400[39m)
+    [31m[1m>[22m[39m[90m 467 |[39m         })
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 468 |[39m
+     [90m 469 |[39m         it([32m'should return 404 for non-existent goal'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 470 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:467:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update description
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 484 |[39m             )[33m.[39msend({ title[33m:[39m [32m'Updated'[39m })
+     [90m 485 |[39m
+    [31m[1m>[22m[39m[90m 486 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m404[39m)
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 487 |[39m         })
+     [90m 488 |[39m
+     [90m 489 |[39m         it([32m'should require CSRF'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:486:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update order
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 502 |[39m     [90m// ==================== DELETE GOAL ====================[39m
+     [90m 503 |[39m     describe([32m'DELETE /api/v1/recovery-goals/:goalId'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 504 |[39m         it([32m'should delete goal'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 505 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()
+     [90m 506 |[39m             [36mconst[39m mockGoal [33m=[39m createMockRecoveryGoal({
+     [90m 507 |[39m                 id[33m:[39m [32m'goal-123'[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:504:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should reject non-active goal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 517 |[39m
+     [90m 518 |[39m             [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth(
+    [31m[1m>[22m[39m[90m 519 |[39m                 supertest([33mApp[39m)[33m.[39m[36mdelete[39m([32m`${API_BASE}/goal-123`[39m)[33m,[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 520 |[39m                 token[33m,[39m
+     [90m 521 |[39m                 csrfSecret[33m,[39m
+     [90m 522 |[39m                 csrfToken[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:519:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should reject modification of completed milestone
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 534 |[39m                 csrfToken
+     [90m 535 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)
+    [31m[1m>[22m[39m[90m 536 |[39m
+     [90m     |[39m [31m[1m^[22m[39m
+     [90m 537 |[39m             prismaMock[33m.[39mrecoveryGoal[33m.[39mfindFirst[33m.[39mmockResolvedValue([36mnull[39m)
+     [90m 538 |[39m
+     [90m 539 |[39m             [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth([0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:536:37)
+
+  ● Recovery Goals Routes › DELETE /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should delete milestone
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 560 |[39m     })
+     [90m 561 |[39m
+    [31m[1m>[22m[39m[90m 562 |[39m     [90m// ==================== CREATE MILESTONES ====================[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 563 |[39m     describe([32m'POST /api/v1/recovery-goals/:goalId/milestones'[39m[33m,[39m () [33m=>[39m {
+     [90m 564 |[39m         it([32m'should create single milestone with auto-increment order'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 565 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:562:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete › should complete milestone and advance next
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 616 |[39m
+     [90m 617 |[39m         it([32m'should create milestone with description'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 618 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 619 |[39m             [36mconst[39m mockGoal [33m=[39m createMockRecoveryGoal({
+     [90m 620 |[39m                 id[33m:[39m [32m'goal-123'[39m[33m,[39m
+     [90m 621 |[39m                 status[33m:[39m [32m'active'[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:618:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete › should reject non-active goal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 633 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)
+     [90m 634 |[39m
+    [31m[1m>[22m[39m[90m 635 |[39m             prismaMock[33m.[39mrecoveryGoal[33m.[39mfindFirst[33m.[39mmockResolvedValue(mockGoal)
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 636 |[39m             prismaMock[33m.[39mmilestone[33m.[39maggregate[33m.[39mmockResolvedValue({
+     [90m 637 |[39m                 _max[33m:[39m { order[33m:[39m [35m0[39m }
+     [90m 638 |[39m             })[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:635:37)
+
+FAIL src/__tests__/routes/forum.route.test.ts
+  ● Console
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:88:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at next (src/middlewares/loggerMiddleWare.ts:29:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (src/middlewares/index.ts:26:21)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at compression (node_modules/compression/index.js:243:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at internalNext (node_modules/helmet/index.cjs:531:6)
+      at xXssProtectionMiddleware (node_modules/helmet/index.cjs:311:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPoweredByMiddleware (node_modules/helmet/index.cjs:304:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPermittedCrossDomainPoliciesMiddleware (node_modules/helmet/index.cjs:297:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xFrameOptionsMiddleware (node_modules/helmet/index.cjs:281:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDownloadOptionsMiddleware (node_modules/helmet/index.cjs:261:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDnsPrefetchControlMiddleware (node_modules/helmet/index.cjs:254:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:88:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at next (src/middlewares/loggerMiddleWare.ts:29:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (src/middlewares/index.ts:26:21)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at compression (node_modules/compression/index.js:243:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at internalNext (node_modules/helmet/index.cjs:531:6)
+      at xXssProtectionMiddleware (node_modules/helmet/index.cjs:311:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPoweredByMiddleware (node_modules/helmet/index.cjs:304:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPermittedCrossDomainPoliciesMiddleware (node_modules/helmet/index.cjs:297:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xFrameOptionsMiddleware (node_modules/helmet/index.cjs:281:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDownloadOptionsMiddleware (node_modules/helmet/index.cjs:261:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDnsPrefetchControlMiddleware (node_modules/helmet/index.cjs:254:3)
+
+  ● Forum Routes › POST /api/v1/forum/posts › should return 400 for missing tags
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 404
+
+    [0m [90m 237 |[39m
+     [90m 238 |[39m                 [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth(
+    [31m[1m>[22m[39m[90m 239 |[39m                     supertest([33mApp[39m)[33m.[39mpost(postsEndpoint)[33m,[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 240 |[39m                     token[33m,[39m
+     [90m 241 |[39m                     csrfSecret[33m,[39m
+     [90m 242 |[39m                     csrfToken[0m
+
+      at Object.<anonymous> (src/__tests__/routes/forum.route.test.ts:239:37)
+
+FAIL src/__tests__/routes/auth.route.test.ts
+  ● Console
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt malformed'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'invalid signature'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+  ● Auth Routes › POST /api/v1/auth/confirm-email › should return 401 for non-existent user
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 400
+
+    [0m [90m 528 |[39m             [36masync[39m () [33m=>[39m {
+     [90m 529 |[39m                 [90m// Setup two different users[39m
+    [31m[1m>[22m[39m[90m 530 |[39m                 [36mconst[39m user1 [33m=[39m createMockUser({
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 531 |[39m                     id[33m:[39m [32m'user-1'[39m[33m,[39m
+     [90m 532 |[39m                     email[33m:[39m [32m'user1@test.com'[39m[33m,[39m
+     [90m 533 |[39m                     firstName[33m:[39m [32m'User'[39m[33m,[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/auth.route.test.ts:530:37)
+
+FAIL src/__tests__/routes/profile.test.ts
+  ● Console
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at SendStream.error (node_modules/serve-static/index.js:120:7)
+      at SendStream.error (node_modules/send/index.js:168:17)
+      at SendStream.onStatError (node_modules/send/index.js:315:12)
+      at next (node_modules/send/index.js:621:16)
+      at onstat (node_modules/send/index.js:609:14)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:88:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at next (src/middlewares/loggerMiddleWare.ts:29:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (src/middlewares/index.ts:26:21)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at compression (node_modules/compression/index.js:243:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at internalNext (node_modules/helmet/index.cjs:531:6)
+      at xXssProtectionMiddleware (node_modules/helmet/index.cjs:311:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPoweredByMiddleware (node_modules/helmet/index.cjs:304:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPermittedCrossDomainPoliciesMiddleware (node_modules/helmet/index.cjs:297:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xFrameOptionsMiddleware (node_modules/helmet/index.cjs:281:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDownloadOptionsMiddleware (node_modules/helmet/index.cjs:261:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDnsPrefetchControlMiddleware (node_modules/helmet/index.cjs:254:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:42:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:171:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+    console.error
+      Error authenticating user JsonWebTokenError {
+        name: 'JsonWebTokenError',
+        message: 'jwt must be provided'
+      }
+
+    [0m [90m 29 |[39m         res[33m.[39mclearCookie([32m'accessToken'[39m)
+     [90m 30 |[39m
+    [31m[1m>[22m[39m[90m 31 |[39m         console[33m.[39merror([32m'Error authenticating user'[39m[33m,[39m error)
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 32 |[39m
+     [90m 33 |[39m         [36mthrow[39m errorFactory[33m.[39mauth[33m.[39munauthorized()
+     [90m 34 |[39m     }[0m
+
+      at error (src/middlewares/isAuthenticated.ts:31:17)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at next (node_modules/router/lib/route.js:157:13)
+      at Route.dispatch (node_modules/router/lib/route.js:117:3)
+      at handle (node_modules/router/index.js:435:11)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at node_modules/router/index.js:295:15
+      at param (node_modules/router/index.js:600:14)
+      at param (node_modules/router/index.js:610:14)
+      at processParams (node_modules/router/index.js:664:3)
+      at next (node_modules/router/index.js:291:5)
+      at router.handle (node_modules/router/index.js:186:3)
+      at router (node_modules/router/index.js:60:12)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:40:48
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at hpp (node_modules/hpp/lib/index.js:146:9)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at src/__tests__/setup/jestSetup.ts:34:49
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at serveStatic (node_modules/serve-static/index.js:74:16)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:57:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at read (node_modules/body-parser/lib/read.js:53:5)
+      at jsonParser (node_modules/body-parser/lib/types/json.js:88:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at next (src/middlewares/loggerMiddleWare.ts:29:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at cors (node_modules/cors/lib/index.js:188:7)
+      at node_modules/cors/lib/index.js:224:17
+      at callback (src/middlewares/index.ts:26:21)
+      at node_modules/cors/lib/index.js:219:13
+      at optionsCallback (node_modules/cors/lib/index.js:199:9)
+      at corsMiddleware (node_modules/cors/lib/index.js:204:7)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at compression (node_modules/compression/index.js:243:5)
+      at Layer.handleRequest (node_modules/router/lib/layer.js:152:17)
+      at trimPrefix (node_modules/router/index.js:342:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at internalNext (node_modules/helmet/index.cjs:531:6)
+      at xXssProtectionMiddleware (node_modules/helmet/index.cjs:311:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPoweredByMiddleware (node_modules/helmet/index.cjs:304:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xPermittedCrossDomainPoliciesMiddleware (node_modules/helmet/index.cjs:297:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xFrameOptionsMiddleware (node_modules/helmet/index.cjs:281:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDownloadOptionsMiddleware (node_modules/helmet/index.cjs:261:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+      at xDnsPrefetchControlMiddleware (node_modules/helmet/index.cjs:254:3)
+      at internalNext (node_modules/helmet/index.cjs:529:6)
+
+  ● Profile Routes › POST /api/v1/profile/health-interests › should reject empty slugs array
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 200
+
+    [0m [90m 347 |[39m                 [36mconst[39m res [33m=[39m [36mawait[39m withCsrfAuth(
+     [90m 348 |[39m                     request([33mApp[39m)[33m.[39mpatch(endpoint)[33m,[39m
+    [31m[1m>[22m[39m[90m 349 |[39m                     token[33m,[39m
+     [90m     |[39m                                [31m[1m^[22m[39m
+     [90m 350 |[39m                     csrfSecret[33m,[39m
+     [90m 351 |[39m                     csrfToken
+     [90m 352 |[39m                 )[33m.[39msend({ theme[33m:[39m [32m'invalid'[39m })[0m
+
+      at Object.<anonymous> (src/__tests__/routes/profile.test.ts:349:32)
+
+FAIL src/__tests__/controllers/AuthController.test.ts
+  ● AuthController › resetPassword › should reset password with valid OTP
+
+    TypeError: Cannot convert undefined or null to object
+        at Object.entries (<anonymous>)
+
+    [0m[0m
+
+      at sanitizeUserData (src/lib/authHelpers.ts:2743:36)
+      at Object.resetPassword (src/controllers/authController.ts:3825:46)
+      at async Object.<anonymous> (src/__tests__/controllers/AuthController.test.ts:355:13)
+
+  ● AuthController › resetPassword › should throw error for non-existent user
+
+    expect(received).rejects.toThrow()
+
+    Received promise resolved instead of rejected
+    Resolved to value: undefined
+
+    [0m [90m 393 |[39m                         email[33m:[39m [32m'test@test.com'[39m[33m,[39m
+     [90m 394 |[39m                         [33mOTP[39m[33m:[39m [35m123456[39m
+    [31m[1m>[22m[39m[90m 395 |[39m                     }
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 396 |[39m                 }) [36mas[39m [33mRequest[39m
+     [90m 397 |[39m
+     [90m 398 |[39m                 [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m unknown [36mas[39m [33mResponse[39m[0m
+
+      at expect (node_modules/expect/build/index.js:2116:15)
+      at Object.<anonymous> (src/__tests__/controllers/AuthController.test.ts:395:19)
+
+FAIL src/__tests__/schemas/forum.schemas.test.ts
+  ● Forum Schemas › newPostSchema › should reject missing tags
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+    [0m [90m 67 |[39m             })
+     [90m 68 |[39m
+    [31m[1m>[22m[39m[90m 69 |[39m             expect(result[33m.[39merror)[33m.[39mtoBeDefined()
+     [90m    |[39m                                  [31m[1m^[22m[39m
+     [90m 70 |[39m             expect(result[33m.[39merror[33m?[39m[33m.[39missues[[35m0[39m][33m.[39mpath)
+     [90m 71 |[39m                 [33m.[39mtoContain([32m'tags'[39m)
+     [90m 72 |[39m         })[0m
+
+      at Object.<anonymous> (src/__tests__/schemas/forum.schemas.test.ts:69:34)
+
+FAIL src/__tests__/middlewares/sanitization.test.ts
+  ● Sanitization Middleware › sanitizeData › should sanitize string with XSS script
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "<script>"
+    Received string:        "<script>alert(\"xss\")</script>Hello"
+
+    [0m [90m 15 |[39m             () [33m=>[39m {
+     [90m 16 |[39m                 [36mconst[39m req [33m=[39m createMockRequest({
+    [31m[1m>[22m[39m[90m 17 |[39m                     body[33m:[39m {
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 18 |[39m                         content[33m:[39m [32m'<script>alert("xss")</script>Hello'[39m
+     [90m 19 |[39m                     }
+     [90m 20 |[39m                 }) [36mas[39m [33mRequest[39m[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:17:22)
+
+  ● Sanitization Middleware › sanitizeData › should sanitize nested objects
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "onerror"
+    Received string:        "<img src=x onerror=alert(1)>John"
+
+    [0m [90m 32 |[39m         )
+     [90m 33 |[39m
+    [31m[1m>[22m[39m[90m 34 |[39m         it([32m'should sanitize nested objects'[39m[33m,[39m () [33m=>[39m {
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 35 |[39m             [36mconst[39m req [33m=[39m createMockRequest({
+     [90m 36 |[39m                 body[33m:[39m {
+     [90m 37 |[39m                     user[33m:[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:34:22)
+
+  ● Sanitization Middleware › sanitizeData › should sanitize arrays
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "<script>"
+    Received string:        "<script>bad()</script>tag1"
+
+    [0m [90m 51 |[39m             expect(req[33m.[39mbody[33m.[39muser[33m.[39mbio)
+     [90m 52 |[39m                 [33m.[39mnot[33m.[39mtoContain([32m'<script>'[39m)
+    [31m[1m>[22m[39m[90m 53 |[39m             expect(next)[33m.[39mtoHaveBeenCalled()
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 54 |[39m         })
+     [90m 55 |[39m
+     [90m 56 |[39m         it([32m'should sanitize arrays'[39m[33m,[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:53:22)
+
+  ● Sanitization Middleware › sanitizeData › should extract csrfToken from body
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "test-csrf-token"
+    Received: undefined
+
+    [0m [90m 67 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m 68 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+    [31m[1m>[22m[39m[90m 69 |[39m
+     [90m    |[39m [31m[1m^[22m[39m
+     [90m 70 |[39m             sanitizeData(req[33m,[39m res[33m,[39m next)
+     [90m 71 |[39m
+     [90m 72 |[39m             expect(req[33m.[39mbody[33m.[39mtags[[35m0[39m])[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:69:35)
+
+  ● Sanitization Middleware › sanitizeData › should handle undefined body gracefully
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {}
+    Received: undefined
+
+    [0m [90m 86 |[39m             }) [36mas[39m [33mRequest[39m
+     [90m 87 |[39m
+    [31m[1m>[22m[39m[90m 88 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m    |[39m                              [31m[1m^[22m[39m
+     [90m 89 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+     [90m 90 |[39m
+     [90m 91 |[39m             sanitizeData(req[33m,[39m res[33m,[39m next)[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:88:30)
+
+  ● Sanitization Middleware › sanitizeData › should remove dangerous HTML attributes
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "onclick"
+    Received string:        "<div onclick=\"evil()\">Click me</div>"
+
+    [0m [90m 129 |[39m                 }
+     [90m 130 |[39m             }) [36mas[39m [33mRequest[39m
+    [31m[1m>[22m[39m[90m 131 |[39m
+     [90m     |[39m [31m[1m^[22m[39m
+     [90m 132 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m 133 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+     [90m 134 |[39m[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:131:22)
+
+----------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                     
+----------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------
+All files                         |   78.34 |    53.21 |   73.37 |   77.23 |                                                                                       
+ config                           |     100 |      100 |     100 |     100 |                                                                                       
+  custom-environment-variables.ts |     100 |      100 |     100 |     100 |                                                                                       
+  default.ts                      |     100 |      100 |     100 |     100 |                                                                                       
+  index.ts                        |     100 |      100 |     100 |     100 |                                                                                       
+  test.ts                         |     100 |      100 |     100 |     100 |                                                                                       
+ prisma/generated/prisma          |     100 |      100 |     100 |     100 |                                                                                       
+  client.ts                       |     100 |      100 |     100 |     100 |                                                                                       
+  enums.ts                        |     100 |      100 |     100 |     100 |                                                                                       
+ prisma/generated/prisma/internal |   89.09 |      100 |   14.28 |   89.09 |                                                                                       
+  class.ts                        |   53.84 |      100 |   14.28 |   53.84 | 42-44,48-52                                                                           
+  prismaNamespace.ts              |     100 |      100 |     100 |     100 |                                                                                       
+ src                              |      80 |       50 |       0 |      80 |                                                                                       
+  app.ts                          |      80 |       50 |       0 |      80 | 33-41                                                                                 
+ src/__tests__/setup              |     100 |      100 |     100 |     100 |                                                                                       
+  testSetup.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+ src/config                       |     100 |      100 |     100 |     100 |                                                                                       
+  progressInsights.ts             |     100 |      100 |     100 |     100 |                                                                                       
+  recoveryGoals.ts                |     100 |      100 |     100 |     100 |                                                                                       
+ src/constants                    |     100 |      100 |     100 |     100 |                                                                                       
+  excludedUserFields.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  httpStatusCodes.ts              |     100 |      100 |     100 |     100 |                                                                                       
+  time.ts                         |     100 |      100 |     100 |     100 |                                                                                       
+ src/constants/aiInsight          |     100 |      100 |     100 |     100 |                                                                                       
+  validation.ts                   |     100 |      100 |     100 |     100 |                                                                                       
+ src/constants/feedback           |     100 |      100 |     100 |     100 |                                                                                       
+  detection.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+ src/constants/recommendations    |     100 |      100 |     100 |     100 |                                                                                       
+  index.ts                        |     100 |      100 |     100 |     100 |                                                                                       
+ src/controllers                  |   91.61 |    69.91 |    92.3 |   92.83 |                                                                                       
+  authController.ts               |   98.97 |    92.59 |    90.9 |   98.86 | 280                                                                                   
+  checkInController.ts            |   89.36 |    64.28 |     100 |   88.09 | 25,51,85,111,130                                                                      
+  forumController.ts              |      98 |    78.94 |     100 |   97.75 | 202,232                                                                               
+  profileController.ts            |    90.9 |       50 |     100 |   89.65 | 24,45,74,108,139,173                                                                  
+  recommendationsController.ts    |      50 |        0 |       0 |   44.44 | 12-20                                                                                 
+  recoveryGoalController.ts       |   86.53 |    54.16 |     100 |   95.23 | 26,188,209,235                                                                        
+  serverController.ts             |      80 |      100 |       0 |      75 | 13                                                                                    
+  swaggerController.ts            |      50 |      100 |       0 |   33.33 | 12-16                                                                                 
+  userController.ts               |   90.32 |       50 |     100 |   89.28 | 24,51,78                                                                              
+ src/errors                       |     100 |       75 |     100 |     100 |                                                                                       
+  AuthError.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+  ConflictError.ts                |     100 |      100 |     100 |     100 |                                                                                       
+  CustomError.ts                  |     100 |      100 |     100 |     100 |                                                                                       
+  NotFoundError.ts                |     100 |       50 |     100 |     100 | 17-18                                                                                 
+  ValidationError.ts              |     100 |       75 |     100 |     100 | 31                                                                                    
+ src/errors/factory               |    92.3 |    57.14 |   72.72 |    92.3 |                                                                                       
+  AuthFactory.ts                  |    87.5 |       50 |   66.66 |    87.5 | 9,28                                                                                  
+  ErrorFactory.ts                 |   88.88 |      100 |       0 |   88.88 | 13                                                                                    
+  GenericFactory.ts               |     100 |       50 |     100 |     100 | 16                                                                                    
+  ValidationFactory.ts            |     100 |      100 |     100 |     100 |                                                                                       
+ src/lib                          |   88.75 |    78.26 |   97.95 |   87.85 |                                                                                       
+  authCSRF.ts                     |     100 |      100 |     100 |     100 |                                                                                       
+  authCrypto.ts                   |     100 |      100 |     100 |     100 |                                                                                       
+  authHelpers.ts                  |   95.23 |    86.36 |     100 |   94.59 | 64,117                                                                                
+  authOTP.ts                      |      80 |    66.66 |      80 |   78.57 | 76-97                                                                                 
+  checkInDateHelpers.ts           |   86.95 |     62.5 |     100 |   85.36 | 33-39,100-103                                                                         
+  checkInStats.ts                 |      80 |    72.22 |     100 |   79.48 | 37-44,57                                                                              
+  forumHelpers.ts                 |   96.77 |       95 |     100 |   96.29 | 31                                                                                    
+  profileHelpers.ts               |   89.65 |       70 |     100 |      88 | 18,31,46                                                                              
+ src/lib/aiInsight                |   95.34 |    89.28 |     100 |   96.42 |                                                                                       
+  retry.ts                        |   95.34 |    89.28 |     100 |   96.42 | 75                                                                                    
+ src/lib/aiInsight/decision       |   98.66 |    89.65 |     100 |   98.55 |                                                                                       
+  InsightDecision.ts              |     100 |      100 |     100 |     100 |                                                                                       
+  moodTrendDetector.ts            |     100 |    85.71 |     100 |     100 | 5                                                                                     
+  streakCalculator.ts             |   96.29 |       80 |     100 |      96 | 30                                                                                    
+ src/lib/aiInsight/prompts        |   88.13 |       60 |   82.35 |   85.41 |                                                                                       
+  insightsPromptHelpers.ts        |   82.75 |       45 |      75 |   78.26 | 16,34-35,39-41                                                                        
+  insightsPrompts.ts              |   93.33 |       80 |     100 |      92 | 157-162                                                                               
+ src/lib/aiInsight/validation     |     100 |      100 |     100 |     100 |                                                                                       
+  aiInsightValidator.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  validationHelpers.ts            |     100 |      100 |     100 |     100 |                                                                                       
+ src/lib/cache                    |   31.03 |        0 |       0 |   23.07 |                                                                                       
+  progressInsightsCache.ts        |   31.03 |        0 |       0 |   23.07 | 17-19,29-46,58-73,77-81,87                                                            
+ src/lib/progressInsights         |    97.1 |    83.09 |     100 |   96.87 |                                                                                       
+  dateWindowCalculator.ts         |     100 |      100 |     100 |     100 |                                                                                       
+  fallbackSummaryGenerator.ts     |   91.66 |       80 |     100 |    90.9 | 43                                                                                    
+  highlightDetector.ts            |   96.15 |    94.11 |     100 |      96 | 78                                                                                    
+  insightBuilder.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  metricAggregator.ts             |     100 |    66.66 |     100 |     100 | 27-37                                                                                 
+  promptBuilder.ts                |     100 |       70 |     100 |     100 | 15-20,34                                                                              
+  summaryResolver.ts              |   89.47 |       50 |     100 |   88.88 | 30,56                                                                                 
+  trendClassifier.ts              |     100 |      100 |     100 |     100 |                                                                                       
+ src/lib/recommendations          |   63.44 |     43.1 |   63.63 |    62.5 |                                                                                       
+  diversitySelector.ts            |    8.69 |        0 |       0 |    7.69 | 25-61,68-159                                                                          
+  inputModeling.ts                |   93.75 |    84.37 |     100 |     100 | 13,44,55,68,71                                                                        
+  scoring.ts                      |   96.47 |    67.64 |     100 |     100 | 34-43,104-109,126-127                                                                 
+ src/locales                      |      50 |        0 |       0 |   38.46 |                                                                                       
+  index.ts                        |      50 |        0 |       0 |   38.46 | 12-21,25,30                                                                           
+ src/middlewares                  |   89.09 |     61.9 |    90.9 |   88.23 |                                                                                       
+  cache.ts                        |   66.66 |       75 |      50 |    64.7 | 27-32,40-44                                                                           
+  csrf.ts                         |     100 |      100 |     100 |     100 |                                                                                       
+  errorHandler.ts                 |     100 |      100 |     100 |     100 |                                                                                       
+  exposeProductionApp.ts          |      70 |       50 |     100 |   66.66 | 9-18                                                                                  
+  index.ts                        |   90.32 |    14.28 |     100 |      90 | 30-37                                                                                 
+  isAuthenticated.ts              |     100 |      100 |     100 |     100 |                                                                                       
+  loggerMiddleWare.ts             |     100 |      100 |     100 |     100 |                                                                                       
+ src/models                       |   83.02 |    64.07 |   80.26 |   78.54 |                                                                                       
+  aiInsightModel.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  authModel.ts                    |   95.83 |      100 |   83.33 |   94.11 | 149,159                                                                               
+  checkInModel.ts                 |   93.33 |    57.14 |    87.5 |    90.9 | 17,124                                                                                
+  forumModel.ts                   |     100 |      100 |     100 |     100 |                                                                                       
+  profileModel.ts                 |     100 |      100 |     100 |     100 |                                                                                       
+  recommendationsModel.ts         |    37.5 |        0 |       0 |   26.92 | 18,39-51,65-77,92,114-142                                                             
+  recoveryGoalModel.ts            |   70.19 |    54.34 |   68.42 |    64.7 | 23,115-123,169,234-274,302-315,319                                                    
+ src/models/queries               |     100 |      100 |     100 |     100 |                                                                                       
+  postQuery.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+ src/responses                    |     100 |       50 |     100 |     100 |                                                                                       
+  success.ts                      |     100 |       50 |     100 |     100 | 9                                                                                     
+ src/routes                       |     100 |      100 |     100 |     100 |                                                                                       
+  authRoute.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+  checkInRoute.ts                 |     100 |      100 |     100 |     100 |                                                                                       
+  forumRoute.ts                   |     100 |      100 |     100 |     100 |                                                                                       
+  profileRoute.ts                 |     100 |      100 |     100 |     100 |                                                                                       
+  recommendationsRoute.ts         |     100 |      100 |     100 |     100 |                                                                                       
+  recoveryGoalRoute.ts            |     100 |      100 |     100 |     100 |                                                                                       
+  userRoute.ts                    |     100 |      100 |     100 |     100 |                                                                                       
+ src/routes/declare_routes        |     100 |       50 |     100 |     100 |                                                                                       
+  index.ts                        |     100 |       50 |     100 |     100 | 30                                                                                    
+ src/schemas                      |     100 |      100 |     100 |     100 |                                                                                       
+  profileSchema.ts                |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/auth                 |     100 |      100 |     100 |     100 |                                                                                       
+  confirmEmailSchema.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  forgotPasswordSchema.ts         |     100 |      100 |     100 |     100 |                                                                                       
+  loginSchema.ts                  |     100 |      100 |     100 |     100 |                                                                                       
+  passwordFormat.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  resetPasswordSchema.ts          |     100 |      100 |     100 |     100 |                                                                                       
+  signupSchema.ts                 |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/checkIn              |     100 |      100 |     100 |     100 |                                                                                       
+  checkInQuerySchema.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  newCheckInSchema.ts             |     100 |      100 |     100 |     100 |                                                                                       
+  updateCheckInSchema.ts          |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/forum                |     100 |      100 |     100 |     100 |                                                                                       
+  newPostSchema.ts                |     100 |      100 |     100 |     100 |                                                                                       
+  newReplySchema.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  postQuerySchema.ts              |     100 |      100 |     100 |     100 |                                                                                       
+  tagQuerySchema.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  updatePostSchema.ts             |     100 |      100 |     100 |     100 |                                                                                       
+  updateReplySchema.ts            |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/recoveryGoal         |     100 |      100 |     100 |     100 |                                                                                       
+  newGoalSchema.ts                |     100 |      100 |     100 |     100 |                                                                                       
+  newMilestoneSchema.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  updateGoalSchema.ts             |     100 |      100 |     100 |     100 |                                                                                       
+  updateMilestoneSchema.ts        |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/user                 |     100 |      100 |     100 |     100 |                                                                                       
+  updatePasswordSchema.ts         |     100 |      100 |     100 |     100 |                                                                                       
+  updateUserSchema.ts             |     100 |      100 |     100 |     100 |                                                                                       
+ src/schemas/utils                |     100 |      100 |     100 |     100 |                                                                                       
+  caseInsensitiveEnum.ts          |     100 |      100 |     100 |     100 |                                                                                       
+ src/services                     |   64.26 |    34.78 |   52.52 |   63.32 |                                                                                       
+  aiInsightGeneratorService.ts    |   96.42 |       75 |     100 |   96.29 | 59                                                                                    
+  authService.ts                  |   95.12 |     92.3 |     100 |   94.44 | 26-27                                                                                 
+  checkInService.ts               |      95 |       50 |     100 |   94.64 | 126-133                                                                               
+  forumService.ts                 |   98.18 |     87.5 |     100 |   97.61 | 118                                                                                   
+  googleOAuthService.ts           |   29.67 |        0 |       0 |   25.31 | 26,32,37,51-56,68-110,122-129,133,143-164,176-206,214-245,252-264,271-284             
+  insightGenerationService.ts     |   30.43 |        0 |       0 |   28.88 | 20-67,83-123,138-159                                                                  
+  insightService.ts               |   57.14 |        0 |       0 |      50 | 9-15                                                                                  
+  profileService.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  progressInsightsService.ts      |   95.34 |       75 |     100 |   95.23 | 63-67                                                                                 
+  recommendationsService.ts       |    15.9 |        0 |       0 |   14.63 | 30,37-47,58-74,82-94,100-118,128-262,270-275,291-407                                  
+  recoveryGoalService.ts          |   76.47 |       61 |      90 |   80.39 | 52,67,124-132,158,160,170,175,183,188,282,284,292-308,322,324,332-334,350,352,360-362 
+ src/services/aiProviders         |   20.83 |        0 |       0 |      20 |                                                                                       
+  AIProvider.ts                   |      50 |      100 |       0 |      50 | 17                                                                                    
+  AnthropicProvider.ts            |   16.66 |        0 |       0 |   16.66 | 14-91                                                                                 
+  GoogleAIProvider.ts             |   13.33 |        0 |       0 |   13.33 | 14-104                                                                                
+  OpenAIProvider.ts               |   17.39 |        0 |       0 |   17.39 | 14-91                                                                                 
+  ProviderFactory.ts              |   41.17 |        0 |       0 |    37.5 | 12-24,31-38                                                                           
+ src/services/feedback            |   50.96 |    41.09 |   37.83 |   47.82 |                                                                                       
+  aiRenderer.ts                   |      20 |        0 |       0 |   17.24 | 19-44,53-97,115-133                                                                   
+  contextBuilder.ts               |   12.76 |        0 |       0 |   11.36 | 15-20,34-57,71-131                                                                    
+  fallbackRenderer.ts             |   26.31 |        0 |       0 |   22.22 | 21-25,43-63                                                                           
+  helpers.ts                      |   81.25 |    61.11 |   83.33 |   83.33 | 31,40,48,57                                                                           
+  interventionEngine.ts           |     100 |      100 |     100 |     100 |                                                                                       
+  interventionLogger.ts           |      50 |        0 |       0 |      40 | 18-21                                                                                 
+  interventionOrchestrator.ts     |   28.12 |        0 |       0 |   27.58 | 29-62,70-77,88-104                                                                    
+  interventionSuppression.ts      |   94.73 |    86.66 |     100 |     100 | 21,39                                                                                 
+  messageAssembler.ts             |      25 |        0 |       0 |   14.28 | 9-16                                                                                  
+  messageRenderer.ts              |      40 |        0 |       0 |   35.71 | 18-66                                                                                 
+ src/types                        |     100 |      100 |     100 |     100 |                                                                                       
+  query.ts                        |     100 |      100 |     100 |     100 |                                                                                       
+ src/utils                        |    91.3 |       75 |      75 |   88.88 |                                                                                       
+  capitalizeText.ts               |     100 |      100 |     100 |     100 |                                                                                       
+  logger.ts                       |   77.77 |       50 |       0 |   77.77 | 9,25                                                                                  
+  recoveryGoalDTOConverter.ts     |     100 |      100 |     100 |     100 |                                                                                       
+  swagger.ts                      |     100 |      100 |     100 |     100 |                                                                                       
+----------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------
+
+Summary of all failing tests
+FAIL src/__tests__/routes/recoveryGoal.route.test.ts
+  ● Recovery Goals Routes › POST /api/v1/recovery-goals › should create goal with all fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 400
+
+    [0m [90m 51 |[39m             })
+     [90m 52 |[39m             [36mconst[39m {
+    [31m[1m>[22m[39m[90m 53 |[39m                 token[33m,[39m
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 54 |[39m                 csrfSecret[33m,[39m
+     [90m 55 |[39m                 csrfToken
+     [90m 56 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:53:37)
+
+  ● Recovery Goals Routes › POST /api/v1/recovery-goals › should create goal with minimal fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+    [0m [90m 69 |[39m                 isPrimary[33m:[39m [36mtrue[39m[33m,[39m
+     [90m 70 |[39m                 targetDate[33m:[39m [32m'2026-07-23'[39m
+    [31m[1m>[22m[39m[90m 71 |[39m             })
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 72 |[39m
+     [90m 73 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m201[39m)
+     [90m 74 |[39m             expect(response[33m.[39mbody[33m.[39mdata[33m.[39mtitle)[33m.[39mtoBe([32m'Build strength'[39m)[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:71:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update milestone title
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 465 |[39m
+     [90m 466 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m400[39m)
+    [31m[1m>[22m[39m[90m 467 |[39m         })
+     [90m     |[39m           [31m[1m^[22m[39m
+     [90m 468 |[39m
+     [90m 469 |[39m         it([32m'should return 404 for non-existent goal'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 470 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:467:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update description
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 484 |[39m             )[33m.[39msend({ title[33m:[39m [32m'Updated'[39m })
+     [90m 485 |[39m
+    [31m[1m>[22m[39m[90m 486 |[39m             expect(response[33m.[39mstatus)[33m.[39mtoBe([35m404[39m)
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 487 |[39m         })
+     [90m 488 |[39m
+     [90m 489 |[39m         it([32m'should require CSRF'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:486:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should update order
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 502 |[39m     [90m// ==================== DELETE GOAL ====================[39m
+     [90m 503 |[39m     describe([32m'DELETE /api/v1/recovery-goals/:goalId'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 504 |[39m         it([32m'should delete goal'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 505 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()
+     [90m 506 |[39m             [36mconst[39m mockGoal [33m=[39m createMockRecoveryGoal({
+     [90m 507 |[39m                 id[33m:[39m [32m'goal-123'[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:504:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should reject non-active goal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 517 |[39m
+     [90m 518 |[39m             [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth(
+    [31m[1m>[22m[39m[90m 519 |[39m                 supertest([33mApp[39m)[33m.[39m[36mdelete[39m([32m`${API_BASE}/goal-123`[39m)[33m,[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 520 |[39m                 token[33m,[39m
+     [90m 521 |[39m                 csrfSecret[33m,[39m
+     [90m 522 |[39m                 csrfToken[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:519:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should reject modification of completed milestone
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 534 |[39m                 csrfToken
+     [90m 535 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)
+    [31m[1m>[22m[39m[90m 536 |[39m
+     [90m     |[39m [31m[1m^[22m[39m
+     [90m 537 |[39m             prismaMock[33m.[39mrecoveryGoal[33m.[39mfindFirst[33m.[39mmockResolvedValue([36mnull[39m)
+     [90m 538 |[39m
+     [90m 539 |[39m             [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth([0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:536:37)
+
+  ● Recovery Goals Routes › DELETE /api/v1/recovery-goals/:goalId/milestones/:milestoneId › should delete milestone
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 560 |[39m     })
+     [90m 561 |[39m
+    [31m[1m>[22m[39m[90m 562 |[39m     [90m// ==================== CREATE MILESTONES ====================[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 563 |[39m     describe([32m'POST /api/v1/recovery-goals/:goalId/milestones'[39m[33m,[39m () [33m=>[39m {
+     [90m 564 |[39m         it([32m'should create single milestone with auto-increment order'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 565 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:562:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete › should complete milestone and advance next
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 616 |[39m
+     [90m 617 |[39m         it([32m'should create milestone with description'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 618 |[39m             [36mconst[39m mockUser [33m=[39m createMockUser()
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 619 |[39m             [36mconst[39m mockGoal [33m=[39m createMockRecoveryGoal({
+     [90m 620 |[39m                 id[33m:[39m [32m'goal-123'[39m[33m,[39m
+     [90m 621 |[39m                 status[33m:[39m [32m'active'[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:618:37)
+
+  ● Recovery Goals Routes › PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete › should reject non-active goal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 404
+
+    [0m [90m 633 |[39m             } [33m=[39m createAuthenticatedRequest(mockUser)
+     [90m 634 |[39m
+    [31m[1m>[22m[39m[90m 635 |[39m             prismaMock[33m.[39mrecoveryGoal[33m.[39mfindFirst[33m.[39mmockResolvedValue(mockGoal)
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 636 |[39m             prismaMock[33m.[39mmilestone[33m.[39maggregate[33m.[39mmockResolvedValue({
+     [90m 637 |[39m                 _max[33m:[39m { order[33m:[39m [35m0[39m }
+     [90m 638 |[39m             })[0m
+
+      at Object.<anonymous> (src/__tests__/routes/recoveryGoal.route.test.ts:635:37)
+
+FAIL src/__tests__/routes/forum.route.test.ts
+  ● Forum Routes › POST /api/v1/forum/posts › should return 400 for missing tags
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 404
+
+    [0m [90m 237 |[39m
+     [90m 238 |[39m                 [36mconst[39m response [33m=[39m [36mawait[39m withCsrfAuth(
+    [31m[1m>[22m[39m[90m 239 |[39m                     supertest([33mApp[39m)[33m.[39mpost(postsEndpoint)[33m,[39m
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 240 |[39m                     token[33m,[39m
+     [90m 241 |[39m                     csrfSecret[33m,[39m
+     [90m 242 |[39m                     csrfToken[0m
+
+      at Object.<anonymous> (src/__tests__/routes/forum.route.test.ts:239:37)
+
+FAIL src/__tests__/routes/auth.route.test.ts
+  ● Auth Routes › POST /api/v1/auth/confirm-email › should return 401 for non-existent user
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 400
+
+    [0m [90m 528 |[39m             [36masync[39m () [33m=>[39m {
+     [90m 529 |[39m                 [90m// Setup two different users[39m
+    [31m[1m>[22m[39m[90m 530 |[39m                 [36mconst[39m user1 [33m=[39m createMockUser({
+     [90m     |[39m                                     [31m[1m^[22m[39m
+     [90m 531 |[39m                     id[33m:[39m [32m'user-1'[39m[33m,[39m
+     [90m 532 |[39m                     email[33m:[39m [32m'user1@test.com'[39m[33m,[39m
+     [90m 533 |[39m                     firstName[33m:[39m [32m'User'[39m[33m,[39m[0m
+
+      at Object.<anonymous> (src/__tests__/routes/auth.route.test.ts:530:37)
+
+FAIL src/__tests__/routes/profile.test.ts
+  ● Profile Routes › POST /api/v1/profile/health-interests › should reject empty slugs array
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 200
+
+    [0m [90m 347 |[39m                 [36mconst[39m res [33m=[39m [36mawait[39m withCsrfAuth(
+     [90m 348 |[39m                     request([33mApp[39m)[33m.[39mpatch(endpoint)[33m,[39m
+    [31m[1m>[22m[39m[90m 349 |[39m                     token[33m,[39m
+     [90m     |[39m                                [31m[1m^[22m[39m
+     [90m 350 |[39m                     csrfSecret[33m,[39m
+     [90m 351 |[39m                     csrfToken
+     [90m 352 |[39m                 )[33m.[39msend({ theme[33m:[39m [32m'invalid'[39m })[0m
+
+      at Object.<anonymous> (src/__tests__/routes/profile.test.ts:349:32)
+
+FAIL src/__tests__/controllers/AuthController.test.ts
+  ● AuthController › resetPassword › should reset password with valid OTP
+
+    TypeError: Cannot convert undefined or null to object
+        at Object.entries (<anonymous>)
+
+    [0m[0m
+
+      at sanitizeUserData (src/lib/authHelpers.ts:2743:36)
+      at Object.resetPassword (src/controllers/authController.ts:3825:46)
+      at async Object.<anonymous> (src/__tests__/controllers/AuthController.test.ts:355:13)
+
+  ● AuthController › resetPassword › should throw error for non-existent user
+
+    expect(received).rejects.toThrow()
+
+    Received promise resolved instead of rejected
+    Resolved to value: undefined
+
+    [0m [90m 393 |[39m                         email[33m:[39m [32m'test@test.com'[39m[33m,[39m
+     [90m 394 |[39m                         [33mOTP[39m[33m:[39m [35m123456[39m
+    [31m[1m>[22m[39m[90m 395 |[39m                     }
+     [90m     |[39m                   [31m[1m^[22m[39m
+     [90m 396 |[39m                 }) [36mas[39m [33mRequest[39m
+     [90m 397 |[39m
+     [90m 398 |[39m                 [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m unknown [36mas[39m [33mResponse[39m[0m
+
+      at expect (node_modules/expect/build/index.js:2116:15)
+      at Object.<anonymous> (src/__tests__/controllers/AuthController.test.ts:395:19)
+
+FAIL src/__tests__/schemas/forum.schemas.test.ts
+  ● Forum Schemas › newPostSchema › should reject missing tags
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+    [0m [90m 67 |[39m             })
+     [90m 68 |[39m
+    [31m[1m>[22m[39m[90m 69 |[39m             expect(result[33m.[39merror)[33m.[39mtoBeDefined()
+     [90m    |[39m                                  [31m[1m^[22m[39m
+     [90m 70 |[39m             expect(result[33m.[39merror[33m?[39m[33m.[39missues[[35m0[39m][33m.[39mpath)
+     [90m 71 |[39m                 [33m.[39mtoContain([32m'tags'[39m)
+     [90m 72 |[39m         })[0m
+
+      at Object.<anonymous> (src/__tests__/schemas/forum.schemas.test.ts:69:34)
+
+FAIL src/__tests__/middlewares/sanitization.test.ts
+  ● Sanitization Middleware › sanitizeData › should sanitize string with XSS script
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "<script>"
+    Received string:        "<script>alert(\"xss\")</script>Hello"
+
+    [0m [90m 15 |[39m             () [33m=>[39m {
+     [90m 16 |[39m                 [36mconst[39m req [33m=[39m createMockRequest({
+    [31m[1m>[22m[39m[90m 17 |[39m                     body[33m:[39m {
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 18 |[39m                         content[33m:[39m [32m'<script>alert("xss")</script>Hello'[39m
+     [90m 19 |[39m                     }
+     [90m 20 |[39m                 }) [36mas[39m [33mRequest[39m[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:17:22)
+
+  ● Sanitization Middleware › sanitizeData › should sanitize nested objects
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "onerror"
+    Received string:        "<img src=x onerror=alert(1)>John"
+
+    [0m [90m 32 |[39m         )
+     [90m 33 |[39m
+    [31m[1m>[22m[39m[90m 34 |[39m         it([32m'should sanitize nested objects'[39m[33m,[39m () [33m=>[39m {
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 35 |[39m             [36mconst[39m req [33m=[39m createMockRequest({
+     [90m 36 |[39m                 body[33m:[39m {
+     [90m 37 |[39m                     user[33m:[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:34:22)
+
+  ● Sanitization Middleware › sanitizeData › should sanitize arrays
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "<script>"
+    Received string:        "<script>bad()</script>tag1"
+
+    [0m [90m 51 |[39m             expect(req[33m.[39mbody[33m.[39muser[33m.[39mbio)
+     [90m 52 |[39m                 [33m.[39mnot[33m.[39mtoContain([32m'<script>'[39m)
+    [31m[1m>[22m[39m[90m 53 |[39m             expect(next)[33m.[39mtoHaveBeenCalled()
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 54 |[39m         })
+     [90m 55 |[39m
+     [90m 56 |[39m         it([32m'should sanitize arrays'[39m[33m,[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:53:22)
+
+  ● Sanitization Middleware › sanitizeData › should extract csrfToken from body
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "test-csrf-token"
+    Received: undefined
+
+    [0m [90m 67 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m 68 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+    [31m[1m>[22m[39m[90m 69 |[39m
+     [90m    |[39m [31m[1m^[22m[39m
+     [90m 70 |[39m             sanitizeData(req[33m,[39m res[33m,[39m next)
+     [90m 71 |[39m
+     [90m 72 |[39m             expect(req[33m.[39mbody[33m.[39mtags[[35m0[39m])[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:69:35)
+
+  ● Sanitization Middleware › sanitizeData › should handle undefined body gracefully
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: {}
+    Received: undefined
+
+    [0m [90m 86 |[39m             }) [36mas[39m [33mRequest[39m
+     [90m 87 |[39m
+    [31m[1m>[22m[39m[90m 88 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m    |[39m                              [31m[1m^[22m[39m
+     [90m 89 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+     [90m 90 |[39m
+     [90m 91 |[39m             sanitizeData(req[33m,[39m res[33m,[39m next)[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:88:30)
+
+  ● Sanitization Middleware › sanitizeData › should remove dangerous HTML attributes
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected substring: not "onclick"
+    Received string:        "<div onclick=\"evil()\">Click me</div>"
+
+    [0m [90m 129 |[39m                 }
+     [90m 130 |[39m             }) [36mas[39m [33mRequest[39m
+    [31m[1m>[22m[39m[90m 131 |[39m
+     [90m     |[39m [31m[1m^[22m[39m
+     [90m 132 |[39m             [36mconst[39m res [33m=[39m createMockResponse() [36mas[39m [33mResponse[39m
+     [90m 133 |[39m             [36mconst[39m next [33m=[39m createMockNext()
+     [90m 134 |[39m[0m
+
+      at Object.<anonymous> (src/__tests__/middlewares/sanitization.test.ts:131:22)
+
+
+Test Suites: 7 failed, 33 passed, 40 total
+Tests:       22 failed, 758 passed, 780 total
+Snapshots:   0 total
+Time:        30.214 s
+Ran all test suites.
+Note: This command was run via npm module 'win-node-env'
+(node:40512) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)

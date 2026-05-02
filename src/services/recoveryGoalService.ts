@@ -165,9 +165,11 @@ export const updateGoal = async (
             ? new Date(data.targetDate)
             : null
 
-    if (data.status === GoalStatus.ABANDONED) {
-        updateData.status = GoalStatus.ABANDONED
-        await RecoveryGoalModel.lockNonCompletedMilestones(id)
+    if (data.status !== undefined) {
+        updateData.status = data.status
+        if (data.status === GoalStatus.ABANDONED) {
+            await RecoveryGoalModel.lockNonCompletedMilestones(id)
+        }
     }
 
     if (data.isPrimary === true) {

@@ -1244,7 +1244,7 @@ Update a recovery goal. Cannot modify milestones on non-active goals.
 |-------|------|-------|
 | `title` | string | Max 150 chars |
 | `description` | string | Max 1000 chars |
-| `status` | string | `paused` · `abandoned` only (others are computed) |
+| `status` | string | `active` · `paused` · `abandoned` (completed is auto-managed by milestones) |
 | `targetDate` | string | ISO 8601 date string, null to clear |
 | `isPrimary` | boolean | Setting to `true` clears `isPrimary` from all other user goals |
 

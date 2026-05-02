@@ -10,6 +10,7 @@ export const updateGoalSchema = z.object({
         .max(1000)
         .optional(),
     status: caseInsensitiveEnum([
+        'ACTIVE',
         'PAUSED',
         'ABANDONED'
     ]).optional(),

@@ -53,7 +53,7 @@ export type NewRecoveryGoalType = {
 export type UpdateRecoveryGoalType = {
     title?: string
     description?: string
-    status?: Extract<GoalStatus, 'PAUSED' | 'ABANDONED'>
+    status?: Exclude<GoalStatus, 'COMPLETED'>
     targetDate?: string
     isPrimary?: boolean
 }

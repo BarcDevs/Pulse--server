@@ -12,73 +12,72 @@ MVC: Controller → Service → Model → Database
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
-## Core Principles
-- SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- Industry standards — Clean, readable, maintainable code
-- Keep DRY rules
-- One concern per file
-- Provide a full file edit instead of one edit at a time
-- Always provide informative names for files, functions and variables
-- When building tests, cover both happy paths and edge cases, and ensure they are comprehensive and meaningful
-- Avoid using re-export files
+## Behavioral Guidelines
 
-### Code Style
-- Never use array index as key; use the current element as an index
-- Text: never use the `—` character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
-- Time values: Always use `src/constants/time.ts` (minuteInMs, hourInMs, etc.) instead of hardcoding milliseconds
-- Text blocks: Don't break unless really long (120–150 chars OK)
-- Condition operators at the end of a line if line-breaking
-- No line breaking to single import unless very long
-- String blocks with `'` in it, use backticks to avoid escaping
-- Avoid redundant braces or parentheses
-- Avoid redundant line breaking — break only when it improves readability or meets the line length threshold
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## Reading Files:
-- Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
+## 1. Think Before Coding
 
-## TypeScript Conventions
-- Single quotes for all strings and imports
-- No semicolons (except where required)
-- 4-space indentation
-- Arrow functions always — never `function` declarations
-- Prefer `type` over `interface` (use `interface` only for declaration merging / extending Express types)
-- File naming: PascalCase for classes & types, camelCase for everything else
-- Folder naming: camelCase
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-## Import Order
-1. Node.js built-ins
-2. Third-party packages
-3. Third-party `@`-scoped packages
-4. Local modules: types → config → controllers → services → models → middleware → utils → constants → errors → schemas
-5. Relative parent `../`
-6. Relative same-dir `./`
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-## Code Formatting
-- Break long lines and function parameters onto multiple lines
-- Limit lines up to about 50 chars
-- Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
-- 2+ Elements in an array → each on its own line
-- Avoid changes in other projects. different projects are read only
+## 2. Simplicity First
 
-### If statement:
-- 2+ conditions → one condition per line
-- no condition and action in same line
-- Ternary conditions with long or complex expressions: → break to multiple lines
+**Minimum code that solves the problem. Nothing speculative.**
 
-### Objects and functions:
-- Inline objects with 3+ properties, or 2+ in long lines → always break to new lines, never inline
-- 2+ chained accessor calls → break after root object
-- Nested objects always on a new line — never inline inside a parent object or array
-- Objects with 2+ properties → each property on its own line
-- 2+ function parameters → each on its own line
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-## Clean Code
-- Delete unused code — never comment it out
-- No backwards-compatibility shims for removed code
-- No hardcoded values — use constants or config
-- Always provide complete, production-ready code
-- No backwards-compatibility shims for removed code
-- Don't use redundant braces or parentheses
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Code Style Rules (Apply Everywhere)
+Rules listed in `CORE_RULES.md` but summarized here for quick reference. See that file for detailed explanations and rationale. Style is critical for readability and maintainability. These rules are non-negotiable and must be followed
 
 ## Before Committing
 1. `npm run typecheck`
