@@ -1180,6 +1180,63 @@ Retrieve all recovery goals for the current user with progress calculated.
 
 ---
 
+### `GET /stats`
+> Auth required
+
+Retrieve aggregated statistics for all recovery goals and milestones for the current user. Supports optional filtering by date range and category.
+
+**Query Parameters** _(all optional)_
+| Param | Type | Notes |
+|-------|------|-------|
+| `fromDate` | string | ISO 8601 date-time (e.g., `2026-01-01T00:00:00Z`) — filter stats from this date |
+| `toDate` | string | ISO 8601 date-time (e.g., `2026-12-31T23:59:59Z`) — filter stats until this date |
+| `category` | string | `PHYSICAL` · `MENTAL` · `LIFESTYLE` — filter goals by category (milestones inherit via goal relation) |
+
+**Response `200`**
+```json
+{
+  "message": "Stats retrieved successfully",
+  "data": {
+    "goals": {
+      "totalCreated": 12,
+      "completed": 3,
+      "completionRate": 0.25,
+      "streak": 5,
+      "active": 6,
+      "paused": 2,
+      "byCategory": {
+        "PHYSICAL": 5,
+        "MENTAL": 4,
+        "LIFESTYLE": 3
+      }
+    },
+    "milestones": {
+      "totalCreated": 32,
+      "completed": 8,
+      "completionRate": 0.25,
+      "streak": 5,
+      "active": 12,
+      "paused": 10
+    }
+  }
+}
+```
+
+**Fields**
+| Field | Type | Notes |
+|-------|------|-------|
+| `totalCreated` | number | Total goals or milestones created (unfiltered by status) |
+| `completed` | number | Count of completed goals or milestones |
+| `completionRate` | number | Ratio of completed to totalCreated (0.00–1.00), 0 if totalCreated is 0 |
+| `streak` | number | Consecutive calendar days with ≥1 completion event (goal OR milestone combined) |
+| `active` | number | Count of active/locked (non-completed, non-paused) items |
+| `paused` | number | Count of paused or abandoned items |
+| `byCategory` | object | _(goals only)_ Count of goals per category (PHYSICAL, MENTAL, LIFESTYLE) |
+
+**Errors:** `401` not authenticated
+
+---
+
 ### `GET /:goalId`
 > Auth required
 

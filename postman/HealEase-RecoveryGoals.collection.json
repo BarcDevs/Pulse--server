@@ -1279,6 +1279,181 @@
       ]
     },
     {
+      "name": "Get Stats",
+      "item": [
+        {
+          "name": "Get Stats - No Filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "recovery-goals", "stats"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Response has goals stats', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('goals')",
+                  "    pm.expect(data.goals).to.have.property('totalCreated')",
+                  "    pm.expect(data.goals).to.have.property('completed')",
+                  "    pm.expect(data.goals).to.have.property('completionRate')",
+                  "    pm.expect(data.goals).to.have.property('streak')",
+                  "    pm.expect(data.goals).to.have.property('active')",
+                  "    pm.expect(data.goals).to.have.property('paused')",
+                  "    pm.expect(data.goals).to.have.property('byCategory')",
+                  "})",
+                  "pm.test('Response has milestones stats', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data).to.have.property('milestones')",
+                  "    pm.expect(data.milestones).to.have.property('totalCreated')",
+                  "    pm.expect(data.milestones).to.have.property('completed')",
+                  "    pm.expect(data.milestones).to.have.property('completionRate')",
+                  "    pm.expect(data.milestones).to.have.property('streak')",
+                  "    pm.expect(data.milestones).to.have.property('active')",
+                  "    pm.expect(data.milestones).to.have.property('paused')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Stats - With Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/stats?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "recovery-goals", "stats"],
+              "query": [
+                {
+                  "key": "fromDate",
+                  "value": "2026-01-01T00:00:00Z"
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-12-31T23:59:59Z"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns filtered stats', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data.goals.totalCreated).to.be.a('number')",
+                  "    pm.expect(data.milestones.totalCreated).to.be.a('number')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Stats - With Category Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/stats?category=PHYSICAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "recovery-goals", "stats"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "PHYSICAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns category-filtered stats', () => {",
+                  "    const data = pm.response.json().data",
+                  "    pm.expect(data.goals).to.have.property('byCategory')",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Stats - Unauthorized",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "recovery-goals", "stats"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401))"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Logout",
       "item": [
         {

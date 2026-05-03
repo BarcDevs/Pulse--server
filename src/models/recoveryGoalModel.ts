@@ -1,12 +1,14 @@
+import {
+    type GoalCategory,
+    GoalStatus,
+    MilestoneStatus
+} from '../../prisma/generated/prisma/enums'
 import { MAX_MILESTONES_PER_GOAL } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import type {
     MilestoneType,
-    RecoveryGoalType
-} from '../types/data/RecoveryGoalType'
-import {
-    GoalStatus,
-    MilestoneStatus
+    RecoveryGoalType,
+    StatsFilter
 } from '../types/data/RecoveryGoalType'
 import Prisma from '../utils/prismaClient'
 import {
@@ -48,7 +50,7 @@ export const createGoal = async (
             profileId: data.profileId,
             title: data.title,
             description: data.description || null,
-            category: data.category.toUpperCase(),
+            category: data.category.toUpperCase() as GoalCategory,
             isPrimary: data.isPrimary || false,
             status: GoalStatus.ACTIVE,
             targetDate: data.targetDate || null
@@ -168,9 +170,14 @@ export const createMilestonesInBatch = async (data: {
             tx
         )
 
-        if (existingCount + data.milestones.length > MAX_MILESTONES_PER_GOAL)
+        const totalCount = (
+        existingCount + data.milestones.length
+    )
+        if (totalCount > MAX_MILESTONES_PER_GOAL)
             throw errorFactory.generic.conflict(
-                `Maximum ${MAX_MILESTONES_PER_GOAL} milestones per goal`
+                `Maximum `
+                + `${MAX_MILESTONES_PER_GOAL} `
+                + 'milestones per goal'
             )
 
         const milestones = []
@@ -242,14 +249,24 @@ export const completeMilestoneAndAdvance = async (
         })
 
         if (!milestone)
-            throw errorFactory.generic.notFound('Milestone not found')
+            throw errorFactory.generic.notFound(
+                'Milestone not found'
+            )
 
-        if (milestone.status === MilestoneStatus.COMPLETED)
-            return
+        const isCompleted = (
+            milestone.status
+                === MilestoneStatus.COMPLETED
+        )
+        if (isCompleted) return
 
-        if (milestone.status !== MilestoneStatus.ACTIVE)
+        const isActive = (
+            milestone.status
+                === MilestoneStatus.ACTIVE
+        )
+        if (!isActive)
             throw errorFactory.generic.conflict(
-                'Only ACTIVE milestones can be completed'
+                'Only ACTIVE milestones can '
+                + 'be completed'
             )
 
         await tx.milestone.update({
@@ -322,4 +339,278 @@ export const deleteMilestone = async (id: string): Promise<void> => {
     await Prisma.milestone.delete({
         where: { id }
     })
+}
+
+export const getGoalsStats = async (
+    profileId: string,
+    filters?: StatsFilter
+): Promise<{
+    totalCreated: number
+    completed: number
+    active: number
+    paused: number
+    byCategory: Record<string, number>
+}> => {
+    const baseWhere = {
+        profileId
+    }
+
+    const hasDateFilter = (
+        filters?.fromDate || filters?.toDate
+    )
+    const dateFilter = hasDateFilter
+        ? {
+            createdAt: {
+                ...(
+                    filters?.fromDate && {
+                        gte: filters.fromDate
+                    }
+                ),
+                ...(
+                    filters?.toDate && {
+                        lte: filters.toDate
+                    }
+                )
+            }
+        }
+        : {}
+
+    const categoryFilter = filters?.category
+        ? {
+            category: filters.category
+                .toUpperCase() as GoalCategory
+        }
+        : {}
+
+    const [
+        totalCreated,
+        completed,
+        active,
+        paused
+    ] = await Promise.all([
+        Prisma.recoveryGoal.count({
+            where: {
+                ...baseWhere,
+                ...dateFilter,
+                ...categoryFilter
+            }
+        }),
+        Prisma.recoveryGoal.count({
+            where: {
+                ...baseWhere,
+                status: GoalStatus.COMPLETED,
+                ...dateFilter,
+                ...categoryFilter
+            }
+        }),
+        Prisma.recoveryGoal.count({
+            where: {
+                ...baseWhere,
+                status: GoalStatus.ACTIVE,
+                ...dateFilter,
+                ...categoryFilter
+            }
+        }),
+        Prisma.recoveryGoal.count({
+            where: {
+                ...baseWhere,
+                status: GoalStatus.PAUSED,
+                ...dateFilter,
+                ...categoryFilter
+            }
+        })
+    ])
+
+    const categoryCounts = await Prisma.recoveryGoal.groupBy({
+        by: ['category'],
+        where: {
+            ...baseWhere,
+            ...dateFilter,
+            ...categoryFilter
+        },
+        _count: {
+            _all: true
+        }
+    })
+
+    const byCategory: Record<
+        string,
+        number
+    > = {}
+    categoryCounts.forEach((item) => {
+        byCategory[item.category] = item._count._all
+    })
+
+    return {
+        totalCreated,
+        completed,
+        active,
+        paused,
+        byCategory
+    }
+}
+
+export const getMilestonesStats = async (
+    profileId: string,
+    filters?: StatsFilter
+): Promise<{
+    totalCreated: number
+    completed: number
+    active: number
+    paused: number
+}> => {
+    const hasDateFilter = (
+        filters?.fromDate || filters?.toDate
+    )
+    const dateFilter = hasDateFilter
+        ? {
+            createdAt: {
+                ...(
+                    filters?.fromDate && {
+                        gte: filters.fromDate
+                    }
+                ),
+                ...(
+                    filters?.toDate && {
+                        lte: filters.toDate
+                    }
+                )
+            }
+        }
+        : {}
+
+    const goalWhereCategory = filters?.category
+        ? {
+            category: filters.category
+                .toUpperCase() as GoalCategory
+        }
+        : {}
+
+    const [
+        totalCreated,
+        completed,
+        active,
+        paused
+    ] = await Promise.all([
+        Prisma.milestone.count({
+            where: {
+                goal: {
+                    profileId,
+                    ...goalWhereCategory
+                },
+                ...dateFilter
+            }
+        }),
+        Prisma.milestone.count({
+            where: {
+                goal: {
+                    profileId,
+                    ...goalWhereCategory
+                },
+                status: MilestoneStatus.COMPLETED,
+                ...dateFilter
+            }
+        }),
+        Prisma.milestone.count({
+            where: {
+                goal: {
+                    profileId,
+                    ...goalWhereCategory
+                },
+                status: MilestoneStatus.ACTIVE,
+                ...dateFilter
+            }
+        }),
+        Prisma.milestone.count({
+            where: {
+                goal: {
+                    profileId,
+                    ...goalWhereCategory
+                },
+                status: MilestoneStatus.LOCKED,
+                ...dateFilter
+            }
+        })
+    ])
+
+    return {
+        totalCreated,
+        completed,
+        active,
+        paused
+    }
+}
+
+export const getCompletedDatesForStreak = async (
+    profileId: string,
+    filters?: StatsFilter
+): Promise<Date[]> => {
+    const hasDateFilter = (
+        filters?.fromDate || filters?.toDate
+    )
+    const dateFilter = hasDateFilter
+        ? {
+            ...(
+                filters?.fromDate && {
+                    gte: filters.fromDate
+                }
+            ),
+            ...(
+                filters?.toDate && {
+                    lte: filters.toDate
+                }
+            )
+        }
+        : undefined
+
+    const completedGoals = await (
+        Prisma.recoveryGoal.findMany({
+            where: {
+                profileId,
+                status: GoalStatus.COMPLETED,
+                updatedAt: dateFilter,
+                ...(
+                    filters?.category && {
+                        category: filters.category
+                            .toUpperCase() as GoalCategory
+                    }
+                )
+            },
+            select: { updatedAt: true }
+        })
+    )
+
+    const completedMilestones = await (
+        Prisma.milestone.findMany({
+            where: {
+                goal: {
+                    profileId,
+                    ...(
+                        filters?.category && {
+                            category: (
+                                filters.category
+                                    .toUpperCase() as GoalCategory
+                            )
+                        }
+                    )
+                },
+                status: (
+                    MilestoneStatus.COMPLETED
+                ),
+                completedAt: dateFilter
+            },
+            select: { completedAt: true }
+        })
+    )
+
+    const dates = [
+        ...completedGoals.map(
+            (g) => g.updatedAt
+        ),
+        ...completedMilestones
+            .map((m) => m.completedAt)
+            .filter((d) => d !== null) as Date[]
+    ]
+
+    return dates
 }

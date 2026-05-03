@@ -1,16 +1,13 @@
-export type GoalCategory = 'physical' | 'mental' | 'lifestyle'
+import {
+    type GoalCategory,
+    type GoalStatus,
+    type MilestoneStatus
+} from '../../../prisma/generated/prisma/enums'
 
-export enum MilestoneStatus {
-    LOCKED = 'LOCKED',
-    ACTIVE = 'ACTIVE',
-    COMPLETED = 'COMPLETED'
-}
-
-export enum GoalStatus {
-    ACTIVE = 'ACTIVE',
-    COMPLETED = 'COMPLETED',
-    PAUSED = 'PAUSED',
-    ABANDONED = 'ABANDONED'
+export type {
+    GoalCategory,
+    GoalStatus,
+    MilestoneStatus
 }
 
 export type MilestoneType = {
@@ -45,7 +42,7 @@ export type RecoveryGoalWithProgress = RecoveryGoalType & {
 export type NewRecoveryGoalType = {
     title: string
     description?: string
-    category: GoalCategory
+    category: string
     targetDate?: string
     isPrimary?: boolean
 }
@@ -62,4 +59,30 @@ export type UpdateMilestoneType = {
     title?: string
     description?: string | null
     order?: number
+}
+
+export type StatsFilter = {
+    fromDate?: Date
+    toDate?: Date
+    category?: string
+}
+
+export type StatsResponse = {
+    goals: {
+        totalCreated: number
+        completed: number
+        completionRate: number
+        streak: number
+        active: number
+        paused: number
+        byCategory: Record<string, number>
+    }
+    milestones: {
+        totalCreated: number
+        completed: number
+        completionRate: number
+        streak: number
+        active: number
+        paused: number
+    }
 }

@@ -9,6 +9,7 @@ import {
     deleteMilestone,
     getGoal,
     getGoals,
+    getStats,
     updateGoal,
     updateMilestone
 } from '../controllers/recoveryGoalController'
@@ -72,6 +73,80 @@ router
         createGoal
     )
     .get(isAuthenticated, getGoals)
+
+/**
+ * @swagger
+ * /api/v1/recovery-goals/stats:
+ *   get:
+ *     summary: Get goals and milestones stats for the current user
+ *     tags: [Recovery Goals]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter stats from this date (ISO 8601 format)
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter stats until this date (ISO 8601 format)
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [PHYSICAL, MENTAL, LIFESTYLE]
+ *         description: Filter by goal category
+ *     responses:
+ *       200:
+ *         description: Stats retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 goals:
+ *                   type: object
+ *                   properties:
+ *                     totalCreated:
+ *                       type: integer
+ *                     completed:
+ *                       type: integer
+ *                     completionRate:
+ *                       type: number
+ *                     streak:
+ *                       type: integer
+ *                     active:
+ *                       type: integer
+ *                     paused:
+ *                       type: integer
+ *                     byCategory:
+ *                       type: object
+ *                       additionalProperties:
+ *                         type: integer
+ *                 milestones:
+ *                   type: object
+ *                   properties:
+ *                     totalCreated:
+ *                       type: integer
+ *                     completed:
+ *                       type: integer
+ *                     completionRate:
+ *                       type: number
+ *                     streak:
+ *                       type: integer
+ *                     active:
+ *                       type: integer
+ *                     paused:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ */
+router.route('/stats').get(isAuthenticated, getStats)
 
 /**
  * @swagger

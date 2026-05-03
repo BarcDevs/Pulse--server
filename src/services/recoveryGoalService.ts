@@ -1,5 +1,7 @@
+import { GoalStatus, MilestoneStatus } from '../../prisma/generated/prisma/enums'
 import { MAX_ACTIVE_GOALS } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
+import { calculateConsecutiveDayStreak } from '../lib/recoveryGoalHelpers'
 import * as RecoveryGoalModel from '../models/recoveryGoalModel'
 import { getProfileIdForUser } from '../models/recoveryGoalModel'
 import type {
@@ -7,12 +9,10 @@ import type {
     NewRecoveryGoalType,
     RecoveryGoalType,
     RecoveryGoalWithProgress,
+    StatsFilter,
+    StatsResponse,
     UpdateMilestoneType,
     UpdateRecoveryGoalType
-} from '../types/data/RecoveryGoalType'
-import {
-    GoalStatus,
-    MilestoneStatus
 } from '../types/data/RecoveryGoalType'
 
 const computeProgress = (
@@ -23,11 +23,14 @@ const computeProgress = (
     return completedCount / totalCount
 }
 
-const assertGoalActive = (goal: RecoveryGoalType): void => {
+const assertGoalActive = (
+    goal: RecoveryGoalType
+): void => {
     if (goal.status !== GoalStatus.ACTIVE)
-        throw errorFactory.generic.conflict(
-            'Cannot modify milestones on non-active goals'
-        )
+        throw errorFactory.generic
+            .conflict(
+                'Cannot modify milestones on non-active goals'
+            )
 }
 
 export const createGoal = async (
@@ -46,10 +49,10 @@ export const createGoal = async (
     )
 
     if (activeGoals.length >= MAX_ACTIVE_GOALS) {
-        throw errorFactory.generic.conflict(
-            `Cannot create more than ${MAX_ACTIVE_GOALS} active goals. `
-            + 'Complete or abandon some goals to create new ones.'
-        )
+        throw errorFactory.generic
+            .conflict(
+                `Cannot create more than ${MAX_ACTIVE_GOALS} active goals. Complete or abandon some goals to create new ones.`
+            )
     }
 
     if (data.isPrimary) {
@@ -84,20 +87,25 @@ export const getGoal = async (
     goal: RecoveryGoalWithProgress
     milestones: MilestoneType[]
 }> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
-
-    const goal = await RecoveryGoalModel.getGoalById(
-        id,
-        profileId
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
     )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+
+    const goal = await RecoveryGoalModel
+        .getGoalById(id, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     const milestones = await RecoveryGoalModel
         .getMilestonesByGoalId(id)
 
     const completedCount = milestones.filter(
-        m => m.status === MilestoneStatus.COMPLETED
+        m => m.status
+            === MilestoneStatus.COMPLETED
     ).length
     const progress = computeProgress(
         completedCount,
@@ -113,31 +121,43 @@ export const getGoal = async (
 export const getUserGoals = async (
     userId: string
 ): Promise<RecoveryGoalWithProgress[]> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
+    )
 
-    const goals = await RecoveryGoalModel.getGoalsByProfileId(profileId)
+    const goals = await RecoveryGoalModel
+        .getGoalsByProfileId(profileId)
 
-    const goalsWithProgress = await Promise.all(
+    return await Promise.all(
         goals.map(async goal => {
-            const count = await RecoveryGoalModel.countMilestonesByGoalId(
-                goal.id
-            )
-            if (count === 0) return { ...goal, progress: 0 }
+            const count = await RecoveryGoalModel
+                .countMilestonesByGoalId(
+                    goal.id
+                )
+            if (count === 0)
+                return { ...goal, progress: 0 }
 
-            const milestones = await RecoveryGoalModel.getMilestonesByGoalId(
-                goal.id
+            const milestones = await (
+                RecoveryGoalModel
+                    .getMilestonesByGoalId(
+                        goal.id
+                    )
             )
-            const completedCount = milestones.filter(
-                m => m.status === MilestoneStatus.COMPLETED
-            ).length
-            const progress = computeProgress(completedCount, count)
+            const completedCount = milestones
+                .filter(
+                    m => m.status
+                        === MilestoneStatus.COMPLETED
+                ).length
+            const progress = computeProgress(
+                completedCount,
+                count
+            )
 
             return { ...goal, progress }
         })
     )
-
-    return goalsWithProgress
 }
 
 export const updateGoal = async (
@@ -145,35 +165,48 @@ export const updateGoal = async (
     userId: string,
     data: UpdateRecoveryGoalType
 ): Promise<RecoveryGoalWithProgress> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
-
-    const goal = await RecoveryGoalModel.getGoalById(
-        id,
-        profileId
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
     )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
 
-    if (goal.status === GoalStatus.COMPLETED && data.status !== undefined) {
+    const goal = await RecoveryGoalModel
+        .getGoalById(id, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
+
+    const isCompleted = (
+        goal.status === GoalStatus.COMPLETED
+    )
+    if (isCompleted && data.status !== undefined)
         throw errorFactory.generic.conflict(
-            'Cannot change status of completed goals'
+            'Cannot change status of '
+            + 'completed goals'
         )
-    }
 
-    if (
-        (
-            goal.status === GoalStatus.COMPLETED
-            || goal.status === GoalStatus.PAUSED
-        ) && (
-            data.title !== undefined
-            || data.description !== undefined
-            || data.targetDate !== undefined
-        )
-    ) throw errorFactory.generic.conflict(
-        `Cannot update goal details on ${goal.status.toLowerCase()} goals`
+    const isPausedOrCompleted = (
+        goal.status === GoalStatus.COMPLETED
+        || goal.status === GoalStatus.PAUSED
     )
+    const hasDetailUpdates = (
+        data.title !== undefined
+        || data.description !== undefined
+        || data.targetDate !== undefined
+    )
+    if (isPausedOrCompleted && hasDetailUpdates)
+        throw errorFactory.generic.conflict(
+            `Cannot update goal details on `
+            + `${goal.status.toLowerCase()} `
+            + 'goals'
+        )
 
-    const updateData: Record<string, unknown> = {}
+    const updateData: Record<
+        string,
+        unknown
+    > = {}
 
     if (data.title !== undefined)
         updateData.title = data.title
@@ -186,32 +219,38 @@ export const updateGoal = async (
 
     if (data.status !== undefined) {
         updateData.status = data.status
-        if (data.status === GoalStatus.ABANDONED) {
-            await RecoveryGoalModel.lockNonCompletedMilestones(id)
+        if (
+            data.status
+                === GoalStatus.ABANDONED
+        ) {
+            await RecoveryGoalModel
+                .lockNonCompletedMilestones(id)
         }
     }
 
     if (data.isPrimary === true) {
-        await RecoveryGoalModel.setPrimaryGoal(
-            profileId,
-            id
-        )
+        await RecoveryGoalModel
+            .setPrimaryGoal(profileId, id)
     } else if (data.isPrimary === false) {
         updateData.isPrimary = false
     }
 
-    const updated = await RecoveryGoalModel.updateGoal(
-        id,
-        updateData as any
-    )
+    const updated = await RecoveryGoalModel
+        .updateGoal(id, updateData as any)
     if (!updated)
-        throw errorFactory.generic.notFound('Goal not found')
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
-    const milestones = await RecoveryGoalModel
-        .getMilestonesByGoalId(id)
-    const completedCount = milestones.filter(
-        m => m.status === MilestoneStatus.COMPLETED
-    ).length
+    const milestones = await (
+        RecoveryGoalModel
+            .getMilestonesByGoalId(id)
+    )
+    const completedCount = milestones
+        .filter(
+            m => m.status
+                === MilestoneStatus.COMPLETED
+        ).length
     const progress = computeProgress(
         completedCount,
         milestones.length
@@ -224,11 +263,18 @@ export const deleteGoal = async (
     id: string,
     userId: string
 ): Promise<void> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
+    )
 
-    const goal = await RecoveryGoalModel.getGoalById(id, profileId)
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+    const goal = await RecoveryGoalModel
+        .getGoalById(id, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     await RecoveryGoalModel.deleteGoal(id)
 }
@@ -237,12 +283,15 @@ export const getMaxMilestoneOrder = async (
     goalId: string,
     userId: string
 ): Promise<number> => {
-    const profileId = await getProfileIdForUser(userId)
-    const goal = await RecoveryGoalModel.getGoalById(
-        goalId,
-        profileId
+    const profileId = await getProfileIdForUser(
+        userId
     )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+    const goal = await RecoveryGoalModel
+        .getGoalById(goalId, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     const maxOrder = await RecoveryGoalModel
         .getMaxMilestoneOrder(goalId)
@@ -260,25 +309,35 @@ export const createMilestones = async (
         }>
     }
 ): Promise<MilestoneType[]> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
-
-    const goal = await RecoveryGoalModel.getGoalById(
-        goalId,
-        profileId
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
     )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+
+    const goal = await RecoveryGoalModel
+        .getGoalById(goalId, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     assertGoalActive(goal)
 
-    const milestoneCount = await RecoveryGoalModel
-        .countMilestonesByGoalId(goalId)
-    const created = await RecoveryGoalModel
-        .createMilestonesInBatch({
-            goalId,
-            milestones: data.milestones,
-            setFirstActive: milestoneCount === 0
-        })
+    const milestoneCount = await (
+        RecoveryGoalModel
+            .countMilestonesByGoalId(goalId)
+    )
+    const created = await (
+        RecoveryGoalModel
+            .createMilestonesInBatch({
+                goalId,
+                milestones: data.milestones,
+                setFirstActive: (
+                    milestoneCount === 0
+                )
+            })
+    )
 
     return created.map(m => ({
         id: m.id,
@@ -298,42 +357,68 @@ export const updateMilestone = async (
     userId: string,
     data: UpdateMilestoneType
 ): Promise<MilestoneType> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
+    )
 
-    const milestone = await RecoveryGoalModel
-        .getMilestoneById(id)
+    const milestone = await (
+        RecoveryGoalModel
+            .getMilestoneById(id)
+    )
     if (!milestone)
-        throw errorFactory.generic.notFound('Milestone not found')
-    if (milestone.goal.profileId !== profileId)
+        throw errorFactory.generic.notFound(
+            'Milestone not found'
+        )
+    const profileMatch = (
+        milestone.goal.profileId === profileId
+    )
+    if (!profileMatch)
         throw errorFactory.auth.unauthorized()
 
-    const goal = await RecoveryGoalModel.getGoalById(
-        milestone.goalId,
-        profileId
-    )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+    const goal = await RecoveryGoalModel
+        .getGoalById(
+            milestone.goalId,
+            profileId
+        )
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     assertGoalActive(goal)
 
-    if (milestone.status === MilestoneStatus.COMPLETED)
+    const isCompleted = (
+        milestone.status
+            === MilestoneStatus.COMPLETED
+    )
+    if (isCompleted)
         throw errorFactory.generic.conflict(
-            'Cannot modify completed milestones'
+            'Cannot modify completed '
+            + 'milestones'
         )
 
-    if (milestone.status === MilestoneStatus.LOCKED)
+    const isLocked = (
+        milestone.status === MilestoneStatus.LOCKED
+    )
+    if (isLocked)
         throw errorFactory.generic.conflict(
             'Cannot modify locked milestones'
         )
 
-    const updated = await RecoveryGoalModel
-        .updateMilestone(id, {
-            title: data.title,
-            description: data.description,
-            order: data.order
-        })
+    const updated = await (
+        RecoveryGoalModel
+            .updateMilestone(id, {
+                title: data.title,
+                description: data.description,
+                order: data.order
+            })
+    )
     if (!updated)
-        throw errorFactory.generic.notFound('Milestone not found')
+        throw errorFactory.generic.notFound(
+            'Milestone not found'
+        )
 
     return updated
 }
@@ -343,60 +428,92 @@ export const completeMilestone = async (
     goalId: string,
     userId: string
 ): Promise<void> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
+    )
 
-    const milestone = await RecoveryGoalModel
-        .getMilestoneById(id)
+    const milestone = await (
+        RecoveryGoalModel
+            .getMilestoneById(id)
+    )
     if (!milestone)
-        throw errorFactory.generic.notFound('Milestone not found')
-    if (milestone.goal.profileId !== profileId)
+        throw errorFactory.generic.notFound(
+            'Milestone not found'
+        )
+    const profileMatch = (
+        milestone.goal.profileId === profileId
+    )
+    if (!profileMatch)
         throw errorFactory.auth.unauthorized()
 
-    const goal = await RecoveryGoalModel.getGoalById(
-        goalId,
-        profileId
-    )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+    const goal = await RecoveryGoalModel
+        .getGoalById(goalId, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     assertGoalActive(goal)
 
-    await RecoveryGoalModel.completeMilestoneAndAdvance(
-        id,
-        goalId
-    )
+    await RecoveryGoalModel
+        .completeMilestoneAndAdvance(id, goalId)
 }
 
 export const deleteMilestone = async (
     id: string,
     userId: string
 ): Promise<void> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
+    )
 
-    const milestone = await RecoveryGoalModel
-        .getMilestoneById(id)
+    const milestone = await (
+        RecoveryGoalModel
+            .getMilestoneById(id)
+    )
     if (!milestone)
-        throw errorFactory.generic.notFound('Milestone not found')
-    if (milestone.goal.profileId !== profileId)
+        throw errorFactory.generic.notFound(
+            'Milestone not found'
+        )
+    const profileMatch = (
+        milestone.goal.profileId === profileId
+    )
+    if (!profileMatch)
         throw errorFactory.auth.unauthorized()
 
-    const goal = await RecoveryGoalModel.getGoalById(
-        milestone.goalId,
-        profileId
-    )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
+    const goal = await RecoveryGoalModel
+        .getGoalById(
+            milestone.goalId,
+            profileId
+        )
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     assertGoalActive(goal)
 
-    if (milestone.status === MilestoneStatus.COMPLETED)
+    const isCompleted = (
+        milestone.status
+            === MilestoneStatus.COMPLETED
+    )
+    if (isCompleted)
         throw errorFactory.generic.conflict(
-            'Cannot delete completed milestones'
+            'Cannot delete completed '
+            + 'milestones'
         )
 
-    if (milestone.status === MilestoneStatus.LOCKED)
+    const isLocked = (
+        milestone.status === MilestoneStatus.LOCKED
+    )
+    if (isLocked)
         throw errorFactory.generic.conflict(
-            'Cannot delete locked milestones'
+            'Cannot delete locked '
+            + 'milestones'
         )
 
     await RecoveryGoalModel.deleteMilestone(id)
@@ -406,44 +523,132 @@ export const completeGoal = async (
     id: string,
     userId: string
 ): Promise<RecoveryGoalWithProgress> => {
-    if (!userId) throw errorFactory.auth.unauthorized()
-    const profileId = await getProfileIdForUser(userId)
-
-    const goal = await RecoveryGoalModel.getGoalById(
-        id,
-        profileId
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+    const profileId = await getProfileIdForUser(
+        userId
     )
-    if (!goal) throw errorFactory.generic.notFound('Goal not found')
 
-    if (goal.status !== GoalStatus.ACTIVE)
-        throw errorFactory.generic.conflict('Goal is not active')
+    const goal = await RecoveryGoalModel
+        .getGoalById(id, profileId)
+    if (!goal)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
-    const milestones = await RecoveryGoalModel
-        .getMilestonesByGoalId(id)
+    const isActive = (
+        goal.status === GoalStatus.ACTIVE
+    )
+    if (!isActive)
+        throw errorFactory.generic.conflict(
+            'Goal is not active'
+        )
+
+    const milestones = await (
+        RecoveryGoalModel
+            .getMilestonesByGoalId(id)
+    )
 
     if (milestones.length === 0)
         throw errorFactory.generic.conflict(
-            'Cannot complete goal without milestones'
+            'Cannot complete goal without '
+            + 'milestones'
         )
 
     const allCompleted = milestones.every(
-        m => m.status === MilestoneStatus.COMPLETED
+        m => m.status
+            === MilestoneStatus.COMPLETED
     )
     if (!allCompleted)
         throw errorFactory.generic.conflict(
-            'Cannot complete goal with incomplete milestones'
+            'Cannot complete goal with '
+            + 'incomplete milestones'
         )
 
-    const updated = await RecoveryGoalModel.updateGoal(
-        id,
-        {
-            status: GoalStatus.COMPLETED
-        }
+    const updated = await (
+        RecoveryGoalModel
+            .updateGoal(id, {
+                status: GoalStatus.COMPLETED
+            })
     )
-    if (!updated) throw errorFactory.generic.notFound('Goal not found')
+    if (!updated)
+        throw errorFactory.generic.notFound(
+            'Goal not found'
+        )
 
     return {
         ...updated,
         progress: 1
+    }
+}
+
+export const getStats = async (
+    userId: string,
+    filters?: StatsFilter
+): Promise<StatsResponse> => {
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const profileId = await getProfileIdForUser(
+        userId
+    )
+
+    const [
+        goalsStats,
+        milestonesStats,
+        completedDates
+    ] = await Promise.all([
+        RecoveryGoalModel.getGoalsStats(
+            profileId,
+            filters
+        ),
+        RecoveryGoalModel.getMilestonesStats(
+            profileId,
+            filters
+        ),
+        RecoveryGoalModel
+            .getCompletedDatesForStreak(
+                profileId,
+                filters
+            )
+    ])
+
+    const streak = calculateConsecutiveDayStreak(
+        completedDates
+    )
+
+    const goalsCompletionRate = (
+        goalsStats.totalCreated > 0
+            ? Number(
+                (
+                    goalsStats.completed
+                    / goalsStats.totalCreated
+                ).toFixed(2)
+            )
+            : 0
+    )
+
+    const milestonesCompletionRate = (
+        milestonesStats.totalCreated > 0
+            ? Number(
+                (
+                    milestonesStats.completed
+                    / milestonesStats.totalCreated
+                ).toFixed(2)
+            )
+            : 0
+    )
+
+    return {
+        goals: {
+            ...goalsStats,
+            completionRate: goalsCompletionRate,
+            streak
+        },
+        milestones: {
+            ...milestonesStats,
+            completionRate: milestonesCompletionRate,
+            streak
+        }
     }
 }

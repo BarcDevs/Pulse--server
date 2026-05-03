@@ -1,10 +1,11 @@
-import type {
-    MilestoneType,
-    RecoveryGoalType
+import {
+    type GoalCategory,
+    type MilestoneType,
+    type RecoveryGoalType
 } from '../types/data/RecoveryGoalType'
 
 type RawGoal = {
-    category: string
+    category: GoalCategory
     status: string
     id: string
     profileId: string
@@ -30,7 +31,7 @@ type RawMilestone = {
 
 export const convertGoalToDTO = (goal: RawGoal): RecoveryGoalType => ({
     ...goal,
-    category: goal.category.toLowerCase() as RecoveryGoalType['category'],
+    category: goal.category as RecoveryGoalType['category'],
     status: goal.status as RecoveryGoalType['status']
 })
 

@@ -2,6 +2,10 @@ import Csrf from 'csrf'
 import type { NextFunction } from 'express'
 
 import {
+    GoalStatus,
+    MilestoneStatus
+} from '../../../prisma/generated/prisma/enums'
+import {
     createToken,
     hashPassword
 } from '../../lib/authCrypto'
@@ -9,10 +13,6 @@ import type { PostType } from '../../types/data/PostType'
 import type {
     MilestoneType,
     RecoveryGoalType
-} from '../../types/data/RecoveryGoalType'
-import {
-    GoalStatus,
-    MilestoneStatus
 } from '../../types/data/RecoveryGoalType'
 import type { ReplyType } from '../../types/data/ReplyType'
 import type { TagType } from '../../types/data/TagType'
@@ -132,7 +132,7 @@ export const createMockRecoveryGoal = (
     profileId: 'test-profile-id-123',
     title: 'Build a consistent sleep schedule',
     description: 'Establish a regular sleep routine',
-    category: 'lifestyle',
+    category: 'LIFESTYLE',
     isPrimary: false,
     status: GoalStatus.ACTIVE,
     targetDate: null,

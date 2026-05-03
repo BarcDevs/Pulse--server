@@ -1,13 +1,14 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
-import App from '../../app'
-import { MAX_ACTIVE_GOALS } from '../../config/recoveryGoals'
-import { errorFactory } from '../../errors/factory/ErrorFactory'
 import {
     GoalStatus,
     MilestoneStatus
-} from '../../types/data/RecoveryGoalType'
+} from '../../../prisma/generated/prisma/enums'
+import App from '../../app'
+import { MAX_ACTIVE_GOALS } from '../../config/recoveryGoals'
+import { dayInMs } from '../../constants/time'
+import { errorFactory } from '../../errors/factory/ErrorFactory'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
@@ -1251,6 +1252,167 @@ describe('Recovery Goals Routes', () => {
             )
 
             expect(response.status).toBe(401)
+        })
+    })
+
+    describe('GET /api/v1/recovery-goals/stats', () => {
+        it('should return stats for authenticated user with no filters', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.count.mockResolvedValue(10)
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([
+                { category: 'PHYSICAL', _count: 4 },
+                { category: 'MENTAL', _count: 3 },
+                { category: 'LIFESTYLE', _count: 3 }
+            ] as any)
+            prismaMock.milestone.count.mockResolvedValue(20)
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/stats`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals).toHaveProperty('totalCreated')
+            expect(response.body.data.goals).toHaveProperty('completed')
+            expect(response.body.data.goals).toHaveProperty('completionRate')
+            expect(response.body.data.goals).toHaveProperty('streak')
+            expect(response.body.data.goals).toHaveProperty('active')
+            expect(response.body.data.goals).toHaveProperty('paused')
+            expect(response.body.data.goals).toHaveProperty('byCategory')
+            expect(response.body.data.milestones).toHaveProperty('totalCreated')
+            expect(response.body.data.milestones).toHaveProperty('completed')
+            expect(response.body.data.milestones).toHaveProperty('completionRate')
+        })
+
+        it('should return zero stats for fresh user', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.count.mockResolvedValue(0)
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([])
+            prismaMock.milestone.count.mockResolvedValue(0)
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/stats`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals.totalCreated).toBe(0)
+            expect(response.body.data.goals.completed).toBe(0)
+            expect(response.body.data.goals.completionRate).toBe(0)
+            expect(response.body.data.goals.streak).toBe(0)
+        })
+
+        it('should filter stats by date range', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.count.mockResolvedValue(5)
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([])
+            prismaMock.milestone.count.mockResolvedValue(10)
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App)
+                    .get(`${API_BASE}/stats`)
+                    .query({
+                        fromDate: '2026-01-01T00:00:00Z',
+                        toDate: '2026-03-31T23:59:59Z'
+                    }),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals.totalCreated).toBe(5)
+        })
+
+        it('should filter stats by category', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.count.mockResolvedValue(4)
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([
+                { category: 'PHYSICAL', _count: 4 }
+            ] as any)
+            prismaMock.milestone.count.mockResolvedValue(8)
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App)
+                    .get(`${API_BASE}/stats`)
+                    .query({ category: 'PHYSICAL' }),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals.totalCreated).toBe(4)
+        })
+
+        it('should require authentication', async () => {
+            const response = await supertest(App).get(`${API_BASE}/stats`)
+
+            expect(response.status).toBe(401)
+        })
+
+        it('should calculate streak for consecutive days', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const today = new Date()
+            const yesterday = new Date(today.getTime() - dayInMs)
+
+            prismaMock.recoveryGoal.count.mockResolvedValue(2)
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([])
+            prismaMock.milestone.count.mockResolvedValue(0)
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([
+                { updatedAt: today },
+                { updatedAt: yesterday }
+            ] as any)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/stats`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals.streak).toBeGreaterThan(0)
+        })
+
+        it('should calculate completion rate correctly', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.count
+                .mockResolvedValueOnce(10) // totalCreated
+                .mockResolvedValueOnce(3) // completed
+                .mockResolvedValueOnce(6) // active
+                .mockResolvedValueOnce(1) // paused
+            prismaMock.recoveryGoal.groupBy.mockResolvedValue([])
+            prismaMock.milestone.count
+                .mockResolvedValueOnce(20) // totalCreated
+                .mockResolvedValueOnce(8) // completed
+                .mockResolvedValueOnce(10) // active
+                .mockResolvedValueOnce(2) // paused
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/stats`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goals.completionRate).toBe(0.3)
+            expect(response.body.data.milestones.completionRate).toBe(0.4)
         })
     })
 })
