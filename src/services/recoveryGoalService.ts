@@ -160,6 +160,19 @@ export const updateGoal = async (
         )
     }
 
+    if (
+        (
+            goal.status === GoalStatus.COMPLETED
+            || goal.status === GoalStatus.PAUSED
+        ) && (
+            data.title !== undefined
+            || data.description !== undefined
+            || data.targetDate !== undefined
+        )
+    ) throw errorFactory.generic.conflict(
+        `Cannot update goal details on ${goal.status.toLowerCase()} goals`
+    )
+
     const updateData: Record<string, unknown> = {}
 
     if (data.title !== undefined)
@@ -308,6 +321,11 @@ export const updateMilestone = async (
             'Cannot modify completed milestones'
         )
 
+    if (milestone.status === MilestoneStatus.LOCKED)
+        throw errorFactory.generic.conflict(
+            'Cannot modify locked milestones'
+        )
+
     const updated = await RecoveryGoalModel
         .updateMilestone(id, {
             title: data.title,
@@ -370,6 +388,16 @@ export const deleteMilestone = async (
     if (!goal) throw errorFactory.generic.notFound('Goal not found')
 
     assertGoalActive(goal)
+
+    if (milestone.status === MilestoneStatus.COMPLETED)
+        throw errorFactory.generic.conflict(
+            'Cannot delete completed milestones'
+        )
+
+    if (milestone.status === MilestoneStatus.LOCKED)
+        throw errorFactory.generic.conflict(
+            'Cannot delete locked milestones'
+        )
 
     await RecoveryGoalModel.deleteMilestone(id)
 }
