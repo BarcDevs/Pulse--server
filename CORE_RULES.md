@@ -25,21 +25,11 @@
 - Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
 
 ## TypeScript Conventions
-- Single quotes for all strings and imports
-- No semicolons (except where required)
 - 4-space indentation
 - Arrow functions always — never `function` declarations
 - Prefer `type` over `interface` (use `interface` only for declaration merging / extending Express types)
 - File naming: PascalCase for classes & types, camelCase for everything else
 - Folder naming: camelCase
-
-## Import Order
-1. Node.js built-ins
-2. Third-party packages
-3. Third-party `@`-scoped packages
-4. Local modules: types → config → controllers → services → models → middleware → utils → constants → errors → schemas
-5. Relative parent `../`
-6. Relative same-dir `./`
 
 ## Code Formatting
 - Break long lines and function parameters onto multiple lines
