@@ -1,7 +1,7 @@
 import { GoalStatus, MilestoneStatus } from '../../prisma/generated/prisma/enums'
 import { MAX_ACTIVE_GOALS } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
-import { calculateConsecutiveDayStreak } from '../lib/recoveryGoalHelpers'
+import { calculateCurrentStreak } from '../lib/aiInsight/decision/streakCalculator'
 import * as RecoveryGoalModel from '../models/recoveryGoalModel'
 import { getProfileIdForUser } from '../models/recoveryGoalModel'
 import type {
@@ -613,7 +613,7 @@ export const getStats = async (
             )
     ])
 
-    const streak = calculateConsecutiveDayStreak(
+    const streak = calculateCurrentStreak(
         completedDates
     )
 

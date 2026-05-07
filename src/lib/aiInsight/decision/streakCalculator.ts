@@ -1,5 +1,20 @@
 import { dayInMs } from '../../../constants/time'
 
+/**
+ * Calculates consecutive day streak from most recent date backwards.
+ * De-duplicates by calendar day (ignores time component).
+ *
+ * @param checkInDates - Array of Date objects (order irrelevant, sorted internally)
+ * @param timezone - Optional timezone string (e.g., 'America/Los_Angeles'). Defaults to UTC.
+ * @returns Number of consecutive calendar days from most recent backwards, or 0 if empty
+ *
+ * @example
+ * calculateCurrentStreak([
+ *   new Date('2026-03-10T15:00:00Z'),
+ *   new Date('2026-03-09T08:00:00Z'),
+ *   new Date('2026-03-08T22:00:00Z')
+ * ]) // returns 3
+ */
 export const calculateCurrentStreak = (
     checkInDates: Date[],
     timezone?: string
