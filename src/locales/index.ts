@@ -1,30 +1,20 @@
-import type { LocaleMessages } from '../types/feedback'
+import type { AppMessages } from '../types/AppMessages'
 
 import en from './en.json'
+import he from './he.json'
 
-const locales: Record<string, LocaleMessages> = {
-    en
+const locales: Record<string, AppMessages> = {
+    en,
+    he
 }
 
-export const getLocaleMessages = (
-    language: string
-): LocaleMessages => {
-    if (locales[language]) {
-        return locales[language]
-    }
-
-    const languagePrefix = language.split('-')[0]
-    if (locales[languagePrefix]) {
-        return locales[languagePrefix]
-    }
-
-    return locales.en
+export const resolveLanguage = (language?: string | null): string => {
+    const lang = language ?? 'he'
+    if (locales[lang]) return lang
+    const prefix = lang.split('-')[0]
+    if (locales[prefix]) return prefix
+    return 'he'
 }
 
-export const isLocaleSupported = (language: string): boolean => {
-    return Boolean(locales[language]
-        || locales[language.split('-')[0]])
-}
-
-export const getSupportedLocales = (): string[] =>
-    Object.keys(locales)
+export const getMessages = (language?: string | null): AppMessages =>
+    locales[resolveLanguage(language)]

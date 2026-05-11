@@ -10,6 +10,8 @@ src/
 ├── controllers/ # HTTP handlers (see src/controllers/CLAUDE.md)
 ├── errors/      # Custom errors & factories (see src/errors/CLAUDE.md)
 ├── interfaces/
+├── lib/         # Domain-specific modules (e.g. aiInsight/)
+├── locales/     # i18n message bundles (en.json, he.json) + getMessages()
 ├── middlewares/ # Express middleware (see src/middlewares/CLAUDE.md)
 ├── models/      # Data access layer (see src/models/CLAUDE.md)
 ├── responses/

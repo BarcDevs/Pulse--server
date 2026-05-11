@@ -2,8 +2,10 @@ import { randomInt } from 'crypto'
 import ms from 'ms'
 
 import { authConfig } from '../../config'
+import { getMessages } from '../locales'
 import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
+import { t } from '../utils/i18n'
 
 export const generateResetPasswordOTP = (): {
     OTP: number
@@ -60,10 +62,14 @@ export const sendForgotPasswordOTP = async (
         }
     )
 
+    const msgs = getMessages(user.profile?.language)
+        .emails.resetPassword
     await sendEmail(
         email,
-        'Reset Your Password',
-        `Your OTP to reset your password is: ${OTP}`
+        msgs.subject,
+        t(msgs.body, {
+            otp: OTP
+        })
     )
 
     return OTP
@@ -88,10 +94,14 @@ export const sendConfirmEmailOTP = async (
         }
     )
 
+    const msgs = getMessages(user.profile?.language)
+        .emails.confirmEmail
     await sendEmail(
         email,
-        'Confirm Email',
-        `Your OTP to confirm your email is: ${OTP}`
+        msgs.subject,
+        t(msgs.body, {
+            otp: OTP
+        })
     )
 
     return OTP

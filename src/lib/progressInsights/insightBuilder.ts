@@ -1,3 +1,4 @@
+import { getMessages } from '../../locales'
 import type {
     ProgressInsight,
     ProgressInsightHighlights,
@@ -58,10 +59,10 @@ export const buildFallbackInsight = (
     currentStart: Date,
     currentEnd: Date,
     previousStart: Date,
-    previousEnd: Date
+    previousEnd: Date,
+    language?: string | null
 ): ProgressInsight => ({
-    summary:
-        'Not enough data yet to detect trends. Keep checking in to unlock insights.',
+    summary: getMessages(language).progress.fallback,
     trend: 'stable',
     highlights: {
         improvements: [],

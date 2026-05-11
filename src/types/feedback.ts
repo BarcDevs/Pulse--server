@@ -65,19 +65,6 @@ export type InterventionContext = {
     }>
 }
 
-// Locale message structure (language-specific)
-export type LocaleMessages = Record<
-    LowStateDetectionReason,
-    Record<
-        Severity,
-        {
-            acknowledge: string[]
-            normalize: string[]
-            suggest?: string[]
-        }
-    >
->
-
 // Updated SupportiveMessage (tracks AI usage)
 export type SupportiveMessage = {
     type: 'support'

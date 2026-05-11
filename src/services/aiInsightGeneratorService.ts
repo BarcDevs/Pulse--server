@@ -20,6 +20,7 @@ export type GenerateInsightInput = {
     checkIns: CheckInType[]
     userId: string
     checkInId: string
+    language?: string | null
 }
 
 export type GenerateInsightOutput = {
@@ -30,21 +31,21 @@ export type GenerateInsightOutput = {
 export const generateInsight = async (
     input: GenerateInsightInput
 ): Promise<GenerateInsightOutput> => {
-    const { decision, checkIns } = input
+    const { decision, checkIns, language } = input
 
     const prompt = buildPromptByType(
         decision.type,
         checkIns,
+        language,
         decision.metadata
     )
 
     const provider = createProvider()
-    const title = generateTitle(decision.type)
+    const title = generateTitle(decision.type, language)
 
     let generatedContent: string
 
     try {
-        // Retry with: max 2 retries, 1000ms delay = 3 total attempts
         const result = await retryAsync(
             () => provider.generateContent({ prompt }),
             { maxRetries: 2, delayMs: 1000 }
@@ -70,7 +71,8 @@ export const generateInsight = async (
             }
         )
         const fallbackContent = getFallbackContent(
-            decision.type
+            decision.type,
+            language
         )
         return {
             title,
@@ -91,7 +93,8 @@ export const generateInsight = async (
             insightType: decision.type
         })
         const fallbackContent = getFallbackContent(
-            decision.type
+            decision.type,
+            language
         )
         return {
             title,

@@ -179,3 +179,17 @@ export const getUserTimezone = async (
     })
     return profile?.timezone ?? null
 }
+
+export const getUserLanguage = async (
+    userId: string
+): Promise<string> => {
+    const profile = await Prisma.profile.findUnique({
+        where: {
+            userId
+        },
+        select: {
+            language: true
+        }
+    })
+    return profile?.language ?? 'he'
+}

@@ -51,7 +51,8 @@ describe('generateInsight', () => {
             ),
             checkIns: [mockCheckIn()],
             userId: 'user1',
-            checkInId: 'check1'
+            checkInId: 'check1',
+            language: 'en'
         })
 
         expect(result.content).toBeTruthy()
@@ -83,7 +84,8 @@ describe('generateInsight', () => {
             ),
             checkIns: [mockCheckIn()],
             userId: 'user1',
-            checkInId: 'check1'
+            checkInId: 'check1',
+            language: 'en'
         })
 
         expect(
@@ -116,7 +118,8 @@ describe('generateInsight', () => {
                 ),
                 checkIns: [mockCheckIn()],
                 userId: 'user1',
-                checkInId: 'check1'
+                checkInId: 'check1',
+            language: 'en'
             })
 
             // Should have tried 3 times (initial + 2 retries)
@@ -156,7 +159,8 @@ describe('generateInsight', () => {
                 ),
                 checkIns: [mockCheckIn()],
                 userId: 'user1',
-                checkInId: 'check1'
+                checkInId: 'check1',
+            language: 'en'
             })
 
             // Called twice: once failed, once succeeded
@@ -194,7 +198,8 @@ describe('generateInsight', () => {
                 ),
                 checkIns: [mockCheckIn()],
                 userId: 'user1',
-                checkInId: 'check1'
+                checkInId: 'check1',
+            language: 'en'
             })
 
             // Should only call once (no retries for validation failure)
@@ -232,7 +237,8 @@ describe('generateInsight', () => {
                 ),
                 checkIns: [mockCheckIn()],
                 userId: 'user1',
-                checkInId: 'check1'
+                checkInId: 'check1',
+            language: 'en'
             })
 
             // 3 total attempts
@@ -270,7 +276,8 @@ describe('generateInsight', () => {
                 ),
                 checkIns: [mockCheckIn()],
                 userId: 'user1',
-                checkInId: 'check1'
+                checkInId: 'check1',
+            language: 'en'
             })
 
             expect(result).toHaveProperty('title')
