@@ -13,8 +13,5 @@ export const updateUserSchema = z.object({
         .regex(/^[a-zA-Z0-9]+$/)
         .min(3)
         .max(30)
-        .optional(),
-    email: z.string()
-        .email()
         .optional()
 })

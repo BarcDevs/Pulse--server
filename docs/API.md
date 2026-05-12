@@ -268,7 +268,6 @@ Clears the `accessToken` cookie.
 | `firstName` | string | Min 1, max 100 chars        |
 | `lastName`  | string | Min 1, max 100 chars        |
 | `username`  | string | Min 3, max 30 alphanumeric  |
-| `email`     | string | Valid `.com` / `.net` email |
 
 **Response `200`**
 ```json
@@ -280,7 +279,6 @@ Clears the `accessToken` cookie.
       "firstName": "string",
       "lastName": "string",
       "username": "string",
-      "email": "string",
       "role": "USER | ADMIN"
     }
   }
