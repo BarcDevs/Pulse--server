@@ -556,6 +556,11 @@ describe('User Routes', () => {
                     where: { id: mockUser.id },
                     data: { active: false }
                 })
+
+            const cookies = response.headers['set-cookie'] as string[]
+            expect(cookies).toBeDefined()
+            expect(cookies.some(c => c.startsWith('accessToken=;'))).toBe(true)
+            expect(cookies.some(c => c.startsWith('_csrf=;'))).toBe(true)
         })
 
         it('should return 401 when user not found', async () => {
