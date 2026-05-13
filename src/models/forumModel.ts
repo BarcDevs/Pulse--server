@@ -65,7 +65,11 @@ export const getPost = async (id: string):
 
 export const createPost = async (post: NewPostType):
     Promise<PostType> => {
-    const { authorId, tags, ...postData } = post
+    const {
+        authorId,
+        tags,
+        ...postData
+    } = post
 
     return (await Prisma.post.create({
         data: {
@@ -254,7 +258,11 @@ export const getTagsByPostId = async (id: string):
 
 export const createReply = async (reply: NewReplyType):
     Promise<ReplyType> => {
-    const { authorId, postId, body } = reply
+    const {
+        authorId,
+        postId,
+        body
+    } = reply
 
     return (await Prisma.reply.create({
         data: {

@@ -303,7 +303,11 @@ export const getRecommendations = async (
             }
         }
 
-        const { snapshot, generationPending, pendingSince } =
+        const {
+            snapshot,
+            generationPending,
+            pendingSince
+        } =
             await recommendationsModel.getSnapshotWithFlags(
                 latestCheckIn.id
             )

@@ -274,6 +274,7 @@ async function main() {
         for (let day = 6; day >= 0; day--) {
             const checkInDate = new Date(today)
             checkInDate.setDate(checkInDate.getDate() - day)
+            // eslint-disable-next-line custom-rules/enforce-function-call-breaking
             checkInDate.setHours(0, 0, 0, 0)
 
             await prisma.dailyCheckIn.upsert({

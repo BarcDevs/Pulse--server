@@ -93,6 +93,24 @@ export default {
                 }
             },
 
+            ObjectPattern (node) {
+                if (node.properties.length < 3) return
+
+                const props = node.properties
+                const firstProp = props[0]
+                const lastProp = props[props.length - 1]
+                const startLine = firstProp.loc.start.line
+                const endLine = lastProp.loc.end.line
+
+                if (startLine === endLine) {
+                    context.report({
+                        node,
+                        message:
+                            'Destructuring with 3+ properties must have each property on its own line'
+                    })
+                }
+            },
+
             ImportDeclaration (node) {
                 const specifiers = node.specifiers.filter(
                     spec => spec.type === 'ImportSpecifier'
