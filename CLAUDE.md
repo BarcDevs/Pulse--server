@@ -16,6 +16,17 @@ See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## 0. Learn From Mistakes
+
+**When corrected, save it. Don't repeat it.**
+
+- Any time the user corrects an approach, rejects output, or says "don't do X" — immediately save a feedback memory to `~/.claude/projects/.../memory/`
+- Also save when user confirms a non-obvious choice worked ("yes exactly", accepting an unusual approach) — not just corrections
+- Memory entry must include: the rule, **Why:** (reason given), **How to apply:** (when it triggers)
+- Before starting similar work in future sessions, check memory for relevant feedback
+- When user edits an Edit/Write suggestion before accepting: diff the original vs accepted version, identify what changed, save feedback memory for the pattern
+- Goal: user should never need to give the same correction twice
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
