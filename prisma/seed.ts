@@ -9,6 +9,7 @@ import { databaseConfig, isDev } from '../config'
 import {
     PrismaClient
 } from './generated/prisma/client'
+import { InsightType } from './generated/prisma/enums'
 
 const connectionString = databaseConfig.url
 
@@ -298,11 +299,11 @@ async function main() {
     }
 
     console.info('Seeding AI insights...')
-    const insightTypes = [
-        'MOOD_DROP_ALERT',
-        'MOTIVATIONAL',
-        'WEEKLY_SUMMARY',
-        'BAD_DAY_SUPPORT'
+    const insightTypes: InsightType[] = [
+        InsightType.MOOD_DROP_ALERT,
+        InsightType.MOTIVATIONAL,
+        InsightType.WEEKLY_SUMMARY,
+        InsightType.BAD_DAY_SUPPORT
     ]
 
     for (let i = 0; i < createdUsers.length; i++) {
@@ -338,9 +339,9 @@ async function main() {
                 data: {
                     checkInId: checkIn.id,
                     userId: user.id,
-                    type: insightType as any,
-                    content: insightContent[insightType as keyof typeof insightContent],
-                    title: insightTitle[insightType as keyof typeof insightTitle],
+                    type: insightType,
+                    content: insightContent[insightType],
+                    title: insightTitle[insightType],
                     classification: 'baseline',
                     priority: j === 0 ? 'high' : 'normal',
                     metadata: {

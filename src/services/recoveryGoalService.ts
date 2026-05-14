@@ -203,10 +203,13 @@ export const updateGoal = async (
             + 'goals'
         )
 
-    const updateData: Record<
-        string,
-        unknown
-    > = {}
+    const updateData: {
+        title?: string
+        description?: string | null
+        status?: GoalStatus
+        targetDate?: Date | null
+        isPrimary?: boolean
+    } = {}
 
     if (data.title !== undefined)
         updateData.title = data.title
@@ -235,8 +238,10 @@ export const updateGoal = async (
         updateData.isPrimary = false
     }
 
-    const updated = await RecoveryGoalModel
-        .updateGoal(id, updateData as any)
+    const updated = await RecoveryGoalModel.updateGoal(
+        id,
+        updateData
+    )
     if (!updated)
         throw errorFactory.generic.notFound(
             'Goal not found'

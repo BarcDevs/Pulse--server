@@ -5,6 +5,7 @@ import {
 import logger from '../../utils/logger'
 
 import {
+    type AIErrorResponse,
     AIProvider,
     type GenerateContentInput,
     type GenerateContentOutput
@@ -55,7 +56,7 @@ export class GoogleAIProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json() as any
+                const errorData = await response.json() as AIErrorResponse
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Ignore JSON parse errors
@@ -69,7 +70,13 @@ export class GoogleAIProvider extends AIProvider {
             )
         }
 
-        const data = await response.json() as any
+        const data = await response.json() as {
+            candidates?: Array<{
+                finishReason?: string
+                content?: { parts?: Array<{ text?: string }> }
+            }>
+            usageMetadata?: { totalTokenCount?: number }
+        }
 
         if (data.candidates?.[0]?.finishReason !== 'STOP') {
             logger.warn('Google AI: incomplete response', {

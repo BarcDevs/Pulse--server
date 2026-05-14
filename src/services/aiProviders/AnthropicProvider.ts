@@ -5,6 +5,7 @@ import {
 import logger from '../../utils/logger'
 
 import {
+    type AIErrorResponse,
     AIProvider,
     type GenerateContentInput,
     type GenerateContentOutput
@@ -53,7 +54,7 @@ export class AnthropicProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json() as any
+                const errorData = await response.json() as AIErrorResponse
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Ignore JSON parse errors
@@ -67,7 +68,7 @@ export class AnthropicProvider extends AIProvider {
             )
         }
 
-        const data = await response.json() as any
+        const data = await response.json() as { content?: Array<{ text?: string }> }
 
         if (
             !data.content

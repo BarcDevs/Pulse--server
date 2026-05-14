@@ -15,6 +15,7 @@ export default [
             'build/**',
             'coverage/**',
             'prisma/migrations/**',
+            'prisma/generated/**',
             'prisma/*.db',
             '.idea/**',
             '*.config.{js,ts,mjs}'

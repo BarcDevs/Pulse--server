@@ -5,6 +5,7 @@ import {
 import logger from '../../utils/logger'
 
 import {
+    type AIErrorResponse,
     AIProvider,
     type GenerateContentInput,
     type GenerateContentOutput
@@ -53,7 +54,7 @@ export class OpenAIProvider extends AIProvider {
         if (!response.ok) {
             let errorMsg = 'Unknown error'
             try {
-                const errorData = await response.json() as any
+                const errorData = await response.json() as AIErrorResponse
                 errorMsg = errorData.error?.message || 'API error'
             } catch {
                 // Intentionally suppress JSON parse errors
@@ -67,7 +68,9 @@ export class OpenAIProvider extends AIProvider {
             )
         }
 
-        const data = await response.json() as any
+        const data = await response.json() as {
+            choices?: Array<{ message?: { content?: string } }>
+        }
 
         if (
             !data.choices

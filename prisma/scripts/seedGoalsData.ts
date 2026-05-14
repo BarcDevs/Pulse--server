@@ -2,12 +2,12 @@ import { dayInMs } from '../../src/constants/time'
 import Prisma from '../../src/utils/prismaClient'
 
 const seedGoalsData = async () => {
-    console.log('Seeding goals and milestones...')
+    console.info('Seeding goals and milestones...')
 
     const users = await Prisma.user.findMany({ take: 5 })
 
     if (users.length === 0) {
-        console.log('No users found, skipping goals seed')
+        console.info('No users found, skipping goals seed')
         return
     }
 
@@ -142,13 +142,13 @@ const seedGoalsData = async () => {
         })
     }
 
-    console.log('Goals and milestones seeded successfully')
+    console.info('Goals and milestones seeded successfully')
 }
 
 seedGoalsData()
     .catch(e => {
         console.error('Seed error:', e)
-        process.exit(1)
+        throw e
     })
     .finally(async () => {
         await Prisma.$disconnect()

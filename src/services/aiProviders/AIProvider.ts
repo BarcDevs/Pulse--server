@@ -1,3 +1,5 @@
+export type AIErrorResponse = { error?: { message?: string } }
+
 export type AIProviderConfig = {
     apiKey: string
 }
