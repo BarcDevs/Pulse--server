@@ -79,6 +79,9 @@ export const deleteUser = async (
 
     await deactivateUser(userId)
 
+    res.clearCookie('accessToken')
+    res.clearCookie('_csrf')
+
     successResponse(
         res,
         null,

@@ -542,6 +542,7 @@ describe('User Routes', () => {
                     include: {
                         profile: {
                             select: {
+                                id: true,
                                 image: true,
                                 timezone: true,
                                 theme: true,

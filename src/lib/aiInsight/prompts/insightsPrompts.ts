@@ -15,7 +15,7 @@ const languageInstruction = (
     language?: string | null
 ): string => {
     const lang = resolveLanguage(language)
-    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language — do not translate word-for-word from English; use phrasing that feels native.`
+    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native.`
     const terminology =
         lang === 'he'
             ? " When referring to check-ins, use the term 'דיווח יומי'."
