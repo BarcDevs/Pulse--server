@@ -170,28 +170,32 @@
   "emails": {
     "resetPassword": {
       "subject": "Reset Your Password",
-      "body": "Your OTP to reset your password is: {{otp}}"
+      "body": "Your verification code for resetting your password is: {{otp}}"
     },
+
     "confirmEmail": {
-      "subject": "Confirm Email",
-      "body": "Your OTP to confirm your email is: {{otp}}"
+      "subject": "Confirm Your Email",
+      "body": "Your verification code for confirming your email is: {{otp}}"
     }
   },
+
   "insights": {
     "titles": {
-      "MOOD_DROP_ALERT": "Mood Check-In",
-      "MOTIVATIONAL": "Keep Going! 💪",
+      "MOOD_DROP_ALERT": "Mood Check In",
+      "MOTIVATIONAL": "Small Steps Still Matter",
       "WEEKLY_SUMMARY": "Weekly Reflection",
-      "BAD_DAY_SUPPORT": "Supportive Reflection"
+      "BAD_DAY_SUPPORT": "A Harder Day"
     },
+
     "fallback": {
-      "MOOD_DROP_ALERT": "We noticed your mood has felt lower recently. Take a moment to check in with what may be weighing on you today. Noticing the pattern is already a meaningful step.",
-      "MOTIVATIONAL": "Thank you for checking in with yourself today. Consistency is a powerful part of your journey.",
-      "WEEKLY_SUMMARY": "You've made time this week to reflect on your wellness. That dedication is something to acknowledge and build on.",
-      "BAD_DAY_SUPPORT": "You're noticing things are harder today. That awareness is the first step. Take what support feels right for you."
+      "MOOD_DROP_ALERT": "Your recent check ins suggest things may have felt a little heavier lately. Taking a moment to notice that pattern is already meaningful.",
+      "MOTIVATIONAL": "Thank you for taking a moment to check in today. Consistency is built one small step at a time.",
+      "WEEKLY_SUMMARY": "You made space this week to reflect on how things have been feeling. That consistency matters more than perfection.",
+      "BAD_DAY_SUPPORT": "Today may feel a little harder than usual. Try to focus on what feels manageable right now."
     }
   },
+
   "progress": {
-    "fallback": "Not enough data yet to detect trends. Keep checking in to unlock insights."
+    "fallback": "There is not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
   }
 }
