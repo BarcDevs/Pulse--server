@@ -1,5 +1,6 @@
 import rateLimit from 'express-rate-limit'
 
+import { isDev } from '../../config'
 import { minuteInMs } from '../constants/time'
 
 export const rateLimiter = rateLimit({
@@ -16,7 +17,7 @@ export const rateLimiter = rateLimit({
 
 export const otpRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
-    limit: 5, // Strict limit: 5 requests per 15 minutes per IP for OTP endpoints
+    limit: isDev ? 100 : 5,
     message:
         'Too many OTP requests from this IP, please try again after 15 minutes'
 })
