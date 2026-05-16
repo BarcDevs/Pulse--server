@@ -37,7 +37,7 @@ export const getPrismaClient = (): PrismaClient => {
             adapter,
             errorFormat: 'minimal',
             log:
-                isDev ? ['query', 'info', 'warn', 'error']
+                isDev ? ['info', 'warn', 'error']
                     : undefined
         })
 
