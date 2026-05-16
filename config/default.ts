@@ -36,7 +36,7 @@ export default {
     ai: {
         provider: 'google',
         anthropicModel: 'claude-3-5-sonnet-20241022',
-        googleModel: 'gemini-2.0-flash',
+        googleModel: 'gemini-3.1-flash-lite',
         openaiModel: 'gpt-4o-mini',
         openaiApiKey: '',
         anthropicApiKey: '',
