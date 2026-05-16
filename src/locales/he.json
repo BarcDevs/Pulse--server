@@ -169,29 +169,33 @@
 
   "emails": {
     "resetPassword": {
-      "subject": "Reset Your Password",
-      "body": "Your OTP to reset your password is: {{otp}}"
+      "subject": "איפוס סיסמה",
+      "body": "קוד האימות לאיפוס הסיסמה שלך הוא: {{otp}}"
     },
+
     "confirmEmail": {
-      "subject": "Confirm Email",
-      "body": "Your OTP to confirm your email is: {{otp}}"
+      "subject": "אימות כתובת אימייל",
+      "body": "קוד האימות לאישור כתובת האימייל שלך הוא: {{otp}}"
     }
   },
+
   "insights": {
     "titles": {
-      "MOOD_DROP_ALERT": "Mood Check-In",
-      "MOTIVATIONAL": "Keep Going! 💪",
-      "WEEKLY_SUMMARY": "Weekly Reflection",
-      "BAD_DAY_SUPPORT": "Supportive Reflection"
+      "MOOD_DROP_ALERT": "בדיקת מצב רוח",
+      "MOTIVATIONAL": "גם צעדים קטנים חשובים",
+      "WEEKLY_SUMMARY": "סיכום שבועי",
+      "BAD_DAY_SUPPORT": "יום מעט קשה יותר"
     },
+
     "fallback": {
-      "MOOD_DROP_ALERT": "We noticed your mood has felt lower recently. Take a moment to check in with what may be weighing on you today. Noticing the pattern is already a meaningful step.",
-      "MOTIVATIONAL": "Thank you for checking in with yourself today. Consistency is a powerful part of your journey.",
-      "WEEKLY_SUMMARY": "You've made time this week to reflect on your wellness. That dedication is something to acknowledge and build on.",
-      "BAD_DAY_SUPPORT": "You're noticing things are harder today. That awareness is the first step. Take what support feels right for you."
+      "MOOD_DROP_ALERT": "העדכונים האחרונים שלך מצביעים על תקופה מעט כבדה יותר. עצם תשומת הלב לדפוס הזה כבר משמעותית.",
+      "MOTIVATIONAL": "תודה שלקחת רגע לעצור ולעדכן היום. עקביות נבנית מצעדים קטנים לאורך זמן.",
+      "WEEKLY_SUMMARY": "מצאת זמן השבוע לעצור ולהתבונן במה שעובר עליך. עקביות חשובה יותר משלמות.",
+      "BAD_DAY_SUPPORT": "היום אולי מרגיש מעט קשה יותר מהרגיל. נסה להתמקד במה שמרגיש אפשרי ובר ניהול כרגע."
     }
   },
+
   "progress": {
-    "fallback": "Not enough data yet to detect trends. Keep checking in to unlock insights."
+    "fallback": "עדיין אין מספיק נתונים כדי לזהות דפוסים. המשך לעדכן כדי לפתוח תובנות אישיות לאורך זמן."
   }
 }
