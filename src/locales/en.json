@@ -1,184 +1,179 @@
 {
-  "LOW_MOOD": {
-    "low": {
-      "acknowledge": [
-        "Your mood is lower today.",
-        "You're noticing a dip in how you feel.",
-        "Your emotional state feels heavier right now."
-      ],
-      "normalize": [
-        "And that's a natural part of the recovery process.",
-        "But fluctuations in mood are completely normal.",
-        "This kind of variation is expected on the journey forward."
-      ],
-      "suggest": [
-        "Small actions still matter.",
-        "Even small steps forward count.",
-        "Your effort to stay engaged makes a difference."
-      ]
+  "feedback": {
+    "LOW_MOOD": {
+      "low": {
+        "acknowledge": [
+          "Your mood is lower today.",
+          "You're noticing a dip in how you feel.",
+          "Your emotional state feels heavier right now."
+        ],
+        "normalize": [
+          "And that's a natural part of the recovery process.",
+          "But fluctuations in mood are completely normal.",
+          "This kind of variation is expected on the journey forward."
+        ],
+        "suggest": [
+          "Small actions still matter.",
+          "Even small steps forward count.",
+          "Your effort to stay engaged makes a difference."
+        ]
+      },
+      "medium": {
+        "acknowledge": [
+          "Your mood has dropped noticeably.",
+          "You're experiencing a more significant emotional dip.",
+          "This is a heavier day for you emotionally."
+        ],
+        "normalize": [
+          "And this kind of fluctuation is expected in recovery.",
+          "But people experience these days regularly on their journey.",
+          "Difficult days are a normal part of the process."
+        ],
+        "suggest": [
+          "Be gentle with yourself today.",
+          "Self-compassion is important right now.",
+          "Taking care of yourself is the right move."
+        ]
+      },
+      "high": {
+        "acknowledge": [
+          "You're experiencing a significant low mood.",
+          "This is a very difficult emotional state right now.",
+          "Your mood has dropped considerably."
+        ],
+        "normalize": [
+          "Noticing what you're feeling is important.",
+          "Being aware of difficult emotions takes honesty.",
+          "Recognizing how heavy things feel right now matters."
+        ],
+        "suggest": [
+          "Rest and self-compassion are valid recovery tools.",
+          "Taking space to care for yourself is exactly what recovery needs.",
+          "This is a moment to prioritize gentle self-care."
+        ]
+      }
     },
-
-    "medium": {
-      "acknowledge": [
-        "Your mood has dropped noticeably.",
-        "You're experiencing a more significant emotional dip.",
-        "This is a heavier day for you emotionally."
-      ],
-      "normalize": [
-        "And this kind of fluctuation is expected in recovery.",
-        "But people experience these days regularly on their journey.",
-        "Difficult days are a normal part of the process."
-      ],
-      "suggest": [
-        "Be gentle with yourself today.",
-        "Self-compassion is important right now.",
-        "Taking care of yourself is the right move."
-      ]
+    "HIGH_PAIN": {
+      "low": {
+        "acknowledge": [
+          "Your pain level is slightly elevated.",
+          "You're noticing more physical discomfort today.",
+          "Pain is a bit higher than usual for you."
+        ],
+        "normalize": [
+          "And some variation in pain is completely expected.",
+          "But fluctuations are a normal part of your experience.",
+          "This kind of change happens to everyone managing pain."
+        ],
+        "suggest": [
+          "Gentle movement or rest can help.",
+          "Finding what soothes your body is key.",
+          "Being attentive to your body's needs is wise."
+        ]
+      },
+      "medium": {
+        "acknowledge": [
+          "Your pain levels are notably higher.",
+          "You're experiencing more significant physical discomfort.",
+          "Pain is affecting you more today."
+        ],
+        "normalize": [
+          "But pain variation is part of the recovery journey.",
+          "And fluctuations like this are completely understandable.",
+          "Higher pain days are part of what people experience."
+        ],
+        "suggest": [
+          "Rest is a valuable part of recovery.",
+          "Listen to what your body needs right now.",
+          "Prioritizing comfort today is the right choice."
+        ]
+      },
+      "high": {
+        "acknowledge": [
+          "You're managing significant pain right now.",
+          "Pain levels are quite high today.",
+          "This is a day of considerable physical struggle."
+        ],
+        "normalize": [
+          "Days like this can happen during recovery.",
+          "Even difficult days deserve care and attention.",
+          "Listening to your body is important right now."
+        ],
+        "suggest": [
+          "Rest and pain management tools are your priorities.",
+          "Focusing on comfort and relief is exactly right.",
+          "This is a time to use all the support available to you."
+        ]
+      }
     },
-
-    "high": {
-      "acknowledge": [
-        "You're experiencing a significant low mood.",
-        "This is a very difficult emotional state right now.",
-        "Your mood has dropped considerably."
-      ],
-      "normalize": [
-        "Noticing what you're feeling is important.",
-        "Being aware of difficult emotions takes honesty.",
-        "Recognizing how heavy things feel right now matters."
-      ],
-      "suggest": [
-        "Rest and self-compassion are valid recovery tools.",
-        "Taking space to care for yourself is exactly what recovery needs.",
-        "This is a moment to prioritize gentle self-care."
-      ]
+    "NEGATIVE_TREND": {
+      "low": {
+        "acknowledge": [
+          "You've noticed things feeling a bit harder lately.",
+          "There's been a subtle shift downward in how you're feeling.",
+          "A gentle decline has started to show up in your check-ins."
+        ],
+        "normalize": [
+          "And recovery isn't always a straight line upward.",
+          "But these small dips are a normal part of the journey.",
+          "Fluctuations like this happen to everyone in recovery."
+        ],
+        "suggest": [
+          "Staying aware is helpful, as you're doing.",
+          "Small adjustments in routine can help shift things.",
+          "Your awareness is already a valuable tool."
+        ]
+      },
+      "medium": {
+        "acknowledge": [
+          "There's been a noticeable downward trend in your mood or pain.",
+          "You've been moving in a harder direction over recent days.",
+          "A meaningful shift downward has emerged in your pattern."
+        ],
+        "normalize": [
+          "But recovery isn't always linear, and difficult periods are normal.",
+          "And these trends are something many people experience.",
+          "Setbacks and rough stretches are part of the process."
+        ],
+        "suggest": [
+          "Checking in with what might help is a good next step.",
+          "Small changes in your routine may help turn things around.",
+          "Being proactive about what you need is wise."
+        ]
+      },
+      "high": {
+        "acknowledge": [
+          "A significant downward trend has developed in your recent check-ins.",
+          "You're in a challenging period right now, with consistent struggles.",
+          "Things have been moving in a harder direction for several days."
+        ],
+        "normalize": [
+          "Periods like this can happen during recovery.",
+          "Recognizing difficult patterns is an important step.",
+          "Paying attention to these changes matters."
+        ],
+        "suggest": [
+          "This might be a time to lean on additional support.",
+          "Reaching out for help can make a real difference.",
+          "Extra care and resources can help shift what's happening."
+        ]
+      }
     }
   },
-
-  "HIGH_PAIN": {
-    "low": {
-      "acknowledge": [
-        "Your pain level is slightly elevated.",
-        "You're noticing more physical discomfort today.",
-        "Pain is a bit higher than usual for you."
-      ],
-      "normalize": [
-        "And some variation in pain is completely expected.",
-        "But fluctuations are a normal part of your experience.",
-        "This kind of change happens to everyone managing pain."
-      ],
-      "suggest": [
-        "Gentle movement or rest can help.",
-        "Finding what soothes your body is key.",
-        "Being attentive to your body's needs is wise."
-      ]
-    },
-
-    "medium": {
-      "acknowledge": [
-        "Your pain levels are notably higher.",
-        "You're experiencing more significant physical discomfort.",
-        "Pain is affecting you more today."
-      ],
-      "normalize": [
-        "But pain variation is part of the recovery journey.",
-        "And fluctuations like this are completely understandable.",
-        "Higher pain days are part of what people experience."
-      ],
-      "suggest": [
-        "Rest is a valuable part of recovery.",
-        "Listen to what your body needs right now.",
-        "Prioritizing comfort today is the right choice."
-      ]
-    },
-
-    "high": {
-      "acknowledge": [
-        "You're managing significant pain right now.",
-        "Pain levels are quite high today.",
-        "This is a day of considerable physical struggle."
-      ],
-      "normalize": [
-        "Days like this can happen during recovery.",
-        "Even difficult days deserve care and attention.",
-        "Listening to your body is important right now."
-      ],
-      "suggest": [
-        "Rest and pain management tools are your priorities.",
-        "Focusing on comfort and relief is exactly right.",
-        "This is a time to use all the support available to you."
-      ]
-    }
-  },
-
-  "NEGATIVE_TREND": {
-    "low": {
-      "acknowledge": [
-        "You've noticed things feeling a bit harder lately.",
-        "There's been a subtle shift downward in how you're feeling.",
-        "A gentle decline has started to show up in your check-ins."
-      ],
-      "normalize": [
-        "And recovery isn't always a straight line upward.",
-        "But these small dips are a normal part of the journey.",
-        "Fluctuations like this happen to everyone in recovery."
-      ],
-      "suggest": [
-        "Staying aware is helpful, as you're doing.",
-        "Small adjustments in routine can help shift things.",
-        "Your awareness is already a valuable tool."
-      ]
-    },
-
-    "medium": {
-      "acknowledge": [
-        "There's been a noticeable downward trend in your mood or pain.",
-        "You've been moving in a harder direction over recent days.",
-        "A meaningful shift downward has emerged in your pattern."
-      ],
-      "normalize": [
-        "But recovery isn't always linear, and difficult periods are normal.",
-        "And these trends are something many people experience.",
-        "Setbacks and rough stretches are part of the process."
-      ],
-      "suggest": [
-        "Checking in with what might help is a good next step.",
-        "Small changes in your routine may help turn things around.",
-        "Being proactive about what you need is wise."
-      ]
-    },
-
-    "high": {
-      "acknowledge": [
-        "A significant downward trend has developed in your recent check-ins.",
-        "You're in a challenging period right now, with consistent struggles.",
-        "Things have been moving in a harder direction for several days."
-      ],
-      "normalize": [
-        "Periods like this can happen during recovery.",
-        "Recognizing difficult patterns is an important step.",
-        "Paying attention to these changes matters."
-      ],
-      "suggest": [
-        "This might be a time to lean on additional support.",
-        "Reaching out for help can make a real difference.",
-        "Extra care and resources can help shift what's happening."
-      ]
-    }
-  },
-
   "emails": {
     "resetPassword": {
       "subject": "Reset Your Password",
       "body": "Your verification code for resetting your password is: {{otp}}"
     },
-
     "confirmEmail": {
       "subject": "Confirm Your Email",
       "body": "Your verification code for confirming your email is: {{otp}}"
+    },
+    "changeEmail": {
+      "subject": "Confirm Your New Email Address",
+      "body": "Use this verification code to confirm your new email address: {{otp}}"
     }
   },
-
   "insights": {
     "titles": {
       "MOOD_DROP_ALERT": "Mood Check In",
@@ -186,7 +181,6 @@
       "WEEKLY_SUMMARY": "Weekly Reflection",
       "BAD_DAY_SUPPORT": "A Harder Day"
     },
-
     "fallback": {
       "MOOD_DROP_ALERT": "Your recent check ins suggest things may have felt a little heavier lately. Taking a moment to notice that pattern is already meaningful.",
       "MOTIVATIONAL": "Thank you for taking a moment to check in today. Consistency is built one small step at a time.",
@@ -194,7 +188,6 @@
       "BAD_DAY_SUPPORT": "Today may feel a little harder than usual. Try to focus on what feels manageable right now."
     }
   },
-
   "progress": {
     "fallback": "There is not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
   }

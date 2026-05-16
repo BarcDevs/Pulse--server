@@ -21,11 +21,10 @@ export default {
     },
     email: {
         host: 'sandbox.smtp.mailtrap.io',
-        service: 'Mailtrap',
-        port: 465,
+        port: 2525,
         secure: false,
         emailUser: 'EMAIL_USER',
-        emailPass: 'EMAIL_PASS'
+        emailPass: 'EMAIL_PASSWORD'
     },
     googleOAuth: {
         clientId: '',

@@ -78,10 +78,13 @@ export type UserType = {
 export type ServerUserType = Prettify<
     UserType & {
         password: string
-        resetPasswordOTP?: number
-        resetPasswordExpiration?: Date
+        resetPasswordOTP?: number | null
+        resetPasswordExpiration?: Date | null
         passwordUpdatedAt: Date
-        deletedAt?: Date
+        deletedAt?: Date | null
+        pendingEmail?: string | null
+        emailChangeOTP?: number | null
+        emailChangeExpiration?: Date | null
     }
 >
 

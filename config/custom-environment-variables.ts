@@ -10,8 +10,8 @@ export default {
         jwtSecret: 'JWT_SECRET'
     },
     email: {
-        user: 'EMAIL_USER',
-        password: 'EMAIL_PASSWORD'
+        emailUser: 'EMAIL_USER',
+        emailPass: 'EMAIL_PASSWORD'
     },
     googleOAuth: {
         clientId: 'GOOGLE_CLIENT_ID',

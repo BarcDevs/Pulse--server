@@ -97,6 +97,12 @@ export const resetPassword = async (
         hashPassword(newPassword)
     )
 
+export const updateEmail = (
+    userId: string,
+    newEmail: string
+): Promise<ServerUserType> =>
+    authModel.updateEmail(userId, newEmail)
+
 export const deactivateUser = async (
     userId: string
 ): Promise<void> => {

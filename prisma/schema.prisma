@@ -25,6 +25,10 @@ model User {
   passwordUpdatedAt       DateTime  @default(now())
   deletedAt               DateTime?
 
+  pendingEmail          String?
+  emailChangeOTP        Int?
+  emailChangeExpiration DateTime?
+
   profile Profile?
 
   @@index([email, createdAt, active])

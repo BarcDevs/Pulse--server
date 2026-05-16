@@ -1,7 +1,9 @@
 import { Router } from 'express'
 
 import {
+    changeEmail,
     confirmEmail,
+    confirmEmailChange,
     forgotPassword,
     getCsrfToken,
     googleCallback,
@@ -12,6 +14,10 @@ import {
     resetPassword,
     signup
 } from '../controllers/authController'
+import {
+    csrfMiddleware,
+    extractCsrfToken
+} from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 import { otpRateLimiter } from '../middlewares/rateLimiting'
 
@@ -411,6 +417,128 @@ router
     .put(
         otpRateLimiter,
         resetPassword
+    )
+
+/**
+ * @swagger
+ * /api/v1/auth/change-email:
+ *   post:
+ *     summary: Request an email address change
+ *     description: Verifies the user's current password, then sends an OTP to the new email address.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [newEmail, password]
+ *             properties:
+ *               newEmail:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 description: Current account password for verification
+ *     responses:
+ *       200:
+ *         description: OTP sent to the new email address
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Invalid password or not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Email already in use
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/change-email')
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        otpRateLimiter,
+        changeEmail
+    )
+
+/**
+ * @swagger
+ * /api/v1/auth/confirm-email-change:
+ *   post:
+ *     summary: Confirm the new email address with OTP
+ *     description: Verifies the OTP sent to the new email and updates the account email address.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [OTP]
+ *             properties:
+ *               OTP:
+ *                 type: integer
+ *                 description: One-time password received at the new email address
+ *     responses:
+ *       200:
+ *         description: Email updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid or expired OTP, or no pending email change
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/confirm-email-change')
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        otpRateLimiter,
+        confirmEmailChange
     )
 
 export default router

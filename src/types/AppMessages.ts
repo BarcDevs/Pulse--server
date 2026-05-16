@@ -18,6 +18,7 @@ export type AppMessages = {
     emails: {
         resetPassword: { subject: string; body: string }
         confirmEmail: { subject: string; body: string }
+        changeEmail: { subject: string; body: string }
     }
     insights: {
         titles: Record<InsightType, string>

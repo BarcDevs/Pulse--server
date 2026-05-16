@@ -2,11 +2,12 @@ import nodemailer from 'nodemailer'
 
 import { emailConfig } from '../../config'
 
+import logger from './logger'
+
 const transporter = nodemailer.createTransport({
     host: emailConfig.host,
-    service: emailConfig.service,
-    secure: emailConfig.secure,
     port: emailConfig.port,
+    secure: emailConfig.secure,
     auth: {
         user: emailConfig.emailUser!,
         pass: emailConfig.emailPass!
@@ -28,12 +29,26 @@ export const sendEmail = async (
     try {
         const info =
             await transporter.sendMail(mailOptions)
-        console.info(`Email sent: ${info.response}`)
+        logger.info(`Email sent: ${info.response}`)
     } catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : 'Unknown error'
-        console.error('Error sending email:', message)
-        throw error
+        const user = emailConfig.emailUser ?? ''
+        logger.error('Failed to send email', {
+            to: email,
+            subject,
+            smtpUser: `${user.slice(0, 4)}****`,
+            smtpHost: emailConfig.host,
+            smtpPort: emailConfig.port,
+            error: error instanceof Error
+                ? {
+                    ...error,
+                    message: error.message,
+                    name: error.name
+                }
+                : String(error)
+        })
+        throw new Error(
+            'Failed to send email. Please try again later.',
+            { cause: error }
+        )
     }
 }

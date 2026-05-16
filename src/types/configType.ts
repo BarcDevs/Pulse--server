@@ -19,7 +19,6 @@ type DatabaseConfig = {
 
 type EmailConfig = {
     host: string
-    service: string
     port: number
     secure: boolean
     emailUser: string

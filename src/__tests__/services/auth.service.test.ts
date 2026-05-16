@@ -12,7 +12,7 @@ import {
     getCookiesOptions,
     sanitizeUserData
 } from '../../lib/authHelpers'
-import { verifyResetPasswordOTP } from '../../lib/authOTP'
+import { verifyOTP } from '../../lib/authOTP'
 import {
     login,
     signup
@@ -259,8 +259,8 @@ describe('Auth Service', () => {
         )
     })
 
-    // ==================== verifyResetPasswordOTP ====================
-    describe('verifyResetPasswordOTP', () => {
+    // ==================== verifyOTP ====================
+    describe('verifyOTP', () => {
         it(
             'should return true for valid OTP and not expired',
             () => {
@@ -269,7 +269,7 @@ describe('Auth Service', () => {
                 )
                 const otp = 123456
 
-                const result = verifyResetPasswordOTP(
+                const result = verifyOTP(
                     otp,
                     futureDate,
                     otp
@@ -284,7 +284,7 @@ describe('Auth Service', () => {
                 Date.now() + 1000 * 60 * 60
             )
 
-            const result = verifyResetPasswordOTP(
+            const result = verifyOTP(
                 123456,
                 futureDate,
                 654321
@@ -299,7 +299,7 @@ describe('Auth Service', () => {
             )
             const otp = 123456
 
-            const result = verifyResetPasswordOTP(
+            const result = verifyOTP(
                 otp,
                 pastDate,
                 otp
@@ -316,7 +316,7 @@ describe('Auth Service', () => {
                 )
                 const otp = 123456
 
-                const result = verifyResetPasswordOTP(
+                const result = verifyOTP(
                     otp,
                     futureDate,
                     '123456' as unknown as number

@@ -4,6 +4,7 @@ import type {
     Response
 } from 'express'
 
+import { isDev } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { CustomError } from '../errors/CustomError'
 import type { ResponseType } from '../types/responseType'
@@ -33,7 +34,7 @@ export const errorHandler = (
     type ErrorType = typeof err.message
     const response: ResponseType<ErrorType> = {
         message: 'Something went wrong',
-        error: err.message
+        error: isDev ? err.message : 'Internal server error'
     }
 
     return res

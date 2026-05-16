@@ -7,16 +7,28 @@ import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
 import { t } from '../utils/i18n'
 
-export const generateResetPasswordOTP = (): {
-    OTP: number
-    OTPExpiration: Date
+export const generateOTP = (): {
+    otp: number
+    expiration: Date
 } => {
-    const OTP = randomInt(100000, 1000000)
-    const OTPExpiration = new Date(
+    const otp = randomInt(100000, 1000000)
+    const expiration = new Date(
         Date.now() + ms(authConfig.otp_expiration)
     )
 
-    return { OTP, OTPExpiration }
+    return { otp, expiration }
+}
+
+export const verifyOTP = (
+    stored: number,
+    expiration: Date,
+    input: number
+): boolean => {
+    const now = new Date()
+    return (
+        now < expiration
+        && stored === +input
+    )
 }
 
 export const removeResetPasswordOTP = async (
@@ -31,15 +43,16 @@ export const removeResetPasswordOTP = async (
     )
 }
 
-export const verifyResetPasswordOTP = (
-    resetPasswordOTP: number,
-    resetPasswordExpiration: Date,
-    OTP: number
-): boolean => {
-    const now = new Date()
-    return (
-        now < resetPasswordExpiration
-        && resetPasswordOTP === +OTP
+export const removeEmailChangeOTP = async (
+    userId: string
+): Promise<void> => {
+    await authModel.setEmailChangeOTP(
+        userId,
+        {
+            pendingEmail: null,
+            emailChangeOTP: null,
+            emailChangeExpiration: null
+        }
     )
 }
 
@@ -51,14 +64,13 @@ export const sendForgotPasswordOTP = async (
 
     if (!user) return false
 
-    const { OTP, OTPExpiration } =
-        generateResetPasswordOTP()
+    const { otp, expiration } = generateOTP()
 
     await authModel.setUserOTP(
         user.id,
         {
-            resetPasswordOTP: OTP,
-            resetPasswordExpiration: OTPExpiration
+            resetPasswordOTP: otp,
+            resetPasswordExpiration: expiration
         }
     )
 
@@ -67,12 +79,10 @@ export const sendForgotPasswordOTP = async (
     await sendEmail(
         email,
         msgs.subject,
-        t(msgs.body, {
-            otp: OTP
-        })
+        t(msgs.body, { otp })
     )
 
-    return OTP
+    return otp
 }
 
 export const sendConfirmEmailOTP = async (
@@ -83,14 +93,13 @@ export const sendConfirmEmailOTP = async (
 
     if (!user) return false
 
-    const { OTP, OTPExpiration } =
-        generateResetPasswordOTP()
+    const { otp, expiration } = generateOTP()
 
     await authModel.setUserOTP(
         user.id,
         {
-            resetPasswordOTP: OTP,
-            resetPasswordExpiration: OTPExpiration
+            resetPasswordOTP: otp,
+            resetPasswordExpiration: expiration
         }
     )
 
@@ -99,10 +108,31 @@ export const sendConfirmEmailOTP = async (
     await sendEmail(
         email,
         msgs.subject,
-        t(msgs.body, {
-            otp: OTP
-        })
+        t(msgs.body, { otp })
     )
 
-    return OTP
+    return otp
+}
+
+export const sendEmailChangeOTP = async (
+    userId: string,
+    newEmail: string,
+    language?: string | null
+): Promise<number> => {
+    const { otp, expiration } = generateOTP()
+
+    await authModel.setEmailChangeOTP(userId, {
+        pendingEmail: newEmail,
+        emailChangeOTP: otp,
+        emailChangeExpiration: expiration
+    })
+
+    const msgs = getMessages(language).emails.changeEmail
+    await sendEmail(
+        newEmail,
+        msgs.subject,
+        t(msgs.body, { otp })
+    )
+
+    return otp
 }

@@ -223,6 +223,62 @@ Clears the `accessToken` cookie.
 
 ---
 
+### `POST /change-email`
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes
+
+Initiates an email change. Sends a 6-digit OTP to the new email address.
+
+**Body**
+| Field      | Type   | Required | Notes                       |
+|------------|--------|----------|-----------------------------|
+| `newEmail` | string | yes      | Valid email, not already in use |
+| `password` | string | yes      | Current account password    |
+
+**Response `200`**
+```json
+{
+  "message": "Verification code sent to your new email address!",
+  "data": { "OTP": null }
+}
+```
+
+**Dev Mode:** OTP returned in response for testing (null in production)
+
+**Errors:** `400` validation · `401` wrong password or not authenticated · `409` email already in use
+
+---
+
+### `POST /confirm-email-change`
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes
+
+Confirms the email change with the OTP sent to the new address. Updates the account email atomically.
+
+**Body**
+| Field | Type   | Required | Notes              |
+|-------|--------|----------|--------------------|
+| `OTP` | number | yes      | 6-digit OTP code   |
+
+**Response `200`**
+```json
+{
+  "message": "Email updated successfully!",
+  "data": {
+    "user": {
+      "id": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "username": "string",
+      "email": "new-email@example.com",
+      "role": "USER | ADMIN"
+    }
+  }
+}
+```
+
+**Errors:** `400` invalid/expired OTP or no pending change · `401` not authenticated
+
+---
+
 ### `PUT /reset-password`
 > Rate limited: 5 requests per 15 minutes
 

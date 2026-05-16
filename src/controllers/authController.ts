@@ -12,7 +12,10 @@ import {
 } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
-import { createToken } from '../lib/authCrypto'
+import {
+    comparePassword,
+    createToken
+} from '../lib/authCrypto'
 import { generateCSRFToken } from '../lib/authCSRF'
 import {
     generateRandomUsername,
@@ -21,10 +24,13 @@ import {
 } from '../lib/authHelpers'
 import {
     removeResetPasswordOTP,
+    sendEmailChangeOTP,
     sendForgotPasswordOTP,
-    verifyResetPasswordOTP
+    verifyOTP
 } from '../lib/authOTP'
 import { successResponse } from '../responses/success'
+import { changeEmailSchema } from '../schemas/auth/changeEmailSchema'
+import { confirmEmailChangeSchema } from '../schemas/auth/confirmEmailChangeSchema'
 import { confirmEmailSchema } from '../schemas/auth/confirmEmailSchema'
 import { forgotPasswordSchema } from '../schemas/auth/forgotPasswordSchema'
 import { loginSchema } from '../schemas/auth/loginSchema'
@@ -217,7 +223,7 @@ export const confirmEmail = async (
         throw errorFactory.auth.unauthorized()
 
     if (
-        !verifyResetPasswordOTP(
+        !verifyOTP(
             user.resetPasswordOTP!,
             user.resetPasswordExpiration!,
             OTP
@@ -263,7 +269,7 @@ export const resetPassword = async (
     }
 
     if (
-        !verifyResetPasswordOTP(
+        !verifyOTP(
             user.resetPasswordOTP!,
             user.resetPasswordExpiration!,
             userOTP
@@ -292,6 +298,109 @@ export const resetPassword = async (
         res,
         { user: sanitizeUserData(updatedUser) },
         'Password has changed successfully!'
+    )
+}
+// endregion
+
+// region Change Email Flow
+export const changeEmail = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+    const {
+        newEmail,
+        password
+    } = ValidationError.catchValidationErrors(
+        changeEmailSchema.safeParse(req.body)
+    )
+
+    const user = await authServices.getUser('id', userId!)
+    if (!user)
+        throw errorFactory.auth.unauthorized()
+
+    if (!comparePassword(password, user.password))
+        throw errorFactory.auth.credentials()
+
+    const emailTaken =
+        await authServices.getUser('email', newEmail)
+    if (emailTaken)
+        throw errorFactory.auth.conflict(
+            'Email already in use!'
+        )
+
+    const otpCode = await sendEmailChangeOTP(
+        user.id,
+        newEmail,
+        user.profile?.language
+    )
+
+    const OTP = isDev ? otpCode : null
+
+    successResponse(
+        res,
+        { OTP },
+        'Verification code sent to your new email address!'
+    )
+}
+
+export const confirmEmailChange = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+    const { OTP } =
+        ValidationError.catchValidationErrors(
+            confirmEmailChangeSchema.safeParse(req.body)
+        )
+
+    const user = await authServices.getUser('id', userId!)
+    if (!user)
+        throw errorFactory.auth.unauthorized()
+
+    if (
+        !user.emailChangeOTP
+        || !user.emailChangeExpiration
+        || !user.pendingEmail
+    )
+        throw errorFactory.validation.generic(
+            'No pending email change request.'
+        )
+
+    if (
+        !verifyOTP(
+            user.emailChangeOTP,
+            user.emailChangeExpiration,
+            OTP
+        )
+    )
+        throw errorFactory.validation.otpError()
+
+    let updatedUser: ServerUserType
+    try {
+        updatedUser =
+            await authServices.updateEmail(
+                user.id,
+                user.pendingEmail
+            )
+    } catch (err: unknown) {
+        const isPrismaUniqueViolation =
+            err instanceof Error
+            && 'code' in err
+            && (err as { code: string }).code === 'P2002'
+        if (isPrismaUniqueViolation)
+            throw errorFactory.auth.conflict(
+                'This email address has been taken. Please start the process again.'
+            )
+        throw err
+    }
+
+    successResponse<{
+        user: UserType
+    }>(
+        res,
+        { user: sanitizeUserData(updatedUser) },
+        'Email updated successfully!'
     )
 }
 // endregion

@@ -154,6 +154,39 @@ export const deleteUser = (id: string): Promise<ServerUserType> =>
         }
     }) as Promise<ServerUserType>
 
+export const setEmailChangeOTP = (
+    userId: string,
+    data: {
+        pendingEmail: string | null
+        emailChangeOTP: number | null
+        emailChangeExpiration: Date | null
+    }
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data
+    }) as Promise<ServerUserType>
+
+export const updateEmail = (
+    userId: string,
+    newEmail: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            email: newEmail,
+            pendingEmail: null,
+            emailChangeOTP: null,
+            emailChangeExpiration: null
+        }
+    }) as Promise<ServerUserType>
+
 export const linkGoogleId = (
     userId: string,
     googleId: string

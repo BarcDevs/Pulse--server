@@ -4,10 +4,21 @@ import { isDev } from '../../config'
 
 const consoleFormat = winston.format.combine(
     winston.format.colorize(),
-    winston.format.printf(
-        ({ level, message }) =>
-            `${level}: ${message}`
-    )
+    winston.format.printf(({
+        level,
+        message,
+        metadata
+    }) => {
+        const meta =
+            metadata && Object.keys(metadata).length
+                ? `\n${JSON.stringify(
+                    metadata,
+                    null,
+                    2
+                )}`
+                : ''
+        return `${level}: ${message}${meta}`
+    })
 )
 
 const transports: winston.transport[] = [

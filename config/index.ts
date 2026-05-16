@@ -40,7 +40,6 @@ const databaseConfig: DatabaseConfig = {
 
 const emailConfig: EmailConfig = {
     host: config.get<string>('email.host'),
-    service: config.get<string>('email.service'),
     port: config.get<number>('email.port'),
     secure: config.get<boolean>('email.secure'),
     emailUser: config.get<string>('email.emailUser'),

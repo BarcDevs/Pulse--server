@@ -4,8 +4,10 @@ import supertest from 'supertest'
 import App from '../../app'
 import { prismaMock } from '../setup/jestSetup'
 import {
+    createAuthenticatedRequest,
     createAuthToken,
-    createMockUser
+    createMockUser,
+    withCsrfAuth
 } from '../setup/testSetup'
 
 describe('Auth Routes', () => {
@@ -805,6 +807,307 @@ describe('Auth Routes', () => {
                         email: 'invalid-email',
                         OTP: 123456
                     })
+
+                expect(response.status).toBe(400)
+            }
+        )
+    })
+
+    // ==================== CHANGE EMAIL ====================
+    describe('POST /api/v1/auth/change-email', () => {
+        const endpoint = '/api/v1/auth/change-email'
+
+        it(
+            'should return 200 and send OTP for valid request',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(mockUser) // getUser by id
+                    .mockResolvedValueOnce(null)     // email not taken
+                prismaMock.user.update
+                    .mockResolvedValue(mockUser)     // setEmailChangeOTP
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({
+                    newEmail: 'newemail@test.com',
+                    password: 'Password123!'
+                })
+
+                expect(response.status).toBe(200)
+                expect(response.body.message).toBe(
+                    'Verification code sent to your new email address!'
+                )
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .post(endpoint)
+                    .send({
+                        newEmail: 'newemail@test.com',
+                        password: 'Password123!'
+                    })
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 400 for missing newEmail',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ password: 'Password123!' })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+                expect(response.body.error[0].property)
+                    .toBe('newEmail')
+            }
+        )
+
+        it(
+            'should return 400 for missing password',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ newEmail: 'newemail@test.com' })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+                expect(response.body.error[0].property)
+                    .toBe('password')
+            }
+        )
+
+        it(
+            'should return 400 for invalid email format',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({
+                    newEmail: 'not-an-email',
+                    password: 'Password123!'
+                })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+                expect(response.body.error[0].property)
+                    .toBe('newEmail')
+            }
+        )
+
+        it(
+            'should return 401 for wrong password',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({
+                    newEmail: 'newemail@test.com',
+                    password: 'WrongPassword123!'
+                })
+
+                expect(response.status).toBe(401)
+                expect(response.body.error[0].statusType)
+                    .toBe('Authentication Error')
+            }
+        )
+
+        it(
+            'should return 409 when new email is already taken',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(mockUser)          // getUser by id
+                    .mockResolvedValueOnce(createMockUser())  // email taken
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({
+                    newEmail: 'taken@test.com',
+                    password: 'Password123!'
+                })
+
+                expect(response.status).toBe(409)
+                expect(response.body.error[0].statusType)
+                    .toBe('Conflict')
+            }
+        )
+    })
+
+    // ==================== CONFIRM EMAIL CHANGE ====================
+    describe('POST /api/v1/auth/confirm-email-change', () => {
+        const endpoint = '/api/v1/auth/confirm-email-change'
+
+        it(
+            'should return 200 and updated user on valid OTP',
+            async () => {
+                const OTP = 123456
+                const pendingEmail = 'new@test.com'
+                const mockUser = createMockUser({
+                    emailChangeOTP: OTP,
+                    emailChangeExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    pendingEmail
+                })
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+                prismaMock.user.update
+                    .mockResolvedValue({ ...mockUser, email: pendingEmail })
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP })
+
+                expect(response.status).toBe(200)
+                expect(response.body.message)
+                    .toBe('Email updated successfully!')
+                expect(response.body.data.user.email)
+                    .toBe(pendingEmail)
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .post(endpoint)
+                    .send({ OTP: 123456 })
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 400 for missing OTP',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({})
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+            }
+        )
+
+        it(
+            'should return 400 for wrong OTP',
+            async () => {
+                const OTP = 123456
+                const mockUser = createMockUser({
+                    emailChangeOTP: OTP,
+                    emailChangeExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    pendingEmail: 'new@test.com'
+                })
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP: 999999 })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+            }
+        )
+
+        it(
+            'should return 400 for expired OTP',
+            async () => {
+                const OTP = 123456
+                const mockUser = createMockUser({
+                    emailChangeOTP: OTP,
+                    emailChangeExpiration: new Date(
+                        Date.now() - 1000
+                    ),
+                    pendingEmail: 'new@test.com'
+                })
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+            }
+        )
+
+        it(
+            'should return 400 when no pending email change exists',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP: 123456 })
 
                 expect(response.status).toBe(400)
             }
