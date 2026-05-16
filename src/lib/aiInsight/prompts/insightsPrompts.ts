@@ -13,8 +13,15 @@ import {
 
 const languageInstruction = (
     language?: string | null
-): string =>
-    `Respond entirely in ${resolveLanguage(language)}. Write naturally for native speakers of that language.`
+): string => {
+    const lang = resolveLanguage(language)
+    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language — do not translate word-for-word from English; use phrasing that feels native.`
+    const terminology =
+        lang === 'he'
+            ? " When referring to check-ins, use the term 'דיווח יומי'."
+            : ''
+    return base + terminology
+}
 
 // region Prompt Builders
 
