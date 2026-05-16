@@ -6,6 +6,7 @@ import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
 import * as authModel from '../models/authModel'
 import type { ServerUserType } from '../types/data/UserType'
+import logger from '../utils/logger'
 import Prisma from '../utils/prismaClient'
 
 const oAuth2Client = new OAuth2Client(
@@ -52,7 +53,8 @@ export const exchangeCodeForTokens = async (
         const { tokens } =
             await oAuth2Client.getToken(code)
         return tokens
-    } catch {
+    } catch (error) {
+        logger.error(`[GoogleOAuth] Token exchange failed: ${error}`)
         throw new AuthError(
             'Failed to authenticate with Google',
             undefined,
@@ -107,6 +109,7 @@ export const fetchGoogleProfile = async (
     } catch (error) {
         if (error instanceof AuthError) throw error
 
+        logger.error(`[GoogleOAuth] Profile fetch failed: ${error}`)
         throw new AuthError(
             'Failed to retrieve Google profile',
             undefined,

@@ -59,10 +59,9 @@ export class AnthropicProvider extends AIProvider {
             } catch {
                 // Ignore JSON parse errors
             }
-            logger.error('Anthropic API request failed', {
-                status: response.status,
-                error: errorMsg
-            })
+            logger.error(
+                `Anthropic API request failed: ${response.status} — ${errorMsg}`
+            )
             throw new Error(
                 `Failed to generate content from Anthropic: ${response.status}`
             )

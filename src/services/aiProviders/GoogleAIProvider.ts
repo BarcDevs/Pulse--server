@@ -61,10 +61,9 @@ export class GoogleAIProvider extends AIProvider {
             } catch {
                 // Ignore JSON parse errors
             }
-            logger.error('Google AI API request failed', {
-                status: response.status,
-                error: errorMsg
-            })
+            logger.error(
+                `Google AI API request failed: ${response.status} — ${errorMsg}`
+            )
             throw new Error(
                 `Failed to generate content from Google AI: ${response.status}`
             )
@@ -79,10 +78,9 @@ export class GoogleAIProvider extends AIProvider {
         }
 
         if (data.candidates?.[0]?.finishReason !== 'STOP') {
-            logger.warn('Google AI: incomplete response', {
-                finishReason: data.candidates?.[0]?.finishReason,
-                tokenUsage: data.usageMetadata?.totalTokenCount
-            })
+            logger.warn(
+                `Google AI: incomplete response — finishReason=${data.candidates?.[0]?.finishReason}, tokens=${data.usageMetadata?.totalTokenCount}`
+            )
         }
 
         if (

@@ -59,10 +59,9 @@ export class OpenAIProvider extends AIProvider {
             } catch {
                 // Intentionally suppress JSON parse errors
             }
-            logger.error('OpenAI API request failed', {
-                status: response.status,
-                error: errorMsg
-            })
+            logger.error(
+                `OpenAI API request failed: ${response.status} — ${errorMsg}`
+            )
             throw new Error(
                 `Failed to generate content from OpenAI: ${response.status}`
             )
