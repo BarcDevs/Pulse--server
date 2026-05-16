@@ -14,6 +14,7 @@ import {
     classifyTrend,
     computeDeltas
 } from '../lib/progressInsights/trendClassifier'
+import { getUserLanguage } from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
 import { getProfileIdForUser } from '../models/checkInModel'
 import type { ProgressInsight } from '../types/data/ProgressInsightType'
@@ -38,7 +39,10 @@ const getLastCheckInTimestamp = async (
 export const generateProgressInsight = async (
     userId: string
 ): Promise<ProgressInsight> => {
-    const profileId = await getProfileIdForUser(userId)
+    const [profileId, userLanguage] = await Promise.all([
+        getProfileIdForUser(userId),
+        getUserLanguage(userId)
+    ])
 
     const {
         currentStart,
@@ -79,7 +83,8 @@ export const generateProgressInsight = async (
             currentStart,
             currentEnd,
             previousStart,
-            previousEnd
+            previousEnd,
+            userLanguage
         )
 
         cache.set(

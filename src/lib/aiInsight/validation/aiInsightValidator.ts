@@ -1,9 +1,9 @@
 import {
-    FALLBACK_INSIGHTS,
     MAX_CONTENT_LENGTH,
     MAX_SENTENCES,
     MIN_CONTENT_LENGTH
 } from '../../../constants/aiInsight/validation'
+import { getMessages } from '../../../locales'
 import type { InsightType } from '../../../types/insight'
 
 import {
@@ -19,7 +19,6 @@ type ValidationResult = {
 }
 
 // region Individual Validators
-
 const isTitleValid = (title: string): ValidationResult => {
     if (!title || title.trim().length === 0) {
         return {
@@ -131,8 +130,10 @@ export const validateGeneratedInsight = (
 // region Fallback Content
 
 export const getFallbackContent = (
-    insightType: InsightType
+    insightType: InsightType,
+    language?: string | null
 ): string =>
-    FALLBACK_INSIGHTS[insightType]
+    getMessages(language)
+        .insights.fallback[insightType]
 
 // endregion

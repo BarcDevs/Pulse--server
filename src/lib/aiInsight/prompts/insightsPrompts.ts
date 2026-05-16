@@ -1,3 +1,4 @@
+import { getMessages, resolveLanguage } from '../../../locales'
 import type { CheckInType } from '../../../types/data/CheckInType'
 import type { InsightType } from '../../../types/insight'
 
@@ -10,10 +11,16 @@ import {
     getTopActivities
 } from './insightsPromptHelpers'
 
+const languageInstruction = (
+    language?: string | null
+): string =>
+    `Respond entirely in ${resolveLanguage(language)}. Write naturally for native speakers of that language.`
+
 // region Prompt Builders
 
 export const buildPromptForMoodDropAlert = (
     checkIns: CheckInType[],
+    language?: string | null,
     moodTrend?: number[]
 ): string => {
     const recentMoods = formatMoodTrend(moodTrend)
@@ -22,6 +29,7 @@ export const buildPromptForMoodDropAlert = (
     return `
 You are a recovery support assistant for HealEase.
 Your role is to help users reflect on recovery patterns in a calm, supportive, non-clinical way.
+${languageInstruction(language)}
 
 Context:
 - The user's mood has decreased across their latest 3 check-ins
@@ -45,6 +53,7 @@ Output only the final message text.
 
 export const buildPromptForMotivational = (
     checkIns: CheckInType[],
+    language?: string | null,
     currentStreak?: number
 ): string => {
     const streakLine = formatStreakLine(currentStreak)
@@ -53,6 +62,7 @@ export const buildPromptForMotivational = (
     return `
 You are a recovery support assistant for HealEase.
 Your role is to encourage consistency without sounding cheesy or exaggerated.
+${languageInstruction(language)}
 
 Context:
 - ${streakLine}
@@ -74,17 +84,19 @@ Output only the final message text.
 
 export const buildPromptForWeeklySummary = (
     checkIns: CheckInType[],
+    language?: string | null,
     currentStreak?: number,
     checkInCount?: number
 ): string => {
     const avgMood = calculateAverageMood(checkIns)
     const topActivities = getTopActivities(checkIns)
-    const displayStreak = currentStreak || 1
+    const displayStreak = currentStreak ?? 1
     const streakLabel = `${displayStreak} day${displayStreak > 1 ? 's' : ''}`
 
     return `
 You are a recovery support assistant for HealEase.
 Your role is to summarize recovery check-in patterns in a supportive and practical way.
+${languageInstruction(language)}
 
 Context:
 - Check-ins analyzed: ${checkInCount || checkIns.length}
@@ -112,21 +124,16 @@ Output only the final message text.
 // region Title & Dispatcher
 
 export const generateTitle = (
-    insightType: InsightType
-): string => {
-    const titles: Record<InsightType, string> = {
-        MOOD_DROP_ALERT: 'Mood Check-In',
-        MOTIVATIONAL: 'Keep Going! 💪',
-        WEEKLY_SUMMARY: 'Weekly Reflection',
-        BAD_DAY_SUPPORT: 'Supportive Reflection'
-    }
-
-    return titles[insightType]
-}
+    insightType: InsightType,
+    language?: string | null
+): string =>
+    getMessages(language)
+        .insights.titles[insightType]
 
 export const buildPromptByType = (
     insightType: InsightType,
     checkIns: CheckInType[],
+    language?: string | null,
     metadata?: {
         currentStreak?: number
         moodTrend?: number[]
@@ -137,18 +144,21 @@ export const buildPromptByType = (
         case 'MOOD_DROP_ALERT':
             return buildPromptForMoodDropAlert(
                 checkIns,
+                language,
                 metadata?.moodTrend
             )
 
         case 'MOTIVATIONAL':
             return buildPromptForMotivational(
                 checkIns,
+                language,
                 metadata?.currentStreak
             )
 
         case 'WEEKLY_SUMMARY':
             return buildPromptForWeeklySummary(
                 checkIns,
+                language,
                 metadata?.currentStreak,
                 metadata?.checkInCount
             )

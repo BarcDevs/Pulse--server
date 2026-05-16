@@ -44,7 +44,7 @@ model Profile {
   anonymousParticipation Boolean   @default(true)
   communityAlerts        Boolean   @default(false)
   dailyReminder          Boolean   @default(true)
-  language               String    @default("en-US")
+  language               String    @default("he-IL")
   profileVisibility      String    @default("friends")
   theme                  String    @default("light")
   lastCheckInAt          DateTime?
@@ -200,12 +200,12 @@ model AIInsight {
 }
 
 model Tag {
-  id          String        @id @default(uuid())
-  name        String        @unique
+  id          String         @id @default(uuid())
+  name        String         @unique
   description String?
-  createdAt   DateTime      @default(now())
-  slug        String        @unique
-  posts       Post[]        @relation("PostToTag")
+  createdAt   DateTime       @default(now())
+  slug        String         @unique
+  posts       Post[]         @relation("PostToTag")
   profiles    ProfileToTag[]
 }
 

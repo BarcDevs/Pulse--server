@@ -1,8 +1,9 @@
 import { decideInsightType } from '../lib/aiInsight/decision/InsightDecision'
 import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import { getFallbackContent } from '../lib/aiInsight/validation/aiInsightValidator'
+import { getMessages } from '../locales'
 import * as aiInsightModel from '../models/aiInsightModel'
-import { getUserTimezone } from '../models/authModel'
+import { getUserLanguage, getUserTimezone } from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
 import type { CheckInType } from '../types/data/CheckInType'
 import logger from '../utils/logger'
@@ -15,7 +16,8 @@ const generateBaselineInsight = async (
     userId: string,
     checkInId: string,
     recentCheckIns: CheckInType[],
-    userTimezone: string | null
+    userTimezone: string | null,
+    userLanguage: string
 ): Promise<void> => {
     const decision = decideInsightType(
         recentCheckIns,
@@ -31,7 +33,8 @@ const generateBaselineInsight = async (
             decision,
             checkIns: recentCheckIns,
             userId,
-            checkInId
+            checkInId,
+            language: userLanguage
         })
         title = generated.title
         content = generated.content
@@ -49,8 +52,8 @@ const generateBaselineInsight = async (
                 error: errorMsg
             }
         )
-        title = generateTitle(decision.type)
-        content = getFallbackContent(decision.type)
+        title = generateTitle(decision.type, userLanguage)
+        content = getFallbackContent(decision.type, userLanguage)
     }
 
     await aiInsightModel.createInsight({
@@ -78,7 +81,8 @@ const generateInterventionInsightInternal = async (
     userId: string,
     checkInId: string,
     recentCheckIns: CheckInType[],
-    userTimezone: string | null
+    userTimezone: string | null,
+    userLanguage: string
 ): Promise<void> => {
     const current = recentCheckIns[0]
     const history = recentCheckIns.slice(1)
@@ -91,8 +95,6 @@ const generateInterventionInsightInternal = async (
             || (i.metadata?.mode === 'SOFT')
             || (i.metadata?.mode === 'SILENT')
     )
-
-    const userLanguage = userTimezone || 'en'
 
     const supportMessage = await generateInterventionInsight(
         userId,
@@ -107,13 +109,15 @@ const generateInterventionInsightInternal = async (
         return
     }
 
-    // Create intervention insight for all modes
+    const interventionTitle = getMessages(userLanguage)
+        .insights.titles.BAD_DAY_SUPPORT
+
     // SILENT mode has empty message but still tracks intervention
     await aiInsightModel.createInsight({
         userId,
         checkInId,
         insightType: 'BAD_DAY_SUPPORT',
-        title: 'Supportive Reflection',
+        title: interventionTitle,
         content: supportMessage.message,
         classification: 'intervention',
         priority: supportMessage.priority,
@@ -146,22 +150,26 @@ export const generateInsightForCheckIn = async (
         return
     }
 
-    const userTimezone = await getUserTimezone(userId)
+    const [userTimezone, userLanguage] = await Promise.all([
+        getUserTimezone(userId),
+        getUserLanguage(userId)
+    ])
 
     await generateBaselineInsight(
         userId,
         checkInId,
         recentCheckIns,
-        userTimezone
+        userTimezone,
+        userLanguage
     )
 
-    // Intervention detection: check for low state and generate supportive message
     if (!isFirstCheckIn(recentCheckIns.slice(1))) {
         await generateInterventionInsightInternal(
             userId,
             checkInId,
             recentCheckIns,
-            userTimezone
+            userTimezone,
+            userLanguage
         )
     }
 }

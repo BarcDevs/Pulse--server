@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { getLocaleMessages } from '../../locales'
+import { getMessages } from '../../locales'
 import type {
     InterventionContext,
     InterventionIntent
@@ -18,9 +18,10 @@ export const renderFallback = (
     userLanguage: string,
     userId?: string
 ): MessageParts => {
-    const localeMessages = getLocaleMessages(userLanguage)
+    const localeMessages = getMessages(userLanguage)
 
-    const messageSet = localeMessages[intent.primaryReason][intent.severity]
+    const messageSet = localeMessages
+        .feedback[intent.primaryReason][intent.severity]
 
     return pickVariants(
         messageSet,
