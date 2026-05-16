@@ -144,6 +144,7 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
       "createdAt": "ISO 8601 date",
       "active": "boolean",
       "profile?": {
+        "id": "string",
         "image": "string | null",
         "timezone": "string | null",
         "theme": "light | dark",

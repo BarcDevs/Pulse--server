@@ -13,6 +13,7 @@ export const getUserById = async (id: string):
         include: {
             profile: {
                 select: {
+                    id: true,
                     image: true,
                     timezone: true,
                     theme: true,
@@ -38,6 +39,7 @@ export const getUserByEmail = async (
         include: {
             profile: {
                 select: {
+                    id: true,
                     image: true,
                     timezone: true,
                     theme: true,
