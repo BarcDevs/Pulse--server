@@ -17,6 +17,7 @@
         "Your effort to stay engaged makes a difference."
       ]
     },
+
     "medium": {
       "acknowledge": [
         "Your mood has dropped noticeably.",
@@ -34,6 +35,7 @@
         "Taking care of yourself is the right move."
       ]
     },
+
     "high": {
       "acknowledge": [
         "You're experiencing a significant low mood.",
@@ -41,9 +43,9 @@
         "Your mood has dropped considerably."
       ],
       "normalize": [
-        "Which shows your honest self-awareness.",
-        "And your awareness of it is actually a strength.",
-        "Your honesty about how you're feeling matters."
+        "Noticing what you're feeling is important.",
+        "Being aware of difficult emotions takes honesty.",
+        "Recognizing how heavy things feel right now matters."
       ],
       "suggest": [
         "Rest and self-compassion are valid recovery tools.",
@@ -52,6 +54,7 @@
       ]
     }
   },
+
   "HIGH_PAIN": {
     "low": {
       "acknowledge": [
@@ -70,6 +73,7 @@
         "Being attentive to your body's needs is wise."
       ]
     },
+
     "medium": {
       "acknowledge": [
         "Your pain levels are notably higher.",
@@ -87,6 +91,7 @@
         "Prioritizing comfort today is the right choice."
       ]
     },
+
     "high": {
       "acknowledge": [
         "You're managing significant pain right now.",
@@ -94,9 +99,9 @@
         "This is a day of considerable physical struggle."
       ],
       "normalize": [
-        "And reaching out when pain is this high shows strength.",
-        "Your willingness to track even on difficult days matters.",
-        "Acknowledging severe pain is an important part of care."
+        "Days like this can happen during recovery.",
+        "Even difficult days deserve care and attention.",
+        "Listening to your body is important right now."
       ],
       "suggest": [
         "Rest and pain management tools are your priorities.",
@@ -105,6 +110,7 @@
       ]
     }
   },
+
   "NEGATIVE_TREND": {
     "low": {
       "acknowledge": [
@@ -123,6 +129,7 @@
         "Your awareness is already a valuable tool."
       ]
     },
+
     "medium": {
       "acknowledge": [
         "There's been a noticeable downward trend in your mood or pain.",
@@ -140,6 +147,7 @@
         "Being proactive about what you need is wise."
       ]
     },
+
     "high": {
       "acknowledge": [
         "A significant downward trend has developed in your recent check-ins.",
@@ -147,9 +155,9 @@
         "Things have been moving in a harder direction for several days."
       ],
       "normalize": [
-        "And even strong people experience periods like this.",
-        "Your honesty about the trend shows real self-awareness.",
-        "Recognizing difficult patterns is an important strength."
+        "Periods like this can happen during recovery.",
+        "Recognizing difficult patterns is an important step.",
+        "Paying attention to these changes matters."
       ],
       "suggest": [
         "This might be a time to lean on additional support.",
