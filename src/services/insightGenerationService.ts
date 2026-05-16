@@ -135,7 +135,8 @@ export const generateInsightForCheckIn = async (
     userId: string,
     checkInId: string
 ): Promise<void> => {
-    const recentCheckIns = await checkInModel.getCheckIns(userId, 7)
+    const profileId = await checkInModel.getProfileIdForUser(userId)
+    const recentCheckIns = await checkInModel.getCheckIns(profileId, 7)
 
     if (recentCheckIns.length === 0) {
         logger.warn(
