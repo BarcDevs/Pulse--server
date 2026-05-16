@@ -21,6 +21,22 @@ export const getProfileIdForUser = async (
     return profile.id
 }
 
+export const getProfileContext = async (
+    userId: string
+): Promise<{ id: string; timezone: string | null }> => {
+    const profile = await Prisma.profile.findUnique({
+        where: { userId },
+        select: { id: true, timezone: true }
+    })
+
+    if (!profile)
+        throw new Error(
+            `Profile not found for user ${userId}`
+        )
+
+    return profile
+}
+
 export const getCheckIns = async (
     profileId: string,
     limit = 30
@@ -48,11 +64,11 @@ export const findTodayCheckIn = async (
 
 export const createCheckIn = async (
     data: NewCheckInType,
+    profileId: string,
     checkInDate: Date,
     createdAt?: Date
 ): Promise<CheckInType> => {
-    const { userId, ...checkInData } = data
-    const profileId = await getProfileIdForUser(userId)
+    const { userId: _userId, ...checkInData } = data
 
     return (await Prisma.dailyCheckIn.create({
         data: {

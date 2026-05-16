@@ -1,4 +1,3 @@
-import * as authModel from '../models/authModel'
 import logger from '../utils/logger'
 
 export const toDateStr = (d: Date): string =>
@@ -104,10 +103,3 @@ export const resolveTimestampInUserTimeZone = (
     }
 }
 
-export const resolveDate = async (
-    userId: string
-): Promise<Date> => {
-    const userTimezone = await authModel
-        .getUserTimezone(userId)
-    return resolveCheckInDate(userTimezone)
-}

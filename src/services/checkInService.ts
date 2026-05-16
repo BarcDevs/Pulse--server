@@ -1,7 +1,7 @@
 import { Prisma } from '../../prisma/generated/prisma/client'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
-    resolveDate,
+    resolveCheckInDate,
     resolveTimestampInUserTimeZone
 } from '../lib/checkInDateHelpers'
 import {
@@ -10,9 +10,11 @@ import {
     calculateStreaks,
     calculateTopActivities
 } from '../lib/checkInStats'
-import * as authModel from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
-import { getProfileIdForUser } from '../models/checkInModel'
+import {
+    getProfileContext,
+    getProfileIdForUser
+} from '../models/checkInModel'
 import type {
     CheckInStatsType,
     CheckInType,
@@ -42,25 +44,16 @@ export const createCheckIn = async (
     checkIn: CheckInType
     created: boolean
 }> => {
-    const checkInDate =
-        await resolveDate(data.userId)
-    const userTimezone = await authModel
-        .getUserTimezone(data.userId)
-    const createdAt = resolveTimestampInUserTimeZone(userTimezone)
-
-    const profileId = await getProfileIdForUser(data.userId)
+    const { id: profileId, timezone } =
+        await getProfileContext(data.userId)
+    const checkInDate = resolveCheckInDate(timezone)
+    const createdAt = resolveTimestampInUserTimeZone(timezone)
 
     const existing = await checkInModel
-        .findTodayCheckIn(
-            profileId,
-            checkInDate
-        )
+        .findTodayCheckIn(profileId, checkInDate)
 
     if (existing) {
-        const {
-            userId: _userId,
-            ...updateData
-        } = data
+        const { userId: _userId, ...updateData } = data
         await checkInModel.updateCheckIn(
             profileId,
             checkInDate,
@@ -68,68 +61,33 @@ export const createCheckIn = async (
             createdAt
         )
 
-        await generateInsightSafely(
-            data.userId,
-            existing.id
-        )
+        await generateInsightSafely(data.userId, existing.id)
+        await generateRecommendationsSafely(data.userId, existing.id)
 
-        await generateRecommendationsSafely(
-            data.userId,
-            existing.id
-        )
-
-        // Re-fetch with insights loaded
         const checkIn = await checkInModel
-            .findTodayCheckIn(
-                profileId,
-                checkInDate
-            )
+            .findTodayCheckIn(profileId, checkInDate)
 
-        return {
-            checkIn: checkIn!,
-            created: false
-        }
+        return { checkIn: checkIn!, created: false }
     }
 
     try {
         const checkIn = await checkInModel
-            .createCheckIn(
-                data,
-                checkInDate,
-                createdAt
-            )
+            .createCheckIn(data, profileId, checkInDate, createdAt)
 
         await checkInModel.updateUserLastCheckIn(data.userId)
+        await generateInsightSafely(data.userId, checkIn.id)
+        await generateRecommendationsSafely(data.userId, checkIn.id)
 
-        await generateInsightSafely(
-            data.userId,
-            checkIn.id
-        )
+        const checkInWithInsights = await checkInModel
+            .findTodayCheckIn(profileId, checkInDate)
 
-        await generateRecommendationsSafely(
-            data.userId,
-            checkIn.id
-        )
-
-        const checkInWithInsights =
-            await checkInModel
-                .findTodayCheckIn(
-                    profileId,
-                    checkInDate
-                )
-
-        return {
-            checkIn: checkInWithInsights!,
-            created: true
-        }
+        return { checkIn: checkInWithInsights!, created: true }
     } catch (err: unknown) {
         if (
             err instanceof Prisma.PrismaClientKnownRequestError
-            && (err as Prisma.PrismaClientKnownRequestError).code === 'P2002'
+            && err.code === 'P2002'
         )
-            throw errorFactory.generic.conflict(
-                `Today's check-in`
-            )
+            throw errorFactory.generic.conflict(`Today's check-in`)
         throw err
     }
 }
@@ -137,57 +95,26 @@ export const createCheckIn = async (
 export const updateCheckIn = async (
     data: UpdateCheckInType
 ): Promise<CheckInType> => {
-    const checkInDate = await resolveDate(
-        data.userId
-    )
-    const userTimezone = await authModel
-        .getUserTimezone(data.userId)
-    const updatedAt =
-        resolveTimestampInUserTimeZone(
-            userTimezone
-        )
-
-    const profileId = await getProfileIdForUser(data.userId)
+    const { id: profileId, timezone } =
+        await getProfileContext(data.userId)
+    const checkInDate = resolveCheckInDate(timezone)
+    const updatedAt = resolveTimestampInUserTimeZone(timezone)
 
     const existing = await checkInModel
-        .findTodayCheckIn(
-            profileId,
-            checkInDate
-        )
+        .findTodayCheckIn(profileId, checkInDate)
 
     if (!existing)
-        throw errorFactory.generic.notFound(
-            `Today's check-in`
-        )
+        throw errorFactory.generic.notFound(`Today's check-in`)
 
     const { userId, ...updateData } = data
 
-    await checkInModel.updateCheckIn(
-        profileId,
-        checkInDate,
-        updateData,
-        updatedAt
-    )
+    await checkInModel.updateCheckIn(profileId, checkInDate, updateData, updatedAt)
+    await checkInModel.updateUserLastCheckIn(userId)
+    await generateInsightSafely(userId, existing.id)
+    await generateRecommendationsSafely(userId, existing.id)
 
-    await checkInModel.updateUserLastCheckIn(
-        userId
-    )
-
-    await generateInsightSafely(
-        userId,
-        existing.id
-    )
-
-    await generateRecommendationsSafely(
-        userId,
-        existing.id
-    )
-
-    const fetchedCheckIn =
-        await checkInModel.findTodayCheckIn(
-            profileId,
-            checkInDate
-        )
+    const fetchedCheckIn = await checkInModel
+        .findTodayCheckIn(profileId, checkInDate)
     return fetchedCheckIn!
 }
 
