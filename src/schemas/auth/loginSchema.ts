@@ -6,7 +6,10 @@ export const loginSchema = z.object({
     email: z.string('Email is required')
         .email(),
     password: z.string('Password is required')
-        .regex(PASSWORD_FORMAT)
-        .min(8),
+        .min(8, 'Password must be at least 8 characters')
+        .regex(
+            PASSWORD_FORMAT,
+            'Password must be at least 8 characters and contain letters and numbers'
+        ),
     remember: z.boolean().default(false)
 })

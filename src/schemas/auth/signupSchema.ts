@@ -11,6 +11,9 @@ export const signupSchema = z.object({
     email: z.string('Email is required')
         .email(),
     password: z.string('Password is required')
-        .regex(PASSWORD_FORMAT, 'Must contain uppercase, lowercase, number, and special character')
-        .min(8)
+        .min(8, 'Password must be at least 8 characters')
+        .regex(
+            PASSWORD_FORMAT,
+            'Must contain uppercase, lowercase, number, and special character'
+        )
 })
