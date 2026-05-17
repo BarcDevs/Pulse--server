@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { caseInsensitiveEnum } from './utils/caseInsensitiveEnum'
 
 export const updateProfileSchema = z.object({
+    // TODO: update when image upload endpoint is implemented (multipart)
     image: z.string()
-        .url('Invalid image URL')
         .optional(),
     bio: z.string()
         .max(500, 'Bio must be 500 characters or fewer')
@@ -25,23 +25,19 @@ export const updateProfileSchema = z.object({
     language: z.string()
         .max(10)
         .optional(),
-    dailyReminder: z.boolean()
-        .optional(),
-    communityAlerts: z.boolean()
-        .optional(),
+    dailyReminder: z.boolean().optional(),
+    communityAlerts: z.boolean().optional(),
     profileVisibility: caseInsensitiveEnum([
         'onlyMe',
         'friends',
         'public']
     ).optional(),
-    anonymousParticipation: z.boolean()
-        .optional()
+    anonymousParticipation: z.boolean().optional()
 })
 
 export const addHealthInterestsSchema = z.object({
     slugs: z.array(
-        z.string()
-            .max(50)
+        z.string().max(50)
     ).min(1, 'At least one health interest is required')
 })
 
@@ -52,6 +48,5 @@ export const addActivityPreferencesSchema = z.object({
 })
 
 export const slugParamSchema = z.object({
-    slug: z.string()
-        .max(50)
+    slug: z.string().max(50)
 })
