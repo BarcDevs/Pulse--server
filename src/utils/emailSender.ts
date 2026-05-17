@@ -17,13 +17,15 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (
     email: string,
     subject: string,
-    text: string
+    text: string,
+    html?: string
 ): Promise<void> => {
     const mailOptions = {
         from: emailConfig.emailUser!,
         to: email,
         subject,
-        text
+        text,
+        ...(html && { html })
     }
 
     try {

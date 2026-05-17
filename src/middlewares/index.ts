@@ -45,10 +45,7 @@ export const declareMiddlewares = (app: Express) => {
         extended: false
     }))
     app.use(express.static(
-        path.join(
-            __dirname,
-            'public'
-        )
+        path.join(__dirname, '../../public')
     ))
 
     app.use(sanitizeData)

@@ -4,6 +4,7 @@
 .pnp.js
 
 # generated
+email-preview.html
 package-lock.json
 prisma/generated
 prisma/*.db

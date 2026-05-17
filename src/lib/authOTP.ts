@@ -5,6 +5,14 @@ import { authConfig } from '../../config'
 import { getMessages } from '../locales'
 import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
+import {
+    changeEmailTemplate,
+    changeEmailTemplateHe,
+    confirmEmailTemplate,
+    confirmEmailTemplateHe,
+    resetPasswordTemplate,
+    resetPasswordTemplateHe
+} from '../utils/emailTemplates'
 import { t } from '../utils/i18n'
 
 export const generateOTP = (): {
@@ -74,12 +82,17 @@ export const sendForgotPasswordOTP = async (
         }
     )
 
-    const msgs = getMessages(user.profile?.language)
+    const lang = user.profile?.language
+    const msgs = getMessages(lang)
         .emails.resetPassword
+    const htmlTemplate = lang === 'he'
+        ? resetPasswordTemplateHe
+        : resetPasswordTemplate
     await sendEmail(
         email,
         msgs.subject,
-        t(msgs.body, { otp })
+        t(msgs.body, { otp }),
+        htmlTemplate(otp)
     )
 
     return otp
@@ -103,12 +116,17 @@ export const sendConfirmEmailOTP = async (
         }
     )
 
-    const msgs = getMessages(user.profile?.language)
+    const lang = user.profile?.language
+    const msgs = getMessages(lang)
         .emails.confirmEmail
+    const htmlTemplate = lang === 'he'
+        ? confirmEmailTemplateHe
+        : confirmEmailTemplate
     await sendEmail(
         email,
         msgs.subject,
-        t(msgs.body, { otp })
+        t(msgs.body, { otp }),
+        htmlTemplate(otp)
     )
 
     return otp
@@ -127,11 +145,16 @@ export const sendEmailChangeOTP = async (
         emailChangeExpiration: expiration
     })
 
-    const msgs = getMessages(language).emails.changeEmail
+    const msgs = getMessages(language)
+        .emails.changeEmail
+    const htmlTemplate = language === 'he'
+        ? changeEmailTemplateHe
+        : changeEmailTemplate
     await sendEmail(
         newEmail,
         msgs.subject,
-        t(msgs.body, { otp })
+        t(msgs.body, { otp }),
+        htmlTemplate(otp)
     )
 
     return otp

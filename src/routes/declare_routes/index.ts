@@ -8,6 +8,7 @@ import { errorHandler } from '../../middlewares/errorHandler'
 import { swaggerSpec } from '../../utils/swagger'
 import authRoute from '../authRoute'
 import checkInRoute from '../checkInRoute'
+import devRoute from '../devRoute'
 import forumRoute from '../forumRoute'
 import profileRoute from '../profileRoute'
 import recommendationsRoute from '../recommendationsRoute'
@@ -34,6 +35,8 @@ export const declareRoutes = (app: Express) => {
             swaggerUi.serve,
             swaggerUi.setup(swaggerSpec)
         )
+
+        app.use('/dev', devRoute)
     }
 
     app.use(baseRoute('auth'), authRoute)
