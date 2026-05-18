@@ -47,6 +47,7 @@ type TemplateStrings = {
     title: string
     otpLabel: string
     heading: string
+    headingFont: string
     intro: string
     expiry: string
     disclaimer: string
@@ -59,6 +60,7 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${esc(s.title)}</title>
+  ${s.dir === 'rtl' ? '<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@800&display=swap" rel="stylesheet">' : ''}
 </head>
 <body style="margin:0;padding:0;background-color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F1F5F9;padding:40px 16px;">
@@ -84,7 +86,7 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
               </table>
 
               <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#93B4F0;">${esc(s.otpLabel)}</p>
-              <h1 style="margin:0;font-size:28px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px;">${esc(s.heading)}</h1>
+              <h1 style="margin:0;font-size:28px;font-weight:800;color:#FFFFFF;letter-spacing:${s.dir === 'rtl' ? '0' : '-0.5px'};font-family:${s.headingFont};">${esc(s.heading)}</h1>
             </td>
           </tr>
 
@@ -136,9 +138,13 @@ const buildStrings = (
 ): TemplateStrings => {
     const resolved = resolveLanguage(lang)
     const msgs = getMessages(resolved)
+    const isRtl = resolved === 'he'
     return {
-        dir: resolved === 'he' ? 'rtl' : 'ltr',
+        dir: isRtl ? 'rtl' : 'ltr',
         lang: resolved,
+        headingFont: isRtl
+            ? "Heebo, 'Arial Hebrew', Arial, sans-serif"
+            : 'inherit',
         ...msgs.emails.shared,
         ...msgs.emails[type].html
     }
