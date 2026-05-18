@@ -50,6 +50,10 @@
 - Objects with 2+ properties → each property on its own line
 - 2+ function parameters → each on its own line
 
+## Logging
+- Never use `console.log` — use `console.info`, `console.warn`, or `console.error` for intentional output
+- `console.log` is for temporary debugging only; remove before committing
+
 ## Clean Code
 - Delete unused code — never comment it out
 - No backwards-compatibility shims for removed code
