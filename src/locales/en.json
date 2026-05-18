@@ -195,19 +195,19 @@
   },
   "insights": {
     "titles": {
-      "MOOD_DROP_ALERT": "Mood Check In",
-      "MOTIVATIONAL": "Small Steps Still Matter",
+      "MOOD_DROP_ALERT": "Mood Check-In",
+      "MOTIVATIONAL": "Keep Going! 💪",
       "WEEKLY_SUMMARY": "Weekly Reflection",
-      "BAD_DAY_SUPPORT": "A Harder Day"
+      "BAD_DAY_SUPPORT": "Supportive Reflection"
     },
     "fallback": {
-      "MOOD_DROP_ALERT": "Your recent check ins suggest things may have felt a little heavier lately. Taking a moment to notice that pattern is already meaningful.",
+      "MOOD_DROP_ALERT": "Your mood scores have been lower recently. Taking a moment to notice that pattern is already meaningful.",
       "MOTIVATIONAL": "Thank you for taking a moment to check in today. Consistency is built one small step at a time.",
       "WEEKLY_SUMMARY": "You made space this week to reflect on how things have been feeling. That consistency matters more than perfection.",
       "BAD_DAY_SUPPORT": "Today may feel a little harder than usual. Try to focus on what feels manageable right now."
     }
   },
   "progress": {
-    "fallback": "There is not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
+    "fallback": "Not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
   }
 }

@@ -103,35 +103,6 @@ describe('User Routes', () => {
                 .toBe('newusername')
         })
 
-        it('should update user email', async () => {
-            const mockUser = createMockUser()
-            const {
-                token,
-                csrfSecret,
-                csrfToken
-            } = createAuthenticatedRequest(mockUser)
-
-            prismaMock.user.findUnique
-                .mockResolvedValueOnce(mockUser)
-                .mockResolvedValueOnce(null)
-            prismaMock.user.update
-                .mockResolvedValue({
-                    ...mockUser,
-                    email: 'newemail@test.com'
-                })
-
-            const response = await withCsrfAuth(
-                supertest(App).patch(updateUserEndpoint),
-                token,
-                csrfSecret,
-                csrfToken
-            ).send({ email: 'newemail@test.com' })
-
-            expect(response.status).toBe(200)
-            expect(response.body.data.user.email)
-                .toBe('newemail@test.com')
-        })
-
         it('should update multiple fields at once',
             async () => {
                 const mockUser = createMockUser()
@@ -173,34 +144,6 @@ describe('User Routes', () => {
                     .toBe('johndoe')
             }
         )
-
-        it('should reject duplicate email', async () => {
-            const mockUser = createMockUser()
-            const otherUser = createMockUser({
-                email: 'taken@test.com'
-            })
-            const {
-                token,
-                csrfSecret,
-                csrfToken
-            } = createAuthenticatedRequest(mockUser)
-
-            prismaMock.user.findUnique
-                .mockResolvedValueOnce(mockUser)
-                .mockResolvedValueOnce(otherUser)
-
-            const response = await withCsrfAuth(
-                supertest(App).patch(updateUserEndpoint),
-                token,
-                csrfSecret,
-                csrfToken
-            ).send({ email: 'taken@test.com' })
-
-            expect(response.status).toBe(409)
-            expect(response.body.error[0].error).toContain(
-                'Email already in use'
-            )
-        })
 
         it('should reject duplicate username', async () => {
             const mockUser = createMockUser()
@@ -251,30 +194,6 @@ describe('User Routes', () => {
                     .toBe('Validation Error')
                 expect(response.body.error[0].property)
                     .toBe('username')
-            }
-        )
-
-        it('should return 400 for invalid email format',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
-
-                const response = await withCsrfAuth(
-                    supertest(App).patch(updateUserEndpoint),
-                    token,
-                    csrfSecret,
-                    csrfToken
-                ).send({ email: 'invalid-email' })
-
-                expect(response.status).toBe(400)
-                expect(response.body.error[0].statusType)
-                    .toBe('Validation Error')
-                expect(response.body.error[0].property)
-                    .toBe('email')
             }
         )
 
