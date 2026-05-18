@@ -23,10 +23,8 @@ export const calculateCurrentStreak = (
         return 0
     }
 
-    // De-duplicate by calendar day (user's timezone)
-    const uniqueDates = new Set<string>()
-    const uniqueDateObjects: Date[] = []
-
+    // Collect unique calendar-day strings (YYYY-MM-DD) in the user's timezone
+    const uniqueDateStrings = new Set<string>()
     for (const date of checkInDates) {
         const dateString = timezone
             ? new Intl.DateTimeFormat(
@@ -34,39 +32,22 @@ export const calculateCurrentStreak = (
                 { timeZone: timezone }
             ).format(date)
             : date.toISOString().split('T')[0]
-
-        if (!uniqueDates.has(dateString)) {
-            uniqueDates.add(dateString)
-            uniqueDateObjects.push(date)
-        }
+        uniqueDateStrings.add(dateString)
     }
 
-    if (uniqueDateObjects.length === 0) {
-        return 0
-    }
-
-    // Sort descending (most recent first)
-    const sorted = [...uniqueDateObjects].sort(
-        (a, b) => b.getTime() - a.getTime()
+    // Sort descending (most recent first) — YYYY-MM-DD sorts lexicographically
+    const sorted = [...uniqueDateStrings].sort(
+        (a, b) => (b > a ? 1 : b < a ? -1 : 0)
     )
 
     // Count consecutive days backwards from most recent
     let streak = 1
-
     for (let i = 1; i < sorted.length; i++) {
-        const currentDate = sorted[i]
-        const expectedPreviousDate = new Date(
-            sorted[i - 1].getTime() - dayInMs
+        const diff = (
+            new Date(sorted[i - 1] + 'T00:00:00Z').getTime()
+            - new Date(sorted[i] + 'T00:00:00Z').getTime()
         )
-
-        // Check if current date is exactly 1 day before the previous date
-        const currentDateString = currentDate
-            .toISOString().split('T')[0]
-        const expectedDateString = expectedPreviousDate
-            .toISOString()
-            .split('T')[0]
-
-        if (currentDateString === expectedDateString) {
+        if (diff === dayInMs) {
             streak++
         } else {
             break

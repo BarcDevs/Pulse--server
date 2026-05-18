@@ -121,7 +121,10 @@ export const updateCheckIn = async (
 export const getCheckInStats = async (
     userId: string
 ): Promise<CheckInStatsType> => {
-    const profileId = await getProfileIdForUser(userId)
+    const {
+        id: profileId,
+        timezone
+    } = await getProfileContext(userId)
 
     const checkIns = await checkInModel
         .getCheckInsForStats(profileId)
@@ -134,7 +137,8 @@ export const getCheckInStats = async (
         averagePainLevel: calculateAveragePain(checkIns),
         topActivities: calculateTopActivities(checkIns),
         ...calculateStreaks(
-            checkIns.map((c) => c.checkInDate)
+            checkIns.map((c) => c.checkInDate),
+            timezone
         )
     }
 }
