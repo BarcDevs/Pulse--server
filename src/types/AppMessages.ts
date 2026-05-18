@@ -16,9 +16,37 @@ export type AppMessages = {
         Record<Severity, MessageGroup>
     >
     emails: {
-        resetPassword: { subject: string; body: string }
-        confirmEmail: { subject: string; body: string }
-        changeEmail: { subject: string; body: string }
+        shared: {
+            title: string
+            otpLabel: string
+            heading: string
+            expiry: string
+            footer: string
+        }
+        resetPassword: {
+            subject: string
+            body: string
+            html: {
+                intro: string
+                disclaimer: string
+            }
+        }
+        confirmEmail: {
+            subject: string
+            body: string
+            html: {
+                intro: string
+                disclaimer: string
+            }
+        }
+        changeEmail: {
+            subject: string
+            body: string
+            html: {
+                intro: string
+                disclaimer: string
+            }
+        }
     }
     insights: {
         titles: Record<InsightType, string>

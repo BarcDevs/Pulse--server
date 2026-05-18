@@ -7,11 +7,8 @@ import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
 import {
     changeEmailTemplate,
-    changeEmailTemplateHe,
     confirmEmailTemplate,
-    confirmEmailTemplateHe,
-    resetPasswordTemplate,
-    resetPasswordTemplateHe
+    resetPasswordTemplate
 } from '../utils/emailTemplates'
 import { t } from '../utils/i18n'
 
@@ -83,16 +80,12 @@ export const sendForgotPasswordOTP = async (
     )
 
     const lang = user.profile?.language
-    const msgs = getMessages(lang)
-        .emails.resetPassword
-    const htmlTemplate = lang === 'he'
-        ? resetPasswordTemplateHe
-        : resetPasswordTemplate
+    const msgs = getMessages(lang).emails.resetPassword
     await sendEmail(
         email,
         msgs.subject,
         t(msgs.body, { otp }),
-        htmlTemplate(otp)
+        resetPasswordTemplate(otp, lang)
     )
 
     return otp
@@ -117,16 +110,12 @@ export const sendConfirmEmailOTP = async (
     )
 
     const lang = user.profile?.language
-    const msgs = getMessages(lang)
-        .emails.confirmEmail
-    const htmlTemplate = lang === 'he'
-        ? confirmEmailTemplateHe
-        : confirmEmailTemplate
+    const msgs = getMessages(lang).emails.confirmEmail
     await sendEmail(
         email,
         msgs.subject,
         t(msgs.body, { otp }),
-        htmlTemplate(otp)
+        confirmEmailTemplate(otp, lang)
     )
 
     return otp
@@ -145,16 +134,12 @@ export const sendEmailChangeOTP = async (
         emailChangeExpiration: expiration
     })
 
-    const msgs = getMessages(language)
-        .emails.changeEmail
-    const htmlTemplate = language === 'he'
-        ? changeEmailTemplateHe
-        : changeEmailTemplate
+    const msgs = getMessages(language).emails.changeEmail
     await sendEmail(
         newEmail,
         msgs.subject,
         t(msgs.body, { otp }),
-        htmlTemplate(otp)
+        changeEmailTemplate(otp, language)
     )
 
     return otp

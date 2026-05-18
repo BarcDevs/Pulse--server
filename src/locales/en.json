@@ -162,16 +162,35 @@
   },
   "emails": {
     "resetPassword": {
-      "subject": "Reset Your Password",
-      "body": "Your verification code for resetting your password is: {{otp}}"
+      "subject": "Reset Your HealEase Password",
+      "body": "Use this verification code to reset your password: {{otp}}",
+      "html": {
+        "intro": "Use the code below to securely reset your HealEase password. This code can only be used once and is valid only for the device that requested it.",
+        "disclaimer": "If you did not request a password reset, you can safely ignore this email. No changes have been made to your account."
+      }
     },
     "confirmEmail": {
-      "subject": "Confirm Your Email",
-      "body": "Your verification code for confirming your email is: {{otp}}"
+      "subject": "Verify Your HealEase Email",
+      "body": "Use this verification code to verify your email address: {{otp}}",
+      "html": {
+        "intro": "Use the code below to verify your HealEase account and complete your sign up process. This code can only be used once and is valid only for the device that requested it.",
+        "disclaimer": "If you did not create a HealEase account, you can safely ignore this email. Your account will remain inactive unless verified."
+      }
     },
     "changeEmail": {
       "subject": "Confirm Your New Email Address",
-      "body": "Use this verification code to confirm your new email address: {{otp}}"
+      "body": "Use this verification code to confirm your new email address: {{otp}}",
+      "html": {
+        "intro": "Use the code below to confirm your new email address for your HealEase account. This code can only be used once and is valid only for the device that requested it.",
+        "disclaimer": "If you did not request this change, we recommend resetting your password to help keep your account secure."
+      }
+    },
+    "shared": {
+      "title": "Your HealEase Verification Code",
+      "otpLabel": "Verification Code",
+      "heading": "Here is your verification code.",
+      "expiry": "This code expires in 15 minutes. For your security, do not share it with anyone.",
+      "footer": "© 2026 HealEase · This email was sent because your email address was used for a HealEase request."
     }
   },
   "insights": {
