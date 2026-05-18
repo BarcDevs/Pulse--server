@@ -71,8 +71,12 @@ export const createCheckIn = async (
     }
 
     try {
-        const checkIn = await checkInModel
-            .createCheckIn(data, profileId, checkInDate, createdAt)
+        const checkIn = await checkInModel.createCheckIn(
+            data,
+            profileId,
+            checkInDate,
+            createdAt
+        )
 
         await checkInModel.updateUserLastCheckIn(data.userId)
         await generateInsightSafely(data.userId, checkIn.id)
@@ -108,7 +112,12 @@ export const updateCheckIn = async (
 
     const { userId, ...updateData } = data
 
-    await checkInModel.updateCheckIn(profileId, checkInDate, updateData, updatedAt)
+    await checkInModel.updateCheckIn(
+        profileId,
+        checkInDate,
+        updateData,
+        updatedAt
+    )
     await checkInModel.updateUserLastCheckIn(userId)
     await generateInsightSafely(userId, existing.id)
     await generateRecommendationsSafely(userId, existing.id)

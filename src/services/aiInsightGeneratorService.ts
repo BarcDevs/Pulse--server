@@ -31,7 +31,11 @@ export type GenerateInsightOutput = {
 export const generateInsight = async (
     input: GenerateInsightInput
 ): Promise<GenerateInsightOutput> => {
-    const { decision, checkIns, language } = input
+    const {
+        decision,
+        checkIns,
+        language
+    } = input
 
     const prompt = buildPromptByType(
         decision.type,

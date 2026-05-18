@@ -326,7 +326,11 @@ export const getStats = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
-    const { fromDate, toDate, category } = (
+    const {
+        fromDate,
+        toDate,
+        category
+    } = (
         req.query as Record<
             string,
             string | undefined
