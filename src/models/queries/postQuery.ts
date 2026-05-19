@@ -73,14 +73,14 @@ export const postQueryBuilder = (
     const searchText = query?.search?.trim()
     const searchQuery = searchText
         ? {
-            title: {
-                contains: searchText,
-                mode: 'insensitive'
-            },
-            body: {
-                contains: searchText,
-                mode: 'insensitive'
-            }
+            OR: [
+                { title: { contains: searchText, mode: 'insensitive' } },
+                { body: { contains: searchText, mode: 'insensitive' } },
+                { tags: { some: { name: { contains: searchText, mode: 'insensitive' } } } },
+                { author: { user: { username: { contains: searchText, mode: 'insensitive' } } } },
+                { author: { user: { firstName: { contains: searchText, mode: 'insensitive' } } } },
+                { author: { user: { lastName: { contains: searchText, mode: 'insensitive' } } } }
+            ]
         }
         : {}
 

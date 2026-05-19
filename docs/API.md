@@ -388,7 +388,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 | `limit`    | number | Max 100                                     |
 | `page`     | number |                                             |
 | `filter`   | string | `newest` · `popular` · `hot` · `unanswered` |
-| `search`   | string | Full-text search                            |
+| `search`   | string | Search title, body, tags, author name (case-insensitive) |
 | `tag`      | string | Filter by tag name                          |
 | `category` | string | Filter by category                          |
 
