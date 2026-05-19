@@ -17,4 +17,4 @@ const html = [
 ].join('\n')
 
 writeFileSync('email-preview.html', html)
-console.log('email-preview.html generated')
+console.info('email-preview.html generated')

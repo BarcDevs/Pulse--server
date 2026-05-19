@@ -29,7 +29,12 @@ async function main() {
 
     while (current <= END_DATE) {
         const checkInDate = new Date(current)
-        checkInDate.setHours(0, 0, 0, 0)
+        checkInDate.setHours(
+            0,
+            0,
+            0,
+            0
+        )
 
         await prisma.dailyCheckIn.upsert({
             where: {

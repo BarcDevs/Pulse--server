@@ -71,8 +71,12 @@ export const createCheckIn = async (
     }
 
     try {
-        const checkIn = await checkInModel
-            .createCheckIn(data, profileId, checkInDate, createdAt)
+        const checkIn = await checkInModel.createCheckIn(
+            data,
+            profileId,
+            checkInDate,
+            createdAt
+        )
 
         await checkInModel.updateUserLastCheckIn(data.userId)
         await generateInsightSafely(data.userId, checkIn.id)
@@ -108,7 +112,12 @@ export const updateCheckIn = async (
 
     const { userId, ...updateData } = data
 
-    await checkInModel.updateCheckIn(profileId, checkInDate, updateData, updatedAt)
+    await checkInModel.updateCheckIn(
+        profileId,
+        checkInDate,
+        updateData,
+        updatedAt
+    )
     await checkInModel.updateUserLastCheckIn(userId)
     await generateInsightSafely(userId, existing.id)
     await generateRecommendationsSafely(userId, existing.id)
@@ -121,7 +130,10 @@ export const updateCheckIn = async (
 export const getCheckInStats = async (
     userId: string
 ): Promise<CheckInStatsType> => {
-    const profileId = await getProfileIdForUser(userId)
+    const {
+        id: profileId,
+        timezone
+    } = await getProfileContext(userId)
 
     const checkIns = await checkInModel
         .getCheckInsForStats(profileId)
@@ -134,7 +146,8 @@ export const getCheckInStats = async (
         averagePainLevel: calculateAveragePain(checkIns),
         topActivities: calculateTopActivities(checkIns),
         ...calculateStreaks(
-            checkIns.map((c) => c.checkInDate)
+            checkIns.map((c) => c.checkInDate),
+            timezone
         )
     }
 }

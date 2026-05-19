@@ -80,11 +80,11 @@ export const sendForgotPasswordOTP = async (
     )
 
     const lang = user.profile?.language
-    const msgs = getMessages(lang).emails.resetPassword
+    const messages = getMessages(lang).emails.resetPassword
     await sendEmail(
         email,
-        msgs.subject,
-        t(msgs.body, { otp }),
+        messages.subject,
+        t(messages.body, { otp }),
         resetPasswordTemplate(otp, lang)
     )
 
@@ -110,11 +110,11 @@ export const sendConfirmEmailOTP = async (
     )
 
     const lang = user.profile?.language
-    const msgs = getMessages(lang).emails.confirmEmail
+    const messages = getMessages(lang).emails.confirmEmail
     await sendEmail(
         email,
-        msgs.subject,
-        t(msgs.body, { otp }),
+        messages.subject,
+        t(messages.body, { otp }),
         confirmEmailTemplate(otp, lang)
     )
 
@@ -134,11 +134,11 @@ export const sendEmailChangeOTP = async (
         emailChangeExpiration: expiration
     })
 
-    const msgs = getMessages(language).emails.changeEmail
+    const messages = getMessages(language).emails.changeEmail
     await sendEmail(
         newEmail,
-        msgs.subject,
-        t(msgs.body, { otp }),
+        messages.subject,
+        t(messages.body, { otp }),
         changeEmailTemplate(otp, language)
     )
 

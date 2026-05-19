@@ -2,6 +2,7 @@ import { GoalStatus, MilestoneStatus } from '../../prisma/generated/prisma/enums
 import { MAX_ACTIVE_GOALS } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { calculateCurrentStreak } from '../lib/aiInsight/decision/streakCalculator'
+import { getUserTimezone } from '../models/authModel'
 import * as RecoveryGoalModel from '../models/recoveryGoalModel'
 import { getProfileIdForUser } from '../models/recoveryGoalModel'
 import type {
@@ -601,7 +602,8 @@ export const getStats = async (
     const [
         goalsStats,
         milestonesStats,
-        completedDates
+        completedDates,
+        timezone
     ] = await Promise.all([
         RecoveryGoalModel.getGoalsStats(
             profileId,
@@ -615,11 +617,13 @@ export const getStats = async (
             .getCompletedDatesForStreak(
                 profileId,
                 filters
-            )
+            ),
+        getUserTimezone(userId)
     ])
 
     const streak = calculateCurrentStreak(
-        completedDates
+        completedDates,
+        timezone ?? undefined
     )
 
     const goalsCompletionRate = (

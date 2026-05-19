@@ -1,3 +1,4 @@
+import type { Prisma as PrismaTypes } from '../../prisma/generated/prisma/client'
 import {
     type GoalCategory,
     GoalStatus,
@@ -94,12 +95,11 @@ export const updateGoal = async (
         targetDate?: Date | null
         isPrimary?: boolean
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tx?: any
+    tx?: PrismaTypes.TransactionClient
 ): Promise<RecoveryGoalType | null> => {
-    const client = tx || Prisma
-    const updateData: any = { ...data }
-    if (data.status) updateData.status = data.status.toUpperCase()
+    const client = tx ?? Prisma
+    const updateData: typeof data = { ...data }
+    if (data.status) updateData.status = data.status.toUpperCase() as GoalStatus
     const goal = await client.recoveryGoal.update({
         where: { id },
         data: updateData
@@ -117,7 +117,7 @@ export const setPrimaryGoal = async (
     profileId: string,
     goalId: string
 ): Promise<void> => {
-    await Prisma.$transaction(async (tx: any) => {
+    await Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
         await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE "profileId" = ${profileId} FOR UPDATE`
 
         await tx.recoveryGoal.updateMany({
@@ -162,7 +162,7 @@ export const createMilestonesInBatch = async (data: {
     }>
     setFirstActive: boolean
 }): Promise<MilestoneType[]> => {
-    return Prisma.$transaction(async (tx: any) => {
+    return Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
         await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE id = ${data.goalId} FOR UPDATE`
 
         const existingCount = await countMilestonesByGoalId(
@@ -241,7 +241,7 @@ export const completeMilestoneAndAdvance = async (
     milestoneId: string,
     goalId: string
 ): Promise<void> => {
-    await Prisma.$transaction(async (tx: any) => {
+    await Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
         await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE id = ${goalId} FOR UPDATE`
 
         const milestone = await tx.milestone.findUnique({
@@ -319,7 +319,11 @@ export const updateMilestone = async (
         order?: number
     }
 ): Promise<MilestoneType | null> => {
-    const updateData: any = {}
+    const updateData: {
+        title?: string
+        description?: string | null
+        order?: number
+    } = {}
     if (data.title !== undefined)
         updateData.title = data.title
     if (data.description !== undefined)

@@ -1,10 +1,12 @@
 // @ts-nocheck
 /* eslint-ignore-file */
 import * as cache from '../../lib/cache/progressInsightsCache'
+import * as authModel from '../../models/authModel'
 import * as checkInModel from '../../models/checkInModel'
 import * as progressInsightsService from '../../services/progressInsightsService'
 
 jest.mock('../../models/CheckInModel')
+jest.mock('../../models/authModel')
 jest.mock('../../lib/cache/progressInsightsCache')
 jest.mock('../../services/aiProviders/ProviderFactory')
 jest.mock('../../utils/logger', () => ({
@@ -40,6 +42,7 @@ describe('Progress Insights Service', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         cache.clear()
+        jest.spyOn(authModel, 'getUserLanguage').mockResolvedValue('en')
     })
 
     describe('generateProgressInsight', () => {

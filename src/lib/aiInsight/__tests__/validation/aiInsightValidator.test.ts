@@ -378,27 +378,21 @@ describe('validateGeneratedInsight', () => {
 
 describe('getFallbackContent', () => {
     it('should return fallback for MOOD_DROP_ALERT', () => {
-        const fallback = getFallbackContent(
-            'MOOD_DROP_ALERT'
-        )
+        const fallback = getFallbackContent('MOOD_DROP_ALERT', 'en')
         expect(fallback).toContain('lower recently')
         expect(fallback.length).toBeGreaterThan(20)
         expect(fallback.length).toBeLessThanOrEqual(500)
     })
 
     it('should return fallback for MOTIVATIONAL', () => {
-        const fallback = getFallbackContent(
-            'MOTIVATIONAL'
-        )
+        const fallback = getFallbackContent('MOTIVATIONAL', 'en')
         expect(fallback).toContain('Consistency')
         expect(fallback.length).toBeGreaterThan(20)
         expect(fallback.length).toBeLessThanOrEqual(500)
     })
 
     it('should return fallback for WEEKLY_SUMMARY', () => {
-        const fallback = getFallbackContent(
-            'WEEKLY_SUMMARY'
-        )
+        const fallback = getFallbackContent('WEEKLY_SUMMARY', 'en')
         expect(fallback).toContain('week')
         expect(fallback.length).toBeGreaterThan(20)
         expect(fallback.length).toBeLessThanOrEqual(500)
@@ -412,7 +406,7 @@ describe('getFallbackContent', () => {
         ] as const
 
         types.forEach((type) => {
-            const fallback = getFallbackContent(type)
+            const fallback = getFallbackContent(type, 'en')
             const validation =
                 validateGeneratedInsight(
                     'Test',

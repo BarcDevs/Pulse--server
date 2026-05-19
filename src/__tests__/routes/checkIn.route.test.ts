@@ -2,6 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
+import { dayInMs } from '../../constants/time'
 import * as insightService from '../../services/insightService'
 import * as recommendationsService from '../../services/recommendationsService'
 import type { CheckInType } from '../../types/data/CheckInType'
@@ -593,6 +594,39 @@ describe('Check-in Routes', () => {
                 })
             }
         )
+
+        it('should return currentStreak 2 for today + yesterday', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            const todayMidnight = new Date()
+            todayMidnight.setUTCHours(0, 0, 0, 0)
+            const yesterdayMidnight = new Date(
+                todayMidnight.getTime() - dayInMs
+            )
+
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([
+                {
+                    moodScore: 7,
+                    painLevel: 3,
+                    activities: [],
+                    checkInDate: todayMidnight
+                },
+                {
+                    moodScore: 6,
+                    painLevel: 4,
+                    activities: [],
+                    checkInDate: yesterdayMidnight
+                }
+            ] as any)
+
+            const response = await supertest(App)
+                .get(endpoint)
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.currentStreak).toBe(2)
+        })
 
         it(
             'should return 401 for unauthenticated request',

@@ -11,7 +11,8 @@ type CheckInStatsData = Pick<
 >
 
 export const calculateStreaks = (
-    dates: Date[]
+    dates: Date[],
+    timezone?: string | null
 ): {
     currentStreak: number
     longestStreak: number
@@ -26,7 +27,9 @@ export const calculateStreaks = (
         ...new Set(dates.map(toDateStr))
     ].sort().reverse()
 
-    const today = toDateStr(new Date())
+    const today = timezone
+        ? new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date())
+        : toDateStr(new Date())
     const yesterday = prevDay(today)
 
     let currentStreak = 0
