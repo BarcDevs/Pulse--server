@@ -90,11 +90,38 @@ describe('getMessages()', () => {
         })
     })
 
-    // TODO: add when he.json is translated
     describe('he locale', () => {
-        test.todo('has Hebrew email subjects distinct from English')
-        test.todo('has Hebrew insight titles distinct from English')
-        test.todo('has Hebrew feedback messages distinct from English')
-        test.todo('has Hebrew progress fallback distinct from English')
+        const en = getMessages('en')
+        const he = getMessages('he')
+
+        it('has Hebrew email subjects distinct from English', () => {
+            expect(he.emails.resetPassword.subject).toBeTruthy()
+            expect(he.emails.resetPassword.subject).not.toBe(en.emails.resetPassword.subject)
+            expect(he.emails.confirmEmail.subject).toBeTruthy()
+            expect(he.emails.confirmEmail.subject).not.toBe(en.emails.confirmEmail.subject)
+        })
+
+        it('has Hebrew insight titles distinct from English', () => {
+            expect(he.insights.titles.MOOD_DROP_ALERT).toBeTruthy()
+            expect(he.insights.titles.MOOD_DROP_ALERT).not.toBe(en.insights.titles.MOOD_DROP_ALERT)
+            expect(he.insights.titles.MOTIVATIONAL).toBeTruthy()
+            expect(he.insights.titles.MOTIVATIONAL).not.toBe(en.insights.titles.MOTIVATIONAL)
+            expect(he.insights.titles.WEEKLY_SUMMARY).toBeTruthy()
+            expect(he.insights.titles.WEEKLY_SUMMARY).not.toBe(en.insights.titles.WEEKLY_SUMMARY)
+            expect(he.insights.titles.BAD_DAY_SUPPORT).toBeTruthy()
+            expect(he.insights.titles.BAD_DAY_SUPPORT).not.toBe(en.insights.titles.BAD_DAY_SUPPORT)
+        })
+
+        it('has Hebrew feedback messages distinct from English', () => {
+            const heLow = he.feedback.LOW_MOOD.low
+            const enLow = en.feedback.LOW_MOOD.low
+            expect(heLow.acknowledge.length).toBeGreaterThan(0)
+            expect(heLow.acknowledge[0]).not.toBe(enLow.acknowledge[0])
+        })
+
+        it('has Hebrew progress fallback distinct from English', () => {
+            expect(he.progress.fallback).toBeTruthy()
+            expect(he.progress.fallback).not.toBe(en.progress.fallback)
+        })
     })
 })
