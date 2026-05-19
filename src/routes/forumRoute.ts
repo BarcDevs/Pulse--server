@@ -49,7 +49,7 @@ const router = Router()
  *         name: search
  *         schema:
  *           type: string
- *         description: Search by title, body, tag name, or author name (case-insensitive)
+ *         description: Search by title, body, category, tag name, or author name (case-insensitive)
  *       - in: query
  *         name: tag
  *         schema:

@@ -16,7 +16,7 @@ describe('postQueryBuilder', () => {
         it('builds OR clause with all searchable fields', () => {
             const result = postQueryBuilder({ search: 'diabetes' })
             expect(result.where.OR).toBeDefined()
-            expect(result.where.OR).toHaveLength(6)
+            expect(result.where.OR).toHaveLength(7)
         })
 
         it('searches post title', () => {
@@ -37,6 +37,13 @@ describe('postQueryBuilder', () => {
             const result = postQueryBuilder({ search: 'diabetes' })
             expect(result.where.OR).toContainEqual({
                 tags: { some: { name: { contains: 'diabetes', mode: 'insensitive' } } }
+            })
+        })
+
+        it('searches category', () => {
+            const result = postQueryBuilder({ search: 'health' })
+            expect(result.where.OR).toContainEqual({
+                category: { contains: 'health', mode: 'insensitive' }
             })
         })
 
