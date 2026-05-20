@@ -482,6 +482,27 @@
               "response": []
             },
             {
+              "name": "get category stats",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/categories",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "categories"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
               "name": "get post by id",
               "request": {
                 "method": "GET",

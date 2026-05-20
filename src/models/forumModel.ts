@@ -285,6 +285,21 @@ export const getUnknownTagAttempts = async () =>
         orderBy: { count: 'desc' }
     })
 
+export const getCategoryStats = async (): Promise<
+    { category: string; count: number }[]
+> => {
+    const rows = await Prisma.post.groupBy({
+        by: ['category'],
+        _count: { category: true }
+    })
+    const mapped = rows.map((r) => ({
+        category: r.category,
+        count: r._count.category
+    }))
+    const total = mapped.reduce((sum, r) => sum + r.count, 0)
+    return [{ category: 'all', count: total }, ...mapped]
+}
+
 export const createReply = async (reply: NewReplyType):
     Promise<ReplyType> => {
     const {

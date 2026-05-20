@@ -193,6 +193,45 @@
           }
         },
         {
+          "name": "Get Category Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('Returns category counts', () => {",
+                  "    const json = pm.response.json()",
+                  "    pm.expect(json.data).to.be.an('array')",
+                  "    if (json.data.length > 0) {",
+                  "        pm.expect(json.data[0]).to.have.property('category')",
+                  "        pm.expect(json.data[0]).to.have.property('count')",
+                  "    }",
+                  "})"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
           "name": "Create Post",
           "event": [
             {

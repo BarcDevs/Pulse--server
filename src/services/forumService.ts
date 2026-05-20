@@ -130,6 +130,9 @@ export const reportUnknownTag = async (
 
 export const getUnknownTagAttempts = async () =>
     forumModel.getUnknownTagAttempts()
+
+export const getCategoryStats = async () =>
+    forumModel.getCategoryStats()
 // endregion
 
 // region Replies

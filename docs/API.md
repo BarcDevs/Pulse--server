@@ -418,6 +418,23 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
+### `GET /posts/categories`
+
+**Response `200`**
+```json
+{
+  "message": "N categories found",
+  "data": [
+    { "category": "therapy", "count": 12 },
+    { "category": "wellness", "count": 8 }
+  ]
+}
+```
+
+**Errors:** none (returns empty array when no posts)
+
+---
+
 ### `POST /posts`
 > Auth + CSRF required
 

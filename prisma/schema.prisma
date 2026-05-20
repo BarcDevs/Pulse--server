@@ -139,6 +139,7 @@ model Post {
   tags      Tag[]     @relation("PostToTag")
 
   @@index([authorId])
+  @@index([category])
 }
 
 model Reply {

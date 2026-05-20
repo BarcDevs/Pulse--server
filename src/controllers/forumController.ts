@@ -323,4 +323,17 @@ export const getUnknownTagAttempts = async (
         `${data.length} unknown tag attempts`
     )
 }
+
+export const getCategoryStats = async (
+    req: Request,
+    res: Response
+) => {
+    const data = await forumService.getCategoryStats()
+
+    return successResponse(
+        res,
+        data,
+        `${data.length} categories found`
+    )
+}
 // endregion

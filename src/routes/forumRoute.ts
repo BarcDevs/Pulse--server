@@ -5,6 +5,7 @@ import {
     createReply,
     deletePost,
     deleteReply,
+    getCategoryStats,
     getPost,
     getPosts,
     getReplies,
@@ -126,6 +127,34 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+/**
+ * @swagger
+ * /api/v1/forum/posts/categories:
+ *   get:
+ *     summary: Get post count grouped by category
+ *     tags: [Forum]
+ *     responses:
+ *       200:
+ *         description: Category appearance counts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       category:
+ *                         type: string
+ *                       count:
+ *                         type: integer
+ */
+router.route('/posts/categories').get(getCategoryStats)
+
 router
     .route('/posts')
     .get(getPosts)

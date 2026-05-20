@@ -1240,6 +1240,86 @@ describe('Forum Routes', () => {
         )
     })
 
+    // ==================== GET CATEGORY STATS ====================
+    describe('GET /api/v1/forum/posts/categories', () => {
+        const endpoint = '/api/v1/forum/posts/categories'
+
+        it(
+            'should return 200 and category counts array',
+            async () => {
+                prismaMock.post.groupBy
+                    .mockResolvedValue([
+                        { category: 'therapy', _count: { category: 4 } },
+                        { category: 'wellness', _count: { category: 2 } }
+                    ] as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+
+                expect(response.status).toBe(200)
+                expect(response.body.data)
+                    .toBeInstanceOf(Array)
+                expect(response.body.message)
+                    .toContain('categories found')
+            }
+        )
+
+        it(
+            'should include "all" as first item with total count',
+            async () => {
+                prismaMock.post.groupBy
+                    .mockResolvedValue([
+                        { category: 'therapy', _count: { category: 4 } },
+                        { category: 'wellness', _count: { category: 2 } }
+                    ] as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+
+                expect(response.status).toBe(200)
+                expect(response.body.data[0].category).toBe('all')
+                expect(response.body.data[0].count).toBe(6)
+            }
+        )
+
+        it(
+            'should return items with category and count fields',
+            async () => {
+                prismaMock.post.groupBy
+                    .mockResolvedValue([
+                        { category: 'therapy', _count: { category: 4 } }
+                    ] as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+
+                expect(response.status).toBe(200)
+                expect(response.body.data[1])
+                    .toHaveProperty('category')
+                expect(response.body.data[1])
+                    .toHaveProperty('count')
+                expect(typeof response.body.data[1].count)
+                    .toBe('number')
+            }
+        )
+
+        it(
+            'should return only "all" with count 0 when no posts',
+            async () => {
+                prismaMock.post.groupBy
+                    .mockResolvedValue([] as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+
+                expect(response.status).toBe(200)
+                expect(response.body.data).toEqual([
+                    { category: 'all', count: 0 }
+                ])
+            }
+        )
+    })
+
     // ==================== GET UNKNOWN TAG ATTEMPTS (ADMIN) ====================
     describe('GET /api/v1/forum/tags/unknown', () => {
         const endpoint = '/api/v1/forum/tags/unknown'
