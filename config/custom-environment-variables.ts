@@ -4,7 +4,8 @@ export default {
         origin: 'ORIGIN'
     },
     database: {
-        url: 'DEV_DATABASE_URL'
+        url: 'DEV_DATABASE_URL',
+        connectionTimeoutMillis: 'DB_CONNECTION_TIMEOUT'
     },
     auth: {
         jwtSecret: 'JWT_SECRET'

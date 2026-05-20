@@ -17,7 +17,7 @@ export const getPrismaClient = (): PrismaClient => {
             connectionString,
             keepAlive: true,
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 5000
+            connectionTimeoutMillis: databaseConfig.connectionTimeoutMillis
         })
 
         pool.on('connect', () => {

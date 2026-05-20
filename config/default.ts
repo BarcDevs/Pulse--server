@@ -17,7 +17,8 @@ export default {
         otp_expiration: '10m'
     },
     database: {
-        url: 'DEV_DATABASE_URL'
+        url: 'DEV_DATABASE_URL',
+        connectionTimeoutMillis: 5000
     },
     email: {
         host: 'sandbox.smtp.mailtrap.io',

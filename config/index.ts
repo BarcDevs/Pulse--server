@@ -35,7 +35,8 @@ const authConfig: AuthConfig = {
 }
 
 const databaseConfig: DatabaseConfig = {
-    url: config.get<string>('database.url')
+    url: config.get<string>('database.url'),
+    connectionTimeoutMillis: config.get<number>('database.connectionTimeoutMillis')
 }
 
 const emailConfig: EmailConfig = {
