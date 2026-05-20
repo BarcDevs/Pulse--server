@@ -47,6 +47,24 @@ export const getPostsCount = async (
     query?: PostQuery
 ) => forumModel.getPostsCount(query)
 
+const resolveKnownTags = async (
+    tags: string[] | undefined
+): Promise<string[] | undefined> => {
+    if (!tags || tags.length === 0) return tags
+
+    const known = await forumModel
+        .getExistingTagsByName(tags)
+    const unknown = tags.filter(
+        (t) => !known.includes(t)
+    )
+
+    if (unknown.length > 0) {
+        await forumModel.trackUnknownTagAttempts(unknown)
+    }
+
+    return known
+}
+
 export const createPost = async (
     post: NewPostType
 ) => {
@@ -60,8 +78,11 @@ export const createPost = async (
             .notFound('User profile')
     }
 
+    const knownTags = await resolveKnownTags(post.tags)
+
     return forumModel.createPost({
         ...post,
+        tags: knownTags,
         authorId: profile.id
     })
 }
@@ -70,17 +91,18 @@ export const updatePost = async (
     id: string,
     post: UpdatePostType
 ) => {
-    const prevTags = post.tags
+    const knownTags = await resolveKnownTags(post.tags)
+    const prevTags = knownTags
         ? await getTagsByPostId(id)
         : undefined
     const removeTags = extractRemovedTags(
         prevTags,
-        post.tags
+        knownTags
     )
 
     return forumModel.updatePost(
         id,
-        post,
+        { ...post, tags: knownTags },
         removeTags
     )
 }
@@ -101,6 +123,13 @@ export const getTags = async (
 export const getTag = async (
     id: string
 ) => forumModel.getTag(id)
+
+export const reportUnknownTag = async (
+    tagName: string
+) => forumModel.trackUnknownTagAttempts([tagName])
+
+export const getUnknownTagAttempts = async () =>
+    forumModel.getUnknownTagAttempts()
 // endregion
 
 // region Replies

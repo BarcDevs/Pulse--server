@@ -211,6 +211,8 @@ describe('Forum Service', () => {
             }
             prismaMock.profile.findUnique
                 .mockResolvedValue(mockProfile as never)
+            prismaMock.tag.findMany
+                .mockResolvedValue([])
             prismaMock.post.create
                 .mockResolvedValue(mockPost)
 

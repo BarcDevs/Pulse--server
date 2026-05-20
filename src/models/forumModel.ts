@@ -256,6 +256,35 @@ export const getTagsByPostId = async (id: string):
         }
     })) as unknown as TagType[]
 
+export const getExistingTagsByName = async (
+    names: string[]
+): Promise<string[]> => {
+    const tags = await Prisma.tag.findMany({
+        where: { name: { in: names } },
+        select: { name: true }
+    })
+    return tags.map((t) => t.name)
+}
+
+export const trackUnknownTagAttempts = async (
+    tagNames: string[]
+): Promise<void> => {
+    await Promise.all(
+        tagNames.map((tagName) =>
+            Prisma.unknownTagAttempt.upsert({
+                where: { tagName },
+                update: { count: { increment: 1 } },
+                create: { tagName, count: 1 }
+            })
+        )
+    )
+}
+
+export const getUnknownTagAttempts = async () =>
+    Prisma.unknownTagAttempt.findMany({
+        orderBy: { count: 'desc' }
+    })
+
 export const createReply = async (reply: NewReplyType):
     Promise<ReplyType> => {
     const {

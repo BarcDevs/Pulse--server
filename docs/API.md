@@ -667,6 +667,55 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
+### `POST /tags/unknown`
+> Auth + CSRF required
+
+Reports a tag name the client could not find in the system. Server upserts the attempt — increments count on repeat.
+
+**Headers**
+| Header          | Value                |
+|-----------------|----------------------|
+| `x-csrf-token`  | CSRF token from login |
+
+**Body**
+| Field      | Type   | Required | Notes       |
+|------------|--------|----------|-------------|
+| `tagName`  | string | yes      | Max 100 chars |
+
+**Response `200`**
+```json
+{ "message": "Tag attempt recorded", "data": {} }
+```
+
+**Errors:** `400` validation · `401` unauthenticated / missing CSRF
+
+---
+
+### `GET /tags/unknown`
+> Auth + Admin role required
+
+Returns all unknown tag attempts sorted by count descending. Used to discover popular tags users want that don't exist yet.
+
+**Response `200`**
+```json
+{
+  "message": "N unknown tag attempts",
+  "data": [
+    {
+      "id": "string",
+      "tagName": "string",
+      "count": 5,
+      "lastSeenAt": "2026-05-20T11:00:00.000Z",
+      "createdAt": "2026-05-01T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Errors:** `401` unauthenticated · `403` not an admin
+
+---
+
 ## Check-In — `/api/v1/check-in`
 
 ---

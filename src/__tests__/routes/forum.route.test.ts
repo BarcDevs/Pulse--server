@@ -232,6 +232,8 @@ describe('Forum Routes', () => {
 
                 prismaMock.profile.findUnique
                     .mockResolvedValue(mockProfile as never)
+                prismaMock.tag.findMany
+                    .mockResolvedValue([])
                 prismaMock.post.create
                     .mockResolvedValue(mockPost)
 
@@ -1127,6 +1129,191 @@ describe('Forum Routes', () => {
                 expect(response.status).toBe(404)
                 expect(response.body.error[0].statusType)
                     .toBe('Not Found')
+            }
+        )
+    })
+
+    // ==================== REPORT UNKNOWN TAG ====================
+    describe('POST /api/v1/forum/tags/unknown', () => {
+        const endpoint = '/api/v1/forum/tags/unknown'
+
+        it(
+            'should return 200 and record unknown tag attempt',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.unknownTagAttempt.upsert
+                    .mockResolvedValue({
+                        id: 'attempt-id',
+                        tagName: 'non-existent-tag',
+                        count: 1,
+                        lastSeenAt: new Date(),
+                        createdAt: new Date()
+                    } as never)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ tagName: 'non-existent-tag' })
+
+                expect(response.status).toBe(200)
+                expect(response.body.message)
+                    .toBe('Tag attempt recorded')
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .post(endpoint)
+                    .send({ tagName: 'some-tag' })
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 401 for missing CSRF token',
+            async () => {
+                const mockUser = createMockUser()
+                const token = createAuthToken(mockUser)
+
+                const response = await supertest(App)
+                    .post(endpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+                    .send({ tagName: 'some-tag' })
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 400 for missing tagName',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({})
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].property)
+                    .toBe('tagName')
+            }
+        )
+
+        it(
+            'should return 400 for empty tagName',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ tagName: '' })
+
+                expect(response.status).toBe(400)
+            }
+        )
+    })
+
+    // ==================== GET UNKNOWN TAG ATTEMPTS (ADMIN) ====================
+    describe('GET /api/v1/forum/tags/unknown', () => {
+        const endpoint = '/api/v1/forum/tags/unknown'
+
+        it(
+            'should return 200 and attempts list for admin',
+            async () => {
+                const mockAdmin = createMockUser({
+                    role: 'ADMIN'
+                })
+                const token = createAuthToken(mockAdmin)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue({
+                        role: 'ADMIN'
+                    } as never)
+                prismaMock.unknownTagAttempt.findMany
+                    .mockResolvedValue([
+                        {
+                            id: 'attempt-1',
+                            tagName: 'covid',
+                            count: 5,
+                            lastSeenAt: new Date(),
+                            createdAt: new Date()
+                        },
+                        {
+                            id: 'attempt-2',
+                            tagName: 'diabetes',
+                            count: 3,
+                            lastSeenAt: new Date(),
+                            createdAt: new Date()
+                        }
+                    ] as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(200)
+                expect(response.body.data)
+                    .toBeInstanceOf(Array)
+                expect(response.body.message)
+                    .toContain('unknown tag attempts')
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .get(endpoint)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 403 for non-admin user',
+            async () => {
+                const mockUser = createMockUser({
+                    role: 'USER'
+                })
+                const token = createAuthToken(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue({
+                        role: 'USER'
+                    } as never)
+
+                const response = await supertest(App)
+                    .get(endpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(403)
             }
         )
     })

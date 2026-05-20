@@ -226,6 +226,16 @@ model ProfileToTag {
   @@index([tagId])
 }
 
+model UnknownTagAttempt {
+  id         String   @id @default(uuid())
+  tagName    String   @unique
+  count      Int      @default(1)
+  lastSeenAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  @@index([count])
+}
+
 model RecoveryGoal {
   id          String       @id @default(cuid())
   profileId   String

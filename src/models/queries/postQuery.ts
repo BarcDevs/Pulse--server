@@ -53,15 +53,7 @@ export const postInclude = (
 })
 
 export const connectTags = (tags: string[]) => ({
-    connectOrCreate: tags.map((tag) => ({
-        where: {
-            name: tag
-        },
-        create: {
-            name: tag,
-            slug: tag.toLowerCase().replace(/\s+/g, '-')
-        }
-    }))
+    connect: tags.map((tag) => ({ name: tag }))
 })
 
 export const postQueryBuilder = (

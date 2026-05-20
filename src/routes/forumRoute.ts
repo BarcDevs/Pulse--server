@@ -10,6 +10,8 @@ import {
     getReplies,
     getTag,
     getTags,
+    getUnknownTagAttempts,
+    reportUnknownTag,
     updatePost,
     updateReply
 } from '../controllers/forumController'
@@ -17,6 +19,7 @@ import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
+import { isAdmin } from '../middlewares/isAdmin'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 
 const router = Router()
@@ -527,6 +530,85 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/tags').get(getTags)
+
+/**
+ * @swagger
+ * /api/v1/forum/tags/unknown:
+ *   get:
+ *     summary: Get unknown tag attempts (admin only)
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of unknown tag attempts ordered by count
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       tagName:
+ *                         type: string
+ *                       count:
+ *                         type: integer
+ *                       lastSeenAt:
+ *                         type: string
+ *                         format: date-time
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not an admin
+ */
+/**
+ * @swagger
+ * /api/v1/forum/tags/unknown:
+ *   post:
+ *     summary: Report an unknown tag attempt
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [tagName]
+ *             properties:
+ *               tagName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Attempt recorded
+ *       401:
+ *         description: Not authenticated
+ */
+router
+    .route('/tags/unknown')
+    .get(
+        isAuthenticated,
+        isAdmin,
+        getUnknownTagAttempts
+    )
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        reportUnknownTag
+    )
 
 /**
  * @swagger

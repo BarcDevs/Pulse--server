@@ -355,10 +355,34 @@ async function main() {
 
     console.info('Seeding posts...')
     const tags = [
-        { name: 'Mental Health', slug: 'mental-health' },
-        { name: 'Physical Health', slug: 'physical-health' },
-        { name: 'Recovery', slug: 'recovery' },
-        { name: 'Wellness Tips', slug: 'wellness-tips' }
+        { name: 'Fracture', slug: 'fracture' },
+        { name: 'Surgery', slug: 'surgery' },
+        { name: 'Spinal Injury', slug: 'spinal-injury' },
+        { name: 'Stroke', slug: 'stroke' },
+        { name: 'Chronic Pain', slug: 'chronic-pain' },
+        { name: 'Mobility', slug: 'mobility' },
+        { name: 'Recovery Journey', slug: 'recovery-journey' },
+        { name: 'Physical Therapy', slug: 'physical-therapy' },
+        { name: 'Occupational Therapy', slug: 'occupational-therapy' },
+        { name: 'Exercise', slug: 'exercise' },
+        { name: 'Stretching', slug: 'stretching' },
+        { name: 'Walking', slug: 'walking' },
+        { name: 'Pain Management', slug: 'pain-management' },
+        { name: 'Anxiety', slug: 'anxiety' },
+        { name: 'Motivation', slug: 'motivation' },
+        { name: 'Burnout', slug: 'burnout' },
+        { name: 'Loneliness', slug: 'loneliness' },
+        { name: 'Frustration', slug: 'frustration' },
+        { name: 'Confidence', slug: 'confidence' },
+        { name: 'Sleep', slug: 'sleep' },
+        { name: 'Nutrition', slug: 'nutrition' },
+        { name: 'Mindfulness', slug: 'mindfulness' },
+        { name: 'Family Support', slug: 'family-support' },
+        { name: 'Routines', slug: 'routines' },
+        { name: 'Work Return', slug: 'work-return' },
+        { name: 'Success Story', slug: 'success-story' },
+        { name: 'Advice', slug: 'advice' },
+        { name: 'Beginner Question', slug: 'beginner-question' }
     ]
 
     for (const tag of tags) {
@@ -395,7 +419,7 @@ async function main() {
                 category: 'wellness',
                 tags: {
                     connect: [
-                        { slug: tags[i % tags.length].slug }
+                        { slug: tags[i % tags.length]!.slug }
                     ]
                 }
             }

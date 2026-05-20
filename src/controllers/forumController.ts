@@ -7,6 +7,7 @@ import { newPostSchema } from '../schemas/forum/newPostSchema'
 import { newReplySchema } from '../schemas/forum/newReplySchema'
 import { postQuerySchema } from '../schemas/forum/postQuerySchema'
 import { tagQuerySchema } from '../schemas/forum/tagQuerySchema'
+import { unknownTagSchema } from '../schemas/forum/unknownTagSchema'
 import { updatePostSchema } from '../schemas/forum/updatePostSchema'
 import { updateReplySchema } from '../schemas/forum/updateReplySchema'
 import * as forumService from '../services/forumService'
@@ -288,6 +289,38 @@ export const getTag = async (
         res,
         data,
         `Tag ${tagId} found`
+    )
+}
+
+export const reportUnknownTag = async (
+    req: Request,
+    res: Response
+) => {
+    const { tagName } =
+        ValidationError.catchValidationErrors(
+            unknownTagSchema.safeParse(req.body)
+        )
+
+    await forumService.reportUnknownTag(tagName)
+
+    return successResponse(
+        res,
+        {},
+        'Tag attempt recorded'
+    )
+}
+
+export const getUnknownTagAttempts = async (
+    req: Request,
+    res: Response
+) => {
+    const data = await forumService
+        .getUnknownTagAttempts()
+
+    return successResponse(
+        res,
+        data,
+        `${data.length} unknown tag attempts`
     )
 }
 // endregion
