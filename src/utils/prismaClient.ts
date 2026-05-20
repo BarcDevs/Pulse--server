@@ -13,7 +13,12 @@ export const getPrismaClient = (): PrismaClient => {
     if (!client) {
         const connectionString = databaseConfig.url
 
-        const pool = new Pool({ connectionString })
+        const pool = new Pool({
+            connectionString,
+            keepAlive: true,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 5000
+        })
 
         pool.on('connect', () => {
             logger.info('Database pool connected')
