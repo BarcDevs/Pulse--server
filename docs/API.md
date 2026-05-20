@@ -622,7 +622,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 **Query**
 | Param    | Type   | Notes          |
 |----------|--------|----------------|
-| `limit`  | number | Max 100        |
+| `limit`  | number | Max 100; omit for all tags |
 | `page`   | number |                |
 | `filter` | string | `popular`      |
 | `search` | string | Search by name |

@@ -199,12 +199,12 @@ export const deleteReply = async (
 
 export const getTags = async (
     search = '',
-    limit = 10,
+    limit?: number,
     page = 0
 ): Promise<TagType[]> =>
     (await Prisma.tag.findMany({
-        take: limit,
-        skip: page * limit,
+        ...(limit !== undefined ? { take: limit } : {}),
+        ...(limit !== undefined ? { skip: page * limit } : {}),
         ...(search ? {
             where: {
                 name: { contains: search }
