@@ -1,12 +1,11 @@
 import { z } from 'zod'
 
+import { tagsField, voteField } from '../utils/fields'
+
 export const updatePostSchema = z.object({
     title: z.string().optional(),
     body: z.string().optional(),
     category: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    vote: z.object({
-        userId: z.string(),
-        vote: z.literal('up')
-    }).optional()
+    tags: tagsField,
+    vote: voteField
 })

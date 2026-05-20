@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { tagNameField } from '../utils/fields'
+
 export const unknownTagSchema = z.object({
-    tagName: z.string().min(1).max(100)
+    tagName: tagNameField
 })
