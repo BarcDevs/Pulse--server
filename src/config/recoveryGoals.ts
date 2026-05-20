@@ -1,2 +1,4 @@
-export const MAX_MILESTONES_PER_GOAL = 8
-export const MAX_ACTIVE_GOALS = 5
+export const recoveryGoalsConfig = {
+    maxMilestonesPerGoal: 8,
+    maxActiveGoals: 5
+} as const

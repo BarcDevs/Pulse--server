@@ -6,7 +6,7 @@ import {
     MilestoneStatus
 } from '../../../prisma/generated/prisma/enums'
 import App from '../../app'
-import { MAX_ACTIVE_GOALS } from '../../config/recoveryGoals'
+import { recoveryGoalsConfig } from '../../config/recoveryGoals'
 import { dayInMs } from '../../constants/time'
 import { errorFactory } from '../../errors/factory/ErrorFactory'
 import { prismaMock } from '../setup/jestSetup'
@@ -221,7 +221,7 @@ describe('Recovery Goals Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
-            const activeGoals = Array.from({ length: MAX_ACTIVE_GOALS }).map(
+            const activeGoals = Array.from({ length: recoveryGoalsConfig.maxActiveGoals }).map(
                 (_, i) =>
                     createMockRecoveryGoal({
                         id: `goal-${i}`,

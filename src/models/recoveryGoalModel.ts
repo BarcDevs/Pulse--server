@@ -4,7 +4,7 @@ import {
     GoalStatus,
     MilestoneStatus
 } from '../../prisma/generated/prisma/enums'
-import { MAX_MILESTONES_PER_GOAL } from '../config/recoveryGoals'
+import { recoveryGoalsConfig } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import type {
     MilestoneType,
@@ -173,10 +173,10 @@ export const createMilestonesInBatch = async (data: {
         const totalCount = (
         existingCount + data.milestones.length
     )
-        if (totalCount > MAX_MILESTONES_PER_GOAL)
+        if (totalCount > recoveryGoalsConfig.maxMilestonesPerGoal)
             throw errorFactory.generic.conflict(
                 `Maximum `
-                + `${MAX_MILESTONES_PER_GOAL} `
+                + `${recoveryGoalsConfig.maxMilestonesPerGoal} `
                 + 'milestones per goal'
             )
 

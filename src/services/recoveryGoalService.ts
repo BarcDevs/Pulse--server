@@ -1,5 +1,5 @@
 import { GoalStatus, MilestoneStatus } from '../../prisma/generated/prisma/enums'
-import { MAX_ACTIVE_GOALS } from '../config/recoveryGoals'
+import { recoveryGoalsConfig } from '../config/recoveryGoals'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { calculateCurrentStreak } from '../lib/aiInsight/decision/streakCalculator'
 import { getUserTimezone } from '../models/authModel'
@@ -49,10 +49,10 @@ export const createGoal = async (
             && g.status !== GoalStatus.ABANDONED
     )
 
-    if (activeGoals.length >= MAX_ACTIVE_GOALS) {
+    if (activeGoals.length >= recoveryGoalsConfig.maxActiveGoals) {
         throw errorFactory.generic
             .conflict(
-                `Cannot create more than ${MAX_ACTIVE_GOALS} active goals. Complete or abandon some goals to create new ones.`
+                `Cannot create more than ${recoveryGoalsConfig.maxActiveGoals} active goals. Complete or abandon some goals to create new ones.`
             )
     }
 
