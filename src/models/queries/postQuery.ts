@@ -91,7 +91,7 @@ export const postQueryBuilder = (
             ...(query?.tag && {
                 tags: {
                     some: {
-                        name: query.tag
+                        slug: query.tag
                     }
                 }
             }),

@@ -79,7 +79,7 @@ describe('postQueryBuilder', () => {
             const result = postQueryBuilder({ search: 'diabetes', tag: 'nutrition' })
             expect(result.where.OR).toBeDefined()
             expect(result.where.tags).toEqual({
-                some: { name: 'nutrition' }
+                some: { slug: 'nutrition' }
             })
         })
 
