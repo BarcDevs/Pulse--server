@@ -19,35 +19,55 @@ import {
     postQueryBuilder
 } from './queries/postQuery'
 
-type RawTag = { id: string; name: string; nameHe: string; slug: string; description?: string | null; createdAt?: Date; _count?: { posts: number; followers: number } }
+type RawTag = {
+    id: string
+    name: string
+    nameHe: string
+    slug: string
+    description?: string | null
+    createdAt?: Date
+    _count?: {
+        posts: number
+        followers: number
+    }
+}
 
 const mapTag = (raw: RawTag): TagType => ({
     id: raw.id,
-    label: { en: raw.name, he: raw.nameHe },
+    label: {
+        en: raw.name,
+        he: raw.nameHe
+    },
     slug: raw.slug,
-    ...(raw.description != null && { description: raw.description }),
+    ...(raw.description != null
+        && { description: raw.description }),
     ...(raw.createdAt && { createdAt: raw.createdAt }),
     ...(raw._count && { _count: raw._count })
+})
+
+const mapPostTags = <T extends { tags?: RawTag[] }>(post: T): T => ({
+    ...post,
+    tags: post.tags?.map(mapTag) ?? []
 })
 
 export const getPosts = async (query?: PostQuery):
     Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
 
-    return (
-        await Prisma.post.findMany({
-            take: query?.limit || 10,
-            skip:
-                (query?.page ? query.page - 1 : 0)
-                * (query?.limit || 10),
-            ...postQuery
-        })
-    ) as unknown as PostType[]
+    const posts = await Prisma.post.findMany({
+        take: query?.limit || 10,
+        skip:
+            (query?.page ? query.page - 1 : 0)
+            * (query?.limit || 10),
+        ...postQuery
+    })
+    if (!posts) return null as unknown as PostType[]
+    return posts.map(mapPostTags) as unknown as PostType[]
 }
 
 export const getPostsCount = async (
     query?: PostQuery
-): Promise<{count: number}> => {
+): Promise<{ count: number }> => {
     const postQuery =
         query
             ? postQueryBuilder(query)
@@ -57,12 +77,12 @@ export const getPostsCount = async (
         count: await Prisma.post.count({
             ...postQuery
         })
-    } as {count: number}
+    } as { count: number }
 }
 
 export const getPost = async (id: string):
-    Promise<PostType | null> =>
-    (await Prisma.post.findUnique({
+    Promise<PostType | null> => {
+    const post = await Prisma.post.findUnique({
         where: {
             id,
             author: {
@@ -72,7 +92,9 @@ export const getPost = async (id: string):
             }
         },
         include: postInclude('single')
-    })) as PostType | null
+    })
+    return post ? mapPostTags(post) as unknown as PostType : null
+}
 
 export const createPost = async (post: NewPostType):
     Promise<PostType> => {
@@ -82,7 +104,7 @@ export const createPost = async (post: NewPostType):
         ...postData
     } = post
 
-    return (await Prisma.post.create({
+    const created = await Prisma.post.create({
         data: {
             ...postData,
             author: {
@@ -95,15 +117,16 @@ export const createPost = async (post: NewPostType):
             }
         } as PrismaTypes.PostCreateInput,
         include: postInclude('single')
-    })) as unknown as PostType
+    })
+    return mapPostTags(created) as unknown as PostType
 }
 
 export const updatePost = async (
     id: string,
     post: UpdatePostType,
     removeTags?: Array<{ id: string }>
-): Promise<PostType> =>
-    (await Prisma.post.update({
+): Promise<PostType> => {
+    const updated = await Prisma.post.update({
         where: {
             id
         },
@@ -117,7 +140,9 @@ export const updatePost = async (
             }
         },
         include: postInclude('single')
-    })) as unknown as PostType
+    })
+    return mapPostTags(updated) as unknown as PostType
+}
 
 export const deletePost = async (id: string) =>
     Prisma.post.delete({

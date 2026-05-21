@@ -407,7 +407,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
         "upvotes": 0,
         "upvotedBy": ["userId"]
       },
-      "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
+      "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
       "replies": []
     }
   ]
@@ -460,7 +460,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": []
     },
-    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
+    "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
   }
 }
@@ -486,7 +486,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": ["userId"]
     },
-    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
+    "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": [{ "id": "string", "body": "string" }]
   }
 }
@@ -522,7 +522,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": ["userId"]
     },
-    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
+    "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
   }
 }

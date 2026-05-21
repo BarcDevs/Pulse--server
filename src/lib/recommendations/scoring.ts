@@ -64,7 +64,7 @@ export const computeConditionMatch = (
     activities: string[],
     post: PostType
 ): number => {
-    const postTagNames = post.tags.map((t) => t.name.toLowerCase())
+    const postTagNames = post.tags.map((t) => t.label.en.toLowerCase())
     const postText = (post.title + ' ' + post.category)
         .toLowerCase()
 

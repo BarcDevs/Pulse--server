@@ -27,7 +27,7 @@ const classifyContentType = (
     ).toLowerCase()
 
     const tagNames = (post.post.tags || [])
-        .map((tag) => tag.name.toLowerCase())
+        .map((tag) => tag.label.en.toLowerCase())
         .join(' ')
 
     const fullText = `${text} ${tagNames}`

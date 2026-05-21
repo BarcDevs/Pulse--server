@@ -14,7 +14,6 @@ export type TagType = {
 
 export type PostTagType = {
     id: string
-    name: string
-    nameHe: string
+    label: TagLabel
     slug: string
 }

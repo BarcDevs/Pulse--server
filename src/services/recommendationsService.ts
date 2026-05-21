@@ -62,7 +62,7 @@ const applyEmotionalFiltering = (
             post.title + ' ' + post.body
         ).toLowerCase()
         const tagNames = (post.tags || [])
-            .map((tag) => tag.name.toLowerCase())
+            .map((tag) => tag.label.en.toLowerCase())
             .join(' ')
 
         const fullText = text + ' ' + tagNames

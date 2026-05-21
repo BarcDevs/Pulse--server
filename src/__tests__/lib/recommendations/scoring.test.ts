@@ -6,7 +6,8 @@ import {
     computeRecencyScore,
     computeSemanticSimilarity,
     DEFAULT_WEIGHTS,
-    scorePost } from '../../../lib/recommendations/scoring'
+    scorePost
+} from '../../../lib/recommendations/scoring'
 import type { PostType } from '../../../types/data/PostType'
 import type { CheckInState } from '../../../types/data/RecommendationType'
 
@@ -21,8 +22,16 @@ const createMockPost = (overrides?: Partial<PostType>): PostType => ({
     views: 100,
     category: 'fitness',
     tags: [
-        { id: 't1', name: 'walking', nameHe: 'הליכה', slug: 'walking' },
-        { id: 't2', name: 'pain-management', nameHe: 'ניהול כאב', slug: 'pain-management' }
+        {
+            id: 't1',
+            label: { en: 'walking', he: 'הליכה' },
+            slug: 'walking'
+        },
+        {
+            id: 't2',
+            label: { en: 'pain-management', he: 'ניהול כאב' },
+            slug: 'pain-management'
+        }
     ],
     replies: [],
     _count: { replies: 3 },
@@ -83,7 +92,7 @@ describe('scoring', () => {
         it('should penalize old posts', () => {
             const recent = computeRecencyScore(new Date())
             const old = computeRecencyScore(
-                new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+                new Date(Date.now() - 60 * dayInMs)
             )
 
             expect(recent).toBeGreaterThan(old)
@@ -91,7 +100,7 @@ describe('scoring', () => {
 
         it('should apply floor of 0.2', () => {
             const veryOld = computeRecencyScore(
-                new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+                new Date(Date.now() - 365 * dayInMs)
             )
 
             expect(veryOld).toBe(0.2)
