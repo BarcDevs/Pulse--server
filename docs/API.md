@@ -407,7 +407,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
         "upvotes": 0,
         "upvotedBy": ["userId"]
       },
-      "tags": [{ "id": "string", "name": "string" }],
+      "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
       "replies": []
     }
   ]
@@ -460,7 +460,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": []
     },
-    "tags": [{ "id": "string", "name": "string" }],
+    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
     "replies": []
   }
 }
@@ -486,7 +486,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": ["userId"]
     },
-    "tags": [{ "id": "string", "name": "string" }],
+    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
     "replies": [{ "id": "string", "body": "string" }]
   }
 }
@@ -522,7 +522,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "upvotes": 0,
       "upvotedBy": ["userId"]
     },
-    "tags": [{ "id": "string", "name": "string" }],
+    "tags": [{ "id": "string", "slug": "string", "name": "string", "nameHe": "string | null" }],
     "replies": []
   }
 }
@@ -651,7 +651,8 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
   "data": [
     {
       "id": "string",
-      "name": "string",
+      "slug": "string",
+      "label": { "en": "string", "he": "string | null" },
       "description?": "string",
       "posts?": "number",
       "followers?": "number"
@@ -672,7 +673,8 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
   "message": "Tag <id> found",
   "data": {
     "id": "string",
-    "name": "string",
+    "slug": "string",
+    "label": { "en": "string", "he": "string | null" },
     "description?": "string",
     "posts?": "number",
     "followers?": "number"

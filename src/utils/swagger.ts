@@ -69,7 +69,15 @@ const options: swaggerJsdoc.Options = {
                     type: 'object',
                     properties: {
                         id: { type: 'string' },
-                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        label: {
+                            type: 'object',
+                            properties: {
+                                en: { type: 'string' },
+                                he: { type: 'string', nullable: true }
+                            },
+                            required: ['en', 'he']
+                        },
                         description: {
                             type: 'string',
                             nullable: true

@@ -160,7 +160,19 @@ export const createMockTag = (
     overrides?: Partial<TagType>
 ): TagType => ({
     id: 'test-tag-id-123',
+    label: { en: 'test-tag', he: 'תג בדיקה' },
+    slug: 'test-tag',
+    description: 'A test tag',
+    createdAt: new Date(),
+    ...overrides
+})
+
+export const createRawMockTag = (
+    overrides?: Partial<{ id: string; name: string; nameHe: string; slug: string; description: string; createdAt: Date }>
+) => ({
+    id: 'test-tag-id-123',
     name: 'test-tag',
+    nameHe: 'תג בדיקה',
     slug: 'test-tag',
     description: 'A test tag',
     createdAt: new Date(),

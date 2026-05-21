@@ -1,5 +1,5 @@
 import type { ReplyType } from './ReplyType'
-import type { TagType } from './TagType'
+import type { PostTagType } from './TagType'
 import type { UserType } from './UserType'
 import type { Votes } from './Votes'
 
@@ -15,7 +15,7 @@ export type PostType = {
     replies: ReplyType[]
     views: number
     category: string
-    tags: TagType[]
+    tags: PostTagType[]
     _count?: {
         replies: number
     }

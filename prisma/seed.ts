@@ -358,7 +358,7 @@ async function main() {
     for (const tag of FORUM_TAGS) {
         await prisma.tag.upsert({
             where: { slug: tag.slug },
-            update: {},
+            update: { nameHe: tag.nameHe },
             create: tag
         })
     }

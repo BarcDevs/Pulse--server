@@ -19,6 +19,17 @@ import {
     postQueryBuilder
 } from './queries/postQuery'
 
+type RawTag = { id: string; name: string; nameHe: string; slug: string; description?: string | null; createdAt?: Date; _count?: { posts: number; followers: number } }
+
+const mapTag = (raw: RawTag): TagType => ({
+    id: raw.id,
+    label: { en: raw.name, he: raw.nameHe },
+    slug: raw.slug,
+    ...(raw.description != null && { description: raw.description }),
+    ...(raw.createdAt && { createdAt: raw.createdAt }),
+    ...(raw._count && { _count: raw._count })
+})
+
 export const getPosts = async (query?: PostQuery):
     Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
@@ -90,7 +101,7 @@ export const createPost = async (post: NewPostType):
 export const updatePost = async (
     id: string,
     post: UpdatePostType,
-    removeTags?: TagType[]
+    removeTags?: Array<{ id: string }>
 ): Promise<PostType> =>
     (await Prisma.post.update({
         where: {
@@ -201,60 +212,45 @@ export const getTags = async (
     search = '',
     limit?: number,
     page = 0
-): Promise<TagType[]> =>
-    (await Prisma.tag.findMany({
+): Promise<TagType[]> => {
+    const rows = await Prisma.tag.findMany({
         ...(limit !== undefined ? { take: limit } : {}),
         ...(limit !== undefined ? { skip: page * limit } : {}),
-        ...(search ? {
-            where: {
-                name: { contains: search }
-            }
-        } : {}),
-        select: {
-            id: true,
-            name: true,
-            slug: true
-        }
-    })) as TagType[]
+        ...(search ? { where: { name: { contains: search } } } : {}),
+        select: { id: true, name: true, nameHe: true, slug: true }
+    })
+    return rows?.map(mapTag) ?? (null as unknown as TagType[])
+}
 
 export const getTag = async (id: string):
-    Promise<TagType | null> =>
-    (await Prisma.tag.findUnique({
-        where: {
-            id
-        },
+    Promise<TagType | null> => {
+    const row = await Prisma.tag.findUnique({
+        where: { id },
         include: {
-            _count: {
-                select: {
-                    posts: true,
-                    followers: true
-                }
-            }
+            _count: { select: { posts: true, followers: true } }
         }
-    })) as TagType | null
+    })
+    return row ? mapTag(row as RawTag) : null
+}
 
 export const getPopularTags = async (limit = 10):
-    Promise<TagType[]> =>
-    (await Prisma.tag.findMany({
-        orderBy: {
-            posts: {
-                _count: 'desc'
-            }
-        } as PrismaTypes.TagOrderByWithRelationInput,
-        take: limit
-    })) as TagType[]
+    Promise<TagType[]> => {
+    const rows = await Prisma.tag.findMany({
+        orderBy: { posts: { _count: 'desc' } } as PrismaTypes.TagOrderByWithRelationInput,
+        take: limit,
+        select: { id: true, name: true, nameHe: true, slug: true }
+    })
+    return rows.map(mapTag)
+}
 
 export const getTagsByPostId = async (id: string):
-    Promise<TagType[]> =>
-    (await Prisma.tag.findMany({
-        where: {
-            posts: {
-                some: {
-                    id
-                }
-            }
-        }
-    })) as unknown as TagType[]
+    Promise<TagType[]> => {
+    const rows = await Prisma.tag.findMany({
+        where: { posts: { some: { id } } },
+        select: { id: true, name: true, nameHe: true, slug: true }
+    })
+    return rows.map(mapTag)
+}
 
 export const getExistingTagsByName = async (
     names: string[]

@@ -17,7 +17,8 @@ import { prismaMock } from '../setup/jestSetup'
 import {
     createMockPost,
     createMockReply,
-    createMockTag
+    createMockTag,
+    createRawMockTag
 } from '../setup/testSetup'
 
 describe('Forum Service', () => {
@@ -254,7 +255,7 @@ describe('Forum Service', () => {
         it('should handle tag changes', async () => {
             const mockPost = createMockPost()
             const existingTags = [
-                createMockTag({ name: 'old-tag' })
+                createMockTag({ label: { en: 'old-tag', he: 'תג-ישן' } })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(existingTags)
@@ -286,57 +287,65 @@ describe('Forum Service', () => {
     // ==================== getTags ====================
     describe('getTags', () => {
         it('should return tags array', async () => {
-            const mockTags = [
-                createMockTag(),
-                createMockTag({ id: 'tag-2', name: 'tag2' })
+            const fixedDate = new Date('2026-01-01')
+            const rawTags = [
+                createRawMockTag({ createdAt: fixedDate }),
+                createRawMockTag({ id: 'tag-2', name: 'tag2', nameHe: 'תג 2', createdAt: fixedDate })
             ]
             prismaMock.tag.findMany
-                .mockResolvedValue(mockTags)
+                .mockResolvedValue(rawTags)
 
             const result = await getTags({})
 
-            expect(result).toEqual(mockTags)
+            expect(result).toEqual([
+                createMockTag({ createdAt: fixedDate }),
+                createMockTag({ id: 'tag-2', label: { en: 'tag2', he: 'תג 2' }, createdAt: fixedDate })
+            ])
+        })
+
+        it('label.he is null when nameHe missing (client falls back to en)', async () => {
+            prismaMock.tag.findMany
+                .mockResolvedValue([createRawMockTag({ nameHe: null as unknown as string })])
+
+            const result = await getTags({})
+
+            expect(result[0].label.he).toBeNull()
         })
 
         it(
             'should return popular tags when filter is popular',
             async () => {
-                const mockTags = [createMockTag()]
                 prismaMock.tag.findMany
-                    .mockResolvedValue(mockTags)
+                    .mockResolvedValue([createRawMockTag()])
 
                 const result = await getTags({
                     filter: 'popular',
                     limit: 10
                 })
 
-                expect(result).toEqual(mockTags)
+                expect(result).toEqual([createMockTag()])
             }
         )
 
         it('should filter by search', async () => {
-            const mockTags = [
-                createMockTag({ name: 'javascript' })
-            ]
             prismaMock.tag.findMany
-                .mockResolvedValue(mockTags)
+                .mockResolvedValue([createRawMockTag({ name: 'javascript', nameHe: 'ג\'אווהסקריפט' })])
 
             const result = await getTags({ search: 'java' })
 
-            expect(result).toEqual(mockTags)
+            expect(result).toEqual([createMockTag({ label: { en: 'javascript', he: 'ג\'אווהסקריפט' } })])
         })
     })
 
     // ==================== getTag ====================
     describe('getTag', () => {
         it('should return single tag', async () => {
-            const mockTag = createMockTag()
             prismaMock.tag.findUnique
-                .mockResolvedValue(mockTag)
+                .mockResolvedValue(createRawMockTag())
 
             const result = await getTag('tag-id')
 
-            expect(result).toEqual(mockTag)
+            expect(result).toEqual(createMockTag())
         })
 
         it(

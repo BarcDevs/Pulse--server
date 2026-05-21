@@ -630,7 +630,12 @@
                   "    const json = pm.response.json()",
                   "    pm.expect(json.data).to.be.an('array')",
                   "    if (json.data.length > 0) {",
-                  "        pm.environment.set('tagId', json.data[0].id)",
+                  "        const tag = json.data[0]",
+                  "        pm.expect(tag).to.have.property('id')",
+                  "        pm.expect(tag).to.have.property('slug')",
+                  "        pm.expect(tag.label).to.have.property('en')",
+                  "        pm.expect(tag.label).to.have.property('he')",
+                  "        pm.environment.set('tagId', tag.id)",
                   "    }",
                   "})"
                 ],
@@ -680,6 +685,8 @@
                   "    const json = pm.response.json()",
                   "    pm.expect(json.data).to.have.property('id')",
                   "    pm.expect(json.data.id).to.eql(pm.environment.get('tagId'))",
+                  "    pm.expect(json.data.label).to.have.property('en')",
+                  "    pm.expect(json.data.label).to.have.property('he')",
                   "})"
                 ],
                 "type": "text/javascript"

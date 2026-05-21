@@ -13,7 +13,9 @@ export const postInclude = (
     tags: {
         select: {
             id: true,
-            name: true
+            name: true,
+            nameHe: true,
+            slug: true
         }
     },
 

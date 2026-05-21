@@ -10,6 +10,7 @@ import {
     createMockReply,
     createMockTag,
     createMockUser,
+    createRawMockTag,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -1020,15 +1021,11 @@ describe('Forum Routes', () => {
         const tagsEndpoint = '/api/v1/forum/tags'
 
         it('should return 200 and tags array', async () => {
-            const mockTags = [
-                createMockTag(),
-                createMockTag({
-                    id: 'tag-2',
-                    name: 'tag2'
-                })
-            ]
             prismaMock.tag.findMany
-                .mockResolvedValue(mockTags)
+                .mockResolvedValue([
+                    createRawMockTag(),
+                    createRawMockTag({ id: 'tag-2', name: 'tag2', nameHe: 'תג 2' })
+                ])
 
             const response = await supertest(App)
                 .get(tagsEndpoint)
@@ -1041,11 +1038,8 @@ describe('Forum Routes', () => {
         it(
             'should return 200 with search filter',
             async () => {
-                const mockTags = [
-                    createMockTag({ name: 'javascript' })
-                ]
                 prismaMock.tag.findMany
-                    .mockResolvedValue(mockTags)
+                    .mockResolvedValue([createRawMockTag({ name: 'javascript', nameHe: 'ג\'אווהסקריפט' })])
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
@@ -1058,9 +1052,8 @@ describe('Forum Routes', () => {
         it(
             'should return 200 with popular filter',
             async () => {
-                const mockTags = [createMockTag()]
                 prismaMock.tag.findMany
-                    .mockResolvedValue(mockTags)
+                    .mockResolvedValue([createRawMockTag()])
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
@@ -1073,9 +1066,8 @@ describe('Forum Routes', () => {
         it(
             'should return 200 with pagination',
             async () => {
-                const mockTags = [createMockTag()]
                 prismaMock.tag.findMany
-                    .mockResolvedValue(mockTags)
+                    .mockResolvedValue([createRawMockTag()])
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
@@ -1105,9 +1097,8 @@ describe('Forum Routes', () => {
     // ==================== GET SINGLE TAG ====================
     describe('GET /api/v1/forum/tags/:tagId', () => {
         it('should return 200 and single tag', async () => {
-            const mockTag = createMockTag()
             prismaMock.tag.findUnique
-                .mockResolvedValue(mockTag)
+                .mockResolvedValue(createRawMockTag())
 
             const response = await supertest(App)
                 .get('/api/v1/forum/tags/test-tag-id-123')

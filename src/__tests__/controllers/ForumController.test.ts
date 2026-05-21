@@ -508,7 +508,7 @@ describe('ForumController', () => {
         it('should return tags array', async () => {
             const mockTags = [
                 createMockTag(),
-                createMockTag({ id: 'tag-2', name: 'tag2' })
+                createMockTag({ id: 'tag-2', label: { en: 'tag2', he: 'תג2' } })
             ]
             ;(forumService.getTags as jest.Mock)
                 .mockResolvedValue(mockTags)

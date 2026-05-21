@@ -20,7 +20,7 @@ export const extractRemovedTags = (
         return undefined
 
     return prevTags.filter(
-        (tag) => !newTagNames.includes(tag.name)
+        (tag) => !newTagNames.includes(tag.label.en)
     )
 }
 
