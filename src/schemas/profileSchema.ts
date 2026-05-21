@@ -5,6 +5,7 @@ import { caseInsensitiveEnum } from './utils/caseInsensitiveEnum'
 export const updateProfileSchema = z.object({
     // TODO: update when image upload endpoint is implemented (multipart)
     image: z.string()
+        .url('Invalid image URL')
         .optional(),
     bio: z.string()
         .max(500, 'Bio must be 500 characters or fewer')
