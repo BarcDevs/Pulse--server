@@ -15,9 +15,6 @@ type AppConfig = {
 
 type DatabaseConfig = {
     url: string
-    // WARNING: under high load, low values cause request failures instead of queuing.
-    // Set to 0 in production to wait indefinitely, or raise the value.
-    connectionTimeoutMillis: number
 }
 
 type EmailConfig = {

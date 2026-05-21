@@ -5,6 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { databaseConfig, isDev } from '../../config'
 import { PrismaClient } from '../../prisma/generated/prisma/client'
 
+import withNeonRetry from './devPrismaClient'
 import logger from './logger'
 
 let client: PrismaClient
@@ -13,12 +14,7 @@ export const getPrismaClient = (): PrismaClient => {
     if (!client) {
         const connectionString = databaseConfig.url
 
-        const pool = new Pool({
-            connectionString,
-            keepAlive: true,
-            idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: databaseConfig.connectionTimeoutMillis
-        })
+        const pool = new Pool({ connectionString })
 
         pool.on('connect', () => {
             logger.info('Database pool connected')
@@ -38,13 +34,16 @@ export const getPrismaClient = (): PrismaClient => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const adapter = new PrismaPg(pool as any)
 
-        client = new PrismaClient({
+        const baseClient = new PrismaClient({
             adapter,
             errorFormat: 'minimal',
             log:
                 isDev ? ['info', 'warn', 'error']
                     : undefined
         })
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        client = isDev ? withNeonRetry(baseClient) as any : baseClient
 
         logger.info(
             `Prisma client initialized. Database connected to ${isDev ? 'dev' : 'prod'} database`

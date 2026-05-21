@@ -1,8 +1,7 @@
 export default {
     env: 'production',
     database: {
-        url: process.env.DATABASE_URL || '',
-        connectionTimeoutMillis: 0  // 0 = queue forever; safer under load than failing fast
+        url: process.env.DATABASE_URL || ''
     },
     server: {
         port: process.env.PORT || 8080,
