@@ -336,8 +336,15 @@ async function main() {
                 BAD_DAY_SUPPORT: 'You Got This'
             }
 
-            await prisma.aIInsight.create({
-                data: {
+            await prisma.aIInsight.upsert({
+                where: {
+                    checkInId_type: {
+                        checkInId: checkIn.id,
+                        type: insightType
+                    }
+                },
+                update: {},
+                create: {
                     checkInId: checkIn.id,
                     userId: user.id,
                     type: insightType,
@@ -355,6 +362,8 @@ async function main() {
     }
 
     console.info('Seeding posts...')
+    await prisma.reply.deleteMany({})
+    await prisma.post.deleteMany({})
     for (const tag of FORUM_TAGS) {
         await prisma.tag.upsert({
             where: { slug: tag.slug },
@@ -363,43 +372,111 @@ async function main() {
         })
     }
 
-    const postTitles = [
-        'Tips for improving daily mood tracking',
-        'My recovery journey so far',
-        'How meditation has helped my stress levels',
-        'Best exercises for pain management',
-        'Building a consistent wellness routine'
+    const seedPosts = [
+        {
+            title: '6 months post hip replacement — what actually helped',
+            category: 'recovery',
+            tags: ['recovery-journey', 'physical-therapy'],
+            body: '<h2>Six months in</h2><p>I had my hip replacement last November and I want to share what genuinely moved the needle for me — not the generic advice, the real stuff.</p><ul><li><strong>Consistency over intensity</strong> — my PT told me to walk 10 minutes twice a day, every day, no excuses. That baseline mattered more than any single hard session.</li><li><strong>Ice after every session</strong> — 20 minutes, no shortcuts. Reduced swelling dramatically in weeks 3–6.</li><li><strong>Telling people</strong> — I was embarrassed at first but letting my family know what I needed changed everything.</li></ul><p>The hardest part was trusting the process when progress felt invisible. Week 8 felt identical to week 6. Then week 10 felt totally different. Hang in there.</p><blockquote>Progress is not always linear — sometimes it hides for weeks before it shows up all at once.</blockquote>'
+        },
+        {
+            title: 'My PT gave me 3 exercises that finally reduced my lower back pain',
+            category: 'therapy',
+            tags: ['physical-therapy', 'pain-management', 'exercise'],
+            body: '<p>After two years of chronic lower back pain, my physical therapist introduced three exercises that have made a measurable difference. Sharing them here — but please check with your own PT before starting anything new.</p><ol><li><strong>Bird-dog</strong> — On hands and knees, extend opposite arm and leg. Hold 5 seconds, 10 reps each side. Targets deep spinal stabilizers.</li><li><strong>Dead bug</strong> — Lying on back, extend opposite arm and leg while keeping lower back flat. 8 reps each side.</li><li><strong>Glute bridge</strong> — Feet flat, push hips up, hold 3 seconds. 3 sets of 12. Weak glutes contribute to back pain more than people realize.</li></ol><p>I do this routine every morning. The key is doing them <em>slowly and controlled</em> — not rushing through reps. It took about 3 weeks to notice a difference.</p>'
+        },
+        {
+            title: 'Anxiety after my stroke — you are not alone',
+            category: 'mental',
+            tags: ['anxiety', 'stroke', 'mental-health'],
+            body: '<h2>Nobody warned me about the anxiety</h2><p>When I had my stroke 14 months ago, I expected the physical challenges. What blindsided me was the anxiety — the hypervigilance, the constant scanning of my body for warning signs, the fear of it happening again.</p><p>I want to say this clearly: <strong>what you are feeling is normal and it has a name</strong>. Post-stroke anxiety affects up to 25% of survivors. It is not weakness. It is your nervous system processing a terrifying event.</p><p>What has helped me:</p><ul><li>Therapy with someone who specializes in chronic illness and trauma</li><li>Grounding exercises — the 5-4-3-2-1 sensory technique during panic moments</li><li>Limiting health-anxiety spirals online (I set a 15-minute daily limit)</li><li>Being honest with my neurologist about symptoms</li></ul><p>If anyone here is navigating this, my DMs are open. You do not have to explain it to people who have not been through it.</p>'
+        },
+        {
+            title: 'I hit 100 days of daily walking — here is what changed',
+            category: 'milestones',
+            tags: ['motivation', 'walking', 'routines'],
+            body: '<p>Day 100 of my walking streak. I am going to keep this simple because simple is what got me here.</p><h2>What I did</h2><p>Walk at least 20 minutes every single day. Rain, tired, bad mood — it did not matter. The rule was non-negotiable.</p><h2>What changed</h2><ul><li><strong>Sleep</strong> — noticeably better by week 3</li><li><strong>Mood</strong> — less reactive, calmer baseline</li><li><strong>Pain levels</strong> — my knee inflammation is down (doctor confirmed this)</li><li><strong>Sense of control</strong> — this was the biggest one. After my surgery I felt like my body was betraying me. A daily win, however small, helped me reclaim that feeling.</li></ul><p>I am not going to pretend every day was easy. Day 34 I walked 20 minutes in a hospital corridor while waiting for test results. That day counts too.</p>'
+        },
+        {
+            title: 'How I restructured my mornings after burnout',
+            category: 'lifestyle',
+            tags: ['burnout', 'routines', 'mindfulness'],
+            body: '<p>Burnout hit me during my recovery. Trying to heal <em>and</em> keep everything else running broke me. I want to share the morning structure that finally gave me some stability.</p><h2>My current morning (45 min total)</h2><ol><li><strong>No phone for the first 20 minutes</strong> — this alone was transformative</li><li><strong>5 minutes of stretching</strong> — in bed, before I get up. Gentle neck rolls, shoulder circles, ankle pumps.</li><li><strong>Breakfast with intention</strong> — I sit down, no screens, eat slowly. 10 minutes.</li><li><strong>Write 3 things</strong> — one intention for the day, one thing I am grateful for, one thing I am anxious about (naming it reduces its power)</li></ol><p>This is not productivity optimization. It is survival scaffolding. The goal is to face the day from a stable foundation, not already behind.</p><blockquote>You cannot pour from an empty vessel. Recovery requires protecting your energy before spending it.</blockquote>'
+        },
+        {
+            title: 'Talking to my kids about my recovery — what worked',
+            category: 'support',
+            tags: ['family-support', 'recovery'],
+            body: '<p>My kids are 9 and 12. When I came home from the hospital after my spinal surgery, I did not know how to explain what was happening. I was scared. They were scared. And nobody was talking about it.</p><p>We eventually found a rhythm. Here is what helped us:</p><ul><li><strong>Age-appropriate honesty</strong> — I told my 9-year-old "Dad\'s back needs to heal, like when you broke your arm, but bigger and slower." That clicked.</li><li><strong>Giving them a job</strong> — my 12-year-old became my "medication reminder." It gave her agency instead of helplessness.</li><li><strong>Normal dinners</strong> — even when I could not cook, we sat together. Routine was stabilizing for everyone.</li><li><strong>Letting them see me struggle sometimes</strong> — I do not want them thinking strength means never showing pain. That lesson is too important to hide.</li></ul><p>Has anyone else navigated this with children? I would love to hear your approaches.</p>'
+        },
+        {
+            title: 'Complete beginner — what should I actually track in my check-ins?',
+            category: 'questions',
+            tags: ['beginner-question', 'advice', 'routines'],
+            body: '<p>Hi everyone — just joined HealEase after my occupational therapist recommended it. I am 3 weeks post-surgery and trying to figure out what actually matters to track.</p><p>I have been logging mood and pain but I feel like I am missing something. Questions I have:</p><ul><li>Do you track <strong>energy levels</strong> separately from mood? They feel different to me.</li><li>How detailed should my notes be? I have been writing paragraphs but it feels unsustainable.</li><li>Is it useful to track which activities made things better or worse, or is that too granular?</li></ul><p>I do not want to spend more time tracking than recovering, but I also do not want to miss patterns that could help my care team. Any advice from people further along would be really appreciated.</p>'
+        },
+        {
+            title: 'Two years after my accident — a story about getting my life back',
+            category: 'stories',
+            tags: ['success-story', 'recovery-journey', 'motivation'],
+            body: '<h2>Where I started</h2><p>Two years ago I was in a car accident that fractured three vertebrae and left me unable to walk without assistance. The first six months I genuinely did not believe I would get back to anything resembling my previous life.</p><h2>The middle</h2><p>Recovery is not a straight line. I had setbacks that felt like erasure. Month four I re-injured my shoulder in a fall. Month eight my mental health collapsed and I stopped doing my PT exercises for three weeks. Month eleven I had a breakthrough session where I walked unaided across a gym for the first time.</p><h2>Where I am now</h2><p>I hiked 5km last weekend. I cried at the trailhead. I am sharing this not to inspire — I know how hollow that can feel when you are in the hard part — but to say: <strong>the hard part ends</strong>. Not fully. But enough.</p><p>If you are in month two or month eight and you can not see the trail from where you are: it is there. Keep going.</p>'
+        },
+        {
+            title: 'What does "pacing" actually mean in practice? Let\'s discuss',
+            category: 'discussion',
+            tags: ['chronic-pain', 'advice', 'recovery'],
+            body: '<p>Every resource about chronic pain management mentions "pacing" but almost none of them explain what it actually looks like in daily life. I want to start a real conversation about this.</p><p>My understanding: pacing means doing less than you think you can on good days, so you have something left for bad days. But the execution is genuinely hard.</p><p><strong>Problems I run into:</strong></p><ul><li>On good days I always think "this time will be different" and then overdo it</li><li>Saying no to things because of pacing feels like letting my condition win</li><li>The variability makes planning almost impossible — I can not commit to things reliably</li></ul><p>How do others actually implement this? Do you use a time limit per activity? A symptom threshold? I would genuinely love to hear concrete approaches, not just the concept.</p>'
+        },
+        {
+            title: '5 nutrition changes that helped my inflammation (with sources)',
+            category: 'wellness',
+            tags: ['nutrition', 'wellness-tips', 'physical-health'],
+            body: '<p>I am not a nutritionist — I am someone who spent a lot of time reading research after my diagnosis. These are changes I made based on evidence, not just wellness trends. My inflammatory markers improved enough that my rheumatologist asked what I had changed.</p><ol><li><strong>Omega-3s daily</strong> — 2g EPA/DHA from fish oil. The evidence for reducing inflammation is solid.</li><li><strong>Removed ultra-processed foods</strong> — not "clean eating," just nothing with an ingredient list longer than 5 items.</li><li><strong>Turmeric + black pepper</strong> — curcumin absorption needs piperine. I add both to everything I cook.</li><li><strong>More fermented foods</strong> — gut microbiome connection to systemic inflammation is real. Kimchi, kefir, plain yogurt.</li><li><strong>Less alcohol</strong> — I went from 3–4 drinks a week to 1. Sleep improved immediately, inflammation markers down within 6 weeks.</li></ol><p><em>These worked for me. Everyone is different. Track your own response rather than assuming any of this will translate directly.</em></p>'
+        },
+        {
+            title: 'Managing fatigue during PT — techniques from my therapist',
+            category: 'therapy',
+            tags: ['physical-therapy', 'pain-management', 'burnout'],
+            body: '<p>Fatigue during physical therapy is real and it derailed my recovery for months before my therapist helped me understand it. Sharing her framework here.</p><h2>The three types of fatigue in recovery</h2><ul><li><strong>Peripheral fatigue</strong> — muscle level. Addressed with proper rest intervals between sets (my PT uses 90 seconds minimum).</li><li><strong>Central fatigue</strong> — nervous system level. This is why mental effort during sessions matters. We shortened sessions but improved focus.</li><li><strong>Emotional fatigue</strong> — the weight of the process itself. Often ignored but the most depleting.</li></ul><h2>What changed for me</h2><p>We moved from 3 long sessions to 5 short ones per week. Same total time, dramatically less post-session exhaustion. The concept is "staying below the fatigue threshold" every session rather than pushing through it.</p><p>Also: hydration before sessions matters more than I thought. I was chronically under-hydrated and did not realize how much it was affecting performance.</p>'
+        },
+        {
+            title: 'Rebuilding confidence after losing function — honest reflections',
+            category: 'mental',
+            tags: ['confidence', 'mental-health', 'recovery-journey'],
+            body: '<p>I lost significant function in my dominant hand after my surgery. For someone who used to build furniture on weekends, that loss hit my identity hard. This is an honest account of rebuilding confidence.</p><p>The first thing I had to accept: the goal was not returning to what I was. It was finding what I could become. That sounds like a greeting card but it took me six months of therapy to actually believe it.</p><h2>Practical steps that helped</h2><ul><li><strong>Tiny wins, deliberately sought</strong> — I made a list of 20 small things I wanted to be able to do again. I started with the easiest ones. Each check felt disproportionately good.</li><li><strong>Comparing against myself only</strong> — I had to completely stop reading recovery stories where people "came back better than before." Not because they are not real, but because they were not helpful for me.</li><li><strong>Naming the grief</strong> — I was grieving my former self. Acknowledging that explicitly with my therapist removed a lot of shame around the struggle.</li></ul><blockquote>Confidence does not come back all at once. It comes back in small acts of showing up.</blockquote>'
+        }
     ]
 
-    const postBodies = [
-        'I have found that tracking my mood daily has been incredibly helpful. Here are my top tips for getting started...',
-        'It has been 3 months since I started my recovery journey. I wanted to share what has worked for me...',
-        'Meditation has completely transformed how I handle stress. Even just 10 minutes a day makes a difference...',
-        'After dealing with chronic pain for years, I finally found exercises that work for me. Let me share them...',
-        'Building a consistent wellness routine is challenging but so rewarding. Here is my approach...'
+    const replyBodies = [
+        'This is exactly what I needed to read today. Thank you for sharing.',
+        'I had a similar experience — the consistency really does matter more than intensity.',
+        'Really appreciate the specific details here, not just vague advice.',
+        'Sharing this with my care team. This is really helpful.',
+        'Week 8 was my hardest too. You described it perfectly.',
+        'Thank you for being so honest about the hard parts.',
+        'This community is why I keep coming back. Great post.',
+        'I tried this approach and it genuinely helped me too.'
     ]
 
-    for (let i = 0; i < postTitles.length; i++) {
-        const author = createdUsers[i % createdUsers.length]
+    for (let i = 0; i < seedPosts.length; i++) {
+        const postData = seedPosts[i]!
+        const author = createdUsers[i % createdUsers.length]!
         const post = await prisma.post.create({
             data: {
-                title: postTitles[i],
-                body: postBodies[i],
+                title: postData.title,
+                body: postData.body,
                 authorId: author.profile!.id,
-                category: 'wellness',
+                category: postData.category,
                 tags: {
-                    connect: [
-                        { slug: FORUM_TAGS[i % FORUM_TAGS.length]!.slug }
-                    ]
+                    connect: postData.tags.map(slug => ({ slug }))
                 }
             }
         })
 
-        // Add a reply to each post
-        const replier = createdUsers[(i + 1) % createdUsers.length]
+        const replier = createdUsers[(i + 1) % createdUsers.length]!
         await prisma.reply.create({
             data: {
-                body: 'Great post! Thanks for sharing your experience. This resonates with me.',
+                body: replyBodies[i % replyBodies.length]!,
                 authorId: replier.profile!.id,
                 postId: post.id
             }
