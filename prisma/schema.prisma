@@ -60,6 +60,9 @@ model Profile {
   recoveryGoals       RecoveryGoal[]
   activityPreferences ProfileActivityPreference[]
   healthInterests     ProfileHealthInterest[]
+  postLikes           PostLike[]
+  replyLikes          ReplyLike[]
+  savedPosts          SavedPost[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -132,11 +135,12 @@ model Post {
   author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotes\": 0, \"upvotedBy\": []}")
   views     Int       @default(0)
   category  String
   replies   Reply[]
   tags      Tag[]     @relation("PostToTag")
+  likes     PostLike[]
+  savedBy   SavedPost[]
 
   @@index([authorId])
   @@index([category])
@@ -149,9 +153,9 @@ model Reply {
   author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime?
-  votes     Json      @default("{\"upvotes\": 0, \"upvotedBy\": []}")
   postId    String
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     ReplyLike[]
 
   @@index([authorId])
 }
@@ -269,6 +273,39 @@ model Milestone {
 
   @@unique([goalId, order])
   @@index([goalId])
+}
+
+model PostLike {
+  profileId String
+  postId    String
+  likedAt   DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, postId])
+  @@index([postId])
+}
+
+model ReplyLike {
+  profileId String
+  replyId   String
+  likedAt   DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  reply     Reply    @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, replyId])
+  @@index([replyId])
+}
+
+model SavedPost {
+  profileId String
+  postId    String
+  savedAt   DateTime @default(now())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, postId])
+  @@index([profileId])
 }
 
 enum Role {

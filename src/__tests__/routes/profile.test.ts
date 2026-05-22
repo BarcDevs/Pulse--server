@@ -65,6 +65,12 @@ describe('Profile Routes', () => {
         jest.clearAllMocks()
         prismaMock.profile.findUnique
             .mockResolvedValue(mockProfile)
+        prismaMock.postLike.findMany
+            .mockResolvedValue([])
+        prismaMock.replyLike.findMany
+            .mockResolvedValue([])
+        prismaMock.savedPost.findMany
+            .mockResolvedValue([])
     })
 
     // ==================== GET PROFILE ====================

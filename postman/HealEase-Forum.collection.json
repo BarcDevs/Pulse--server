@@ -616,6 +616,118 @@
           }
         },
         {
+          "name": "Like Post (toggle)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test(\"Has liked boolean\", () => pm.expect(typeof data.liked).to.eql(\"boolean\"));",
+                  "pm.test(\"Has likes count\", () => pm.expect(typeof data.likes).to.eql(\"number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "like"]
+            }
+          }
+        },
+        {
+          "name": "Save Post (toggle)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test(\"Has saved boolean\", () => pm.expect(typeof data.saved).to.eql(\"boolean\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "save"]
+            }
+          }
+        },
+        {
+          "name": "Get Saved Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Data is array\", () => pm.expect(pm.response.json().data).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/saved",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "forum", "posts", "saved"]
+            }
+          }
+        },
+        {
+          "name": "Like Reply (toggle)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test(\"Has liked boolean\", () => pm.expect(typeof data.liked).to.eql(\"boolean\"));",
+                  "pm.test(\"Has likes count\", () => pm.expect(typeof data.likes).to.eql(\"number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "replies", "{{replyId}}", "like"]
+            }
+          }
+        },
+        {
           "name": "Get Tags",
           "event": [
             {

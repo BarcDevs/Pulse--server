@@ -12,20 +12,22 @@ import {
     updateProfileSchema
 } from '../schemas/profileSchema'
 import * as profileService from
-        '../services/profileService'
+    '../services/profileService'
 
 export const getProfile = async (
     req: Request,
     res: Response
 ) => {
     const { userId } = req
+    const includePosts = req.query.includePosts === 'true'
 
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
     const profile =
         await profileService.getProfile(
-            userId
+            userId,
+            includePosts
         )
 
     return successResponse(

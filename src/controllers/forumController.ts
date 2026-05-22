@@ -196,7 +196,10 @@ export const updateReply = async (
         ValidationError.catchValidationErrors(
             updateReplySchema.safeParse(req.body)
         )
-    const { replyId, postId } = req.params as { replyId: string, postId: string }
+    const { replyId, postId } = req.params as {
+        replyId: string
+        postId: string
+    }
     const { userId } = req || {}
 
     if (!userId)
@@ -226,7 +229,10 @@ export const deleteReply = async (
     req: Request,
     res: Response
 ) => {
-    const { replyId, postId } = req.params as { replyId: string, postId: string }
+    const { replyId, postId } = req.params as {
+        replyId: string
+        postId: string
+    }
     const { userId } = req || {}
 
     if (!userId)
@@ -245,6 +251,99 @@ export const deleteReply = async (
         res,
         {},
         `Reply ${replyId} deleted`
+    )
+}
+// endregion
+
+// region Likes & Saves
+export const likePost = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId } = req.params as { postId: string }
+    const { userId } = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const data = await forumService
+        .togglePostLike(postId, userId)
+
+    return successResponse(
+        res,
+        data,
+        data.liked ? 'Post liked' : 'Post unliked'
+    )
+}
+
+export const likeReply = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId, replyId } = req.params as {
+        postId: string
+        replyId: string
+    }
+    const { userId } = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const data = await forumService.toggleReplyLike(
+        postId,
+        replyId,
+        userId
+    )
+
+    return successResponse(
+        res,
+        data,
+        data.liked ? 'Reply liked' : 'Reply unliked'
+    )
+}
+
+export const savePost = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId } = req.params as { postId: string }
+    const { userId } = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const data = await forumService
+        .toggleSavePost(postId, userId)
+
+    return successResponse(
+        res,
+        data,
+        data.saved ? 'Post saved' : 'Post unsaved'
+    )
+}
+
+export const getSavedPosts = async (
+    req: Request,
+    res: Response
+) => {
+    const { userId } = req
+
+    if (!userId)
+        throw errorFactory.auth.unauthorized()
+
+    const validatedQuery =
+        req.query
+        && ValidationError.catchValidationErrors(
+            postQuerySchema.safeParse(req.query)
+        )
+
+    const data = await forumService
+        .getSavedPosts(userId, validatedQuery)
+
+    return successResponse(
+        res,
+        data ?? [],
+        `${data?.length ?? 0} saved posts found`
     )
 }
 // endregion

@@ -6,7 +6,8 @@ export const postInclude = (
 ) => ({
     _count: {
         select: {
-            replies: true
+            replies: true,
+            likes: true
         }
     },
 

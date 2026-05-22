@@ -37,16 +37,6 @@ const options: swaggerJsdoc.Options = {
                         status: { type: 'integer' }
                     }
                 },
-                Votes: {
-                    type: 'object',
-                    properties: {
-                        upvotedBy: {
-                            type: 'array',
-                            items: { type: 'string' }
-                        },
-                        upvotes: { type: 'integer' }
-                    }
-                },
                 User: {
                     type: 'object',
                     properties: {
@@ -100,7 +90,7 @@ const options: swaggerJsdoc.Options = {
                         body: { type: 'string' },
                         category: { type: 'string' },
                         views: { type: 'integer' },
-                        votes: { $ref: '#/components/schemas/Votes' },
+                        likes: { type: 'integer' },
                         tags: {
                             type: 'array',
                             items: { $ref: '#/components/schemas/Tag' }
@@ -116,7 +106,7 @@ const options: swaggerJsdoc.Options = {
                     properties: {
                         id: { type: 'string' },
                         body: { type: 'string' },
-                        votes: { $ref: '#/components/schemas/Votes' }
+                        likes: { type: 'integer' }
                     }
                 },
                 AIInsight: {

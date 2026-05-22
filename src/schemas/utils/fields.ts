@@ -12,12 +12,6 @@ export const paginationFields = {
         .optional()
 }
 
-export const voteField = z.object({
-    userId: z.string(),
-    vote: z.literal('up')
-})
-    .optional()
-
 export const tagsField = z.array(z.string())
     .optional()
 

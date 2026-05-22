@@ -135,6 +135,70 @@ export const getCategoryStats = async () =>
     forumModel.getCategoryStats()
 // endregion
 
+// region Likes & Saves
+export const togglePostLike = async (
+    postId: string,
+    userId: string
+) => {
+    await ensurePostExists(postId)
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    return forumModel.togglePostLike(profile.id, postId)
+}
+
+export const toggleReplyLike = async (
+    postId: string,
+    replyId: string,
+    userId: string
+) => {
+    const reply = await forumModel.getReply(postId, replyId)
+
+    if (!reply)
+        throw errorFactory.generic.notFound('Reply')
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    return forumModel.toggleReplyLike(profile.id, replyId)
+}
+
+export const toggleSavePost = async (
+    postId: string,
+    userId: string
+) => {
+    await ensurePostExists(postId)
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    return forumModel.toggleSavePost(profile.id, postId)
+}
+
+export const getSavedPosts = async (
+    userId: string,
+    query?: PostQuery
+) => {
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    return forumModel.getSavedPosts(profile.id, query)
+}
+// endregion
+
 // region Replies
 export const createReply = async (
     reply: NewReplyType

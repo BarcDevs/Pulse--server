@@ -101,14 +101,12 @@ const getEngagementNormRange = (
     let maxEng = -Infinity
 
     posts.forEach((post) => {
-        const votes = typeof post.votes === 'string'
-            ? { upvotes: 0 }
-            : post.votes
+        const likeCount = post._count?.likes ?? 0
         const replyCount = post._count?.replies ?? 0
         const views = post.views ?? 0
 
-        const eng = votes.upvotes
-            + replyCount * 2 
+        const eng = likeCount
+            + replyCount * 2
             + Math.sqrt(views)
 
         minEng = Math.min(minEng, eng)

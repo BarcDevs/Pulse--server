@@ -101,14 +101,11 @@ export const computeEngagementScore = (
     minEngagement: number,
     maxEngagement: number
 ): number => {
-    const votes = typeof post.votes === 'string'
-        ? { upvotes: 0 }
-        : post.votes
-
+    const likeCount = post._count?.likes ?? 0
     const replyCount = post._count?.replies ?? 0
     const views = post.views ?? 0
 
-    const rawScore = votes.upvotes + replyCount * 2 + Math.sqrt(views)
+    const rawScore = likeCount + replyCount * 2 + Math.sqrt(views)
 
     if (maxEngagement <= minEngagement) return 0.5
 

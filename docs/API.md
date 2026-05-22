@@ -403,10 +403,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "body": "string",
       "category": "string",
       "views": 0,
-      "votes": {
-        "upvotes": 0,
-        "upvotedBy": ["userId"]
-      },
+      "_count": { "replies": 0, "likes": 0 },
       "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
       "replies": []
     }
@@ -456,10 +453,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
-    "votes": {
-      "upvotes": 0,
-      "upvotedBy": []
-    },
+    "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
   }
@@ -482,10 +476,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
-    "votes": {
-      "upvotes": 0,
-      "upvotedBy": ["userId"]
-    },
+    "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": [{ "id": "string", "body": "string" }]
   }
@@ -500,13 +491,12 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 > Auth + CSRF required · Owner only
 
 **Body** _(all fields optional)_
-| Field      | Type     | Notes                                      |
-|------------|----------|--------------------------------------------|
-| `title`    | string   |                                            |
-| `body`     | string   |                                            |
-| `category` | string   |                                            |
-| `tags`     | string[] |                                            |
-| `vote`     | object   | `{ userId: string, vote: "up" \| "down" }` |
+| Field      | Type     |
+|------------|----------|
+| `title`    | string   |
+| `body`     | string   |
+| `category` | string   |
+| `tags`     | string[] |
 
 **Response `200`**
 ```json
@@ -518,10 +508,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
-    "votes": {
-      "upvotes": 0,
-      "upvotedBy": ["userId"]
-    },
+    "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
   }
@@ -544,6 +531,63 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
+### `POST /posts/:postId/like`
+> Auth + CSRF required
+
+Toggles like on a post. Calling once likes; calling again unlikes.
+
+**Response `200`**
+```json
+{
+  "message": "Post liked | Post unliked",
+  "data": { "liked": true, "likes": 42 }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` post not found
+
+---
+
+### `POST /posts/:postId/save`
+> Auth + CSRF required
+
+Toggles save on a post. Calling once saves; calling again unsaves.
+
+**Response `200`**
+```json
+{
+  "message": "Post saved | Post unsaved",
+  "data": { "saved": true }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` post not found
+
+---
+
+### `GET /posts/saved`
+> Auth required
+
+Returns the current user's saved posts. Supports the same pagination query params as `GET /posts`.
+
+**Query**
+| Param   | Type   | Notes   |
+|---------|--------|---------|
+| `limit` | number | Max 100 |
+| `page`  | number |         |
+
+**Response `200`**
+```json
+{
+  "message": "N saved posts found",
+  "data": [{ "id": "string", "title": "string", "body": "string" }]
+}
+```
+
+**Errors:** `401` not authenticated
+
+---
+
 ### `GET /posts/:postId/replies`
 
 **Response `200`**
@@ -554,10 +598,8 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     {
       "id": "string",
       "body": "string",
-      "votes": {
-        "upvotes": 0,
-        "upvotedBy": ["userId"]
-      }
+      "author": { "id": "string", "username": "string" },
+      "createdAt": "ISO date"
     }
   ]
 }
@@ -582,10 +624,9 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
   "data": {
     "id": "string",
     "body": "string",
-    "votes": {
-      "upvotes": 0,
-      "upvotedBy": []
-    }
+    "authorId": "string",
+    "postId": "string",
+    "createdAt": "ISO date"
   }
 }
 ```
@@ -598,10 +639,9 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 > Auth + CSRF required · Owner only
 
 **Body** _(all fields optional)_
-| Field  | Type   | Notes                                      |
-|--------|--------|--------------------------------------------|
-| `body` | string |                                            |
-| `vote` | object | `{ userId: string, vote: "up" \| "down" }` |
+| Field  | Type   |
+|--------|--------|
+| `body` | string |
 
 **Response `200`**
 ```json
@@ -610,10 +650,9 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
   "data": {
     "id": "string",
     "body": "string",
-    "votes": {
-      "upvotes": 0,
-      "upvotedBy": ["userId"]
-    }
+    "authorId": "string",
+    "postId": "string",
+    "updatedAt": "ISO date"
   }
 }
 ```
@@ -631,6 +670,23 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 ```
 
 **Errors:** `401` not authenticated or invalid CSRF · `403` not the reply owner
+
+---
+
+### `POST /posts/:postId/replies/:replyId/like`
+> Auth + CSRF required
+
+Toggles like on a reply.
+
+**Response `200`**
+```json
+{
+  "message": "Reply liked | Reply unliked",
+  "data": { "liked": true, "likes": 5 }
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` reply not found
 
 ---
 

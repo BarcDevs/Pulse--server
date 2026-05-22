@@ -1016,6 +1016,491 @@ describe('Forum Routes', () => {
         }
     )
 
+    // ==================== LIKE POST ====================
+    describe('POST /api/v1/forum/posts/:postId/like', () => {
+        const likeEndpoint =
+            '/api/v1/forum/posts/test-post-id-123/like'
+
+        const setupLikeMocks = (mockProfile: {
+            id: string
+            userId: string
+        }) => {
+            prismaMock.post.findUnique
+                .mockResolvedValue(createMockPost())
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
+        }
+
+        it(
+            'should return 200 with liked=true on first like',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                setupLikeMocks(mockProfile)
+                prismaMock.postLike.deleteMany
+                    .mockResolvedValue({ count: 0 })
+                prismaMock.postLike.create
+                    .mockResolvedValue({} as never)
+                prismaMock.postLike.count
+                    .mockResolvedValue(1)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(likeEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.liked).toBe(true)
+                expect(response.body.data.likes).toBe(1)
+                expect(response.body.message).toBe('Post liked')
+            }
+        )
+
+        it(
+            'should return 200 with liked=false on unlike',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                setupLikeMocks(mockProfile)
+                prismaMock.postLike.deleteMany
+                    .mockResolvedValue({ count: 1 })
+                prismaMock.postLike.count
+                    .mockResolvedValue(0)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(likeEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.liked).toBe(false)
+                expect(response.body.data.likes).toBe(0)
+                expect(response.body.message).toBe('Post unliked')
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .post(likeEndpoint)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 401 for missing CSRF token',
+            async () => {
+                const mockUser = createMockUser()
+                const token = createAuthToken(mockUser)
+
+                const response = await supertest(App)
+                    .post(likeEndpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 404 when post not found',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.post.findUnique
+                    .mockResolvedValue(null)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(likeEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(404)
+                expect(response.body.error[0].statusType)
+                    .toBe('Not Found')
+            }
+        )
+    })
+
+    // ==================== LIKE REPLY ====================
+    describe(
+        'POST /api/v1/forum/posts/:postId/replies/:replyId/like',
+        () => {
+            const likeReplyEndpoint =
+                '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123/like'
+
+            it(
+                'should return 200 with liked=true on first like',
+                async () => {
+                    const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'profile-id',
+                        userId: mockUser.id
+                    }
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(createMockReply())
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
+                    prismaMock.replyLike.deleteMany
+                        .mockResolvedValue({ count: 0 })
+                    prismaMock.replyLike.create
+                        .mockResolvedValue({} as never)
+                    prismaMock.replyLike.count
+                        .mockResolvedValue(1)
+
+                    const response = await withCsrfAuth(
+                        supertest(App).post(likeReplyEndpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    )
+
+                    expect(response.status).toBe(200)
+                    expect(response.body.data.liked).toBe(true)
+                    expect(response.body.data.likes).toBe(1)
+                    expect(response.body.message)
+                        .toBe('Reply liked')
+                }
+            )
+
+            it(
+                'should return 200 with liked=false on unlike',
+                async () => {
+                    const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'profile-id',
+                        userId: mockUser.id
+                    }
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(createMockReply())
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
+                    prismaMock.replyLike.deleteMany
+                        .mockResolvedValue({ count: 1 })
+                    prismaMock.replyLike.count
+                        .mockResolvedValue(0)
+
+                    const response = await withCsrfAuth(
+                        supertest(App).post(likeReplyEndpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    )
+
+                    expect(response.status).toBe(200)
+                    expect(response.body.data.liked).toBe(false)
+                    expect(response.body.message)
+                        .toBe('Reply unliked')
+                }
+            )
+
+            it(
+                'should return 401 for unauthenticated request',
+                async () => {
+                    const response = await supertest(App)
+                        .post(likeReplyEndpoint)
+
+                    expect(response.status).toBe(401)
+                }
+            )
+
+            it(
+                'should return 404 when reply not found',
+                async () => {
+                    const mockUser = createMockUser()
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } = createAuthenticatedRequest(mockUser)
+
+                    prismaMock.reply.findUnique
+                        .mockResolvedValue(null)
+
+                    const response = await withCsrfAuth(
+                        supertest(App).post(likeReplyEndpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    )
+
+                    expect(response.status).toBe(404)
+                    expect(response.body.error[0].statusType)
+                        .toBe('Not Found')
+                }
+            )
+        }
+    )
+
+    // ==================== SAVE POST ====================
+    describe('POST /api/v1/forum/posts/:postId/save', () => {
+        const saveEndpoint =
+            '/api/v1/forum/posts/test-post-id-123/save'
+
+        const setupSaveMocks = (mockProfile: {
+            id: string
+            userId: string
+        }) => {
+            prismaMock.post.findUnique
+                .mockResolvedValue(createMockPost())
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
+        }
+
+        it(
+            'should return 200 with saved=true on first save',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                setupSaveMocks(mockProfile)
+                prismaMock.savedPost.deleteMany
+                    .mockResolvedValue({ count: 0 })
+                prismaMock.savedPost.create
+                    .mockResolvedValue({} as never)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(saveEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.saved).toBe(true)
+                expect(response.body.message).toBe('Post saved')
+            }
+        )
+
+        it(
+            'should return 200 with saved=false on unsave',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                setupSaveMocks(mockProfile)
+                prismaMock.savedPost.deleteMany
+                    .mockResolvedValue({ count: 1 })
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(saveEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.saved).toBe(false)
+                expect(response.body.message).toBe('Post unsaved')
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .post(saveEndpoint)
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 401 for missing CSRF token',
+            async () => {
+                const mockUser = createMockUser()
+                const token = createAuthToken(mockUser)
+
+                const response = await supertest(App)
+                    .post(saveEndpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(401)
+            }
+        )
+
+        it(
+            'should return 404 when post not found',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.post.findUnique
+                    .mockResolvedValue(null)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(saveEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                )
+
+                expect(response.status).toBe(404)
+                expect(response.body.error[0].statusType)
+                    .toBe('Not Found')
+            }
+        )
+    })
+
+    // ==================== GET SAVED POSTS ====================
+    describe('GET /api/v1/forum/posts/saved', () => {
+        const savedEndpoint = '/api/v1/forum/posts/saved'
+
+        it(
+            'should return 200 with saved posts array',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const token = createAuthToken(mockUser)
+                const mockPosts = [
+                    createMockPost(),
+                    createMockPost({ id: 'post-2' })
+                ]
+
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
+                prismaMock.post.findMany
+                    .mockResolvedValue(mockPosts)
+
+                const response = await supertest(App)
+                    .get(savedEndpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(200)
+                expect(response.body.data)
+                    .toBeInstanceOf(Array)
+                expect(response.body.data).toHaveLength(2)
+                expect(response.body.message)
+                    .toContain('saved posts found')
+            }
+        )
+
+        it(
+            'should return 200 with empty array when no saved posts',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const token = createAuthToken(mockUser)
+
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
+                prismaMock.post.findMany
+                    .mockResolvedValue([])
+
+                const response = await supertest(App)
+                    .get(savedEndpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(response.status).toBe(200)
+                expect(response.body.data).toEqual([])
+                expect(response.body.message)
+                    .toBe('0 saved posts found')
+            }
+        )
+
+        it(
+            'should return 200 with pagination params',
+            async () => {
+                const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'profile-id',
+                    userId: mockUser.id
+                }
+                const token = createAuthToken(mockUser)
+
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
+                prismaMock.post.findMany
+                    .mockResolvedValue([createMockPost()])
+
+                const response = await supertest(App)
+                    .get(savedEndpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+                    .query({ limit: 5, page: 1 })
+
+                expect(response.status).toBe(200)
+            }
+        )
+
+        it(
+            'should return 401 for unauthenticated request',
+            async () => {
+                const response = await supertest(App)
+                    .get(savedEndpoint)
+
+                expect(response.status).toBe(401)
+            }
+        )
+    })
+
     // ==================== GET TAGS ====================
     describe('GET /api/v1/forum/tags', () => {
         const tagsEndpoint = '/api/v1/forum/tags'

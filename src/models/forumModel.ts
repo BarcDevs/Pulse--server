@@ -1,4 +1,7 @@
-import type { Prisma as PrismaTypes } from '../../prisma/generated/prisma/client'
+import {
+    Prisma as PrismaNamespace,
+    type Prisma as PrismaTypes
+} from '../../prisma/generated/prisma/client'
 import type {
     NewPostType,
     PostType,
@@ -319,6 +322,208 @@ export const getCategoryStats = async (): Promise<
     }))
     const total = mapped.reduce((sum, r) => sum + r.count, 0)
     return [{ category: 'all', count: total }, ...mapped]
+}
+
+export const togglePostLike = async (
+    profileId: string,
+    postId: string
+): Promise<{ liked: boolean; likes: number }> => {
+    const deleted = await Prisma.postLike.deleteMany({
+        where: { profileId, postId }
+    })
+
+    let liked: boolean
+    if (deleted.count === 0) {
+        try {
+            await Prisma.postLike.create({
+                data: { profileId, postId }
+            })
+            liked = true
+        } catch (e) {
+            if (
+                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                && e.code === 'P2002'
+            ) {
+                liked = true
+            } else {
+                throw e
+            }
+        }
+    } else {
+        liked = false
+    }
+
+    const likes = await Prisma.postLike.count({
+        where: { postId }
+    })
+    return { liked, likes }
+}
+
+export const toggleReplyLike = async (
+    profileId: string,
+    replyId: string
+): Promise<{ liked: boolean; likes: number }> => {
+    const deleted = await Prisma.replyLike.deleteMany({
+        where: { profileId, replyId }
+    })
+
+    let liked: boolean
+    if (deleted.count === 0) {
+        try {
+            await Prisma.replyLike.create({
+                data: { profileId, replyId }
+            })
+            liked = true
+        } catch (e) {
+            if (
+                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                && e.code === 'P2002'
+            ) {
+                liked = true
+            } else {
+                throw e
+            }
+        }
+    } else {
+        liked = false
+    }
+
+    const likes = await Prisma.replyLike.count({
+        where: { replyId }
+    })
+    return { liked, likes }
+}
+
+export const toggleSavePost = async (
+    profileId: string,
+    postId: string
+): Promise<{ saved: boolean }> => {
+    const deleted = await Prisma.savedPost.deleteMany({
+        where: { profileId, postId }
+    })
+
+    if (deleted.count === 0) {
+        try {
+            await Prisma.savedPost.create({
+                data: { profileId, postId }
+            })
+            return { saved: true }
+        } catch (e) {
+            if (
+                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                && e.code === 'P2002'
+            ) {
+                return { saved: true }
+            }
+            throw e
+        }
+    }
+
+    return { saved: false }
+}
+
+export const getSavedPosts = async (
+    profileId: string,
+    query?: PostQuery
+): Promise<PostType[]> => {
+    const postQuery = postQueryBuilder(query, {
+        where: { savedBy: { some: { profileId } } }
+    })
+
+    const posts = await Prisma.post.findMany({
+        take: query?.limit || 10,
+        skip:
+            (query?.page ? query.page - 1 : 0)
+            * (query?.limit || 10),
+        ...postQuery
+    })
+
+    if (!posts) return null as unknown as PostType[]
+    return posts.map(mapPostTags) as unknown as PostType[]
+}
+
+export const getProfileInteractions = async (
+    profileId: string,
+    includePosts: boolean
+) => {
+    if (includePosts) {
+        const [likedPostRows, likedReplyRows, savedPostRows] =
+            await Promise.all([
+                Prisma.postLike.findMany({
+                    where: { profileId },
+                    orderBy: { likedAt: 'desc' },
+                    include: {
+                        post: { include: postInclude('multiple') }
+                    }
+                }),
+                Prisma.replyLike.findMany({
+                    where: { profileId },
+                    orderBy: { likedAt: 'desc' },
+                    include: {
+                        reply: {
+                            include: {
+                                author: {
+                                    select: {
+                                        id: true,
+                                        image: true,
+                                        user: {
+                                            select: {
+                                                id: true,
+                                                username: true,
+                                                firstName: true,
+                                                lastName: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }),
+                Prisma.savedPost.findMany({
+                    where: { profileId },
+                    orderBy: { savedAt: 'desc' },
+                    include: {
+                        post: { include: postInclude('multiple') }
+                    }
+                })
+            ])
+
+        return {
+            likedPosts: likedPostRows.map(
+                (r) => mapPostTags(r.post)
+            ),
+            likedReplies: likedReplyRows.map((r) => r.reply),
+            savedPosts: savedPostRows.map(
+                (r) => mapPostTags(r.post)
+            )
+        }
+    }
+
+    const [likedPostRows, likedReplyRows, savedPostRows] =
+        await Promise.all([
+            Prisma.postLike.findMany({
+                where: { profileId },
+                orderBy: { likedAt: 'desc' },
+                select: { postId: true }
+            }),
+            Prisma.replyLike.findMany({
+                where: { profileId },
+                orderBy: { likedAt: 'desc' },
+                select: { replyId: true }
+            }),
+            Prisma.savedPost.findMany({
+                where: { profileId },
+                orderBy: { savedAt: 'desc' },
+                select: { postId: true }
+            })
+        ])
+
+    return {
+        likedPostIds: likedPostRows.map((r) => r.postId),
+        likedReplyIds: likedReplyRows.map((r) => r.replyId),
+        savedPostIds: savedPostRows.map((r) => r.postId)
+    }
 }
 
 export const createReply = async (reply: NewReplyType):

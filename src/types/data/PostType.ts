@@ -1,7 +1,6 @@
 import type { ReplyType } from './ReplyType'
 import type { PostTagType } from './TagType'
 import type { UserType } from './UserType'
-import type { Votes } from './Votes'
 
 export type PostType = {
     id: string
@@ -11,13 +10,13 @@ export type PostType = {
     authorId?: string
     createdAt: Date
     updatedAt?: Date
-    votes: Votes | string
     replies: ReplyType[]
     views: number
     category: string
     tags: PostTagType[]
     _count?: {
         replies: number
+        likes: number
     }
 }
 
@@ -31,10 +30,6 @@ export type NewPostType = {
 
 export type UpdatePostType = Partial<
     Omit<NewPostType, 'authorId'> & {
-        vote?: {
-            userId: string
-            vote: 'up'
-        }
         removeTags?: string[]
     }
 >

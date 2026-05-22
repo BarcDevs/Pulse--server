@@ -18,7 +18,6 @@ const createMockPost = (overrides?: Partial<PostType>): PostType => ({
     authorId: 'author-id',
     createdAt: new Date(Date.now() - 5 * dayInMs),
     updatedAt: undefined,
-    votes: { upvotes: 5, upvotedBy: [] },
     views: 100,
     category: 'fitness',
     tags: [
@@ -34,7 +33,7 @@ const createMockPost = (overrides?: Partial<PostType>): PostType => ({
         }
     ],
     replies: [],
-    _count: { replies: 3 },
+    _count: { replies: 3, likes: 0 },
     ...overrides
 })
 

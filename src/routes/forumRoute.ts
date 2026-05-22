@@ -9,10 +9,14 @@ import {
     getPost,
     getPosts,
     getReplies,
+    getSavedPosts,
     getTag,
     getTags,
     getUnknownTagAttempts,
+    likePost,
+    likeReply,
     reportUnknownTag,
+    savePost,
     updatePost,
     updateReply
 } from '../controllers/forumController'
@@ -154,6 +158,42 @@ const router = Router()
  *                         type: integer
  */
 router.route('/posts/categories').get(getCategoryStats)
+
+/**
+ * @swagger
+ * /api/v1/forum/posts/saved:
+ *   get:
+ *     summary: Get current user's saved posts
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of saved posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Post'
+ *       401:
+ *         description: Not authenticated
+ */
+router.route('/posts/saved').get(isAuthenticated, getSavedPosts)
 
 router
     .route('/posts')
@@ -309,6 +349,92 @@ router
         csrfMiddleware,
         deletePost
     )
+
+/**
+ * @swagger
+ * /api/v1/forum/posts/{postId}/like:
+ *   post:
+ *     summary: Toggle like on a post
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Like toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     liked:
+ *                       type: boolean
+ *                     likes:
+ *                       type: integer
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Post not found
+ */
+router.route('/posts/:postId/like').post(
+    isAuthenticated,
+    extractCsrfToken,
+    csrfMiddleware,
+    likePost
+)
+
+/**
+ * @swagger
+ * /api/v1/forum/posts/{postId}/save:
+ *   post:
+ *     summary: Toggle save on a post
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Save toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     saved:
+ *                       type: boolean
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Post not found
+ */
+router.route('/posts/:postId/save').post(
+    isAuthenticated,
+    extractCsrfToken,
+    csrfMiddleware,
+    savePost
+)
 
 /**
  * @swagger
@@ -511,6 +637,55 @@ router
         csrfMiddleware,
         deleteReply
     )
+
+/**
+ * @swagger
+ * /api/v1/forum/posts/{postId}/replies/{replyId}/like:
+ *   post:
+ *     summary: Toggle like on a reply
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: replyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Like toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     liked:
+ *                       type: boolean
+ *                     likes:
+ *                       type: integer
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Reply not found
+ */
+router.route('/posts/:postId/replies/:replyId/like').post(
+    isAuthenticated,
+    extractCsrfToken,
+    csrfMiddleware,
+    likeReply
+)
 
 /**
  * @swagger

@@ -4,6 +4,7 @@ import {
     resolveHealthInterestSlug,
     transformProfileWithInterests
 } from '../lib/profileHelpers'
+import * as forumModel from '../models/forumModel'
 import * as profileModel from '../models/profileModel'
 
 type UpdateProfileData = {
@@ -21,20 +22,23 @@ type UpdateProfileData = {
 
 // region Profile CRUD
 export const getProfile = async (
-    userId: string
+    userId: string,
+    includePosts = false
 ) => {
-    const profile = await ensureProfileExists(
-        userId
-    )
+    const profile = await ensureProfileExists(userId)
 
-    const healthInterestLinks =
-        await profileModel.getHealthInterests(
-            profile.id
+    const [
+        healthInterestLinks,
+        activityPrefLinks,
+        interactions
+    ] = await Promise.all([
+        profileModel.getHealthInterests(profile.id),
+        profileModel.getActivityPreferences(profile.id),
+        forumModel.getProfileInteractions(
+            profile.id,
+            includePosts
         )
-    const activityPrefLinks =
-        await profileModel.getActivityPreferences(
-            profile.id
-        )
+    ])
 
     const profileWithLinks = {
         ...profile,
@@ -42,9 +46,10 @@ export const getProfile = async (
         activityPreferences: activityPrefLinks
     }
 
-    return transformProfileWithInterests(
-        profileWithLinks
-    )
+    return {
+        ...transformProfileWithInterests(profileWithLinks),
+        ...interactions
+    }
 }
 
 export const updateProfile = async (

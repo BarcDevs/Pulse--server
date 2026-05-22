@@ -389,7 +389,7 @@ async function main() {
                 category: 'wellness',
                 tags: {
                     connect: [
-                        { slug: tags[i % tags.length]!.slug }
+                        { slug: FORUM_TAGS[i % FORUM_TAGS.length]!.slug }
                     ]
                 }
             }

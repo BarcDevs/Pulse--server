@@ -135,59 +135,6 @@ describe('Forum Schemas', () => {
             expect(result.error).toBeUndefined()
         })
 
-        it('should validate with vote object', () => {
-            const result = updatePostSchema.safeParse({
-                vote: {
-                    userId: 'user-123',
-                    vote: 'up'
-                }
-            })
-
-            expect(result.error).toBeUndefined()
-        })
-
-        it('should reject vote down', () => {
-            const result = updatePostSchema.safeParse({
-                vote: {
-                    userId: 'user-123',
-                    vote: 'down'
-                }
-            })
-
-            expect(result.error).toBeDefined()
-        })
-
-        it('should reject invalid vote value', () => {
-            const result = updatePostSchema.safeParse({
-                vote: {
-                    userId: 'user-123',
-                    vote: 'invalid'
-                }
-            })
-
-            expect(result.error).toBeDefined()
-        })
-
-        it('should reject vote without userId', () => {
-            const result = updatePostSchema.safeParse({
-                vote: {
-                    vote: 'up'
-                }
-            })
-
-            expect(result.error).toBeDefined()
-        })
-
-        it('should reject vote without vote value', () => {
-            const result = updatePostSchema.safeParse({
-                vote: {
-                    userId: 'user-123'
-                }
-            })
-
-            expect(result.error).toBeDefined()
-        })
-
         it('should validate empty object', () => {
             const result = updatePostSchema.safeParse({})
 
@@ -243,32 +190,10 @@ describe('Forum Schemas', () => {
             expect(result.error).toBeUndefined()
         })
 
-        it('should validate with vote', () => {
-            const result = updateReplySchema.safeParse({
-                vote: {
-                    userId: 'user-123',
-                    vote: 'up'
-                }
-            })
-
-            expect(result.error).toBeUndefined()
-        })
-
         it('should validate empty object', () => {
             const result = updateReplySchema.safeParse({})
 
             expect(result.error).toBeUndefined()
-        })
-
-        it('should reject invalid vote value', () => {
-            const result = updateReplySchema.safeParse({
-                vote: {
-                    userId: 'user-123',
-                    vote: 'invalid'
-                }
-            })
-
-            expect(result.error).toBeDefined()
         })
     })
 

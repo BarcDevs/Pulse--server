@@ -88,16 +88,12 @@ export const createMockPost = (
         email: 'test@test.com',
         role: 'USER'
     },
-    votes: {
-        upvotedBy: [],
-        upvotes: 0
-    },
     views: 0,
     createdAt: new Date(),
     updatedAt: undefined,
     tags: [],
     replies: [],
-    _count: { replies: 0 },
+    _count: { replies: 0, likes: 0 },
     ...overrides
 })
 
@@ -115,10 +111,6 @@ export const createMockReply = (
         username: 'testuser',
         email: 'test@test.com',
         role: 'USER'
-    },
-    votes: {
-        upvotedBy: [],
-        upvotes: 0
     },
     createdAt: new Date(),
     updatedAt: undefined,
