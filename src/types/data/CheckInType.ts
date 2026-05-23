@@ -32,7 +32,7 @@ export type NewCheckInType = {
     userId: string
     moodScore: number
     painLevel: number
-    activities: string[]
+    activities?: string[]
     notes?: string
 }
 
