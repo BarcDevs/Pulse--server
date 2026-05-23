@@ -1,27 +1,29 @@
 # Core Rules (Apply Everywhere)
 
-## Core Principles
+## Principles
 - SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 - Industry standards — Clean, readable, maintainable code
 - Keep DRY rules
 - One concern per file
-- Provide a full file edit instead of one edit at a time
-- Always provide informative names for files, functions and variables
-- When building tests, cover both happy paths and edge cases, and ensure they are comprehensive and meaningful
+- Always provide informative names for files, functions, and variables
+- For every function you want to create, check it doesn't already exist
+- Never use string literals as object keys — define typed constants and use computed property names `[CONST.Key]: value`
 - Avoid using re-export files
+- When building tests, cover both happy paths and edge cases; ensure they are comprehensive and meaningful
 
 ## Code Style
-- Never use array index as key; use the current element as an index
-- Text: never use the `—` character. only the simple hyphen `-` for all text, including classnames and config keys. This avoids encoding issues and ensures consistency across all contexts (JSX, CSS, config, etc.)
+- Never use array index as key — use the current element as an index
+- Text: never use the `—` character. Only the simple hyphen `-` for all text, including classnames and config keys
 - Time values: Always use `src/constants/time.ts` (minuteInMs, hourInMs, etc.) instead of hardcoding milliseconds
-- Text blocks: Don't break unless really long (120–150 chars OK)
+- Text blocks: Don't break unless really long (120-150 chars OK)
 - Condition operators at the end of a line if line-breaking
-- No line breaking to single import unless very long
-- String blocks with `'` in it, use backticks to avoid escaping
+- Use unified imports for modules that have many imports
+- Don't break single imports to multiple lines unless very long (50+ chars); if too long, break before the `from` keyword
+- String blocks with `'` in them, use backticks to avoid escaping
 - Avoid redundant braces or parentheses
-- Avoid redundant line breaking — break only when it improves readability or meets the line length threshold
+- Avoid redundant line breaking — break only when it improves readability or meets the line length threshold; don't make line-breaking too strict
 
-## Reading Files:
+## Reading Files
 - Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
 
 ## TypeScript Conventions
@@ -33,22 +35,24 @@
 
 ## Code Formatting
 - Break long lines and function parameters onto multiple lines
-- Limit lines up to about 50 chars
+- Limit lines to about 50 chars
 - Generic utility types (`Pick`, `Omit` etc.) with 3+ keys → each key on its own line
-- 2+ Elements in an array → each on its own line
-- Avoid changes in other projects. different projects are read only
+- 2+ elements in an array → each on its own line
+- Avoid changes in other projects — different projects are read only
 
-## If statement:
+## If Statements
 - 2+ conditions → one condition per line
-- no condition and action in same line
-- Ternary conditions with long or complex expressions: → break to multiple lines
+- No condition and action in same line
+- Ternary conditions with long or complex expressions → break to multiple lines
+- Avoid single statement followed by return — inline: `if (x) return fn()` not `if (x) { fn(); return }`
 
-## Objects and functions:
+## Objects and Functions
 - Inline objects with 3+ properties, or 2+ in long lines → always break to new lines, never inline
 - 2+ chained accessor calls → break after root object
 - Nested objects always on a new line — never inline inside a parent object or array
 - Objects with 2+ properties → each property on its own line
 - 2+ function parameters → each on its own line
+- Closing `)` of a multi-line callback stays inline with the next chained method: `.map(...).find(Boolean)` not `.map(...)\n.find(Boolean)`
 
 ## Logging
 - Never use `console.log` — use `console.info`, `console.warn`, or `console.error` for intentional output
@@ -59,5 +63,4 @@
 - No backwards-compatibility shims for removed code
 - No hardcoded values — use constants or config
 - Always provide complete, production-ready code
-- No backwards-compatibility shims for removed code
 - Don't use redundant braces or parentheses
