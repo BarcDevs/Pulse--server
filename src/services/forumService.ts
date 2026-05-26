@@ -92,18 +92,17 @@ export const updatePost = async (
     post: UpdatePostType
 ) => {
     const knownTags = await resolveKnownTags(post.tags)
-    const prevTags = knownTags
-        ? await getTagsByPostId(id)
+    const tagIds = knownTags
+        ? await forumModel.getTagIdsByNames(knownTags)
         : undefined
-    const removeTags = extractRemovedTags(
-        prevTags,
-        knownTags
-    )
 
     return forumModel.updatePost(
         id,
-        { ...post, tags: knownTags },
-        removeTags
+        {
+            ...post,
+            tags: tagIds as unknown as string[]
+        },
+        undefined
     )
 }
 

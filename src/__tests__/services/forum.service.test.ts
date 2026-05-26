@@ -315,15 +315,16 @@ describe('Forum Service', () => {
         it(
             'should return popular tags when filter is popular',
             async () => {
+                const fixedDate = new Date('2026-01-01')
                 prismaMock.tag.findMany
-                    .mockResolvedValue([createRawMockTag()])
+                    .mockResolvedValue([createRawMockTag({ createdAt: fixedDate })])
 
                 const result = await getTags({
                     filter: 'popular',
                     limit: 10
                 })
 
-                expect(result).toEqual([createMockTag()])
+                expect(result).toEqual([createMockTag({ createdAt: fixedDate })])
             }
         )
 

@@ -48,13 +48,16 @@ const mapTag = (raw: RawTag): TagType => ({
     ...(raw._count && { _count: raw._count })
 })
 
-const mapPostTags = <T extends { tags?: RawTag[] }>(post: T): T => ({
+const mapPostTags = <T extends {tags?: RawTag[]}>(
+    post: T
+): T => ({
     ...post,
     tags: post.tags?.map(mapTag) ?? []
 })
 
-export const getPosts = async (query?: PostQuery):
-    Promise<PostType[]> => {
+export const getPosts = async (
+    query?: PostQuery
+): Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
 
     const posts = await Prisma.post.findMany({
@@ -70,7 +73,7 @@ export const getPosts = async (query?: PostQuery):
 
 export const getPostsCount = async (
     query?: PostQuery
-): Promise<{ count: number }> => {
+): Promise<{count: number}> => {
     const postQuery =
         query
             ? postQueryBuilder(query)
@@ -80,11 +83,12 @@ export const getPostsCount = async (
         count: await Prisma.post.count({
             ...postQuery
         })
-    } as { count: number }
+    } as {count: number}
 }
 
-export const getPost = async (id: string):
-    Promise<PostType | null> => {
+export const getPost = async (
+    id: string
+): Promise<PostType | null> => {
     const post = await Prisma.post.findUnique({
         where: {
             id,
@@ -96,7 +100,9 @@ export const getPost = async (id: string):
         },
         include: postInclude('single')
     })
-    return post ? mapPostTags(post) as unknown as PostType : null
+    return post
+        ? mapPostTags(post) as unknown as PostType
+        : null
 }
 
 export const createPost = async (post: NewPostType):
@@ -127,20 +133,30 @@ export const createPost = async (post: NewPostType):
 export const updatePost = async (
     id: string,
     post: UpdatePostType,
-    removeTags?: Array<{ id: string }>
+    removeTags?: Array<{id: string}>
 ): Promise<PostType> => {
+    const { tags, ...postData } = post
+
+    const data: PrismaTypes.PostUpdateInput = {
+        ...(post.title !== undefined
+            && { title: post.title }),
+        ...(post.body !== undefined
+            && { body: post.body }),
+        ...(post.category !== undefined
+            && { category: post.category })
+    }
+
+    if (tags !== undefined) {
+        data.tags = {
+            set: tags.map((id) => ({ id }))
+        }
+    }
+
     const updated = await Prisma.post.update({
         where: {
             id
         },
-        data: {
-            ...post,
-            ...(post.tags !== undefined && {
-                tags: {
-                    set: post.tags.map(name => ({ name }))
-                }
-            })
-        },
+        data,
         include: postInclude('single')
     })
     return mapPostTags(updated) as unknown as PostType
@@ -241,12 +257,24 @@ export const getTags = async (
     page = 0
 ): Promise<TagType[]> => {
     const rows = await Prisma.tag.findMany({
-        ...(limit !== undefined ? { take: limit } : {}),
-        ...(limit !== undefined ? { skip: page * limit } : {}),
-        ...(search ? { where: { name: { contains: search } } } : {}),
-        select: { id: true, name: true, nameHe: true, slug: true }
+        ...(limit !== undefined
+            ? { take: limit }
+            : {}),
+        ...(limit !== undefined
+            ? { skip: page * limit }
+            : {}),
+        ...(search
+            ? { where: { name: { contains: search } } }
+            : {}),
+        select: {
+            id: true,
+            name: true,
+            nameHe: true,
+            slug: true
+        }
     })
-    return rows?.map(mapTag) ?? (null as unknown as TagType[])
+    return rows?.map(mapTag)
+        ?? (null as unknown as TagType[])
 }
 
 export const getTag = async (id: string):
@@ -254,7 +282,12 @@ export const getTag = async (id: string):
     const row = await Prisma.tag.findUnique({
         where: { id },
         include: {
-            _count: { select: { posts: true, followers: true } }
+            _count: {
+                select: {
+                    posts: true,
+                    followers: true
+                }
+            }
         }
     })
     return row ? mapTag(row as RawTag) : null
@@ -262,10 +295,17 @@ export const getTag = async (id: string):
 
 export const getPopularTags = async (limit = 10):
     Promise<TagType[]> => {
+    const orderByClause: PrismaTypes.TagOrderByWithRelationInput =
+        { posts: { _count: 'desc' } }
     const rows = await Prisma.tag.findMany({
-        orderBy: { posts: { _count: 'desc' } } as PrismaTypes.TagOrderByWithRelationInput,
+        orderBy: orderByClause,
         take: limit,
-        select: { id: true, name: true, nameHe: true, slug: true }
+        select: {
+            id: true,
+            name: true,
+            nameHe: true,
+            slug: true
+        }
     })
     return rows.map(mapTag)
 }
@@ -274,7 +314,12 @@ export const getTagsByPostId = async (id: string):
     Promise<TagType[]> => {
     const rows = await Prisma.tag.findMany({
         where: { posts: { some: { id } } },
-        select: { id: true, name: true, nameHe: true, slug: true }
+        select: {
+            id: true,
+            name: true,
+            nameHe: true,
+            slug: true
+        }
     })
     return rows.map(mapTag)
 }
@@ -283,10 +328,30 @@ export const getExistingTagsByName = async (
     names: string[]
 ): Promise<string[]> => {
     const tags = await Prisma.tag.findMany({
-        where: { name: { in: names } },
+        where: {
+            OR: [
+                { slug: { in: names } },
+                { name: { in: names } }
+            ]
+        },
         select: { name: true }
     })
     return tags.map((t) => t.name)
+}
+
+export const getTagIdsByNames = async (
+    names: string[]
+): Promise<string[]> => {
+    const tags = await Prisma.tag.findMany({
+        where: {
+            OR: [
+                { name: { in: names } },
+                { slug: { in: names } }
+            ]
+        },
+        select: { id: true }
+    })
+    return tags.map((t) => t.id)
 }
 
 export const trackUnknownTagAttempts = async (
@@ -296,8 +361,13 @@ export const trackUnknownTagAttempts = async (
         tagNames.map((tagName) =>
             Prisma.unknownTagAttempt.upsert({
                 where: { tagName },
-                update: { count: { increment: 1 } },
-                create: { tagName, count: 1 }
+                update: {
+                    count: { increment: 1 }
+                },
+                create: {
+                    tagName,
+                    count: 1
+                }
             })
         )
     )
@@ -308,9 +378,10 @@ export const getUnknownTagAttempts = async () =>
         orderBy: { count: 'desc' }
     })
 
-export const getCategoryStats = async (): Promise<
-    { category: string; count: number }[]
-> => {
+export const getCategoryStats = async (): Promise<{
+    category: string
+    count: number
+}[]> => {
     const rows = await Prisma.post.groupBy({
         by: ['category'],
         _count: { category: true }
@@ -319,14 +390,23 @@ export const getCategoryStats = async (): Promise<
         category: r.category,
         count: r._count.category
     }))
-    const total = mapped.reduce((sum, r) => sum + r.count, 0)
-    return [{ category: 'all', count: total }, ...mapped]
+    const total = mapped.reduce(
+        (sum, r) => sum + r.count,
+        0
+    )
+    return [
+        {
+            category: 'all',
+            count: total
+        },
+        ...mapped
+    ]
 }
 
 export const togglePostLike = async (
     profileId: string,
     postId: string
-): Promise<{ liked: boolean; likes: number }> => {
+): Promise<{liked: boolean; likes: number}> => {
     const deleted = await Prisma.postLike.deleteMany({
         where: { profileId, postId }
     })
@@ -340,7 +420,8 @@ export const togglePostLike = async (
             liked = true
         } catch (e) {
             if (
-                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                e instanceof PrismaNamespace
+                    .PrismaClientKnownRequestError
                 && e.code === 'P2002'
             ) {
                 liked = true
@@ -361,7 +442,7 @@ export const togglePostLike = async (
 export const toggleReplyLike = async (
     profileId: string,
     replyId: string
-): Promise<{ liked: boolean; likes: number }> => {
+): Promise<{liked: boolean; likes: number}> => {
     const deleted = await Prisma.replyLike.deleteMany({
         where: { profileId, replyId }
     })
@@ -375,7 +456,8 @@ export const toggleReplyLike = async (
             liked = true
         } catch (e) {
             if (
-                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                e instanceof PrismaNamespace
+                    .PrismaClientKnownRequestError
                 && e.code === 'P2002'
             ) {
                 liked = true
@@ -396,7 +478,7 @@ export const toggleReplyLike = async (
 export const toggleSavePost = async (
     profileId: string,
     postId: string
-): Promise<{ saved: boolean }> => {
+): Promise<{saved: boolean}> => {
     const deleted = await Prisma.savedPost.deleteMany({
         where: { profileId, postId }
     })
@@ -409,7 +491,8 @@ export const toggleSavePost = async (
             return { saved: true }
         } catch (e) {
             if (
-                e instanceof PrismaNamespace.PrismaClientKnownRequestError
+                e instanceof PrismaNamespace
+                    .PrismaClientKnownRequestError
                 && e.code === 'P2002'
             ) {
                 return { saved: true }
@@ -426,7 +509,9 @@ export const getSavedPosts = async (
     query?: PostQuery
 ): Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query, {
-        where: { savedBy: { some: { profileId } } }
+        where: {
+            savedBy: { some: { profileId } }
+        }
     })
 
     const posts = await Prisma.post.findMany({
@@ -446,60 +531,73 @@ export const getProfileInteractions = async (
     includePosts: boolean
 ) => {
     if (includePosts) {
-        const [likedPostRows, likedReplyRows, savedPostRows] =
-            await Promise.all([
-                Prisma.postLike.findMany({
-                    where: { profileId },
-                    orderBy: { likedAt: 'desc' },
-                    include: {
-                        post: { include: postInclude('multiple') }
+        const [
+            likedPostRows,
+            likedReplyRows,
+            savedPostRows
+        ] = await Promise.all([
+            Prisma.postLike.findMany({
+                where: { profileId },
+                orderBy: { likedAt: 'desc' },
+                include: {
+                    post: {
+                        include: postInclude('multiple')
                     }
-                }),
-                Prisma.replyLike.findMany({
-                    where: { profileId },
-                    orderBy: { likedAt: 'desc' },
-                    include: {
-                        reply: {
-                            include: {
-                                author: {
-                                    select: {
-                                        id: true,
-                                        image: true,
-                                        user: {
-                                            select: {
-                                                id: true,
-                                                username: true,
-                                                firstName: true,
-                                                lastName: true
-                                            }
+                }
+            }),
+            Prisma.replyLike.findMany({
+                where: { profileId },
+                orderBy: { likedAt: 'desc' },
+                include: {
+                    reply: {
+                        include: {
+                            author: {
+                                select: {
+                                    id: true,
+                                    image: true,
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            username: true,
+                                            firstName: true,
+                                            lastName: true
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }),
-                Prisma.savedPost.findMany({
-                    where: { profileId },
-                    orderBy: { savedAt: 'desc' },
-                    include: {
-                        post: { include: postInclude('multiple') }
+                }
+            }),
+            Prisma.savedPost.findMany({
+                where: { profileId },
+                orderBy: { savedAt: 'desc' },
+                include: {
+                    post: {
+                        include: postInclude('multiple')
                     }
-                })
-            ])
+                }
+            })
+        ])
 
         return {
             likedPosts: likedPostRows.map(
                 (r) => mapPostTags(r.post)
             ),
-            likedReplies: likedReplyRows.map((r) => r.reply),
+            likedReplies: likedReplyRows.map(
+                (r) => r.reply
+            ),
             savedPosts: savedPostRows.map(
                 (r) => mapPostTags(r.post)
             )
         }
     }
 
-    const [likedPostRows, likedReplyRows, savedPostRows] =
+    const [
+        likedPostRows,
+        likedReplyRows,
+        savedPostRows
+    ] =
         await Promise.all([
             Prisma.postLike.findMany({
                 where: { profileId },
@@ -519,9 +617,15 @@ export const getProfileInteractions = async (
         ])
 
     return {
-        likedPostIds: likedPostRows.map((r) => r.postId),
-        likedReplyIds: likedReplyRows.map((r) => r.replyId),
-        savedPostIds: savedPostRows.map((r) => r.postId)
+        likedPostIds: likedPostRows.map(
+            (r) => r.postId
+        ),
+        likedReplyIds: likedReplyRows.map(
+            (r) => r.replyId
+        ),
+        savedPostIds: savedPostRows.map(
+            (r) => r.postId
+        )
     }
 }
 
