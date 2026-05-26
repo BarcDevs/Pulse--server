@@ -135,12 +135,11 @@ export const updatePost = async (
         },
         data: {
             ...post,
-            tags: {
-                disconnect: removeTags?.map(
-                    (tag) => ({ id: tag.id })
-                ),
-                ...connectTags(post.tags || [])
-            }
+            ...(post.tags !== undefined && {
+                tags: {
+                    set: post.tags.map(name => ({ name }))
+                }
+            })
         },
         include: postInclude('single')
     })

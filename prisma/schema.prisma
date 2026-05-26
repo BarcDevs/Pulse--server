@@ -134,7 +134,7 @@ model Post {
   authorId  String
   author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
-  updatedAt DateTime?
+  updatedAt DateTime? @updatedAt
   views     Int       @default(0)
   category  String
   replies   Reply[]
@@ -152,7 +152,7 @@ model Reply {
   authorId  String
   author    Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
-  updatedAt DateTime?
+  updatedAt DateTime? @updatedAt
   postId    String
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   likes     ReplyLike[]
