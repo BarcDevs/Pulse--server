@@ -1,12 +1,10 @@
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     ensurePostExists,
-    extractRemovedTags,
     resolveTags,
     validateOwnerHelper
 } from '../lib/forumHelpers'
 import * as forumModel from '../models/forumModel'
-import { getTagsByPostId } from '../models/forumModel'
 import * as profileModel from '../models/profileModel'
 import type {
     NewPostType,
@@ -101,8 +99,7 @@ export const updatePost = async (
         {
             ...post,
             tags: tagIds as unknown as string[]
-        },
-        undefined
+        }
     )
 }
 

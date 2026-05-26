@@ -132,10 +132,9 @@ export const createPost = async (post: NewPostType):
 
 export const updatePost = async (
     id: string,
-    post: UpdatePostType,
-    removeTags?: Array<{id: string}>
+    post: UpdatePostType
 ): Promise<PostType> => {
-    const { tags, ...postData } = post
+    const { tags } = post
 
     const data: PrismaTypes.PostUpdateInput = {
         ...(post.title !== undefined

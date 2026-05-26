@@ -951,7 +951,7 @@ describe('Forum Routes', () => {
                         id: 'test-profile-id-123',
                         userId: mockUser.id
                     }
-                    const otherUser = createMockUser({
+                    const _otherUser = createMockUser({
                         id: 'other-user-id'
                     })
                     const mockReply = createMockReply({
