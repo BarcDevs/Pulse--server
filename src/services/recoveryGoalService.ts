@@ -97,9 +97,7 @@ export const getGoal = async (
     const goal = await RecoveryGoalModel
         .getGoalById(id, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     const milestones = await RecoveryGoalModel
         .getMilestonesByGoalId(id)
@@ -175,17 +173,14 @@ export const updateGoal = async (
     const goal = await RecoveryGoalModel
         .getGoalById(id, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     const isCompleted = (
         goal.status === GoalStatus.COMPLETED
     )
     if (isCompleted && data.status !== undefined)
         throw errorFactory.generic.conflict(
-            'Cannot change status of '
-            + 'completed goals'
+            'Cannot change status of completed goals'
         )
 
     const isPausedOrCompleted = (
@@ -225,7 +220,7 @@ export const updateGoal = async (
         updateData.status = data.status
         if (
             data.status
-                === GoalStatus.ABANDONED
+            === GoalStatus.ABANDONED
         ) {
             await RecoveryGoalModel
                 .lockNonCompletedMilestones(id)
@@ -244,9 +239,7 @@ export const updateGoal = async (
         updateData
     )
     if (!updated)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     const milestones = await (
         RecoveryGoalModel
@@ -278,9 +271,7 @@ export const deleteGoal = async (
     const goal = await RecoveryGoalModel
         .getGoalById(id, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     await RecoveryGoalModel.deleteGoal(id)
 }
@@ -295,9 +286,7 @@ export const getMaxMilestoneOrder = async (
     const goal = await RecoveryGoalModel
         .getGoalById(goalId, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     const maxOrder = await RecoveryGoalModel
         .getMaxMilestoneOrder(goalId)
@@ -324,9 +313,7 @@ export const createMilestones = async (
     const goal = await RecoveryGoalModel
         .getGoalById(goalId, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     assertGoalActive(goal)
 
@@ -374,9 +361,7 @@ export const updateMilestone = async (
             .getMilestoneById(id)
     )
     if (!milestone)
-        throw errorFactory.generic.notFound(
-            'Milestone not found'
-        )
+        throw errorFactory.generic.notFound('Milestone')
     const profileMatch = (
         milestone.goal.profileId === profileId
     )
@@ -389,15 +374,13 @@ export const updateMilestone = async (
             profileId
         )
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     assertGoalActive(goal)
 
     const isCompleted = (
         milestone.status
-            === MilestoneStatus.COMPLETED
+        === MilestoneStatus.COMPLETED
     )
     if (isCompleted)
         throw errorFactory.generic.conflict(
@@ -422,9 +405,7 @@ export const updateMilestone = async (
             })
     )
     if (!updated)
-        throw errorFactory.generic.notFound(
-            'Milestone not found'
-        )
+        throw errorFactory.generic.notFound('Milestone')
 
     return updated
 }
@@ -445,9 +426,7 @@ export const completeMilestone = async (
             .getMilestoneById(id)
     )
     if (!milestone)
-        throw errorFactory.generic.notFound(
-            'Milestone not found'
-        )
+        throw errorFactory.generic.notFound('Milestone')
     const profileMatch = (
         milestone.goal.profileId === profileId
     )
@@ -457,9 +436,7 @@ export const completeMilestone = async (
     const goal = await RecoveryGoalModel
         .getGoalById(goalId, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     assertGoalActive(goal)
 
@@ -481,13 +458,13 @@ export const deleteMilestone = async (
         RecoveryGoalModel
             .getMilestoneById(id)
     )
+
     if (!milestone)
-        throw errorFactory.generic.notFound(
-            'Milestone not found'
-        )
+        throw errorFactory.generic.notFound('Milestone')
     const profileMatch = (
         milestone.goal.profileId === profileId
     )
+
     if (!profileMatch)
         throw errorFactory.auth.unauthorized()
 
@@ -497,15 +474,13 @@ export const deleteMilestone = async (
             profileId
         )
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     assertGoalActive(goal)
 
     const isCompleted = (
         milestone.status
-            === MilestoneStatus.COMPLETED
+        === MilestoneStatus.COMPLETED
     )
     if (isCompleted)
         throw errorFactory.generic.conflict(
@@ -538,9 +513,7 @@ export const completeGoal = async (
     const goal = await RecoveryGoalModel
         .getGoalById(id, profileId)
     if (!goal)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     const isActive = (
         goal.status === GoalStatus.ACTIVE
@@ -578,9 +551,7 @@ export const completeGoal = async (
             })
     )
     if (!updated)
-        throw errorFactory.generic.notFound(
-            'Goal not found'
-        )
+        throw errorFactory.generic.notFound('Goal')
 
     return {
         ...updated,

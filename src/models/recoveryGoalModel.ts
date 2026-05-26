@@ -118,7 +118,9 @@ export const setPrimaryGoal = async (
     goalId: string
 ): Promise<void> => {
     await Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
-        await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE "profileId" = ${profileId} FOR UPDATE`
+        await tx.$executeRaw`SELECT *
+                             FROM "RecoveryGoal"
+                             WHERE "profileId" = ${profileId} FOR UPDATE`
 
         await tx.recoveryGoal.updateMany({
             where: { profileId },
@@ -163,7 +165,9 @@ export const createMilestonesInBatch = async (data: {
     setFirstActive: boolean
 }): Promise<MilestoneType[]> => {
     return Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
-        await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE id = ${data.goalId} FOR UPDATE`
+        await tx.$executeRaw`SELECT *
+                             FROM "RecoveryGoal"
+                             WHERE id = ${data.goalId} FOR UPDATE`
 
         const existingCount = await countMilestonesByGoalId(
             data.goalId,
@@ -171,8 +175,8 @@ export const createMilestonesInBatch = async (data: {
         )
 
         const totalCount = (
-        existingCount + data.milestones.length
-    )
+            existingCount + data.milestones.length
+        )
         if (totalCount > recoveryGoalsConfig.maxMilestonesPerGoal)
             throw errorFactory.generic.conflict(
                 `Maximum `
@@ -206,8 +210,8 @@ export const getMilestoneById = async (
     id: string
 ): Promise<
     MilestoneType & {
-        goal: RecoveryGoalType
-    } | null
+    goal: RecoveryGoalType
+} | null
 > => {
     const milestone = await Prisma.milestone.findUnique({
         where: { id },
@@ -242,26 +246,26 @@ export const completeMilestoneAndAdvance = async (
     goalId: string
 ): Promise<void> => {
     await Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
-        await tx.$executeRaw`SELECT * FROM "RecoveryGoal" WHERE id = ${goalId} FOR UPDATE`
+        await tx.$executeRaw`SELECT *
+                             FROM "RecoveryGoal"
+                             WHERE id = ${goalId} FOR UPDATE`
 
         const milestone = await tx.milestone.findUnique({
             where: { id: milestoneId }
         })
 
         if (!milestone)
-            throw errorFactory.generic.notFound(
-                'Milestone not found'
-            )
+            throw errorFactory.generic.notFound('Milestone')
 
         const isCompleted = (
             milestone.status
-                === MilestoneStatus.COMPLETED
+            === MilestoneStatus.COMPLETED
         )
         if (isCompleted) return
 
         const isActive = (
             milestone.status
-                === MilestoneStatus.ACTIVE
+            === MilestoneStatus.ACTIVE
         )
         if (!isActive)
             throw errorFactory.generic.conflict(
