@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
+import { getProfileByUserId } from '../models/profileModel'
 import { successResponse } from '../responses/success'
 import { newPostSchema } from '../schemas/forum/newPostSchema'
 import { newReplySchema } from '../schemas/forum/newReplySchema'
@@ -97,10 +98,15 @@ export const updatePost = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
+    const profile = await getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
     await forumService.validateOwner(
         'post',
         postId,
-        userId
+        profile.id
     )
 
     const data = await forumService
@@ -123,10 +129,15 @@ export const deletePost = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
+    const profile = await getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
     await forumService.validateOwner(
         'post',
         postId,
-        userId
+        profile.id
     )
 
     await forumService.deletePost(postId)
@@ -205,10 +216,15 @@ export const updateReply = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
+    const profile = await getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
     await forumService.validateOwner(
         'reply',
         postId,
-        userId,
+        profile.id,
         replyId
     )
 
@@ -238,10 +254,15 @@ export const deleteReply = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
+    const profile = await getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
     await forumService.validateOwner(
         'reply',
         postId,
-        userId,
+        profile.id,
         replyId
     )
 

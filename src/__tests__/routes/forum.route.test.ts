@@ -451,8 +451,12 @@ describe('Forum Routes', () => {
             'should return 200 for valid update by owner',
             async () => {
                 const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'test-profile-id-123',
+                    userId: mockUser.id
+                }
                 const mockPost = createMockPost({
-                    authorId: mockUser.id
+                    authorId: mockProfile.id
                 })
                 const {
                     token,
@@ -460,6 +464,8 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
                 prismaMock.post.findUnique
                     .mockResolvedValue(mockPost)
                 prismaMock.post.update.mockResolvedValue({
@@ -499,8 +505,12 @@ describe('Forum Routes', () => {
 
         it('should return 401 for non-owner', async () => {
             const mockUser = createMockUser()
+            const mockProfile = {
+                id: 'test-profile-id-123',
+                userId: mockUser.id
+            }
             const mockPost = createMockPost({
-                authorId: 'different-user-id'
+                authorId: 'different-profile-id'
             })
             const {
                 token,
@@ -508,6 +518,8 @@ describe('Forum Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
 
@@ -529,12 +541,18 @@ describe('Forum Routes', () => {
             'should return 404 for non-existent post',
             async () => {
                 const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'test-profile-id-123',
+                    userId: mockUser.id
+                }
                 const {
                     token,
                     csrfSecret,
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
                 prismaMock.post.findUnique
                     .mockResolvedValue(null)
 
@@ -560,8 +578,12 @@ describe('Forum Routes', () => {
             'should return 200 for valid delete by owner',
             async () => {
                 const mockUser = createMockUser()
+                const mockProfile = {
+                    id: 'test-profile-id-123',
+                    userId: mockUser.id
+                }
                 const mockPost = createMockPost({
-                    authorId: mockUser.id
+                    authorId: mockProfile.id
                 })
                 const {
                     token,
@@ -569,6 +591,8 @@ describe('Forum Routes', () => {
                     csrfToken
                 } = createAuthenticatedRequest(mockUser)
 
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(mockProfile as never)
                 prismaMock.post.findUnique
                     .mockResolvedValue(mockPost)
                 prismaMock.post.delete
@@ -603,8 +627,12 @@ describe('Forum Routes', () => {
 
         it('should return 401 for non-owner', async () => {
             const mockUser = createMockUser()
+            const mockProfile = {
+                id: 'test-profile-id-123',
+                userId: mockUser.id
+            }
             const mockPost = createMockPost({
-                authorId: 'different-user-id'
+                authorId: 'different-profile-id'
             })
             const {
                 token,
@@ -612,6 +640,8 @@ describe('Forum Routes', () => {
                 csrfToken
             } = createAuthenticatedRequest(mockUser)
 
+            prismaMock.profile.findUnique
+                .mockResolvedValue(mockProfile as never)
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
 
@@ -758,8 +788,12 @@ describe('Forum Routes', () => {
                 'should return 200 for valid update by owner',
                 async () => {
                     const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'test-profile-id-123',
+                        userId: mockUser.id
+                    }
                     const mockReply = createMockReply({
-                        authorId: mockUser.id
+                        authorId: mockProfile.id
                     })
                     const {
                         token,
@@ -767,6 +801,8 @@ describe('Forum Routes', () => {
                         csrfToken
                     } = createAuthenticatedRequest(mockUser)
 
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
                     prismaMock.reply.findUnique
                         .mockResolvedValue(mockReply)
                     prismaMock.reply.update.mockResolvedValue({
@@ -793,8 +829,12 @@ describe('Forum Routes', () => {
                 'should return 401 for non-owner',
                 async () => {
                     const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'test-profile-id-123',
+                        userId: mockUser.id
+                    }
                     const mockReply = createMockReply({
-                        authorId: 'different-user-id'
+                        authorId: 'different-profile-id'
                     })
                     const {
                         token,
@@ -802,6 +842,8 @@ describe('Forum Routes', () => {
                         csrfToken
                     } = createAuthenticatedRequest(mockUser)
 
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
                     prismaMock.reply.findUnique
                         .mockResolvedValue(mockReply)
 
@@ -824,12 +866,18 @@ describe('Forum Routes', () => {
                 'should return 404 for non-existent reply',
                 async () => {
                     const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'test-profile-id-123',
+                        userId: mockUser.id
+                    }
                     const {
                         token,
                         csrfSecret,
                         csrfToken
                     } = createAuthenticatedRequest(mockUser)
 
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
                     prismaMock.reply.findUnique
                         .mockResolvedValue(null)
 
@@ -861,8 +909,12 @@ describe('Forum Routes', () => {
                 'should return 200 for valid delete by owner',
                 async () => {
                     const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'test-profile-id-123',
+                        userId: mockUser.id
+                    }
                     const mockReply = createMockReply({
-                        authorId: mockUser.id
+                        authorId: mockProfile.id
                     })
                     const {
                         token,
@@ -870,6 +922,8 @@ describe('Forum Routes', () => {
                         csrfToken
                     } = createAuthenticatedRequest(mockUser)
 
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
                     prismaMock.reply.findUnique
                         .mockResolvedValue(mockReply)
                     prismaMock.reply.delete
@@ -893,11 +947,15 @@ describe('Forum Routes', () => {
                 'should return 401 for non-owner user',
                 async () => {
                     const mockUser = createMockUser()
+                    const mockProfile = {
+                        id: 'test-profile-id-123',
+                        userId: mockUser.id
+                    }
                     const otherUser = createMockUser({
                         id: 'other-user-id'
                     })
                     const mockReply = createMockReply({
-                        authorId: otherUser.id
+                        authorId: 'other-profile-id'
                     })
                     const {
                         token,
@@ -905,6 +963,8 @@ describe('Forum Routes', () => {
                         csrfToken
                     } = createAuthenticatedRequest(mockUser)
 
+                    prismaMock.profile.findUnique
+                        .mockResolvedValue(mockProfile as never)
                     prismaMock.reply.findUnique
                         .mockResolvedValue(mockReply)
 
