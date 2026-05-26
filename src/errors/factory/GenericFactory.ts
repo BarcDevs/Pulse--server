@@ -11,8 +11,8 @@ export class GenericFactory {
             HttpStatusCodes.NOT_FOUND
         )
 
-    static conflict = (object?: string) =>
+    static conflict = (message?: string) =>
         new ConflictError(
-            `${object ?? 'Resource'} already exists for today`
+            message ?? 'Resource conflict'
         )
 }
