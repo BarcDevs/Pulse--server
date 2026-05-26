@@ -1,6 +1,6 @@
 {
   "name": "express-ts-api",
-  "version": "0.0.0",
+  "version": "0.9.5",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
