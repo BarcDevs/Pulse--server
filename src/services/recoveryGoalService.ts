@@ -176,24 +176,30 @@ export const updateGoal = async (
     if (!goal)
         throw errorFactory.generic.notFound('Goal')
 
-    const isCompleted = (
-        goal.status === GoalStatus.COMPLETED
+    const isChangingStatus = (
+        data.status !== undefined
+        && data.status !== goal.status
     )
-    if (isCompleted && data.status !== undefined)
+    const isFinalStatus = (
+        goal.status === GoalStatus.COMPLETED
+        || goal.status === GoalStatus.ABANDONED
+    )
+    if (isFinalStatus && isChangingStatus)
         throw errorFactory.generic.conflict(
-            'Cannot change status of completed goals'
+            `Cannot change status of ${goal.status.toLowerCase()} goals`
         )
 
-    const isPausedOrCompleted = (
+    const isNonEditableStatus = (
         goal.status === GoalStatus.COMPLETED
         || goal.status === GoalStatus.PAUSED
+        || goal.status === GoalStatus.ABANDONED
     )
     const hasDetailUpdates = (
         data.title !== undefined
         || data.description !== undefined
         || data.targetDate !== undefined
     )
-    if (isPausedOrCompleted && hasDetailUpdates)
+    if (isNonEditableStatus && hasDetailUpdates)
         throw errorFactory.generic.conflict(
             `Cannot update goal details on `
             + `${goal.status.toLowerCase()} `
