@@ -1,9 +1,11 @@
 import type { Request, Response } from 'express'
 
+import { type GoalStatus } from '../../prisma/generated/prisma/enums'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
 import { successResponse } from '../responses/success'
+import { getGoalsQuerySchema } from '../schemas/recoveryGoal/getGoalsQuerySchema'
 import { newGoalSchema } from '../schemas/recoveryGoal/newGoalSchema'
 import { newMilestoneSchema } from '../schemas/recoveryGoal/newMilestoneSchema'
 import { updateGoalSchema } from '../schemas/recoveryGoal/updateGoalSchema'
@@ -11,7 +13,6 @@ import { updateMilestoneSchema } from '../schemas/recoveryGoal/updateMilestoneSc
 import * as recoveryGoalService from '../services/recoveryGoalService'
 import type {
     MilestoneType,
-    RecoveryGoalType,
     RecoveryGoalWithProgress,
     UpdateRecoveryGoalType
 } from '../types/data/RecoveryGoalType'
@@ -63,10 +64,17 @@ export const getGoals = async (
     if (!userId)
         throw errorFactory.auth.unauthorized()
 
-    const goals = await (
-        recoveryGoalService.getUserGoals(userId)
+    const { status } = ValidationError.catchValidationErrors(
+        getGoalsQuerySchema.safeParse(req.query)
     )
-    successResponse<RecoveryGoalType[]>(
+
+    const statusFilter = status?.toUpperCase() as GoalStatus | undefined
+
+    const goals = await recoveryGoalService.getUserGoals(
+        userId,
+        statusFilter
+    )
+    successResponse<RecoveryGoalWithProgress[]>(
         res,
         goals,
         'Goals retrieved successfully',

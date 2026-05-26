@@ -58,6 +58,13 @@ const router = Router()
  *     tags: [Recovery Goals]
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [ACTIVE, PAUSED, COMPLETED, ABANDONED]
+ *         description: Filter goals by status
  *     responses:
  *       200:
  *         description: List of goals with milestones

@@ -74,10 +74,14 @@ export const getGoalById = async (
 }
 
 export const getGoalsByProfileId = async (
-    profileId: string
+    profileId: string,
+    status?: GoalStatus
 ): Promise<RecoveryGoalType[]> => {
     const goals = await Prisma.recoveryGoal.findMany({
-        where: { profileId },
+        where: {
+            profileId,
+            ...(status && { status })
+        },
         orderBy: [
             { isPrimary: 'desc' },
             { createdAt: 'desc' }

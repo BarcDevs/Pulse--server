@@ -1331,7 +1331,13 @@ Create a new recovery goal for the current user.
 ### `GET /`
 > Auth required
 
-Retrieve all recovery goals for the current user with progress calculated.
+Retrieve all recovery goals for the current user with progress calculated. Optionally filter by status.
+
+**Query Parameters**
+
+| Param | Type | Required | Values |
+|-------|------|----------|--------|
+| `status` | string | No | `ACTIVE` · `PAUSED` · `COMPLETED` · `ABANDONED` |
 
 **Response `200`**
 ```json

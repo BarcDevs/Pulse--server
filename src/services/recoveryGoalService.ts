@@ -118,7 +118,8 @@ export const getGoal = async (
 }
 
 export const getUserGoals = async (
-    userId: string
+    userId: string,
+    status?: GoalStatus
 ): Promise<RecoveryGoalWithProgress[]> => {
     if (!userId)
         throw errorFactory.auth.unauthorized()
@@ -127,7 +128,7 @@ export const getUserGoals = async (
     )
 
     const goals = await RecoveryGoalModel
-        .getGoalsByProfileId(profileId)
+        .getGoalsByProfileId(profileId, status)
 
     return await Promise.all(
         goals.map(async goal => {

@@ -1436,6 +1436,32 @@
           "response": []
         },
         {
+          "name": "All Goals (by status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals?status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "Filter by status: ACTIVE | PAUSED | COMPLETED | ABANDONED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Single Goal",
           "request": {
             "method": "GET",

@@ -374,6 +374,80 @@ describe('Recovery Goals Routes', () => {
             expect(response.body.data).toEqual([])
         })
 
+        it('should return only goals matching ?status=ACTIVE', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-active',
+                status: GoalStatus.ACTIVE
+            })
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([activeGoal])
+            prismaMock.milestone.count.mockResolvedValue(0)
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}?status=ACTIVE`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data).toHaveLength(1)
+            expect(response.body.data[0].status).toBe(GoalStatus.ACTIVE)
+            expect(prismaMock.recoveryGoal.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        status: GoalStatus.ACTIVE
+                    })
+                })
+            )
+        })
+
+        it('should accept lowercase status param', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}?status=active`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(prismaMock.recoveryGoal.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        status: GoalStatus.ACTIVE
+                    })
+                })
+            )
+        })
+
+        it('should return all goals when no status param', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const goals = [
+                createMockRecoveryGoal({ id: 'g1', status: GoalStatus.ACTIVE }),
+                createMockRecoveryGoal({ id: 'g2', status: GoalStatus.COMPLETED })
+            ]
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue(goals)
+            prismaMock.milestone.count.mockResolvedValue(0)
+
+            const response = await withBearerAuth(
+                supertest(App).get(API_BASE),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data).toHaveLength(2)
+            expect(prismaMock.recoveryGoal.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.not.objectContaining({ status: expect.anything() })
+                })
+            )
+        })
+
         it('should require auth', async () => {
             const response = await supertest(App).get(API_BASE)
             expect(response.status).toBe(401)
