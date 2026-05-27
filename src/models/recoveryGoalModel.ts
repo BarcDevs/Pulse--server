@@ -98,6 +98,9 @@ export const updateGoal = async (
         status?: GoalStatus
         targetDate?: Date | null
         isPrimary?: boolean
+        pausedAt?: Date | null
+        completedAt?: Date | null
+        abandonedAt?: Date | null
     },
     tx?: PrismaTypes.TransactionClient
 ): Promise<RecoveryGoalType | null> => {
@@ -301,10 +304,28 @@ export const completeMilestoneAndAdvance = async (
         } else {
             await tx.recoveryGoal.update({
                 where: { id: goalId },
-                data: { status: GoalStatus.COMPLETED }
+                data: {
+                    status: GoalStatus.COMPLETED,
+                    completedAt: new Date()
+                }
             })
         }
     })
+}
+
+export const activateFirstLockedMilestone = async (
+    goalId: string
+): Promise<void> => {
+    const firstLocked = await Prisma.milestone.findFirst({
+        where: { goalId, status: MilestoneStatus.LOCKED },
+        orderBy: { order: 'asc' }
+    })
+    if (firstLocked) {
+        await Prisma.milestone.update({
+            where: { id: firstLocked.id },
+            data: { status: MilestoneStatus.ACTIVE }
+        })
+    }
 }
 
 export const lockNonCompletedMilestones = async (
@@ -580,7 +601,7 @@ export const getCompletedDatesForStreak = async (
             where: {
                 profileId,
                 status: GoalStatus.COMPLETED,
-                updatedAt: dateFilter,
+                completedAt: dateFilter,
                 ...(
                     filters?.category && {
                         category: filters.category
@@ -588,7 +609,7 @@ export const getCompletedDatesForStreak = async (
                     }
                 )
             },
-            select: { updatedAt: true }
+            select: { completedAt: true }
         })
     )
 
@@ -616,9 +637,9 @@ export const getCompletedDatesForStreak = async (
     )
 
     const dates = [
-        ...completedGoals.map(
-            (g) => g.updatedAt
-        ),
+        ...completedGoals
+            .map((g) => g.completedAt)
+            .filter((d) => d !== null) as Date[],
         ...completedMilestones
             .map((m) => m.completedAt)
             .filter((d) => d !== null) as Date[]

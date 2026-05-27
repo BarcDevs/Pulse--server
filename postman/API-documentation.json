@@ -1482,7 +1482,7 @@
           "response": []
         },
         {
-          "name": "Update Goal",
+          "name": "Update Goal (details)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -1509,6 +1509,164 @@
                 "{{apiVersion}}",
                 "recovery-goals",
                 "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PAUSED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Goal (PAUSED → ACTIVE)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Abandon Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ABANDONED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restore Goal (ABANDONED → ACTIVE)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Goal (all milestones done)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}",
+                "complete"
               ]
             }
           },
@@ -1589,7 +1747,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"isCompleted\": false\n}"
+              "raw": "{\n  \"title\": \"Updated milestone title\",\n  \"description\": \"Updated description\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}",
@@ -1603,6 +1761,34 @@
                 "{{goalId}}",
                 "milestones",
                 "{{milestoneId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/recovery-goals/{{goalId}}/milestones/{{milestoneId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "recovery-goals",
+                "{{goalId}}",
+                "milestones",
+                "{{milestoneId}}",
+                "complete"
               ]
             }
           },

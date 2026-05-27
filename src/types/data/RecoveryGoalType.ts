@@ -31,6 +31,9 @@ export type RecoveryGoalType = {
     isPrimary: boolean
     status: GoalStatus
     targetDate: Date | null
+    pausedAt: Date | null
+    completedAt: Date | null
+    abandonedAt: Date | null
     createdAt: Date
     updatedAt: Date
 }
@@ -50,7 +53,7 @@ export type NewRecoveryGoalType = {
 export type UpdateRecoveryGoalType = {
     title?: string
     description?: string
-    status?: Exclude<GoalStatus, 'COMPLETED'>
+    status?: GoalStatus
     targetDate?: string
     isPrimary?: boolean
 }

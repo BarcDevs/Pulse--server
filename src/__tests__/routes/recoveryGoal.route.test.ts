@@ -49,6 +49,9 @@ describe('Recovery Goals Routes', () => {
             isPrimary: false,
             status: GoalStatus.ACTIVE,
             targetDate: null,
+            pausedAt: null,
+            completedAt: null,
+            abandonedAt: null,
             createdAt: new Date(),
             updatedAt: new Date()
         } as any)
@@ -612,6 +615,245 @@ describe('Recovery Goals Routes', () => {
             ).send({ title: 'Updated' })
 
             expect(response.status).toBe(401)
+        })
+
+        it('should pause an active goal', async () => {
+            const mockUser = createMockUser()
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const pausedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.PAUSED,
+                pausedAt: new Date()
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(activeGoal)
+            prismaMock.recoveryGoal.update.mockResolvedValue(pausedGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.PAUSED })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.status).toBe(GoalStatus.PAUSED)
+            expect(response.body.data.pausedAt).not.toBeNull()
+        })
+
+        it('should resume a paused goal', async () => {
+            const mockUser = createMockUser()
+            const pausedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.PAUSED,
+                pausedAt: new Date()
+            })
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(pausedGoal)
+            prismaMock.recoveryGoal.update.mockResolvedValue(activeGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.ACTIVE })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.status).toBe(GoalStatus.ACTIVE)
+        })
+
+        it('should restore an abandoned goal and activate first locked milestone', async () => {
+            const mockUser = createMockUser()
+            const abandonedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ABANDONED,
+                abandonedAt: new Date()
+            })
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(abandonedGoal)
+            prismaMock.recoveryGoal.update.mockResolvedValue(activeGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+            prismaMock.milestone.findFirst.mockResolvedValue({
+                id: 'm-1',
+                goalId: 'goal-123',
+                status: MilestoneStatus.LOCKED,
+                order: 1
+            } as any)
+            prismaMock.milestone.update.mockResolvedValue({} as any)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.ACTIVE })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.status).toBe(GoalStatus.ACTIVE)
+        })
+
+        it('should reject any transition from a completed goal', async () => {
+            const mockUser = createMockUser()
+            const completedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.COMPLETED,
+                completedAt: new Date()
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(completedGoal)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.ACTIVE })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should reject invalid transition PAUSED→COMPLETED', async () => {
+            const mockUser = createMockUser()
+            const pausedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.PAUSED
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(pausedGoal)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.COMPLETED })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should reject invalid transition COMPLETED→ABANDONED', async () => {
+            const mockUser = createMockUser()
+            const completedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.COMPLETED
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(completedGoal)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.ABANDONED })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should reject ACTIVE→COMPLETED when milestones are incomplete', async () => {
+            const mockUser = createMockUser()
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(activeGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([
+                createMockMilestone({ status: MilestoneStatus.COMPLETED }),
+                createMockMilestone({ id: 'm-2', status: MilestoneStatus.ACTIVE })
+            ])
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.COMPLETED })
+
+            expect(response.status).toBe(409)
+        })
+
+        it('should set abandonedAt when abandoning a paused goal', async () => {
+            const mockUser = createMockUser()
+            const pausedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.PAUSED
+            })
+            const abandonedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ABANDONED,
+                abandonedAt: new Date()
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(pausedGoal)
+            prismaMock.recoveryGoal.update.mockResolvedValue(abandonedGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+            prismaMock.milestone.updateMany.mockResolvedValue({ count: 0 })
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.ABANDONED })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.status).toBe(GoalStatus.ABANDONED)
+            expect(response.body.data.abandonedAt).not.toBeNull()
         })
     })
 
@@ -1447,8 +1689,8 @@ describe('Recovery Goals Routes', () => {
             prismaMock.recoveryGoal.groupBy.mockResolvedValue([])
             prismaMock.milestone.count.mockResolvedValue(0)
             prismaMock.recoveryGoal.findMany.mockResolvedValue([
-                { updatedAt: today },
-                { updatedAt: yesterday }
+                { completedAt: today },
+                { completedAt: yesterday }
             ] as any)
             prismaMock.milestone.findMany.mockResolvedValue([])
 

@@ -13,6 +13,9 @@ type RawGoal = {
     description: string | null
     isPrimary: boolean
     targetDate: Date | null
+    pausedAt: Date | null
+    completedAt: Date | null
+    abandonedAt: Date | null
     createdAt: Date
     updatedAt: Date
 }

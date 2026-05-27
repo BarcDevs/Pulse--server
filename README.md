@@ -427,16 +427,20 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/goals` | Cookie | List all goals with progress |
-| `POST` | `/api/v1/goals` | Cookie + CSRF | Create goal (category: physical/mental/lifestyle) |
-| `GET` | `/api/v1/goals/:goalId` | Cookie | Get goal with milestones |
-| `PATCH` | `/api/v1/goals/:goalId` | Cookie + CSRF | Update goal (status: paused/abandoned only) |
-| `DELETE` | `/api/v1/goals/:goalId` | Cookie + CSRF | Delete goal and milestones |
-| `POST` | `/api/v1/goals/:goalId/milestones` | Cookie + CSRF | Create milestones (1–8 per goal) |
-| `PATCH` | `/api/v1/goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Update milestone (title/description/order) |
-| `PATCH` | `/api/v1/goals/:goalId/milestones/:milestoneId/complete` | Cookie + CSRF | Mark milestone complete (unlocks next) |
-| `DELETE` | `/api/v1/goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Delete milestone |
-| `PATCH` | `/api/v1/goals/:goalId/complete` | Cookie + CSRF | Mark goal complete (all milestones must be done) |
+| `GET` | `/api/v1/recovery-goals` | Cookie | List all goals with progress |
+| `GET` | `/api/v1/recovery-goals?status=ACTIVE` | Cookie | Filter goals by status (ACTIVE/PAUSED/COMPLETED/ABANDONED) |
+| `POST` | `/api/v1/recovery-goals` | Cookie + CSRF | Create goal (category: PHYSICAL/MENTAL/LIFESTYLE) |
+| `GET` | `/api/v1/recovery-goals/:goalId` | Cookie | Get goal with milestones |
+| `PATCH` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Update goal details or transition status (see state machine below) |
+| `DELETE` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Delete goal and milestones |
+| `POST` | `/api/v1/recovery-goals/:goalId/milestones` | Cookie + CSRF | Create milestones (1–8 per goal) |
+| `PATCH` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Update milestone (title/description/order) |
+| `PATCH` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete` | Cookie + CSRF | Mark milestone complete (unlocks next) |
+| `DELETE` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Delete milestone |
+| `PATCH` | `/api/v1/recovery-goals/:goalId/complete` | Cookie + CSRF | Mark goal complete (all milestones must be done) |
+| `GET` | `/api/v1/recovery-goals/stats` | Cookie | Goal and milestone completion stats with streak |
+
+**Status state machine:** ACTIVE → PAUSED/ABANDONED/COMPLETED · PAUSED → ACTIVE/ABANDONED · ABANDONED → ACTIVE · COMPLETED is terminal. Timestamps (`pausedAt`, `completedAt`, `abandonedAt`) set automatically.
 
 ---
 

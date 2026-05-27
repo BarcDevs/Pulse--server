@@ -9,7 +9,8 @@ export const updateGoalSchema = z.object({
     status: caseInsensitiveEnum([
         'ACTIVE',
         'PAUSED',
-        'ABANDONED'
+        'ABANDONED',
+        'COMPLETED'
     ]).optional(),
     targetDate: futureDateField.optional(),
     isPrimary: z.boolean().optional()

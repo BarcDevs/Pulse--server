@@ -4,7 +4,10 @@ import { errorFactory } from '../errors/factory/ErrorFactory'
 import { calculateCurrentStreak } from '../lib/aiInsight/decision/streakCalculator'
 import { getUserTimezone } from '../models/authModel'
 import * as RecoveryGoalModel from '../models/recoveryGoalModel'
-import { getProfileIdForUser } from '../models/recoveryGoalModel'
+import {
+    activateFirstLockedMilestone,
+    getProfileIdForUser
+} from '../models/recoveryGoalModel'
 import type {
     MilestoneType,
     NewRecoveryGoalType,
@@ -24,6 +27,20 @@ const computeProgress = (
     return completedCount / totalCount
 }
 
+const ALLOWED_TRANSITIONS: Record<GoalStatus, GoalStatus[]> = {
+    [GoalStatus.ACTIVE]: [
+        GoalStatus.PAUSED,
+        GoalStatus.ABANDONED,
+        GoalStatus.COMPLETED
+    ],
+    [GoalStatus.PAUSED]: [
+        GoalStatus.ACTIVE,
+        GoalStatus.ABANDONED
+    ],
+    [GoalStatus.COMPLETED]: [],
+    [GoalStatus.ABANDONED]: [GoalStatus.ACTIVE]
+}
+
 const assertGoalActive = (
     goal: RecoveryGoalType
 ): void => {
@@ -32,6 +49,22 @@ const assertGoalActive = (
             .conflict(
                 'Cannot modify milestones on non-active goals'
             )
+}
+
+const assertAllMilestonesCompleted = (
+    milestones: MilestoneType[]
+): void => {
+    if (milestones.length === 0)
+        throw errorFactory.generic.conflict(
+            'Cannot complete goal without milestones'
+        )
+    const allCompleted = milestones.every(
+        m => m.status === MilestoneStatus.COMPLETED
+    )
+    if (!allCompleted)
+        throw errorFactory.generic.conflict(
+            'Cannot complete goal with incomplete milestones'
+        )
 }
 
 export const createGoal = async (
@@ -180,24 +213,16 @@ export const updateGoal = async (
         data.status !== undefined
         && data.status !== goal.status
     )
-    const isFinalStatus = (
-        goal.status === GoalStatus.COMPLETED
-        || goal.status === GoalStatus.ABANDONED
-    )
-    if (isFinalStatus && isChangingStatus)
-        throw errorFactory.generic.conflict(
-            `Cannot change status of ${goal.status.toLowerCase()} goals`
-        )
 
-    const isNonEditableStatus = (
-        goal.status === GoalStatus.COMPLETED
-        || goal.status === GoalStatus.PAUSED
-        || goal.status === GoalStatus.ABANDONED
-    )
     const hasDetailUpdates = (
         data.title !== undefined
         || data.description !== undefined
         || data.targetDate !== undefined
+    )
+    const isNonEditableStatus = (
+        goal.status === GoalStatus.COMPLETED
+        || goal.status === GoalStatus.PAUSED
+        || goal.status === GoalStatus.ABANDONED
     )
     if (isNonEditableStatus && hasDetailUpdates)
         throw errorFactory.generic.conflict(
@@ -212,6 +237,9 @@ export const updateGoal = async (
         status?: GoalStatus
         targetDate?: Date | null
         isPrimary?: boolean
+        pausedAt?: Date | null
+        completedAt?: Date | null
+        abandonedAt?: Date | null
     } = {}
 
     if (data.title !== undefined)
@@ -223,14 +251,35 @@ export const updateGoal = async (
             ? new Date(data.targetDate)
             : null
 
-    if (data.status !== undefined) {
+    if (isChangingStatus) {
+        const allowed = ALLOWED_TRANSITIONS[goal.status]
+        if (!allowed.includes(data.status!))
+            throw errorFactory.generic.conflict(
+                `Cannot transition goal from `
+                + `${goal.status} to ${data.status}`
+            )
+
         updateData.status = data.status
-        if (
-            data.status
-            === GoalStatus.ABANDONED
-        ) {
+
+        if (data.status === GoalStatus.PAUSED) {
+            updateData.pausedAt = new Date()
+        } else if (data.status === GoalStatus.ABANDONED) {
+            updateData.abandonedAt = new Date()
+            updateData.pausedAt = null
             await RecoveryGoalModel
                 .lockNonCompletedMilestones(id)
+        } else if (data.status === GoalStatus.COMPLETED) {
+            const milestones = await RecoveryGoalModel
+                .getMilestonesByGoalId(id)
+            assertAllMilestonesCompleted(milestones)
+            updateData.completedAt = new Date()
+        } else if (data.status === GoalStatus.ACTIVE) {
+            if (goal.status === GoalStatus.ABANDONED) {
+                updateData.abandonedAt = null
+                await activateFirstLockedMilestone(id)
+            } else if (goal.status === GoalStatus.PAUSED) {
+                updateData.pausedAt = null
+            }
         }
     }
 
@@ -535,26 +584,13 @@ export const completeGoal = async (
             .getMilestonesByGoalId(id)
     )
 
-    if (milestones.length === 0)
-        throw errorFactory.generic.conflict(
-            'Cannot complete goal without '
-            + 'milestones'
-        )
-
-    const allCompleted = milestones.every(
-        m => m.status
-            === MilestoneStatus.COMPLETED
-    )
-    if (!allCompleted)
-        throw errorFactory.generic.conflict(
-            'Cannot complete goal with '
-            + 'incomplete milestones'
-        )
+    assertAllMilestonesCompleted(milestones)
 
     const updated = await (
         RecoveryGoalModel
             .updateGoal(id, {
-                status: GoalStatus.COMPLETED
+                status: GoalStatus.COMPLETED,
+                completedAt: new Date()
             })
     )
     if (!updated)

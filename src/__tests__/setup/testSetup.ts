@@ -128,6 +128,9 @@ export const createMockRecoveryGoal = (
     isPrimary: false,
     status: GoalStatus.ACTIVE,
     targetDate: null,
+    pausedAt: null,
+    completedAt: null,
+    abandonedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides
