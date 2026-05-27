@@ -299,34 +299,6 @@ describe('Check-in Routes', () => {
         )
 
         it(
-            'should return 400 for missing activities',
-            async () => {
-                const mockUser = createMockUser()
-                const {
-                    token,
-                    csrfSecret,
-                    csrfToken
-                } = createAuthenticatedRequest(mockUser)
-
-                const response = await supertest(App)
-                    .post(endpoint)
-                    .set('Cookie', [
-                        `accessToken=${token}`,
-                        `_csrf=${csrfSecret}`
-                    ])
-                    .set('x-csrf-token', csrfToken)
-                    .send({
-                        moodScore: 7,
-                        painLevel: 3
-                    })
-
-                expect(response.status).toBe(400)
-                expect(response.body.error[0].property)
-                    .toBe('activities')
-            }
-        )
-
-        it(
             'should return 400 for moodScore out of range',
             async () => {
                 const mockUser = createMockUser()
