@@ -491,6 +491,120 @@ describe('Recovery Goals Routes', () => {
             expect(response.body.data[0].milestonesCount).toBe(3)
         })
 
+        it('should include nextMilestone title for ACTIVE goal with active milestone', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-1',
+                status: GoalStatus.ACTIVE
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    id: 'm-1',
+                    title: 'First milestone',
+                    status: MilestoneStatus.COMPLETED
+                }),
+                createMockMilestone({
+                    id: 'm-2',
+                    title: 'Current milestone',
+                    status: MilestoneStatus.ACTIVE
+                }),
+                createMockMilestone({
+                    id: 'm-3',
+                    title: 'Locked milestone',
+                    status: MilestoneStatus.LOCKED
+                })
+            ]
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([mockGoal])
+            prismaMock.milestone.count.mockResolvedValue(3)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withBearerAuth(
+                supertest(App).get(API_BASE),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data[0].nextMilestone).toBe('Current milestone')
+        })
+
+        it('should include nextMilestone null for ACTIVE goal with no milestones', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-1',
+                status: GoalStatus.ACTIVE
+            })
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([mockGoal])
+            prismaMock.milestone.count.mockResolvedValue(0)
+
+            const response = await withBearerAuth(
+                supertest(App).get(API_BASE),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data[0].nextMilestone).toBeNull()
+        })
+
+        it('should include nextMilestone title for ACTIVE goal with only locked milestones', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-1',
+                status: GoalStatus.ACTIVE
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    id: 'm-1',
+                    title: 'Locked milestone',
+                    status: MilestoneStatus.LOCKED
+                })
+            ]
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([mockGoal])
+            prismaMock.milestone.count.mockResolvedValue(1)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withBearerAuth(
+                supertest(App).get(API_BASE),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data[0].nextMilestone).toBe('Locked milestone')
+        })
+
+        it('should include nextMilestone null for non-ACTIVE goal', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-1',
+                status: GoalStatus.PAUSED
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    id: 'm-1',
+                    title: 'Locked milestone',
+                    status: MilestoneStatus.LOCKED
+                })
+            ]
+
+            prismaMock.recoveryGoal.findMany.mockResolvedValue([mockGoal])
+            prismaMock.milestone.count.mockResolvedValue(1)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withBearerAuth(
+                supertest(App).get(API_BASE),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data[0].nextMilestone).toBeNull()
+        })
+
         it('should require auth', async () => {
             const response = await supertest(App).get(API_BASE)
             expect(response.status).toBe(401)
@@ -526,6 +640,85 @@ describe('Recovery Goals Routes', () => {
             expect(response.body.data.goal.id).toBe('goal-123')
             expect(response.body.data.milestones).toHaveLength(2)
             expect(response.body.data.goal).toHaveProperty('progress')
+        })
+
+        it('should include nextMilestone title for ACTIVE goal with active milestone', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    id: 'm-1',
+                    title: 'Done milestone',
+                    status: MilestoneStatus.COMPLETED
+                }),
+                createMockMilestone({
+                    id: 'm-2',
+                    title: 'Active milestone',
+                    status: MilestoneStatus.ACTIVE
+                })
+            ]
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/goal-123`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goal.nextMilestone).toBe('Active milestone')
+        })
+
+        it('should include nextMilestone title for ACTIVE goal with only locked milestone', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const mockMilestones = [
+                createMockMilestone({
+                    id: 'm-1',
+                    title: 'Locked milestone',
+                    status: MilestoneStatus.LOCKED
+                })
+            ]
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/goal-123`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goal.nextMilestone).toBe('Locked milestone')
+        })
+
+        it('should include nextMilestone null when goal has no milestones', async () => {
+            const mockUser = createMockUser()
+            const token = createAuthToken(mockUser)
+            const mockGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(mockGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([])
+
+            const response = await withBearerAuth(
+                supertest(App).get(`${API_BASE}/goal-123`),
+                token
+            )
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.goal.nextMilestone).toBeNull()
         })
 
         it('should return 404 for non-existent goal', async () => {
@@ -894,6 +1087,69 @@ describe('Recovery Goals Routes', () => {
             expect(response.status).toBe(200)
             expect(response.body.data.status).toBe(GoalStatus.ABANDONED)
             expect(response.body.data.abandonedAt).not.toBeNull()
+        })
+
+        it('should include nextMilestone for ACTIVE goal after update', async () => {
+            const mockUser = createMockUser()
+            const activeGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.ACTIVE
+            })
+            const mockMilestones = [
+                createMockMilestone({ id: 'm-1', title: 'First milestone', status: MilestoneStatus.ACTIVE })
+            ]
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(activeGoal)
+            prismaMock.recoveryGoal.update.mockResolvedValue(activeGoal)
+            prismaMock.milestone.findMany.mockResolvedValue(mockMilestones)
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ title: 'Updated title' })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.nextMilestone).toBe('First milestone')
+        })
+
+        it('should return null nextMilestone for PAUSED goal after update', async () => {
+            const mockUser = createMockUser()
+            const pausedGoal = createMockRecoveryGoal({
+                id: 'goal-123',
+                status: GoalStatus.PAUSED,
+                pausedAt: new Date()
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.recoveryGoal.findFirst.mockResolvedValue(
+                createMockRecoveryGoal({ id: 'goal-123', status: GoalStatus.ACTIVE })
+            )
+            prismaMock.recoveryGoal.update.mockResolvedValue(pausedGoal)
+            prismaMock.milestone.findMany.mockResolvedValue([
+                createMockMilestone({ id: 'm-1', title: 'Some milestone', status: MilestoneStatus.ACTIVE })
+            ])
+            prismaMock.milestone.updateMany.mockResolvedValue({ count: 1 })
+
+            const response = await withCsrfAuth(
+                supertest(App).patch(`${API_BASE}/goal-123`),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ status: GoalStatus.PAUSED })
+
+            expect(response.status).toBe(200)
+            expect(response.body.data.nextMilestone).toBeNull()
         })
     })
 

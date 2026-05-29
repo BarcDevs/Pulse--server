@@ -27,6 +27,14 @@ const computeProgress = (
     return completedCount / totalCount
 }
 
+const getNextMilestone = (
+    goal: RecoveryGoalType,
+    milestones: MilestoneType[]
+): string | null => {
+    if (goal.status !== GoalStatus.ACTIVE) return null
+    return milestones.find(m => m.status !== MilestoneStatus.COMPLETED)?.title ?? null
+}
+
 const ALLOWED_TRANSITIONS: Record<GoalStatus, GoalStatus[]> = {
     [GoalStatus.ACTIVE]: [
         GoalStatus.PAUSED,
@@ -111,7 +119,8 @@ export const createGoal = async (
     return {
         ...goal,
         progress: 0,
-        milestonesCount: 0
+        milestonesCount: 0,
+        nextMilestone: null
     }
 }
 
@@ -149,7 +158,8 @@ export const getGoal = async (
         goal: {
             ...goal,
             progress,
-            milestonesCount: milestones.length
+            milestonesCount: milestones.length,
+            nextMilestone: getNextMilestone(goal, milestones)
         },
         milestones
     }
@@ -178,7 +188,8 @@ export const getUserGoals = async (
                 return {
                     ...goal,
                     progress: 0,
-                    milestonesCount: 0
+                    milestonesCount: 0,
+                    nextMilestone: null
                 }
 
             const milestones = await (
@@ -200,7 +211,8 @@ export const getUserGoals = async (
             return {
                 ...goal,
                 progress,
-                milestonesCount: count
+                milestonesCount: count,
+                nextMilestone: getNextMilestone(goal, milestones)
             }
         })
     )
@@ -327,7 +339,8 @@ export const updateGoal = async (
     return {
         ...updated,
         progress,
-        milestonesCount: milestones.length
+        milestonesCount: milestones.length,
+        nextMilestone: getNextMilestone(updated, milestones)
     }
 }
 
@@ -616,7 +629,8 @@ export const completeGoal = async (
     return {
         ...updated,
         progress: 1,
-        milestonesCount: milestones.length
+        milestonesCount: milestones.length,
+        nextMilestone: null
     }
 }
 
