@@ -132,6 +132,32 @@ export const getCheckInsForStats = async (
         orderBy: { checkInDate: 'desc' }
     })
 
+export const getRecentCheckInsForStats = async (
+    profileId: string,
+    since: Date
+): Promise<
+    Pick<
+        CheckInType,
+        'moodScore' |
+        'painLevel' |
+        'activities' |
+        'checkInDate'
+    >[]
+> =>
+    Prisma.dailyCheckIn.findMany({
+        where: {
+            profileId,
+            checkInDate: { gte: since }
+        },
+        select: {
+            moodScore: true,
+            painLevel: true,
+            activities: true,
+            checkInDate: true
+        },
+        orderBy: { checkInDate: 'desc' }
+    })
+
 export const getCheckInsForDateRange = async (
     profileId: string,
     startDate: Date,
