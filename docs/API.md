@@ -791,6 +791,44 @@ Returns all unknown tag attempts sorted by count descending. Used to discover po
 
 ---
 
+### `GET /recommendations`
+
+Returns pre-computed post recommendations based on the user's latest check-in.
+
+**Auth:** Required
+
+**Response `200`**
+```json
+{
+  "message": "Recommendations retrieved successfully",
+  "data": {
+    "status": "ready | processing",
+    "isStale": false,
+    "posts": [
+      {
+        "id": "string",
+        "title": "string",
+        "body": "string",
+        "category": "string",
+        "views": 0,
+        "_count": { "replies": 0, "likes": 0 },
+        "tags": [],
+        "author": { "id": "string", "username": "string" }
+      }
+    ],
+    "generatedAt": "2026-05-29T00:00:00.000Z",
+    "basedOnCheckInId": "string"
+  }
+}
+```
+
+`status: "processing"` — recommendations are being generated; `posts` will be empty or stale.  
+`isStale: true` — posts shown are from a previous check-in snapshot; fresh results pending.
+
+**Errors:** `401` unauthenticated
+
+---
+
 ## Check-In — `/api/v1/check-in`
 
 ---
