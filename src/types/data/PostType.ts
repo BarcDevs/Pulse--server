@@ -1,12 +1,22 @@
 import type { ReplyType } from './ReplyType'
 import type { PostTagType } from './TagType'
-import type { UserType } from './UserType'
+
+type PostAuthor = {
+    id: string
+    image?: string | null
+    user: {
+        id: string
+        username: string
+        firstName: string
+        lastName: string
+    }
+}
 
 export type PostType = {
     id: string
     title: string
     body: string
-    author?: Partial<UserType>
+    author?: PostAuthor
     authorId?: string
     createdAt: Date
     updatedAt?: Date

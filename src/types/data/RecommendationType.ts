@@ -19,14 +19,6 @@ export type RecommendationSnapshot = {
     basedOnCheckInId: string
 }
 
-export type RecommendationFeedResponse = {
-    status: 'ready' | 'processing'
-    isStale: boolean
-    posts: PostType[]
-    generatedAt?: Date
-    basedOnCheckInId?: string
-}
-
 export type CheckInState = {
     physicalState: 'good' | 'moderate' | 'poor'
     emotionalState: 'positive' | 'neutral' | 'negative'

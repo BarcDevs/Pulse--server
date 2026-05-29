@@ -16,19 +16,41 @@ import * as forumModel from '../models/forumModel'
 import * as recommendationsModel from '../models/recommendationsModel'
 import type { PostType } from '../types/data/PostType'
 import type {
+    RecommendationResponseItem,
+    RecommendationsResponse
+} from '../types/data/RecommendationResponseType'
+import type {
     CheckInState,
     PostRecommendationItem,
-    RecommendationFeedResponse,
     RecommendationSnapshot
 } from '../types/data/RecommendationType'
 import { PostFilter } from '../types/query'
 import logger from '../utils/logger'
 
-const extractActivityCategories = (
-    activities: string[]
-): string[] => {
-    return activities.slice(0, 3)
+const generateAction = (
+    post: PostType
+): Pick<RecommendationResponseItem, 'actionKey' | 'actionParams'> => {
+    if (post.title.endsWith('?'))
+        return { actionKey: 'recommendations.action.askedQuestion' }
+
+    if (post.category) {
+        return {
+            actionKey: 'recommendations.action.postedAbout',
+            actionParams: { category: post.category }
+        }
+    }
+    return { actionKey: 'recommendations.action.sharedPost' }
 }
+
+const mapPostToRecommendation = (post: PostType): RecommendationResponseItem => ({
+    id: post.id,
+    userId: post.author?.user?.id ?? '',
+    username: post.author?.user?.username ?? '',
+    firstName: post.author?.user?.firstName ?? '',
+    lastName: post.author?.user?.lastName ?? '',
+    ...generateAction(post),
+    timestamp: post.createdAt.toISOString()
+})
 
 const filterByGating = (
     candidates: PostType[],
@@ -164,7 +186,7 @@ export const generateRecommendations = async (
         const lastTwoSnapshots = previousSnapshots.slice(0, 2).filter(Boolean)
 
         const candidateFilters = {
-            categories: extractActivityCategories(currentCheckIn.activities),
+            categories: currentCheckIn.activities.slice(0, 3),
             tags: currentCheckIn.activities,
             terms: state.keyIssueTags
         }
@@ -285,7 +307,7 @@ export const generateRecommendationsSafely = async (
 
 export const getRecommendations = async (
     userId: string
-): Promise<RecommendationFeedResponse> => {
+): Promise<RecommendationsResponse> => {
     try {
         const profileId = await checkInModel.getProfileIdForUser(userId)
 
@@ -332,10 +354,12 @@ export const getRecommendations = async (
                     (p) => p !== null
                 ) as PostType[]
 
+                const transformedPosts = validPosts.map(mapPostToRecommendation)
+
                 return {
-                    status: validPosts.length >= 3 ? 'ready' : 'processing',
+                    status: transformedPosts.length >= 3 ? 'ready' : 'processing',
                     isStale: false,
-                    posts: validPosts,
+                    posts: transformedPosts,
                     generatedAt: newSnapshot.generatedAt,
                     basedOnCheckInId: newSnapshot.basedOnCheckInId
                 }
@@ -378,7 +402,9 @@ export const getRecommendations = async (
             (p) => p !== null
         ) as PostType[]
 
-        if (validPosts.length < 3) {
+        const transformedPosts = validPosts.map(mapPostToRecommendation)
+
+        if (transformedPosts.length < 3) {
             await recommendationsModel.setPendingGeneration(
                 userId,
                 latestCheckIn.id
@@ -387,14 +413,14 @@ export const getRecommendations = async (
             return {
                 status: 'processing',
                 isStale: false,
-                posts: validPosts
+                posts: transformedPosts
             }
         }
 
         return {
             status: isStale ? 'processing' : 'ready',
             isStale,
-            posts: validPosts,
+            posts: transformedPosts,
             generatedAt: snapshot.generatedAt,
             basedOnCheckInId: snapshot.basedOnCheckInId
         }

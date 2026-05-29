@@ -1,10 +1,16 @@
 // @ts-nocheck
-import * as checkInModel from '../../models/checkInModel'
-import * as forumModel from '../../models/forumModel'
-import * as recommendationsModel from '../../models/recommendationsModel'
-import { getRecommendations } from '../../services/recommendationsService'
-import type { CheckInType } from '../../types/data/CheckInType'
-import type { PostType } from '../../types/data/PostType'
+import * as checkInModel
+    from '../../models/checkInModel'
+import * as forumModel
+    from '../../models/forumModel'
+import * as recommendationsModel
+    from '../../models/recommendationsModel'
+import { getRecommendations }
+    from '../../services/recommendationsService'
+import type { CheckInType }
+    from '../../types/data/CheckInType'
+import type { PostType }
+    from '../../types/data/PostType'
 import type {
     PostRecommendationItem,
     RecommendationSnapshot
@@ -112,7 +118,23 @@ describe('recommendationsService.getRecommendations', () => {
     })
 
     it('returns ready state with posts when snapshot has 3+ valid posts', async () => {
-        const posts = [makePost({ id: 'post-1' }), makePost({ id: 'post-2' }), makePost({ id: 'post-3' })]
+        const posts = [
+            makePost({
+                id: 'post-1',
+                title: 'Recovery tips',
+                category: 'fitness'
+            }),
+            makePost({
+                id: 'post-2',
+                title: 'How to sleep better?',
+                category: 'wellness'
+            }),
+            makePost({
+                id: 'post-3',
+                title: 'Motivation boost',
+                category: 'mental health'
+            })
+        ]
 
         jest.mocked(checkInModel.getCheckIns)
             .mockResolvedValue([makeCheckIn()])
@@ -133,6 +155,15 @@ describe('recommendationsService.getRecommendations', () => {
         expect(result.isStale).toBe(false)
         expect(result.posts).toHaveLength(3)
         expect(result.basedOnCheckInId).toBe(CHECKIN_ID)
+
+        // Verify transformed response structure
+        expect(result.posts[0]).toHaveProperty('id')
+        expect(result.posts[0]).toHaveProperty('userId')
+        expect(result.posts[0]).toHaveProperty('username')
+        expect(result.posts[0]).toHaveProperty('firstName')
+        expect(result.posts[0]).toHaveProperty('lastName')
+        expect(result.posts[0]).toHaveProperty('actionKey')
+        expect(result.posts[0]).toHaveProperty('timestamp')
     })
 
     it('returns processing + isStale when snapshot is for older check-in and mood is low', async () => {
@@ -158,7 +189,11 @@ describe('recommendationsService.getRecommendations', () => {
     it('returns stale posts with processing status when stale and mood is normal', async () => {
         const oldCheckInId = 'old-checkin-id'
         const latestCheckIn = makeCheckIn({ moodScore: 7 })
-        const posts = [makePost({ id: 'post-1' }), makePost({ id: 'post-2' }), makePost({ id: 'post-3' })]
+        const posts = [
+            makePost({ id: 'post-1' }),
+            makePost({ id: 'post-2' }),
+            makePost({ id: 'post-3' })
+        ]
 
         jest.mocked(checkInModel.getCheckIns)
             .mockResolvedValue([latestCheckIn])
@@ -186,7 +221,10 @@ describe('recommendationsService.getRecommendations', () => {
         jest.mocked(recommendationsModel.getSnapshotWithFlags)
             .mockResolvedValue({
                 snapshot: makeSnapshot({
-                    items: [makeSnapshotItem('post-1'), makeSnapshotItem('post-2')]
+                    items: [
+                        makeSnapshotItem('post-1'),
+                        makeSnapshotItem('post-2')
+                    ]
                 }),
                 generationPending: false,
                 pendingSince: null
@@ -215,5 +253,95 @@ describe('recommendationsService.getRecommendations', () => {
         expect(result.status).toBe('processing')
         expect(result.posts).toEqual([])
         expect(result.isStale).toBe(false)
+    })
+
+    it('generates question action when title ends with question mark', async () => {
+        const post = makePost({
+            id: 'post-1',
+            title: 'How to recover faster?',
+            category: 'fitness'
+        })
+
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([makeCheckIn()])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: makeSnapshot(),
+                generationPending: false,
+                pendingSince: null
+            })
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValueOnce(post)
+            .mockResolvedValueOnce(makePost({ id: 'post-2' }))
+            .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.posts[0].actionKey).toBe('recommendations.action.askedQuestion')
+    })
+
+    it('generates category action for non-question posts', async () => {
+        const post = makePost({
+            id: 'post-1',
+            title: 'Recovery tips',
+            category: 'wellness'
+        })
+
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([makeCheckIn()])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: makeSnapshot(),
+                generationPending: false,
+                pendingSince: null
+            })
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValueOnce(post)
+            .mockResolvedValueOnce(makePost({ id: 'post-2' }))
+            .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.posts[0].actionKey).toBe('recommendations.action.postedAbout')
+        expect(result.posts[0].actionParams).toEqual({ category: 'wellness' })
+    })
+
+    it('returns user info in transformed response', async () => {
+        const post = makePost({
+            id: 'post-1',
+            title: 'Tips',
+            category: 'fitness',
+            author: {
+                id: 'profile-1',
+                image: 'image.jpg',
+                user: {
+                    id: 'user-123',
+                    username: 'john_doe',
+                    firstName: 'John',
+                    lastName: 'Doe'
+                }
+            }
+        })
+
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([makeCheckIn()])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: makeSnapshot(),
+                generationPending: false,
+                pendingSince: null
+            })
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValueOnce(post)
+            .mockResolvedValueOnce(makePost({ id: 'post-2' }))
+            .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.posts[0].userId).toBe('user-123')
+        expect(result.posts[0].username).toBe('john_doe')
+        expect(result.posts[0].firstName).toBe('John')
+        expect(result.posts[0].lastName).toBe('Doe')
+        expect(result.posts[0].timestamp).toBe(post.createdAt.toISOString())
     })
 })

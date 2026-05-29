@@ -807,13 +807,13 @@ Returns pre-computed post recommendations based on the user's latest check-in.
     "posts": [
       {
         "id": "string",
-        "title": "string",
-        "body": "string",
-        "category": "string",
-        "views": 0,
-        "_count": { "replies": 0, "likes": 0 },
-        "tags": [],
-        "author": { "id": "string", "username": "string" }
+        "userId": "string",
+        "username": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "actionKey": "recommendations.action.postedAbout",
+        "actionParams": { "category": "fitness" },
+        "timestamp": "2026-05-29T00:00:00.000Z"
       }
     ],
     "generatedAt": "2026-05-29T00:00:00.000Z",
@@ -824,6 +824,14 @@ Returns pre-computed post recommendations based on the user's latest check-in.
 
 `status: "processing"` — recommendations are being generated; `posts` will be empty or stale.  
 `isStale: true` — posts shown are from a previous check-in snapshot; fresh results pending.
+
+**i18n action keys** — render via `t(actionKey, actionParams)`:
+
+| `actionKey` | `actionParams` | Example output |
+|---|---|---|
+| `recommendations.action.askedQuestion` | — | "asked a question" |
+| `recommendations.action.postedAbout` | `{ category: string }` | "posted about fitness" |
+| `recommendations.action.sharedPost` | — | "shared a post" |
 
 **Errors:** `401` unauthenticated
 

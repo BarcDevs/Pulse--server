@@ -82,11 +82,13 @@ export const createMockPost = (
     authorId: 'test-user-id-123',
     author: {
         id: 'test-user-id-123',
-        firstName: 'Test',
-        lastName: 'User',
-        username: 'testuser',
-        email: 'test@test.com',
-        role: 'USER'
+        image: null,
+        user: {
+            id: 'test-user-id-123',
+            username: 'testuser',
+            firstName: 'Test',
+            lastName: 'User'
+        }
     },
     views: 0,
     createdAt: new Date(),

@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { successResponse } from '../responses/success'
 import * as recommendationsService from '../services/recommendationsService'
-import type { RecommendationFeedResponse } from '../types/data/RecommendationType'
+import type { RecommendationsResponse } from '../types/data/RecommendationResponseType'
 
 export const getRecommendations = async (
     req: Request,
@@ -17,7 +17,7 @@ export const getRecommendations = async (
     const data =
         await recommendationsService.getRecommendations(userId)
 
-    return successResponse<RecommendationFeedResponse>(
+    return successResponse<RecommendationsResponse>(
         res,
         data,
         'Recommendations retrieved'
