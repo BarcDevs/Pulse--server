@@ -27,6 +27,8 @@ import {
 import { isAdmin } from '../middlewares/isAdmin'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 
+import recommendationsRoute from './recommendationsRoute'
+
 const router = Router()
 
 /**
@@ -846,5 +848,7 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/tags/:tagId').get(getTag)
+
+router.use('/recommendations', recommendationsRoute)
 
 export default router
