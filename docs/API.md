@@ -1318,6 +1318,7 @@ Create a new recovery goal for the current user.
     "status": "active",
     "targetDate": "2026-07-23",
     "progress": 0,
+    "milestonesCount": 0,
     "createdAt": "2026-04-08T10:00:00Z",
     "updatedAt": "2026-04-08T10:00:00Z"
   }
@@ -1354,6 +1355,7 @@ Retrieve all recovery goals for the current user with progress calculated. Optio
       "status": "active",
       "targetDate": "2026-07-23",
       "progress": 0.5,
+      "milestonesCount": 4,
       "createdAt": "2026-04-08T10:00:00Z",
       "updatedAt": "2026-04-08T10:00:00Z"
     }
@@ -1447,6 +1449,7 @@ Retrieve a single recovery goal with all its milestones and progress.
       "status": "active",
       "targetDate": "2026-07-23",
       "progress": 0.5,
+      "milestonesCount": 1,
       "createdAt": "2026-04-08T10:00:00Z",
       "updatedAt": "2026-04-08T10:00:00Z"
     },
@@ -1504,6 +1507,7 @@ Update a recovery goal. Cannot modify milestones on non-active goals.
     "status": "paused",
     "targetDate": "2026-08-23",
     "progress": 0.5,
+    "milestonesCount": 4,
     "createdAt": "2026-04-08T10:00:00Z",
     "updatedAt": "2026-04-08T10:15:00Z"
   }
@@ -1688,6 +1692,7 @@ Manually mark a goal as completed. Goal must be active and all milestones must b
     "status": "completed",
     "targetDate": "2026-07-23",
     "progress": 1,
+    "milestonesCount": 3,
     "createdAt": "2026-04-08T10:00:00Z",
     "updatedAt": "2026-04-08T10:30:00Z"
   }

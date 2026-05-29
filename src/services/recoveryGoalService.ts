@@ -110,7 +110,8 @@ export const createGoal = async (
 
     return {
         ...goal,
-        progress: 0
+        progress: 0,
+        milestonesCount: 0
     }
 }
 
@@ -145,7 +146,11 @@ export const getGoal = async (
     )
 
     return {
-        goal: { ...goal, progress },
+        goal: {
+            ...goal,
+            progress,
+            milestonesCount: milestones.length
+        },
         milestones
     }
 }
@@ -170,7 +175,11 @@ export const getUserGoals = async (
                     goal.id
                 )
             if (count === 0)
-                return { ...goal, progress: 0 }
+                return {
+                    ...goal,
+                    progress: 0,
+                    milestonesCount: 0
+                }
 
             const milestones = await (
                 RecoveryGoalModel
@@ -188,7 +197,11 @@ export const getUserGoals = async (
                 count
             )
 
-            return { ...goal, progress }
+            return {
+                ...goal,
+                progress,
+                milestonesCount: count
+            }
         })
     )
 }
@@ -311,7 +324,11 @@ export const updateGoal = async (
         milestones.length
     )
 
-    return { ...updated, progress }
+    return {
+        ...updated,
+        progress,
+        milestonesCount: milestones.length
+    }
 }
 
 export const deleteGoal = async (
@@ -598,7 +615,8 @@ export const completeGoal = async (
 
     return {
         ...updated,
-        progress: 1
+        progress: 1,
+        milestonesCount: milestones.length
     }
 }
 

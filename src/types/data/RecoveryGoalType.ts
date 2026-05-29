@@ -40,6 +40,7 @@ export type RecoveryGoalType = {
 
 export type RecoveryGoalWithProgress = RecoveryGoalType & {
     progress: number
+    milestonesCount: number
 }
 
 export type NewRecoveryGoalType = {
