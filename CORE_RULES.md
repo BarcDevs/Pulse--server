@@ -10,6 +10,7 @@
 - Never use string literals as object keys — define typed constants and use computed property names `[CONST.Key]: value`
 - Avoid using re-export files
 - When building tests, cover both happy paths and edge cases; ensure they are comprehensive and meaningful
+- Always provide informative filenames and variable names
 
 ## Code Style
 - Never use array index as key — use the current element as an index
