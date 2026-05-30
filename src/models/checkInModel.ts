@@ -22,7 +22,7 @@ export const getProfileIdForUser = async (
 
 export const getProfileContext = async (
     userId: string
-): Promise<{ id: string; timezone: string | null }> => {
+): Promise<{ id: string; timezone: string }> => {
     const profile = await Prisma.profile.findUnique({
         where: { userId },
         select: { id: true, timezone: true }

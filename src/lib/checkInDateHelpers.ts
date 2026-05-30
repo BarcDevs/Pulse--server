@@ -1,3 +1,4 @@
+import { checkInConfig } from '../config/app'
 import logger from '../utils/logger'
 
 export const toDateStr = (d: Date): string =>
@@ -10,9 +11,9 @@ export const prevDay = (dateStr: string): string => {
 }
 
 export const resolveCheckInDate = (
-    timezone?: string | null
+    timezone?: string
 ): Date => {
-    const timezoneName = timezone ?? 'UTC'
+    const timezoneName = timezone ?? checkInConfig.defaultTimezone
 
     try {
         const dateStr = new Intl
@@ -30,19 +31,21 @@ export const resolveCheckInDate = (
         )
     } catch {
         logger.warn(
-            `Invalid timezone '${timezoneName}' - falling back to UTC`
+            `Invalid timezone '${timezoneName}' - falling back to ${checkInConfig.defaultTimezone}`
         )
-        const today = new Date()
-        // eslint-disable-next-line custom-rules/enforce-function-call-breaking
-        today.setUTCHours(0, 0, 0, 0)
-        return today
+        if (timezoneName === checkInConfig.defaultTimezone) {
+            const today = new Date()
+            today.setUTCHours(0, 0, 0, 0)
+            return today
+        }
+        return resolveCheckInDate(checkInConfig.defaultTimezone)
     }
 }
 
 export const resolveTimestampInUserTimeZone = (
-    timezone?: string | null
+    timezone?: string
 ): Date => {
-    const timezoneName = timezone ?? 'UTC'
+    const timezoneName = timezone ?? checkInConfig.defaultTimezone
 
     try {
         const now = new Date()
@@ -97,9 +100,11 @@ export const resolveTimestampInUserTimeZone = (
         )
     } catch {
         logger.warn(
-            `Invalid timezone '${timezoneName}' - falling back to UTC`
+            `Invalid timezone '${timezoneName}' - falling back to ${checkInConfig.defaultTimezone}`
         )
-        return new Date()
+        if (timezoneName === checkInConfig.defaultTimezone)
+            return new Date()
+        return resolveTimestampInUserTimeZone(checkInConfig.defaultTimezone)
     }
 }
 

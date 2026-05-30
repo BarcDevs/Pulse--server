@@ -47,7 +47,7 @@ export type ProfileType = {
     image?: string | null
     bio?: string | null
     location?: string | null
-    timezone?: string | null
+    timezone: string
     dateFormat?: string | null
     theme: string
     language: string
