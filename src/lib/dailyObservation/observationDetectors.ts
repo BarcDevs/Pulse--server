@@ -13,8 +13,9 @@ export type DetectionResult = {
     metadata?: Record<string, unknown>
 }
 
-const avg = (values: number[]): number =>
-    values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length
+const average = (values: number[]): number =>
+    values.length === 0 ? 0 : values
+        .reduce((a, b) => a + b, 0) / values.length
 
 export const detectObservationType = (
     checkIns: CheckInStats[]
@@ -22,7 +23,8 @@ export const detectObservationType = (
     // 1. activity_consistency
     const last5 = checkIns.slice(0, 5)
     if (last5.length >= 5) {
-        const withActivities = last5.filter(c => c.activities.length > 0).length
+        const withActivities = last5
+            .filter(c => c.activities.length > 0).length
         if (withActivities >= 3) {
             return {
                 type: 'activity_consistency',
@@ -38,8 +40,8 @@ export const detectObservationType = (
     const recentPain = checkIns.slice(0, 5).map(c => c.painLevel)
     const previousPain = checkIns.slice(5, 10).map(c => c.painLevel)
     if (recentPain.length === 5 && previousPain.length === 5) {
-        const recentAvg = avg(recentPain)
-        const prevAvg = avg(previousPain)
+        const recentAvg = average(recentPain)
+        const prevAvg = average(previousPain)
         if (recentAvg < prevAvg) {
             return {
                 type: 'pain_improvement',
@@ -53,9 +55,10 @@ export const detectObservationType = (
 
     // 3. better_days_pattern
     if (last5.length >= 5) {
-        const betterDays = last5.filter(
-            c => c.moodScore >= 7 && c.painLevel <= 4
-        ).length
+        const betterDays = last5
+            .filter(
+                c => c.moodScore >= 7 && c.painLevel <= 4
+            ).length
         if (betterDays >= 3) {
             return {
                 type: 'better_days_pattern',

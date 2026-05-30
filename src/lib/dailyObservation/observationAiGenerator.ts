@@ -18,6 +18,14 @@ type GeneratorInput = {
 
 const OBSERVATION_MAX = 120
 const DESCRIPTION_MAX = 140
+const ALLOWED_ICONS = new Set([
+    'Activity',
+    'CalendarCheck',
+    'Flame',
+    'Heart',
+    'TrendingDown',
+    'Zap'
+])
 
 const validatePayload = (raw: unknown): ObservationPayload => {
     if (typeof raw !== 'object' || raw === null)
@@ -43,10 +51,14 @@ const validatePayload = (raw: unknown): ObservationPayload => {
     if (obj.supportiveDescription.length > DESCRIPTION_MAX)
         throw new Error(`supportiveDescription exceeds ${DESCRIPTION_MAX} characters`)
 
+    const icon = obj.icon.trim()
+    if (!ALLOWED_ICONS.has(icon))
+        throw new Error(`icon '${icon}' is not a valid icon name`)
+
     return {
         observation: obj.observation.trim(),
         supportiveDescription: obj.supportiveDescription.trim(),
-        icon: obj.icon.trim()
+        icon
     }
 }
 

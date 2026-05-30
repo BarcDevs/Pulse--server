@@ -19,7 +19,7 @@ const templates: Record<ObservationType, ObservationTemplate> = {
     },
     better_days_pattern: {
         observation: 'Days with higher mood and lower pain have appeared more frequently.',
-        supportiveDescription: 'Small shifts can become meaningful trends over time.',
+        supportiveDescription: 'Better days can become the norm when patterns are noticed early.',
         icon: 'Zap'
     },
     mood_stability: {

@@ -12,7 +12,7 @@ const router = Router()
  *     summary: Get today's observation
  *     description: >
  *       Returns a daily AI-phrased observation about a detected pattern in the
- *       user's recent check-ins. Cached until midnight UTC. Returns null if no
+ *       user's recent check-ins. Cached until midnight in the user's local timezone. Returns null if no
  *       pattern is detected.
  *     tags: [Insight]
  *     security:

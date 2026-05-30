@@ -1,13 +1,16 @@
-// @ts-nocheck
 import supertest from 'supertest'
 
 import App from '../../app'
+import * as dailyObservationService from '../../services/dailyObservationService'
 import {
     createAuthToken,
     createMockUser
 } from '../setup/testSetup'
 
 jest.mock('../../services/dailyObservationService')
+
+const mockGetTodayObservation = 
+    dailyObservationService.getTodayObservation as jest.Mock
 
 describe('Insight Routes', () => {
     const baseUrl = '/api/v1/insight'
@@ -34,11 +37,7 @@ describe('Insight Routes', () => {
                 icon: 'Activity'
             }
 
-            const dailyObservationService = require(
-                '../../services/dailyObservationService'
-            )
-            dailyObservationService.getTodayObservation
-                .mockResolvedValue(mockObservation)
+            mockGetTodayObservation.mockResolvedValue(mockObservation)
 
             const response = await supertest(App)
                 .get(endpoint)
@@ -58,11 +57,7 @@ describe('Insight Routes', () => {
         })
 
         it('should return 200 with null data when no pattern detected', async () => {
-            const dailyObservationService = require(
-                '../../services/dailyObservationService'
-            )
-            dailyObservationService.getTodayObservation
-                .mockResolvedValue(null)
+            mockGetTodayObservation.mockResolvedValue(null)
 
             const response = await supertest(App)
                 .get(endpoint)

@@ -17,6 +17,11 @@ const languageInstruction = (language?: string | null): string => {
     return base + terminology
 }
 
+const ACTIVITY_MAX_LENGTH = 50
+
+const sanitizeActivity = (activity: string): string =>
+    activity.replace(/[\r\n]/g, ' ').slice(0, ACTIVITY_MAX_LENGTH)
+
 const patternHint = (
     type: ObservationType,
     topActivity?: string
@@ -24,7 +29,7 @@ const patternHint = (
     switch (type) {
         case 'activity_consistency':
             return topActivity
-                ? `Pattern: ${topActivity} has been appearing regularly in recent check-ins.`
+                ? `Pattern: ${sanitizeActivity(topActivity)} has been appearing regularly in recent check-ins.`
                 : 'Pattern: activities have appeared regularly in recent check-ins.'
         case 'pain_improvement':
             return 'Pattern: pain levels have been lower in recent check-ins compared to earlier ones.'

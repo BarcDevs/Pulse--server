@@ -1,3 +1,4 @@
+import { monthInMs } from '../constants/time'
 import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
 import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
 import { detectObservationType } from '../lib/dailyObservation/observationDetectors'
@@ -31,9 +32,9 @@ export const getTodayObservation = async (
     const cached = dailyObservationCache.get(userId, timezone)
     if (cached !== undefined) return cached
 
-    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // todo
+    const since = new Date(Date.now() - monthInMs)
     const checkIns = await checkInModel
-        .getRecentCheckInsForStats(profileId, since)
+        .getCheckInsForStats(profileId, since)
 
     const detection = detectObservationType(checkIns)
 

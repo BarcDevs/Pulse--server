@@ -1,3 +1,4 @@
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import type {
     CheckInType,
     NewCheckInType,
@@ -14,9 +15,7 @@ export const getProfileIdForUser = async (
         })
 
     if (!profile)
-        throw new Error(
-            `Profile not found for user ${userId}`
-        )
+        throw errorFactory.generic.notFound('Profile')
 
     return profile.id
 }
@@ -30,9 +29,7 @@ export const getProfileContext = async (
     })
 
     if (!profile)
-        throw new Error(
-            `Profile not found for user ${userId}`
-        )
+        throw errorFactory.generic.notFound('Profile')
 
     return profile
 }
@@ -111,30 +108,8 @@ export const updateUserLastCheckIn = async (
 }
 
 export const getCheckInsForStats = async (
-    profileId: string
-): Promise<
-    Pick<
-        CheckInType,
-        'moodScore' |
-        'painLevel' |
-        'activities' |
-        'checkInDate'
-    >[]
-> =>
-    Prisma.dailyCheckIn.findMany({
-        where: { profileId },
-        select: {
-            moodScore: true,
-            painLevel: true,
-            activities: true,
-            checkInDate: true
-        },
-        orderBy: { checkInDate: 'desc' }
-    })
-
-export const getRecentCheckInsForStats = async (
     profileId: string,
-    since: Date
+    since?: Date
 ): Promise<
     Pick<
         CheckInType,
@@ -147,7 +122,7 @@ export const getRecentCheckInsForStats = async (
     Prisma.dailyCheckIn.findMany({
         where: {
             profileId,
-            checkInDate: { gte: since }
+            ...(since && { checkInDate: { gte: since } })
         },
         select: {
             moodScore: true,
