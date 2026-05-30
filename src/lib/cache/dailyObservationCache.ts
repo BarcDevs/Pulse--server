@@ -13,7 +13,12 @@ const getLocalDateString = (timezone: string | null): string => {
 }
 
 const msUntilLocalMidnight = (timezone: string | null): number => {
-    if (!timezone) return new Date().setUTCHours(24, 0, 0, 0) - Date.now()
+    if (!timezone) return new Date().setUTCHours(
+        24,
+        0,
+        0,
+        0
+    ) - Date.now()
 
     const now = new Date()
     const parts = new Intl.DateTimeFormat('en-US', {

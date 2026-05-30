@@ -3,7 +3,6 @@ import type { ObservationType } from '../../types/data/DailyObservationType'
 
 type PromptContext = {
     type: ObservationType
-    metadata?: Record<string, unknown>
     topActivity?: string
     language?: string | null
 }
@@ -18,45 +17,25 @@ const languageInstruction = (language?: string | null): string => {
     return base + terminology
 }
 
-const formatMetric = (
+const patternHint = (
     type: ObservationType,
-    metadata?: Record<string, unknown>,
     topActivity?: string
 ): string => {
-    if (!metadata) return ''
-
     switch (type) {
-        case 'activity_consistency': {
-            const recent = metadata.recentActivityCheckIns as number
-            const total = metadata.evaluatedCheckIns as number
-            const activityLine = topActivity
-                ? `Most frequent activity: ${topActivity}`
-                : 'No dominant activity identified'
-            return `Check-ins with activities: ${recent} of ${total}\n${activityLine}`
-        }
-        case 'pain_improvement': {
-            const recent = metadata.recentAveragePain as number
-            const prev = metadata.previousAveragePain as number
-            return `Recent average pain: ${recent}\nPrevious average pain: ${prev}`
-        }
-        case 'better_days_pattern': {
-            const count = metadata.betterDayCount as number
-            const total = metadata.evaluatedCheckIns as number
-            return `Better days (higher mood + lower pain): ${count} of ${total}`
-        }
-        case 'mood_stability': {
-            const range = metadata.moodRange as number
-            const total = metadata.evaluatedCheckIns as number
-            return `Mood range across last ${total} check-ins: ${range} points`
-        }
-        case 'streak_consistency': {
-            const streak = metadata.streak as number
-            return `Current consecutive-day streak: ${streak} days`
-        }
-        case 'checkin_consistency': {
-            const count = metadata.checkInCount as number
-            return `Check-ins in the last 30 days: ${count}`
-        }
+        case 'activity_consistency':
+            return topActivity
+                ? `Pattern: ${topActivity} has been appearing regularly in recent check-ins.`
+                : 'Pattern: activities have appeared regularly in recent check-ins.'
+        case 'pain_improvement':
+            return 'Pattern: pain levels have been lower in recent check-ins compared to earlier ones.'
+        case 'better_days_pattern':
+            return 'Pattern: days with higher mood and lower pain have been appearing more often recently.'
+        case 'mood_stability':
+            return 'Pattern: mood entries have remained relatively steady across recent check-ins.'
+        case 'streak_consistency':
+            return 'Pattern: the user has been checking in on consecutive days, forming a consistent habit.'
+        case 'checkin_consistency':
+            return 'Pattern: the user has been checking in consistently over recent weeks.'
         default:
             return ''
     }
@@ -64,29 +43,78 @@ const formatMetric = (
 
 export const buildObservationPrompt = ({
     type,
-    metadata,
     topActivity,
     language
 }: PromptContext): string => {
-    const metrics = formatMetric(type, metadata, topActivity)
+    const hint = patternHint(type, topActivity)
 
     return `
 You are an observation assistant for HealEase, a health and wellness recovery app.
-Your role is to phrase a factual, calm observation about a pattern in the user's recent check-ins.
+Your role is to write a calm, human observation that helps the user notice a meaningful pattern in their recovery journey.
 ${languageInstruction(language)}
 
-Observation type: ${type}
-${metrics ? `Context:\n${metrics}` : ''}
+${hint}
 
-Write a short observation for the user.
+Write a short observation card for the user.
 
-Requirements:
-- Return ONLY a valid JSON object on a single line: { "observation": "...", "supportiveDescription": "...", "icon": "..." }
-- observation: one sentence, maximum 120 characters, factual and calm, describes the pattern
-- supportiveDescription: one sentence, maximum 140 characters, gentle and observational (not motivational)
-- icon: one of Activity, CalendarCheck, Flame, Heart, TrendingDown, Zap (pick the most fitting)
-- Do NOT include advice, instructions, "should", "try", "consider"
-- Do NOT use therapeutic language, diagnostic language, or motivation clichés
-- Do NOT include any text outside the JSON object
+Tone:
+- Calm, observational, human
+- Like a thoughtful person noticed something — not a reporting system
+- Emotionally supportive without being therapeutic or motivational
+
+FORBIDDEN in observation and supportiveDescription:
+- Any counts, numbers, percentages, ratios, or frequencies
+- Phrases like "4 of your last 5", "10 check-ins", "30 day period", "2 point range"
+- Phrases like "based on your entries", "during this period", "our analysis found", "data shows"
+- Advice, instructions, "should", "try", "consider", "keep going", "great job", "amazing work"
+- Diagnostic or therapeutic language
+
+observation must:
+- Describe the pattern, not the calculation
+- Feel personalized (use the activity name if one is given)
+- Be one sentence, maximum 120 characters
+
+supportiveDescription must:
+- Provide gentle context for the observation — grounded in the detected pattern only
+- Do NOT introduce new conclusions not supported by the pattern
+- Do NOT use metaphors, poetic language, or emotional interpretation
+- Do NOT infer motivations, psychological states, or benefits ("you seem to find comfort", "this may help you feel grounded")
+- Avoid praise, advice, or instruction
+- Prefer observations about patterns and consistency
+- Be one sentence, maximum 140 characters
+
+Examples of good supportiveDescription:
+- "Small routines often become easier to notice over time."
+- "Patterns can become clearer when viewed across multiple check-ins."
+- "Consistency often reveals itself through small repeated actions."
+- "Looking back can make recurring habits easier to recognize."
+
+Examples of BAD supportiveDescription (forbidden):
+- "These moments of stillness are weaving themselves into your days."
+- "You seem to be finding comfort in this routine."
+- "This may be helping you feel more grounded."
+
+Examples of good observation:
+- "Stretching has become a recurring part of your recent routine."
+- "Days with lower pain have been appearing more often recently."
+- "Your mood entries have remained relatively steady lately."
+
+Examples of BAD observation (forbidden):
+- "You have logged meditation in 4 of your last 5 check-ins."
+- "Average pain decreased compared to the previous five entries."
+- "Mood variation stayed within a two point range."
+
+Return ONLY a valid JSON object on a single line:
+{ "observation": "...", "supportiveDescription": "...", "icon": "..." }
+
+icon must match the observation type:
+- activity_consistency  → Activity
+- checkin_consistency   → CalendarCheck
+- streak_consistency    → Flame
+- mood_stability        → Heart
+- pain_improvement      → TrendingDown
+- better_days_pattern   → Zap
+
+Do NOT include any text outside the JSON object.
 `.trim()
 }

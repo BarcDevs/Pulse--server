@@ -1,5 +1,5 @@
-import { calculateCurrentStreak } from '../aiInsight/decision/streakCalculator'
 import type { ObservationType } from '../../types/data/DailyObservationType'
+import { calculateCurrentStreak } from '../aiInsight/decision/streakCalculator'
 
 type CheckInStats = {
     moodScore: number

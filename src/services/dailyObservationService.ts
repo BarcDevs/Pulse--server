@@ -1,9 +1,9 @@
+import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
+import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
+import { detectObservationType } from '../lib/dailyObservation/observationDetectors'
+import { getObservationTemplate } from '../lib/dailyObservation/observationTemplates'
 import { getUserLanguage } from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
-import { detectObservationType } from '../lib/dailyObservation/observationDetectors'
-import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
-import { getObservationTemplate } from '../lib/dailyObservation/observationTemplates'
-import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
 import type { TodayObservationResponse } from '../types/data/DailyObservationType'
 import logger from '../utils/logger'
 
@@ -31,25 +31,33 @@ export const getTodayObservation = async (
     const cached = dailyObservationCache.get(userId, timezone)
     if (cached !== undefined) return cached
 
-    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    const checkIns = await checkInModel.getRecentCheckInsForStats(profileId, since)
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // todo
+    const checkIns = await checkInModel
+        .getRecentCheckInsForStats(profileId, since)
 
     const detection = detectObservationType(checkIns)
 
     if (!detection) {
-        dailyObservationCache.set(userId, timezone, null)
+        dailyObservationCache.set(
+            userId,
+            timezone,
+            null
+        )
         return null
     }
 
-    const { type, metadata: detectionMetadata } = detection
+    const { type } = detection
     const topActivity = getTopActivity(checkIns)
 
-    let payload: { observation: string; supportiveDescription: string; icon: string }
+    let payload: {
+        observation: string
+        supportiveDescription: string
+        icon: string
+    }
 
     try {
         payload = await generateObservation({
             type,
-            metadata: detectionMetadata,
             topActivity,
             language
         })
@@ -68,6 +76,10 @@ export const getTodayObservation = async (
         ...payload
     }
 
-    dailyObservationCache.set(userId, timezone, result)
+    dailyObservationCache.set(
+        userId,
+        timezone,
+        result
+    )
     return result
 }
