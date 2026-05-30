@@ -10,13 +10,8 @@ type CacheEntry = {
 const cache = new Map<string, CacheEntry>()
 
 const msUntilLocalMidnight = (
-    timezone: string | null
+    timezone: string
 ): number => {
-    if (!timezone)
-        // eslint-disable-next-line custom-rules/enforce-function-call-breaking
-        return new Date().setUTCHours(24, 0, 0, 0)
-            - Date.now()
-
     const now = new Date()
     const parts = new Intl.DateTimeFormat('en-US', {
         timeZone: timezone,
@@ -41,7 +36,7 @@ const msUntilLocalMidnight = (
 
 const buildCacheKey = (
     userId: string,
-    timezone: string | null
+    timezone: string
 ): string =>
     `${userId}:${toDateStr(
         resolveCheckInDate(timezone)
@@ -49,7 +44,7 @@ const buildCacheKey = (
 
 export const get = (
     userId: string,
-    timezone: string | null
+    timezone: string
 ): TodayObservationResponse
     | null
     | undefined => {
@@ -68,7 +63,7 @@ export const get = (
 
 export const set = (
     userId: string,
-    timezone: string | null,
+    timezone: string,
     value: TodayObservationResponse | null
 ): void => {
     const key = buildCacheKey(userId, timezone)

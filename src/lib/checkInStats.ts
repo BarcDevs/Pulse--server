@@ -12,7 +12,7 @@ type CheckInStatsData = Pick<
 
 export const calculateStreaks = (
     dates: Date[],
-    timezone?: string | null
+    timezone?: string
 ): {
     currentStreak: number
     longestStreak: number

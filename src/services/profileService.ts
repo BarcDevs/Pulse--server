@@ -11,7 +11,7 @@ type UpdateProfileData = {
     image?: string | null
     bio?: string | null
     location?: string | null
-    timezone?: string | null
+    timezone?: string
     theme?: string
     language?: string
     dailyReminder?: boolean
