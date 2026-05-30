@@ -221,7 +221,7 @@ graph TD
 | image | String | Optional, avatar URL |
 | bio | String | Optional, max 500 chars |
 | location | String | Optional, broad/regional only |
-| timezone | String | Optional, IANA timezone |
+| timezone | String | IANA timezone, defaults to `Asia/Jerusalem` |
 | healthInterests | Relation | Many-to-many via ProfileHealthInterest |
 | activityPreferences | Relation | Many-to-many via ProfileActivityPreference |
 | createdAt | DateTime | Auto-created with User |
@@ -390,6 +390,12 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `GET` | `/api/v1/check-in/stats` | Cookie | Get aggregated check-in stats |
 | `GET` | `/api/v1/check-in/progress-insights` | Cookie | Get weekly progress narrative (7-day vs 7-day comparison) |
 
+### Insight *(protected)*
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/insight/observation` | Cookie | Get today's AI observation about a detected recovery pattern |
+
 ### Forum *(protected)*
 
 | Method | Endpoint | Auth | Description |
@@ -446,26 +452,43 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 
 ## AI Features
 
-Powered by **Google Gemini API** for personalized recovery insights and conversation.
+Powered by **Google Gemini API** for personalized recovery insights.
 
-### AI Chat
-Patients can chat with an AI assistant to ask questions, get support, and discuss their recovery journey. The chat is context-aware, referencing the patient's check-in history and recovery patterns.
+### Daily Observation (`GET /api/v1/insight/observation`)
 
-### Automated Insights
+A short AI-phrased observation surfacing one detected pattern from the user's recent check-ins.
 
 | Property | Detail |
 |---|---|
-| Trigger | Automatically after check-in submission |
-| Processing | Async, non-blocking |
-| Context | Last 7 check-ins for trend analysis |
-| Fallback | Generic encouraging message if API fails |
-| Rate limiting | Implemented to respect free-tier limits |
+| Trigger | On-demand (called by client on load) |
+| Cache | Until midnight in the user's timezone |
+| Context | Last 30 days of check-ins |
+| Fallback | Static template per observation type if AI fails |
+| Detection window | Last 5–10 check-ins depending on type |
 
-### Insight Types
+**Detected patterns (priority order):**
 
-1. **Daily Motivation** — Personalized encouragement based on today's scores
-2. **Trend Analysis** — Detects patterns in mood and pain over time
-3. **Activity Suggestions** — Recommendations derived from recent activity log
+| Pattern | Signal |
+|---|---|
+| Activity consistency | Moving regularly (≥ 3 of last 5 check-ins) |
+| Pain improvement | Lower average pain vs. prior 5 check-ins |
+| Better days pattern | ≥ 3 good days (mood ≥ 7, pain ≤ 4) in last 5 |
+| Mood stability | Low mood variance (range ≤ 2) in last 5 |
+| Streak consistency | Check-in streak ≥ 5 consecutive days |
+| Check-in consistency | ≥ 10 lifetime check-ins (engagement fallback) |
+
+Returns `null` when no pattern meets the threshold — no forced insight.
+
+### Progress Insights (`GET /api/v1/check-in/progress-insights`)
+
+Compares the last 7 days against the previous 7 days and returns a narrative trend summary with delta metrics.
+
+| Property | Detail |
+|---|---|
+| Trigger | On-demand |
+| Cache | 10 minutes per time window |
+| Trend labels | `improving` · `declining` · `stable` · `mixed` |
+| Fallback | Deterministic summary if AI fails |
 
 ---
 

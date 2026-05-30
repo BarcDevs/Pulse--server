@@ -146,7 +146,7 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
       "profile?": {
         "id": "string",
         "image": "string | null",
-        "timezone": "string | null",
+        "timezone": "string",
         "theme": "light | dark",
         "language": "string",
         "lastCheckInAt": "ISO 8601 date | null"
@@ -1137,7 +1137,7 @@ Update user profile presentation and preferences.
 | `image` | string / null | no | Avatar URL or null to clear |
 | `bio` | string / null | no | Max 500 chars, null to clear |
 | `location` | string / null | no | Broad region (no coordinates), null to clear |
-| `timezone` | string / null | no | IANA timezone (e.g., "America/New_York"), null for UTC |
+| `timezone` | string / null | no | IANA timezone (e.g., "America/New_York"), null resets to default (`Asia/Jerusalem`) |
 
 **Example Request**
 ```json
@@ -1746,3 +1746,61 @@ Manually mark a goal as completed. Goal must be active and all milestones must b
 ```
 
 **Errors:** `401` not authenticated or invalid CSRF · `404` goal not found · `409` goal not active, has no milestones, or has incomplete milestones
+
+---
+
+## Insight — `/api/v1/insight`
+
+---
+
+### `GET /observation`
+> Auth required · No CSRF needed (read-only)
+
+Returns today's AI-phrased observation about a detected pattern in the user's recent check-ins. Cached until midnight in the user's local timezone. Returns `null` if no pattern is detected.
+
+**Detection types (priority order)**
+
+| Type | Trigger criteria |
+|------|-----------------|
+| `activity_consistency` | ≥ 3 of last 5 check-ins include at least one activity |
+| `pain_improvement` | Average pain last 5 check-ins < average pain previous 5 check-ins |
+| `better_days_pattern` | ≥ 3 of last 5 check-ins have moodScore ≥ 7 AND painLevel ≤ 4 |
+| `mood_stability` | Mood range ≤ 2 across last 5 check-ins |
+| `streak_consistency` | Current check-in streak ≥ 5 consecutive days |
+| `checkin_consistency` | ≥ 10 lifetime check-ins (engagement fallback) |
+
+**Response `200` (pattern detected)**
+```json
+{
+  "message": "...",
+  "data": {
+    "title": "Something noticed",
+    "type": "activity_consistency",
+    "observation": "You've been moving consistently — that's a real signal.",
+    "supportiveDescription": "Activities logged in most of your recent check-ins.",
+    "icon": "🏃"
+  }
+}
+```
+
+**Response `200` (no pattern)**
+```json
+{ "message": "...", "data": null }
+```
+
+**Response fields**
+| Field | Type | Notes |
+|-------|------|-------|
+| `title` | string | Always `"Something noticed"` |
+| `type` | string | One of the six detection types above |
+| `observation` | string | AI-phrased observation (max ~140 chars) |
+| `supportiveDescription` | string | Supporting context sentence |
+| `icon` | string | Emoji representing the type |
+
+**Behavior**
+- Cached until midnight in the user's timezone (falls back to `Asia/Jerusalem` if unset or invalid)
+- AI generation falls back to a static template per type if Gemini fails
+- Detection metadata is server-only; only `type` is exposed in the response
+- Data window: last 30 days of check-ins
+
+**Errors:** `401` not authenticated
