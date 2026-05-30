@@ -7,7 +7,7 @@ Recovery tracking API with AI-powered behavioral insights and community features
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
-[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/HealEase--client)
+[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/HealEase--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
 
 ---
 
@@ -385,7 +385,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/check-in` | Cookie | Get check-in history |
-| `POST` | `/api/v1/check-in` | Cookie + CSRF | Create today's check-in (409 if exists) |
+| `POST` | `/api/v1/check-in` | Cookie + CSRF | Upsert today's check-in (201 new, 200 updated) |
 | `PATCH` | `/api/v1/check-in` | Cookie + CSRF | Update today's check-in (404 if none) |
 | `GET` | `/api/v1/check-in/stats` | Cookie | Get aggregated check-in stats |
 | `GET` | `/api/v1/check-in/progress-insights` | Cookie | Get weekly progress narrative (7-day vs 7-day comparison) |
