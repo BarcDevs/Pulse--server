@@ -41,4 +41,5 @@ MVC layers: controller → service → model → Prisma (never skip layers)
 **Never:** Direct `process.env` access | Commented-out code | String literal object keys | Hardcoded values
 
 ## Git & Commits
-→ See `.claude/GIT_RULES.md`
+**Read `.claude/GIT_RULES.md` before committing or when instructed to commit.** Do not skip it.
+Full rules there. Key constraint: never invoke `/commit` skill on small fixes, formatting, or docs changes — use plain `git commit` for those.
