@@ -52,6 +52,9 @@ export type AppMessages = {
         titles: Record<InsightType, string>
         fallback: Record<InsightType, string>
     }
+    observation: {
+        title: string
+    }
     progress: {
         fallback: string
     }

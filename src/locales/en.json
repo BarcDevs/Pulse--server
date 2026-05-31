@@ -207,6 +207,9 @@
       "BAD_DAY_SUPPORT": "Today may feel a little harder than usual. Try to focus on what feels manageable right now."
     }
   },
+  "observation": {
+    "title": "Something noticed"
+  },
   "progress": {
     "fallback": "Not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
   }

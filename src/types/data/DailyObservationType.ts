@@ -7,7 +7,7 @@ export type ObservationType =
     | 'better_days_pattern'
 
 export type TodayObservationResponse = {
-    title: 'Something noticed'
+    title: string
     type: ObservationType
     observation: string
     supportiveDescription: string

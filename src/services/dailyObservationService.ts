@@ -3,6 +3,7 @@ import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
 import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
 import { detectObservationType } from '../lib/dailyObservation/observationDetectors'
 import { getObservationTemplate } from '../lib/dailyObservation/observationTemplates'
+import { getMessages } from '../locales'
 import { getUserLanguage } from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
 import type { TodayObservationResponse } from '../types/data/DailyObservationType'
@@ -72,7 +73,7 @@ export const getTodayObservation = async (
     }
 
     const result: TodayObservationResponse = {
-        title: 'Something noticed',
+        title: getMessages(language).observation.title,
         type,
         ...payload
     }
