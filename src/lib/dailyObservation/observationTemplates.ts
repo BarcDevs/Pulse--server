@@ -6,7 +6,11 @@ type ObservationTemplate = {
     icon: string
 }
 
-const templates: Record<ObservationType, ObservationTemplate> = {
+type TemplateMetadata = {
+    topActivity?: string
+}
+
+const baseTemplates: Record<ObservationType, ObservationTemplate> = {
     activity_consistency: {
         observation: 'Activities have appeared regularly in recent check-ins.',
         supportiveDescription: 'Small routines often become easier to notice over time.',
@@ -40,6 +44,17 @@ const templates: Record<ObservationType, ObservationTemplate> = {
 }
 
 export const getObservationTemplate = (
-    type: ObservationType
-): ObservationTemplate =>
-    templates[type]
+    type: ObservationType,
+    metadata?: TemplateMetadata
+): ObservationTemplate => {
+    const base = baseTemplates[type]
+
+    if (type === 'activity_consistency' && metadata?.topActivity) {
+        return {
+            ...base,
+            observation: `${metadata.topActivity} has become a recurring part of your recent routine.`
+        }
+    }
+
+    return base
+}
