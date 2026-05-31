@@ -1,5 +1,6 @@
 import { monthInMs } from '../constants/time'
 import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
+import { toLocalDateTimeStr } from '../lib/checkInDateHelpers'
 import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
 import { detectObservationType } from '../lib/dailyObservation/observationDetectors'
 import { getObservationTemplate } from '../lib/dailyObservation/observationTemplates'
@@ -76,16 +77,7 @@ export const getTodayObservation = async (
         title: getMessages(language).observation.title,
         type,
         ...payload,
-        createdAt: new Intl.DateTimeFormat('sv-SE', {
-            timeZone: timezone,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        }).format(new Date()).replace(' ', 'T')
+        createdAt: toLocalDateTimeStr(new Date(), timezone)
     }
 
     dailyObservationCache.set(

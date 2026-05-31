@@ -1,4 +1,5 @@
 import { dayInMs } from '../../../constants/time'
+import { toLocalDateStr } from '../../checkInDateHelpers'
 
 /**
  * Calculates consecutive day streak from most recent date backwards.
@@ -26,12 +27,7 @@ export const calculateCurrentStreak = (
     // Collect unique calendar-day strings (YYYY-MM-DD) in the user's timezone
     const uniqueDateStrings = new Set<string>()
     for (const date of checkInDates) {
-        const dateString = timezone
-            ? new Intl.DateTimeFormat(
-                'en-CA',
-                { timeZone: timezone }
-            ).format(date)
-            : date.toISOString().split('T')[0]
+        const dateString = toLocalDateStr(date, timezone)
         uniqueDateStrings.add(dateString)
     }
 

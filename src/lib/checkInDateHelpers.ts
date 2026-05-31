@@ -4,6 +4,31 @@ import logger from '../utils/logger'
 export const toDateStr = (d: Date): string =>
     d.toISOString().slice(0, 10)
 
+export const toLocalDateStr = (
+    date: Date,
+    timezone?: string
+): string =>
+    timezone
+        ? new Intl.DateTimeFormat('en-CA', {
+            timeZone: timezone
+        }).format(date)
+        : toDateStr(date)
+
+export const toLocalDateTimeStr = (
+    date: Date,
+    timezone: string
+): string =>
+    new Intl.DateTimeFormat('sv-SE', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).format(date).replace(' ', 'T')
+
 export const prevDay = (dateStr: string): string => {
     const d = new Date(`${dateStr}T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() - 1)
@@ -16,16 +41,7 @@ export const resolveCheckInDate = (
     const timezoneName = timezone ?? checkInConfig.defaultTimezone
 
     try {
-        const dateStr = new Intl
-            .DateTimeFormat(
-                'en-CA',
-                {
-                    timeZone: timezoneName,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                }
-            ).format(new Date())
+        const dateStr = toLocalDateStr(new Date(), timezoneName)
         return new Date(
             `${dateStr}T00:00:00Z`
         )

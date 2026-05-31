@@ -1,6 +1,10 @@
 import type { CheckInType } from '../types/data/CheckInType'
 
-import { prevDay, toDateStr } from './checkInDateHelpers'
+import {
+    prevDay,
+    toDateStr,
+    toLocalDateStr
+} from './checkInDateHelpers'
 
 type CheckInStatsData = Pick<
     CheckInType,
@@ -27,9 +31,7 @@ export const calculateStreaks = (
         ...new Set(dates.map(toDateStr))
     ].sort().reverse()
 
-    const today = timezone
-        ? new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date())
-        : toDateStr(new Date())
+    const today = toLocalDateStr(new Date(), timezone)
     const yesterday = prevDay(today)
 
     let currentStreak = 0
