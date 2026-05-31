@@ -14,6 +14,9 @@ export default {
         fixable: 'code'
     },
     create (context) {
+        const MAX_LINE_LENGTH = 50
+        const sourceCode = context.sourceCode
+
         return {
             CallExpression (node) {
                 if (node.arguments.length < 3) return
@@ -24,6 +27,8 @@ export default {
                 const endLine = lastArg.loc.end.line
 
                 if (startLine === endLine) {
+                    const line = sourceCode.lines[startLine - 1] ?? ''
+                    if (line.length <= MAX_LINE_LENGTH) return
                     context.report({
                         node,
                         message:
