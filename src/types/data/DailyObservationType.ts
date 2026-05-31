@@ -12,4 +12,5 @@ export type TodayObservationResponse = {
     observation: string
     supportiveDescription: string
     icon: string
+    createdAt: string
 }

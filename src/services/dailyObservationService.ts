@@ -75,7 +75,17 @@ export const getTodayObservation = async (
     const result: TodayObservationResponse = {
         title: getMessages(language).observation.title,
         type,
-        ...payload
+        ...payload,
+        createdAt: new Intl.DateTimeFormat('sv-SE', {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).format(new Date()).replace(' ', 'T')
     }
 
     dailyObservationCache.set(
