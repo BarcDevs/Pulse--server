@@ -256,7 +256,10 @@ describe('Forum Service', () => {
         it('should handle tag changes', async () => {
             const mockPost = createMockPost()
             const existingTags = [
-                createMockTag({ label: { en: 'old-tag', he: 'תג-ישן' } })
+                createMockTag({ label: {
+                    en: 'old-tag',
+                        he: 'תג-ישן'
+                } })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(existingTags)
@@ -291,7 +294,12 @@ describe('Forum Service', () => {
             const fixedDate = new Date('2026-01-01')
             const rawTags = [
                 createRawMockTag({ createdAt: fixedDate }),
-                createRawMockTag({ id: 'tag-2', name: 'tag2', nameHe: 'תג 2', createdAt: fixedDate })
+                createRawMockTag({
+                    id: 'tag-2',
+                    name: 'tag2',
+                    nameHe: 'תג 2',
+                    createdAt: fixedDate
+                })
             ]
             prismaMock.tag.findMany
                 .mockResolvedValue(rawTags)
@@ -300,13 +308,24 @@ describe('Forum Service', () => {
 
             expect(result).toEqual([
                 createMockTag({ createdAt: fixedDate }),
-                createMockTag({ id: 'tag-2', label: { en: 'tag2', he: 'תג 2' }, createdAt: fixedDate })
+                createMockTag({
+                    id: 'tag-2',
+                    label: {
+                        en: 'tag2',
+                        he: 'תג 2'
+                    },
+                    createdAt: fixedDate
+                })
             ])
         })
 
-        it('label.he is null when nameHe missing (client falls back to en)', async () => {
+        it(
+            'label.he is null when nameHe missing (client falls back to en)',
+            async () => {
             prismaMock.tag.findMany
-                .mockResolvedValue([createRawMockTag({ nameHe: null as unknown as string })])
+                .mockResolvedValue([createRawMockTag({
+                    nameHe: null as unknown as string
+                })])
 
             const result = await getTags({})
 
@@ -318,36 +337,56 @@ describe('Forum Service', () => {
             async () => {
                 const fixedDate = new Date('2026-01-01')
                 prismaMock.tag.findMany
-                    .mockResolvedValue([createRawMockTag({ createdAt: fixedDate })])
+                    .mockResolvedValue([createRawMockTag({
+                        createdAt: fixedDate
+                    })])
 
                 const result = await getTags({
                     filter: 'popular',
                     limit: 10
                 })
 
-                expect(result).toEqual([createMockTag({ createdAt: fixedDate })])
+                expect(result).toEqual([createMockTag({
+                    createdAt: fixedDate
+                })])
             }
         )
 
         it('should filter by search', async () => {
+            const fixedDate = new Date('2026-01-01')
             prismaMock.tag.findMany
-                .mockResolvedValue([createRawMockTag({ name: 'javascript', nameHe: 'ג\'אווהסקריפט' })])
+
+                .mockResolvedValue([createRawMockTag({
+                    name: 'javascript',
+                    nameHe: `ג'אווהסקריפט`,
+                    createdAt: fixedDate
+                })])
 
             const result = await getTags({ search: 'java' })
 
-            expect(result).toEqual([createMockTag({ label: { en: 'javascript', he: 'ג\'אווהסקריפט' } })])
+            expect(result).toEqual([createMockTag({
+                label: {
+                    en: 'javascript',
+                    he: `ג'אווהסקריפט`
+                }, createdAt: fixedDate
+            })])
         })
     })
 
     // ==================== getTag ====================
     describe('getTag', () => {
         it('should return single tag', async () => {
+            const fixedDate = new Date('2026-01-01')
             prismaMock.tag.findUnique
-                .mockResolvedValue(createRawMockTag())
+                .mockResolvedValue(createRawMockTag({
+                    createdAt: fixedDate
+                }))
 
             const result = await getTag('tag-id')
 
-            expect(result).toEqual(createMockTag())
+            expect(result).toEqual(createMockTag({
+                createdAt: fixedDate
+            }))
         })
 
         it(
