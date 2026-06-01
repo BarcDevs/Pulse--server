@@ -3,7 +3,6 @@ import type { Request, Response } from 'express'
 
 import { FORUM_PAGINATION } from '../../constants/forum/pagination'
 import * as forumController from '../../controllers/forumController'
-import * as profileModel from '../../models/profileModel'
 import * as forumService from '../../services/forumService'
 import {
     createMockPost,
@@ -26,10 +25,6 @@ jest.mock('../../services/forumService', () => ({
     deleteReply: jest.fn(),
     getTags: jest.fn(),
     getTag: jest.fn()
-}))
-
-jest.mock('../../models/profileModel', () => ({
-    getProfileByUserId: jest.fn()
 }))
 
 describe('ForumController', () => {
@@ -270,12 +265,6 @@ describe('ForumController', () => {
             const mockPost = createMockPost({
                 title: 'Updated Title'
             })
-            const mockProfile = {
-                id: 'test-profile-id-123',
-                userId: 'test-user-id-123'
-            }
-            ;(profileModel.getProfileByUserId as jest.Mock)
-                .mockResolvedValue(mockProfile)
             ;(forumService.validateOwner as jest.Mock)
                 .mockResolvedValue(undefined)
             ;(forumService.updatePost as jest.Mock)
@@ -294,7 +283,7 @@ describe('ForumController', () => {
             expect(forumService.validateOwner).toHaveBeenCalledWith(
                 'post',
                 'test-post-id-123',
-                'test-profile-id-123'
+                'test-user-id-123'
             )
             expect(forumService.updatePost).toHaveBeenCalledWith(
                 'test-post-id-123',
@@ -325,12 +314,6 @@ describe('ForumController', () => {
     // ==================== DELETE POST ====================
     describe('deletePost', () => {
         it('should delete post for owner', async () => {
-            const mockProfile = {
-                id: 'test-profile-id-123',
-                userId: 'test-user-id-123'
-            }
-            ;(profileModel.getProfileByUserId as jest.Mock)
-                .mockResolvedValue(mockProfile)
             ;(forumService.validateOwner as jest.Mock)
                 .mockResolvedValue(undefined)
             ;(forumService.deletePost as jest.Mock)
@@ -348,7 +331,7 @@ describe('ForumController', () => {
             expect(forumService.validateOwner).toHaveBeenCalledWith(
                 'post',
                 'test-post-id-123',
-                'test-profile-id-123'
+                'test-user-id-123'
             )
             expect(forumService.deletePost).toHaveBeenCalledWith(
                 'test-post-id-123'
@@ -493,12 +476,6 @@ describe('ForumController', () => {
             const mockReply = createMockReply({
                 body: 'Updated reply'
             })
-            const mockProfile = {
-                id: 'test-profile-id-123',
-                userId: 'test-user-id-123'
-            }
-            ;(profileModel.getProfileByUserId as jest.Mock)
-                .mockResolvedValue(mockProfile)
             ;(forumService.validateOwner as jest.Mock)
                 .mockResolvedValue(undefined)
             ;(forumService.updateReply as jest.Mock)
@@ -520,7 +497,7 @@ describe('ForumController', () => {
             expect(forumService.validateOwner).toHaveBeenCalledWith(
                 'reply',
                 'test-post-id-123',
-                'test-profile-id-123',
+                'test-user-id-123',
                 'test-reply-id-123'
             )
             expect(forumService.updateReply).toHaveBeenCalledWith(
@@ -536,12 +513,6 @@ describe('ForumController', () => {
     // ==================== DELETE REPLY ====================
     describe('deleteReply', () => {
         it('should delete reply for owner', async () => {
-            const mockProfile = {
-                id: 'test-profile-id-123',
-                userId: 'test-user-id-123'
-            }
-            ;(profileModel.getProfileByUserId as jest.Mock)
-                .mockResolvedValue(mockProfile)
             ;(forumService.validateOwner as jest.Mock)
                 .mockResolvedValue(undefined)
             ;(forumService.deleteReply as jest.Mock)
@@ -562,7 +533,7 @@ describe('ForumController', () => {
             expect(forumService.validateOwner).toHaveBeenCalledWith(
                 'reply',
                 'test-post-id-123',
-                'test-profile-id-123',
+                'test-user-id-123',
                 'test-reply-id-123'
             )
             expect(forumService.deleteReply).toHaveBeenCalledWith(
