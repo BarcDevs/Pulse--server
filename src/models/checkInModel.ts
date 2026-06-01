@@ -45,6 +45,14 @@ export const getCheckIns = async (
         include: { insights: true }
     })) as CheckInType[]
 
+export const findCheckInById = async (
+    checkInId: string
+): Promise<CheckInType | null> =>
+    (await Prisma.dailyCheckIn.findUnique({
+        where: { id: checkInId },
+        include: { insights: true }
+    })) as CheckInType | null
+
 export const findTodayCheckIn = async (
     profileId: string,
     checkInDate: Date

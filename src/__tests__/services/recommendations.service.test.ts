@@ -15,6 +15,7 @@ import type {
     PostRecommendationItem,
     RecommendationSnapshot
 } from '../../types/data/RecommendationType'
+import { PostFilter } from '../../types/query'
 
 jest.mock('../../models/checkInModel')
 jest.mock('../../models/recommendationsModel')
@@ -31,9 +32,14 @@ const PROFILE_ID = 'profile-id-123'
 const USER_ID = 'user-id-123'
 const CHECKIN_ID = 'checkin-id-123'
 
+const makeFallbackPosts = (): PostType[] =>
+    Array.from({ length: 5 }, (_, i) =>
+        makePost({ id: `fallback-post-${i}`, title: `Popular post ${i}` })
+    )
+
 const makeCheckIn = (overrides?: Partial<CheckInType>): CheckInType => ({
     id: CHECKIN_ID,
-    userId: USER_ID,
+    profileId: PROFILE_ID,
     checkInDate: new Date('2026-05-29T00:00:00Z'),
     moodScore: 7,
     painLevel: 3,
@@ -89,19 +95,25 @@ describe('recommendationsService.getRecommendations', () => {
         jest.clearAllMocks()
         jest.mocked(checkInModel.getProfileIdForUser)
             .mockResolvedValue(PROFILE_ID)
+        jest.mocked(forumModel.getPosts)
+            .mockResolvedValue(makeFallbackPosts())
     })
 
-    it('returns processing state when user has no check-ins', async () => {
+    it('returns processing state with fallback posts when user has no check-ins', async () => {
         jest.mocked(checkInModel.getCheckIns).mockResolvedValue([])
 
         const result = await getRecommendations(USER_ID)
 
         expect(result.status).toBe('processing')
         expect(result.isStale).toBe(false)
-        expect(result.posts).toEqual([])
+        expect(result.posts.length).toBeGreaterThan(0)
+        expect(forumModel.getPosts).toHaveBeenCalledWith({
+            filter: PostFilter.POPULAR,
+            limit: 5
+        })
     })
 
-    it('returns processing when no snapshot exists for latest check-in', async () => {
+    it('returns processing with fallback posts when no snapshot exists', async () => {
         jest.mocked(checkInModel.getCheckIns)
             .mockResolvedValue([makeCheckIn()])
         jest.mocked(recommendationsModel.getSnapshotWithFlags)
@@ -114,7 +126,8 @@ describe('recommendationsService.getRecommendations', () => {
         const result = await getRecommendations(USER_ID)
 
         expect(result.status).toBe('processing')
-        expect(result.posts).toEqual([])
+        expect(result.posts.length).toBeGreaterThan(0)
+        expect(forumModel.getPosts).toHaveBeenCalled()
     })
 
     it('returns ready state with posts when snapshot has 3+ valid posts', async () => {
@@ -166,7 +179,36 @@ describe('recommendationsService.getRecommendations', () => {
         expect(result.posts[0]).toHaveProperty('timestamp')
     })
 
-    it('returns processing + isStale when snapshot is for older check-in and mood is low', async () => {
+    it('returns stale snapshot posts when stale and mood is low', async () => {
+        const oldCheckInId = 'old-checkin-id'
+        const latestCheckIn = makeCheckIn({ moodScore: 4 })
+        const stalePosts = [
+            makePost({ id: 'post-1' }),
+            makePost({ id: 'post-2' }),
+            makePost({ id: 'post-3' })
+        ]
+
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([latestCheckIn])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: makeSnapshot({ basedOnCheckInId: oldCheckInId }),
+                generationPending: false,
+                pendingSince: null
+            })
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValueOnce(stalePosts[0])
+            .mockResolvedValueOnce(stalePosts[1])
+            .mockResolvedValueOnce(stalePosts[2])
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.status).toBe('processing')
+        expect(result.isStale).toBe(true)
+        expect(result.posts).toHaveLength(3)
+    })
+
+    it('returns fallback posts when stale, mood is low, and all stale posts are deleted', async () => {
         const oldCheckInId = 'old-checkin-id'
         const latestCheckIn = makeCheckIn({ moodScore: 4 })
 
@@ -178,12 +220,15 @@ describe('recommendationsService.getRecommendations', () => {
                 generationPending: false,
                 pendingSince: null
             })
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValue(null)
 
         const result = await getRecommendations(USER_ID)
 
         expect(result.status).toBe('processing')
         expect(result.isStale).toBe(true)
-        expect(result.posts).toEqual([])
+        expect(result.posts.length).toBeGreaterThan(0)
+        expect(forumModel.getPosts).toHaveBeenCalled()
     })
 
     it('returns stale posts with processing status when stale and mood is normal', async () => {
@@ -215,7 +260,7 @@ describe('recommendationsService.getRecommendations', () => {
         expect(result.posts).toHaveLength(3)
     })
 
-    it('marks pending and returns processing when snapshot has fewer than 3 valid posts', async () => {
+    it('marks pending and returns the valid post when snapshot has fewer than 3', async () => {
         jest.mocked(checkInModel.getCheckIns)
             .mockResolvedValue([makeCheckIn()])
         jest.mocked(recommendationsModel.getSnapshotWithFlags)
@@ -238,21 +283,59 @@ describe('recommendationsService.getRecommendations', () => {
         const result = await getRecommendations(USER_ID)
 
         expect(result.status).toBe('processing')
+        expect(result.posts).toHaveLength(1)
+        expect(result.posts[0].id).toBe('post-1')
         expect(recommendationsModel.setPendingGeneration).toHaveBeenCalledWith(
             USER_ID,
             CHECKIN_ID
         )
     })
 
-    it('returns processing fallback when service throws internally', async () => {
+    it('returns fallback posts when snapshot items all resolve to null (posts deleted)', async () => {
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([makeCheckIn()])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: makeSnapshot(),
+                generationPending: false,
+                pendingSince: null
+            })
+        jest.mocked(forumModel.getPost).mockResolvedValue(null)
+        jest.mocked(recommendationsModel.setPendingGeneration)
+            .mockResolvedValue(undefined)
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.status).toBe('processing')
+        expect(result.posts.length).toBeGreaterThan(0)
+        expect(forumModel.getPosts).toHaveBeenCalledWith({
+            filter: PostFilter.POPULAR,
+            limit: 5
+        })
+    })
+
+    it('returns processing with fallback posts when service throws internally', async () => {
         jest.mocked(checkInModel.getProfileIdForUser)
             .mockRejectedValue(new Error('DB down'))
 
         const result = await getRecommendations(USER_ID)
 
         expect(result.status).toBe('processing')
-        expect(result.posts).toEqual([])
         expect(result.isStale).toBe(false)
+        expect(result.posts.length).toBeGreaterThan(0)
+    })
+
+    it('returns processing with empty posts when both main logic and fallback fail', async () => {
+        jest.mocked(checkInModel.getProfileIdForUser)
+            .mockRejectedValue(new Error('DB down'))
+        jest.mocked(forumModel.getPosts)
+            .mockRejectedValue(new Error('DB down'))
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.status).toBe('processing')
+        expect(result.isStale).toBe(false)
+        expect(result.posts).toEqual([])
     })
 
     it('generates question action when title ends with question mark', async () => {

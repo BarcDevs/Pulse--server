@@ -146,14 +146,11 @@ export const generateRecommendations = async (
     checkInId: string
 ): Promise<void> => {
     try {
-        const profileId = await checkInModel.getProfileIdForUser(userId)
-
-        const currentCheckIn = await checkInModel.findTodayCheckIn(
-            profileId,
-            new Date()
-        )
+        const currentCheckIn = await checkInModel.findCheckInById(checkInId)
 
         if (!currentCheckIn) return
+
+        const profileId = currentCheckIn.profileId
 
         const allCheckIns = await checkInModel.getCheckIns(profileId, 100)
         const previousCheckIn = allCheckIns.length > 1
@@ -175,15 +172,8 @@ export const generateRecommendations = async (
             daysSinceFirst
         )
 
-        const previousSnapshots = (
-            await recommendationsModel.getLatestSnapshot(userId)
-        )
-            ? [
-                await recommendationsModel.getLatestSnapshot(userId)
-            ]
-            : []
-
-        const lastTwoSnapshots = previousSnapshots.slice(0, 2).filter(Boolean)
+        const latestSnapshot = await recommendationsModel.getLatestSnapshot(userId)
+        const lastTwoSnapshots = latestSnapshot ? [latestSnapshot] : []
 
         const candidateFilters = {
             categories: currentCheckIn.activities.slice(0, 3),
@@ -305,6 +295,14 @@ export const generateRecommendationsSafely = async (
     }
 }
 
+const getFallbackPosts = async (): Promise<RecommendationResponseItem[]> => {
+    const fallback = await forumModel.getPosts({
+        filter: PostFilter.POPULAR,
+        limit: 5
+    })
+    return fallback.map(mapPostToRecommendation)
+}
+
 export const getRecommendations = async (
     userId: string
 ): Promise<RecommendationsResponse> => {
@@ -319,7 +317,7 @@ export const getRecommendations = async (
             return {
                 status: 'processing',
                 isStale: false,
-                posts: []
+                posts: await getFallbackPosts()
             }
         }
 
@@ -356,10 +354,15 @@ export const getRecommendations = async (
 
                 const transformedPosts = validPosts.map(mapPostToRecommendation)
 
+                const hasSufficientPosts = transformedPosts.length > 0
+                const finalPosts = hasSufficientPosts
+                    ? transformedPosts
+                    : await getFallbackPosts()
+
                 return {
-                    status: transformedPosts.length >= 3 ? 'ready' : 'processing',
+                    status: hasSufficientPosts ? 'ready' : 'processing',
                     isStale: false,
-                    posts: transformedPosts,
+                    posts: finalPosts,
                     generatedAt: newSnapshot.generatedAt,
                     basedOnCheckInId: newSnapshot.basedOnCheckInId
                 }
@@ -368,19 +371,7 @@ export const getRecommendations = async (
             return {
                 status: 'processing',
                 isStale: false,
-                posts: []
-            }
-        }
-
-        const isStale = snapshot
-            ? snapshot.basedOnCheckInId !== latestCheckIn.id
-            : false
-
-        if (isStale && latestCheckIn.moodScore <= 5) {
-            return {
-                status: 'processing',
-                isStale: true,
-                posts: []
+                posts: await getFallbackPosts()
             }
         }
 
@@ -388,7 +379,26 @@ export const getRecommendations = async (
             return {
                 status: 'processing',
                 isStale: false,
-                posts: []
+                posts: await getFallbackPosts()
+            }
+        }
+
+        const isStale = snapshot.basedOnCheckInId !== latestCheckIn.id
+
+        if (isStale && latestCheckIn.moodScore <= 5) {
+            const stalePosts = await Promise.all(
+                snapshot.items.map((item) => forumModel.getPost(item.postId))
+            )
+            const validStalePosts = stalePosts.filter((p) => p !== null) as PostType[]
+            const transformedStalePosts = validStalePosts.map(mapPostToRecommendation)
+            return {
+                status: 'processing',
+                isStale: true,
+                posts: transformedStalePosts.length > 0
+                    ? transformedStalePosts
+                    : await getFallbackPosts(),
+                generatedAt: snapshot.generatedAt,
+                basedOnCheckInId: snapshot.basedOnCheckInId
             }
         }
 
@@ -413,7 +423,9 @@ export const getRecommendations = async (
             return {
                 status: 'processing',
                 isStale: false,
-                posts: transformedPosts
+                posts: transformedPosts.length > 0
+                    ? transformedPosts
+                    : await getFallbackPosts()
             }
         }
 
@@ -432,10 +444,24 @@ export const getRecommendations = async (
                 : 'Unknown error'
         })
 
-        return {
-            status: 'processing',
-            isStale: false,
-            posts: []
+        try {
+            return {
+                status: 'processing',
+                isStale: false,
+                posts: await getFallbackPosts()
+            }
+        } catch (fallbackErr) {
+            logger.error('Failed to fetch fallback recommendations', {
+                userId,
+                error: fallbackErr instanceof Error
+                    ? fallbackErr.message
+                    : 'Unknown error'
+            })
+            return {
+                status: 'processing',
+                isStale: false,
+                posts: []
+            }
         }
     }
 }
