@@ -51,7 +51,6 @@ export const resolveCheckInDate = (
         )
         if (timezoneName === checkInConfig.defaultTimezone) {
             const today = new Date()
-            // eslint-disable-next-line custom-rules/enforce-function-call-breaking
             today.setUTCHours(0, 0, 0, 0)
             return today
         }
