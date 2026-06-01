@@ -87,7 +87,8 @@ export const getPostsCount = async (
 }
 
 export const getPost = async (
-    id: string
+    id: string,
+    replies?: number
 ): Promise<PostType | null> => {
     const post = await Prisma.post.findUnique({
         where: {
@@ -98,7 +99,7 @@ export const getPost = async (
                 }
             }
         },
-        include: postInclude('single')
+        include: postInclude('single', { replies })
     })
     return post
         ? mapPostTags(post) as unknown as PostType
@@ -195,8 +196,11 @@ export const getReply = async (
         }
     })) as ReplyType | null
 
-export const getReplies = async (postId: string):
-    Promise<ReplyType[] | null> =>
+export const getReplies = async (
+    postId: string,
+    limit?: number,
+    page?: number
+): Promise<ReplyType[]> =>
     (
         await Prisma.reply.findMany({
             where: {
@@ -220,7 +224,11 @@ export const getReplies = async (postId: string):
             },
             orderBy: {
                 createdAt: 'desc'
-            }
+            },
+            ...(limit !== undefined && { take: limit }),
+            ...(limit !== undefined && page !== undefined && {
+                skip: (page - 1) * limit
+            })
         })
     ) as unknown as ReplyType[]
 

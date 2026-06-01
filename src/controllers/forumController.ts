@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import { FORUM_PAGINATION } from '../constants/forum/pagination'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
 import { getProfileByUserId } from '../models/profileModel'
@@ -7,6 +8,7 @@ import { successResponse } from '../responses/success'
 import { newPostSchema } from '../schemas/forum/newPostSchema'
 import { newReplySchema } from '../schemas/forum/newReplySchema'
 import { postQuerySchema } from '../schemas/forum/postQuerySchema'
+import { replyQuerySchema } from '../schemas/forum/replyQuerySchema'
 import { tagQuerySchema } from '../schemas/forum/tagQuerySchema'
 import { unknownTagSchema } from '../schemas/forum/unknownTagSchema'
 import { updatePostSchema } from '../schemas/forum/updatePostSchema'
@@ -70,9 +72,14 @@ export const getPost = async (
     res: Response
 ) => {
     const { postId } = req.params as { postId: string }
+    const { limit } = ValidationError.catchValidationErrors(
+        replyQuerySchema.safeParse(req.query)
+    )
+
+    const resolvedLimit = limit ?? FORUM_PAGINATION.DEFAULT_REPLY_LIMIT
 
     const data = (await forumService
-        .getPosts(undefined, postId)) as PostType
+        .getPost(postId, resolvedLimit)) as PostType
 
     if (!data)
         throw errorFactory.generic.notFound('Post')
@@ -183,19 +190,24 @@ export const getReplies = async (
     res: Response
 ) => {
     const { postId } = req.params as { postId: string }
+    const { limit, page } = ValidationError.catchValidationErrors(
+        replyQuerySchema.safeParse(req.query)
+    )
+
+    const resolvedLimit = limit ?? FORUM_PAGINATION.DEFAULT_REPLY_LIMIT
 
     const data = (
-        await forumService.getReplies(postId)
-    ) as ReplyType[]
+        await forumService.getReplies(
+            postId,
+            resolvedLimit,
+            page)
 
-    if (!data)
-        throw errorFactory
-            .generic.notFound('Replies')
+    ) as ReplyType[]
 
     return successResponse<ReplyType[]>(
         res,
         data,
-        `${data.length} Replies for post ${postId} found`
+        `found ${data.length} replies for post ${postId}`
     )
 }
 

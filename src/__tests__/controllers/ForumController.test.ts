@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { Request, Response } from 'express'
 
+import { FORUM_PAGINATION } from '../../constants/forum/pagination'
 import * as forumController from '../../controllers/forumController'
 import * as profileModel from '../../models/profileModel'
 import * as forumService from '../../services/forumService'
@@ -14,6 +15,7 @@ import {
 
 jest.mock('../../services/forumService', () => ({
     getPosts: jest.fn(),
+    getPost: jest.fn(),
     createPost: jest.fn(),
     updatePost: jest.fn(),
     deletePost: jest.fn(),
@@ -204,7 +206,7 @@ describe('ForumController', () => {
     describe('getPost', () => {
         it('should return single post', async () => {
             const mockPost = createMockPost()
-            ;(forumService.getPosts as jest.Mock)
+            ;(forumService.getPost as jest.Mock)
                 .mockResolvedValue(mockPost)
 
             const req = createMockRequest({
@@ -215,18 +217,38 @@ describe('ForumController', () => {
 
             await forumController.getPost(req, res)
 
-            expect(forumService.getPosts).toHaveBeenCalledWith(
-                undefined,
-                'test-post-id-123'
+            expect(forumService.getPost).toHaveBeenCalledWith(
+                'test-post-id-123',
+                FORUM_PAGINATION.DEFAULT_REPLY_LIMIT
             )
             expect(res.status)
                 .toHaveBeenCalledWith(200)
         })
 
+        it('should pass limit query to service', async () => {
+            const mockPost = createMockPost()
+            ;(forumService.getPost as jest.Mock)
+                .mockResolvedValue(mockPost)
+
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123' },
+                query: { limit: '5' }
+            }) as Request
+
+            const res = createMockResponse() as Response
+
+            await forumController.getPost(req, res)
+
+            expect(forumService.getPost).toHaveBeenCalledWith(
+                'test-post-id-123',
+                5
+            )
+        })
+
         it(
             'should throw not found error for non-existent post',
             async () => {
-                ;(forumService.getPosts as jest.Mock)
+                ;(forumService.getPost as jest.Mock)
                     .mockResolvedValue(null)
 
                 const req = createMockRequest({
@@ -420,29 +442,49 @@ describe('ForumController', () => {
             await forumController.getReplies(req, res)
 
             expect(forumService.getReplies).toHaveBeenCalledWith(
-                'test-post-id-123'
+                'test-post-id-123',
+                FORUM_PAGINATION.DEFAULT_REPLY_LIMIT,
+                undefined
             )
             expect(res.status)
                 .toHaveBeenCalledWith(200)
         })
 
-        it(
-            'should throw not found error when no replies',
-            async () => {
-                ;(forumService.getReplies as jest.Mock)
-                    .mockResolvedValue(null)
+        it('should pass limit and page to service', async () => {
+            const mockReplies = [createMockReply()]
+            ;(forumService.getReplies as jest.Mock)
+                .mockResolvedValue(mockReplies)
 
-                const req = createMockRequest({
-                    params: { postId: 'test-post-id-123' }
-                }) as Request
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123' },
+                query: { limit: '10', page: '2' }
+            }) as Request
 
-                const res = createMockResponse() as Response
+            const res = createMockResponse() as Response
 
-                await expect(
-                    forumController.getReplies(req, res)
-                ).rejects.toThrow()
-            }
-        )
+            await forumController.getReplies(req, res)
+
+            expect(forumService.getReplies).toHaveBeenCalledWith(
+                'test-post-id-123',
+                10,
+                2
+            )
+        })
+
+        it('should return empty array when no replies', async () => {
+            ;(forumService.getReplies as jest.Mock)
+                .mockResolvedValue([])
+
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+
+            const res = createMockResponse() as Response
+
+            await forumController.getReplies(req, res)
+
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
     })
 
     // ==================== UPDATE REPLY ====================

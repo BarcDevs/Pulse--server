@@ -4,6 +4,7 @@ import {
     createReply,
     deletePost,
     deleteReply,
+    getPost,
     getPosts,
     getPostsCount,
     getReplies,
@@ -406,6 +407,28 @@ describe('Forum Service', () => {
         )
     })
 
+    // ==================== getPost ====================
+    describe('getPost', () => {
+        it('should return post by id', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique
+                .mockResolvedValue(mockPost)
+
+            const result = await getPost('post-id')
+
+            expect(result).toBeDefined()
+        })
+
+        it('should return null for non-existent post', async () => {
+            prismaMock.post.findUnique
+                .mockResolvedValue(null)
+
+            const result = await getPost('non-existent')
+
+            expect(result).toBeNull()
+        })
+    })
+
     // ==================== getReplies ====================
     describe('getReplies', () => {
         it('should return replies for post', async () => {
@@ -424,16 +447,24 @@ describe('Forum Service', () => {
             expect(result).toEqual(mockReplies)
         })
 
-        it('should return null when no replies', async () => {
+        it('should pass limit and page to model', async () => {
             const mockPost = createMockPost()
+            const mockReplies = [createMockReply()]
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
             prismaMock.reply.findMany
-                .mockResolvedValue(null as unknown as never[])
+                .mockResolvedValue(mockReplies)
 
-            const result = await getReplies('post-id')
+            const result = await getReplies('post-id', 10, 2)
 
-            expect(result).toBeNull()
+            expect(result).toEqual(mockReplies)
+            expect(prismaMock.reply.findMany)
+                .toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        take: 10,
+                        skip: 10
+                    })
+                )
         })
 
         it(

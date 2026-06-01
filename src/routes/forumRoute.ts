@@ -219,6 +219,11 @@ router
  *         required: true
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Max number of replies to include inline. Defaults to 10
  *     responses:
  *       200:
  *         description: Post found
@@ -442,7 +447,7 @@ router.route('/posts/:postId/save').post(
  * @swagger
  * /api/v1/forum/posts/{postId}/replies:
  *   get:
- *     summary: Get all replies for a post
+ *     summary: Get replies for a post with pagination
  *     tags: [Forum]
  *     parameters:
  *       - in: path
@@ -450,6 +455,16 @@ router.route('/posts/:postId/save').post(
  *         required: true
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of replies per page. Defaults to 10
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number (requires limit)
  *     responses:
  *       200:
  *         description: List of replies
@@ -465,7 +480,7 @@ router.route('/posts/:postId/save').post(
  *                   items:
  *                     $ref: '#/components/schemas/Reply'
  *       404:
- *         description: No replies found
+ *         description: Post not found
  *         content:
  *           application/json:
  *             schema:

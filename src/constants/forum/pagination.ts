@@ -1,0 +1,4 @@
+export const FORUM_PAGINATION = {
+    DEFAULT_REPLY_LIMIT: 10,
+    MAX_REPLY_LIMIT: 100
+} as const

@@ -41,6 +41,11 @@ export const getPosts = async (
     return forumModel.getPosts(query)
 }
 
+export const getPost = async (
+    id: string,
+    replies?: number
+) => forumModel.getPost(id, replies)
+
 export const getPostsCount = async (
     query?: PostQuery
 ) => forumModel.getPostsCount(query)
@@ -218,10 +223,12 @@ export const createReply = async (
 }
 
 export const getReplies = async (
-    postId: string
+    postId: string,
+    limit?: number,
+    page?: number
 ) => {
     await ensurePostExists(postId)
-    return forumModel.getReplies(postId)
+    return forumModel.getReplies(postId, limit, page)
 }
 
 export const updateReply = async (

@@ -2,7 +2,8 @@ import type { Prisma as PrismaTypes } from '../../../prisma/generated/prisma/cli
 import { PostFilter, type PostQuery } from '../../types/query'
 
 export const postInclude = (
-    type: 'single' | 'multiple'
+    type: 'single' | 'multiple',
+    options?: { replies?: number }
 ) => ({
     _count: {
         select: {
@@ -36,6 +37,7 @@ export const postInclude = (
     },
 
     replies: type === 'single' && {
+        take: options?.replies,
         include: {
             author: {
                 select: {
