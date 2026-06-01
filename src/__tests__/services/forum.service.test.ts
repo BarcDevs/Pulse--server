@@ -29,8 +29,10 @@ describe('Forum Service', () => {
             'should not throw for valid post owner',
             async () => {
                 const mockPost = createMockPost({
-                    authorId: 'user-123'
+                    authorId: 'profile-123'
                 })
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
                 prismaMock.post.findUnique
                     .mockResolvedValue(mockPost)
 
@@ -46,8 +48,10 @@ describe('Forum Service', () => {
             'should throw error for non-owner of post',
             async () => {
                 const mockPost = createMockPost({
-                    authorId: 'different-user'
+                    authorId: 'different-profile'
                 })
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
                 prismaMock.post.findUnique
                     .mockResolvedValue(mockPost)
 
@@ -62,6 +66,8 @@ describe('Forum Service', () => {
         it(
             'should throw error for non-existent post',
             async () => {
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
                 prismaMock.post.findUnique
                     .mockResolvedValue(null)
 
@@ -77,8 +83,10 @@ describe('Forum Service', () => {
             'should not throw for valid reply owner',
             async () => {
                 const mockReply = createMockReply({
-                    authorId: 'user-123'
+                    authorId: 'profile-123'
                 })
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
                 prismaMock.reply.findUnique
                     .mockResolvedValue(mockReply)
 
@@ -99,8 +107,10 @@ describe('Forum Service', () => {
             'should throw error for non-owner of reply',
             async () => {
                 const mockReply = createMockReply({
-                    authorId: 'different-user'
+                    authorId: 'different-profile'
                 })
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
                 prismaMock.reply.findUnique
                     .mockResolvedValue(mockReply)
 
@@ -122,6 +132,9 @@ describe('Forum Service', () => {
         it(
             'should throw error for missing replyId when validating reply',
             async () => {
+                prismaMock.profile.findUnique
+                    .mockResolvedValue({ id: 'profile-123', userId: 'user-123' } as any)
+
                 await expect(
                     validateOwner('reply', 'post-id', 'user-123')
                 )

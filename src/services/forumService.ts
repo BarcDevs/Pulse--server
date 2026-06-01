@@ -23,10 +23,14 @@ export const validateOwner = async (
     userId: string,
     replyId?: string
 ) => {
+    const profile = await profileModel.getProfileByUserId(userId)
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
     await validateOwnerHelper(
         schema,
         postId,
-        userId,
+        profile.id,
         replyId
     )
 }
@@ -228,7 +232,11 @@ export const getReplies = async (
     page?: number
 ) => {
     await ensurePostExists(postId)
-    return forumModel.getReplies(postId, limit, page)
+    return forumModel.getReplies(
+        postId,
+        limit,
+        page
+    )
 }
 
 export const updateReply = async (
