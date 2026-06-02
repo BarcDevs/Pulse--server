@@ -31,56 +31,16 @@ const hashPassword = (password: string): string =>
 
 async function main() {
     const healthInterests = [
-        {
-            slug: 'mental-health',
-            category: 'Wellness',
-            sortOrder: 1
-        },
-        {
-            slug: 'physical-therapy',
-            category: 'Recovery',
-            sortOrder: 2
-        },
-        {
-            slug: 'nutrition',
-            category: 'Wellness',
-            sortOrder: 3
-        },
-        {
-            slug: 'chronic-pain',
-            category: 'Recovery',
-            sortOrder: 4
-        },
-        {
-            slug: 'sleep-health',
-            category: 'Wellness',
-            sortOrder: 5
-        },
-        {
-            slug: 'stress-management',
-            category: 'Wellness',
-            sortOrder: 6
-        },
-        {
-            slug: 'diabetes',
-            category: 'Condition-Specific',
-            sortOrder: 7
-        },
-        {
-            slug: 'heart-health',
-            category: 'Condition-Specific',
-            sortOrder: 8
-        },
-        {
-            slug: 'women-health',
-            category: 'Condition-Specific',
-            sortOrder: 9
-        },
-        {
-            slug: 'joint-health',
-            category: 'Recovery',
-            sortOrder: 10
-        }
+        { slug: 'mental-health', sortOrder: 1 },
+        { slug: 'physical-therapy', sortOrder: 2 },
+        { slug: 'nutrition', sortOrder: 3 },
+        { slug: 'chronic-pain', sortOrder: 4 },
+        { slug: 'sleep-health', sortOrder: 5 },
+        { slug: 'stress-management', sortOrder: 6 },
+        { slug: 'diabetes', sortOrder: 7 },
+        { slug: 'heart-health', sortOrder: 8 },
+        { slug: 'womens-health', sortOrder: 9 },
+        { slug: 'joint-health', sortOrder: 10 }
     ]
 
     const activityPreferences = [
@@ -216,7 +176,21 @@ async function main() {
     ]
 
     const createdUsers = []
-    for (const userData of testUsers) {
+    const allHealthInterestSlugs = healthInterests.map(h => h.slug)
+    const allActivitySlugs = activityPreferences.map(a => a.slug)
+
+    for (let i = 0; i < testUsers.length; i++) {
+        const userData = testUsers[i]!
+        const timezones = [
+            'America/New_York',
+            'America/Los_Angeles',
+            'Europe/London',
+            'Asia/Tokyo',
+            'Australia/Sydney'
+        ]
+        const themes = ['light', 'dark']
+        const languages = ['en-US', 'he-IL']
+
         const user = await prisma.user.upsert({
             where: { email: userData.email },
             update: {},
@@ -228,8 +202,13 @@ async function main() {
                 password: hashPassword(userData.password),
                 profile: {
                     create: {
-                        timezone: 'America/New_York',
-                        bio: `I'm ${userData.firstName}, a member of the HealEase community.`
+                        timezone: timezones[i % timezones.length],
+                        bio: `I'm ${userData.firstName}, a member of the HealEase community focused on recovery and wellness.`,
+                        theme: themes[i % themes.length],
+                        language: languages[i % languages.length],
+                        dailyReminder: i % 2 === 0,
+                        communityAlerts: true,
+                        profileVisibility: i === 0 ? 'public' : 'friends'
                     }
                 }
             },
@@ -238,12 +217,67 @@ async function main() {
         createdUsers.push(user)
     }
 
+    console.info('Adding health interests and activity preferences to user profiles...')
+    for (let i = 0; i < createdUsers.length; i++) {
+        const profile = createdUsers[i]!.profile!
+        const userHealthInterests = allHealthInterestSlugs.slice(i * 2, i * 2 + 3)
+        const userActivities = allActivitySlugs.slice(i * 2, i * 2 + 3)
+
+        // Add health interests
+        for (const slug of userHealthInterests) {
+            const healthInterest = await prisma.healthInterest.findUnique({
+                where: { slug }
+            })
+            if (healthInterest) {
+                await prisma.profileHealthInterest.upsert({
+                    where: {
+                        profileId_healthInterestId: {
+                            profileId: profile.id,
+                            healthInterestId: healthInterest.id
+                        }
+                    },
+                    update: {},
+                    create: {
+                        profileId: profile.id,
+                        healthInterestId: healthInterest.id
+                    }
+                })
+            }
+        }
+
+        // Add activity preferences
+        for (const slug of userActivities) {
+            const activity = await prisma.activityPreference.findUnique({
+                where: { slug }
+            })
+            if (activity) {
+                await prisma.profileActivityPreference.upsert({
+                    where: {
+                        profileId_activityPreferenceId: {
+                            profileId: profile.id,
+                            activityPreferenceId: activity.id
+                        }
+                    },
+                    update: {},
+                    create: {
+                        profileId: profile.id,
+                        activityPreferenceId: activity.id
+                    }
+                })
+            }
+        }
+    }
+
     console.info('Seeding health interests...')
-    for (const { slug, ...interestFields } of healthInterests) {
+    for (const interest of healthInterests) {
         await prisma.healthInterest.upsert({
-            where: { slug },
-            update: interestFields,
-            create: { slug, ...interestFields }
+            where: { slug: interest.slug },
+            update: { sortOrder: interest.sortOrder },
+            create: {
+                slug: interest.slug,
+                sortOrder: interest.sortOrder,
+                isActive: true
+            }
         })
     }
 
@@ -258,15 +292,31 @@ async function main() {
 
     console.info('Seeding check-in data...')
     const today = new Date()
+    const activityOptions = [
+        ['meditation', 'walking'],
+        ['yoga', 'journaling'],
+        ['swimming', 'breathing-exercises'],
+        ['running', 'strength-training'],
+        ['tai-chi', 'gardening'],
+        ['cycling', 'pilates'],
+        ['reading', 'meditation']
+    ]
+
     for (let i = 0; i < createdUsers.length; i++) {
         const user = createdUsers[i]
         const profile = user.profile
 
-        // Create 7 days of check-ins
-        for (let day = 6; day >= 0; day--) {
+        // Create 14 days of check-ins with varied data
+        for (let day = 13; day >= 0; day--) {
             const checkInDate = new Date(today)
             checkInDate.setDate(checkInDate.getDate() - day)
             checkInDate.setHours(0, 0, 0, 0)
+
+            // Simulate a trend: day 0-4 lower mood, 5-9 improving, 10-13 high mood
+            let baseMood = 5
+            if (day <= 4) baseMood = 3 + Math.floor(Math.random() * 3)
+            else if (day <= 9) baseMood = 5 + Math.floor(Math.random() * 3)
+            else baseMood = 7 + Math.floor(Math.random() * 3)
 
             await prisma.dailyCheckIn.upsert({
                 where: {
@@ -279,10 +329,10 @@ async function main() {
                 create: {
                     profileId: profile!.id,
                     checkInDate,
-                    moodScore: Math.floor(Math.random() * 10) + 1,
+                    moodScore: Math.max(1, Math.min(10, baseMood)),
                     painLevel: Math.floor(Math.random() * 10) + 1,
-                    activities: ['meditation', 'walking'],
-                    notes: `Check-in for ${checkInDate.toISOString().split('T')[0]}`
+                    activities: activityOptions[i % activityOptions.length]!,
+                    notes: day % 3 === 0 ? `Had a good day, felt energetic on ${checkInDate.toISOString().split('T')[0]}` : undefined
                 }
             })
         }
@@ -350,9 +400,7 @@ async function main() {
         }
     }
 
-    console.info('Seeding posts...')
-    await prisma.reply.deleteMany({})
-    await prisma.post.deleteMany({})
+    console.info('Seeding tags...')
     for (const tag of FORUM_TAGS) {
         await prisma.tag.upsert({
             where: { slug: tag.slug },
@@ -361,11 +409,23 @@ async function main() {
         })
     }
 
+    console.info('Seeding posts...')
+    console.log(`Found ${createdUsers.length} users to use as post authors`)
+    if (createdUsers.length === 0) {
+        console.warn('No users created, skipping posts')
+    } else {
+        const firstUser = createdUsers[0]
+        console.log(`First user: ${firstUser.email}, profile ID: ${firstUser.profile?.id}`)
+    }
+
+    await prisma.reply.deleteMany({})
+    await prisma.post.deleteMany({})
+
     const seedPosts = [
         {
             title: '6 months post hip replacement — what actually helped',
             category: 'recovery',
-            tags: ['recovery-journey', 'physical-therapy'],
+            tags: ['recovery-journey', 'physical-therapy', 'exercise'],
             body: '<h2>Six months in</h2><p>I had my hip replacement last November and I want to share what genuinely moved the needle for me — not the generic advice, the real stuff.</p><ul><li><strong>Consistency over intensity</strong> — my PT told me to walk 10 minutes twice a day, every day, no excuses. That baseline mattered more than any single hard session.</li><li><strong>Ice after every session</strong> — 20 minutes, no shortcuts. Reduced swelling dramatically in weeks 3–6.</li><li><strong>Telling people</strong> — I was embarrassed at first but letting my family know what I needed changed everything.</li></ul><p>The hardest part was trusting the process when progress felt invisible. Week 8 felt identical to week 6. Then week 10 felt totally different. Hang in there.</p><blockquote>Progress is not always linear — sometimes it hides for weeks before it shows up all at once.</blockquote>'
         },
         {
@@ -444,32 +504,62 @@ async function main() {
         'Week 8 was my hardest too. You described it perfectly.',
         'Thank you for being so honest about the hard parts.',
         'This community is why I keep coming back. Great post.',
-        'I tried this approach and it genuinely helped me too.'
+        'I tried this approach and it genuinely helped me too.',
+        'How long did it take before you saw improvements?',
+        'This resonates with my own journey. Keep sharing.'
     ]
 
     for (let i = 0; i < seedPosts.length; i++) {
         const postData = seedPosts[i]!
         const author = createdUsers[i % createdUsers.length]!
+
+        if (!author || !author.profile) {
+            console.warn(`Skipping post ${i}: No author or profile found`)
+            continue
+        }
+
         const post = await prisma.post.create({
             data: {
                 title: postData.title,
                 body: postData.body,
-                authorId: author.profile!.id,
-                category: postData.category,
-                tags: {
-                    connect: postData.tags.map(slug => ({ slug }))
-                }
+                authorId: author.profile.id,
+                category: postData.category
             }
         })
 
-        const replier = createdUsers[(i + 1) % createdUsers.length]!
-        await prisma.reply.create({
-            data: {
-                body: replyBodies[i % replyBodies.length]!,
-                authorId: replier.profile!.id,
-                postId: post.id
+        // Add tags after post creation
+        for (const slug of postData.tags) {
+            try {
+                const tag = await prisma.tag.findUnique({ where: { slug } })
+                if (tag) {
+                    await prisma.post.update({
+                        where: { id: post.id },
+                        data: {
+                            tags: {
+                                connect: { slug }
+                            }
+                        }
+                    })
+                }
+            } catch (e) {
+                // Skip tag if it fails
             }
-        })
+        }
+
+        // Add 1-2 replies to each post
+        const replyCount = (i % 2) + 1
+        for (let r = 0; r < replyCount; r++) {
+            const replier = createdUsers[(i + r + 1) % createdUsers.length]!
+            if (!replier || !replier.profile) continue
+
+            await prisma.reply.create({
+                data: {
+                    body: replyBodies[(i + r) % replyBodies.length]!,
+                    authorId: replier.profile.id,
+                    postId: post.id
+                }
+            })
+        }
     }
 
     console.info('Seeding goals and milestones...')

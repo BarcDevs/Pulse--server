@@ -120,7 +120,6 @@ export const getAvailableHealthInterests = async () => {
     return Prisma.healthInterest.findMany({
         where: { isActive: true },
         orderBy: [
-            { category: 'asc' },
             { sortOrder: 'asc' },
             { slug: 'asc' }
         ]
