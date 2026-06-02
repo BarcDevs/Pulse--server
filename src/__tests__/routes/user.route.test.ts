@@ -197,6 +197,59 @@ describe('User Routes', () => {
             }
         )
 
+        it('should return 400 for username with special characters',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updateUserEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ username: 'john@doe' })
+
+                expect(response.status).toBe(400)
+                expect(response.body.error[0].statusType)
+                    .toBe('Validation Error')
+                expect(response.body.error[0].property)
+                    .toBe('username')
+            }
+        )
+
+        it('should accept username with underscore',
+            async () => {
+                const mockUser = createMockUser()
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(mockUser)
+                    .mockResolvedValueOnce(null)
+                prismaMock.user.update.mockResolvedValue({
+                    ...mockUser,
+                    username: 'john_doe'
+                })
+
+                const response = await withCsrfAuth(
+                    supertest(App).patch(updateUserEndpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ username: 'john_doe' })
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.user.username).toBe('john_doe')
+            }
+        )
+
         it('should return 401 for unauthenticated request',
             async () => {
                 const response = await supertest(App)

@@ -141,6 +141,58 @@ describe('Auth Schemas', () => {
             expect(result.data.username).toBe('johndoe')
         })
 
+        it('should allow underscore in username', () => {
+            const result = signupSchema.safeParse({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'john_doe',
+                email: 'john@test.com',
+                password: 'Password123!'
+            })
+
+            expect(result.error).toBeUndefined()
+            expect(result.data.username).toBe('john_doe')
+        })
+
+        it('should reject username with special characters', () => {
+            const result = signupSchema.safeParse({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'john@doe',
+                email: 'john@test.com',
+                password: 'Password123!'
+            })
+
+            expect(result.error).toBeDefined()
+            expect(result.error?.issues[0].path).toContain('username')
+        })
+
+        it('should reject username shorter than 3 characters', () => {
+            const result = signupSchema.safeParse({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'ab',
+                email: 'john@test.com',
+                password: 'Password123!'
+            })
+
+            expect(result.error).toBeDefined()
+            expect(result.error?.issues[0].path).toContain('username')
+        })
+
+        it('should reject username longer than 30 characters', () => {
+            const result = signupSchema.safeParse({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'a'.repeat(31),
+                email: 'john@test.com',
+                password: 'Password123!'
+            })
+
+            expect(result.error).toBeDefined()
+            expect(result.error?.issues[0].path).toContain('username')
+        })
+
         it('should reject missing firstName', () => {
             const result = signupSchema.safeParse({
                 lastName: 'Doe',
