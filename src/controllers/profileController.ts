@@ -1,19 +1,13 @@
 import type { Request, Response } from 'express'
 
 import { errorFactory } from '../errors/factory/ErrorFactory'
-import {
-    ValidationError
-} from '../errors/ValidationError'
+import { ValidationError }
+    from '../errors/ValidationError'
 import { successResponse } from '../responses/success'
-import {
-    activityPreferenceSlugParamSchema,
-    addActivityPreferencesSchema,
-    addHealthInterestsSchema,
-    healthInterestSlugParamSchema,
-    updateProfileSchema
-} from '../schemas/profileSchema'
-import * as profileService from
-    '../services/profileService'
+import { updateProfileSchema }
+    from '../schemas/profile/updateProfileSchema'
+import * as profileService
+    from '../services/profileService'
 
 export const getProfile = async (
     req: Request,
@@ -64,137 +58,6 @@ export const updateProfile = async (
         res,
         profile,
         'Profile updated successfully'
-    )
-}
-
-export const addHealthInterests = async (
-    req: Request,
-    res: Response
-) => {
-    const { userId } = req
-
-    if (!userId)
-        throw errorFactory.auth.unauthorized()
-
-    const validatedData =
-        ValidationError.catchValidationErrors(
-            addHealthInterestsSchema.safeParse(
-                req.body
-            )
-        )
-
-    await profileService.addHealthInterests(
-        userId,
-        validatedData.slugs
-    )
-
-    const profile =
-        await profileService.getProfile(
-            userId
-        )
-
-    return successResponse(
-        res,
-        profile,
-        'Health interests added successfully'
-    )
-}
-
-export const removeHealthInterest = async (
-    req: Request,
-    res: Response
-) => {
-    const { userId } = req
-    const { slug } = req.params
-
-    if (!userId)
-        throw errorFactory.auth.unauthorized()
-
-    const validatedParams =
-        ValidationError.catchValidationErrors(
-            healthInterestSlugParamSchema.safeParse({ slug })
-        )
-
-    await profileService.removeHealthInterest(
-        userId,
-        validatedParams.slug
-    )
-
-    const profile =
-        await profileService.getProfile(
-            userId
-        )
-
-    return successResponse(
-        res,
-        profile,
-        'Health interest removed successfully'
-    )
-}
-
-export const addActivityPreferences = async (
-    req: Request,
-    res: Response
-) => {
-    const { userId } = req
-
-    if (!userId)
-        throw errorFactory.auth.unauthorized()
-
-    const validatedData =
-        ValidationError.catchValidationErrors(
-            addActivityPreferencesSchema.safeParse(
-                req.body
-            )
-        )
-
-    await profileService
-        .addActivityPreferences(
-            userId,
-            validatedData.slugs
-        )
-
-    const profile = await profileService.getProfile(
-        userId
-    )
-
-    return successResponse(
-        res,
-        profile,
-        'Activity preferences added successfully'
-    )
-}
-
-export const removeActivityPreference = async (
-    req: Request,
-    res: Response
-) => {
-    const { userId } = req
-    const { slug } = req.params
-
-    if (!userId)
-        throw errorFactory.auth.unauthorized()
-
-    const validatedParams =
-        ValidationError.catchValidationErrors(
-            activityPreferenceSlugParamSchema.safeParse({ slug })
-        )
-
-    await profileService
-        .removeActivityPreference(
-            userId,
-            validatedParams.slug
-        )
-
-    const profile =
-        await profileService.getProfile(
-            userId
-        )
-
-    return successResponse(
-        res,
-        profile,
-        'Activity preference removed successfully'
     )
 }
 

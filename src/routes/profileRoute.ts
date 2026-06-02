@@ -1,13 +1,9 @@
 import { Router } from 'express'
 
 import {
-    addActivityPreferences,
-    addHealthInterests,
     getActivityPreferences,
     getHealthInterests,
     getProfile,
-    removeActivityPreference,
-    removeHealthInterest,
     updateProfile
 } from '../controllers/profileController'
 import {
@@ -83,132 +79,6 @@ router
         extractCsrfToken,
         csrfMiddleware,
         updateProfile
-    )
-
-/**
- * @swagger
- * /api/v1/profile/health-interests:
- *   post:
- *     summary: Add health interests
- *     tags: [Profile]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [slugs]
- *             properties:
- *               slugs:
- *                 type: array
- *                 items:
- *                   type: string
- *     responses:
- *       200:
- *         description: Health interests added
- *       401:
- *         description: Not authenticated
- * /api/v1/profile/health-interests/{slug}:
- *   delete:
- *     summary: Remove health interest
- *     tags: [Profile]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     parameters:
- *       - in: path
- *         name: slug
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Health interest removed
- *       401:
- *         description: Not authenticated
- */
-router
-    .route('/health-interests')
-    .post(
-        isAuthenticated,
-        extractCsrfToken,
-        csrfMiddleware,
-        addHealthInterests
-    )
-
-router
-    .route('/health-interests/:slug')
-    .delete(
-        isAuthenticated,
-        extractCsrfToken,
-        csrfMiddleware,
-        removeHealthInterest
-    )
-
-/**
- * @swagger
- * /api/v1/profile/activities:
- *   post:
- *     summary: Add activity preferences
- *     tags: [Profile]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [slugs]
- *             properties:
- *               slugs:
- *                 type: array
- *                 items:
- *                   type: string
- *     responses:
- *       200:
- *         description: Activity preferences added
- *       401:
- *         description: Not authenticated
- * /api/v1/profile/activities/{slug}:
- *   delete:
- *     summary: Remove activity preference
- *     tags: [Profile]
- *     security:
- *       - cookieAuth: []
- *         csrfToken: []
- *     parameters:
- *       - in: path
- *         name: slug
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Activity preference removed
- *       401:
- *         description: Not authenticated
- */
-router
-    .route('/activities')
-    .post(
-        isAuthenticated,
-        extractCsrfToken,
-        csrfMiddleware,
-        addActivityPreferences
-    )
-
-router
-    .route('/activities/:slug')
-    .delete(
-        isAuthenticated,
-        extractCsrfToken,
-        csrfMiddleware,
-        removeActivityPreference
     )
 
 /**

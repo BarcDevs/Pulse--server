@@ -1161,12 +1161,16 @@ Update user profile presentation and preferences.
 | `communityAlerts` | boolean | |
 | `profileVisibility` | string | `onlyMe` · `friends` · `public` |
 | `anonymousParticipation` | boolean | |
+| `healthInterests` | string[] | Full replace — valid slugs from `GET /list/health-interests` |
+| `activityPreferences` | string[] | Full replace — valid slugs from `GET /list/activities` |
 
 **Example Request**
 ```json
 {
   "bio": "Recovery advocate & meditation enthusiast",
-  "timezone": "America/Denver"
+  "timezone": "America/Denver",
+  "healthInterests": ["mental-health", "stress-management"],
+  "activityPreferences": ["walking", "mindfulness"]
 }
 ```
 
@@ -1178,109 +1182,7 @@ Update user profile presentation and preferences.
 }
 ```
 
-**Errors:** `400` invalid timezone · `401` not authenticated or invalid CSRF
-
----
-
-### `POST /health-interests`
-> Auth required + CSRF token
-
-Add health interests to the user's profile.
-
-**Body**
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `slugs` | string[] | yes | Array of interest slugs (e.g., ["mental-health", "stress-management"]) |
-
-**Example Request**
-```json
-{
-  "slugs": ["mental-health", "stress-management"]
-}
-```
-
-**Response `200`**
-```json
-{
-  "message": "Health interests added successfully",
-  "data": { /* updated profile object */ }
-}
-```
-
-**Errors:** `400` invalid slug · `401` not authenticated or invalid CSRF · `404` interest not found
-
----
-
-### `DELETE /health-interests/:slug`
-> Auth required + CSRF token
-
-Remove a health interest from the user's profile.
-
-**Path Parameters**
-| Param | Type | Notes |
-|-------|------|-------|
-| `slug` | string | Interest slug (e.g., "mental-health") |
-
-**Response `200`**
-```json
-{
-  "message": "Health interest removed successfully",
-  "data": { /* updated profile object */ }
-}
-```
-
-**Errors:** `401` not authenticated or invalid CSRF · `404` interest not found
-
----
-
-### `POST /activities`
-> Auth required + CSRF token
-
-Add activity preferences to the user's profile.
-
-**Body**
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `slugs` | string[] | yes | Array of activity slugs (e.g., ["meditation", "yoga"]) |
-
-**Example Request**
-```json
-{
-  "slugs": ["meditation", "yoga", "walking"]
-}
-```
-
-**Response `200`**
-```json
-{
-  "message": "Activity preferences added successfully",
-  "data": { /* updated profile object */ }
-}
-```
-
-**Errors:** `400` invalid slug · `401` not authenticated or invalid CSRF · `404` activity not found
-
----
-
-### `DELETE /activities/:slug`
-> Auth required + CSRF token
-
-Remove an activity preference from the user's profile.
-
-**Path Parameters**
-| Param | Type | Notes |
-|-------|------|-------|
-| `slug` | string | Activity slug (e.g., "meditation") |
-
-**Response `200`**
-```json
-{
-  "message": "Activity preference removed successfully",
-  "data": { /* updated profile object */ }
-}
-```
-
-**Errors:** `401` not authenticated or invalid CSRF · `404` activity not found
+**Errors:** `400` invalid field · `401` not authenticated or invalid CSRF
 
 ---
 
@@ -1292,8 +1194,8 @@ List all available health interest slugs for the platform.
 **Response `200`**
 ```json
 {
-  "message": "10 health interests available",
-  "data": ["mental-health", "stress-management", "physical-therapy"]
+  "message": "24 health interests available",
+  "data": ["rehabilitation", "physical-therapy", "mental-health", "..."]
 }
 ```
 
@@ -1309,8 +1211,8 @@ List all available activity preference slugs for the platform.
 **Response `200`**
 ```json
 {
-  "message": "15 activity preferences available",
-  "data": ["meditation", "yoga", "walking"]
+  "message": "16 activity preferences available",
+  "data": ["walking", "exercise", "mindfulness", "..."]
 }
 ```
 

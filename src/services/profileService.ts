@@ -13,6 +13,8 @@ type UpdateProfileData = {
     communityAlerts?: boolean
     profileVisibility?: string
     anonymousParticipation?: boolean
+    healthInterests?: string[]
+    activityPreferences?: string[]
 }
 
 // region Profile CRUD
@@ -34,56 +36,6 @@ export const updateProfile = async (
         userId,
         data
     )
-// endregion
-
-// region Health Interests
-export const addHealthInterests = async (
-    userId: string,
-    slugs: string[]
-) => {
-    const profile = await ensureProfileExists(
-        userId
-    )
-
-    await Promise.all(
-        slugs.map(slug =>
-            profileModel.addHealthInterest(profile.id, slug)
-        )
-    )
-}
-
-export const removeHealthInterest = async (
-    userId: string,
-    slug: string
-) => {
-    const profile = await ensureProfileExists(
-        userId
-    )
-
-    await profileModel.removeHealthInterest(profile.id, slug)
-}
-// endregion
-
-// region Activity Preferences
-export const addActivityPreferences = async (
-    userId: string,
-    slugs: string[]
-) => {
-    const profile = await ensureProfileExists(userId)
-    await Promise.all(
-        slugs.map(slug =>
-            profileModel.addActivityPreference(profile.id, slug)
-        )
-    )
-}
-
-export const removeActivityPreference = async (
-    userId: string,
-    slug: string
-) => {
-    const profile = await ensureProfileExists(userId)
-    await profileModel.removeActivityPreference(profile.id, slug)
-}
 // endregion
 
 // region Available Options

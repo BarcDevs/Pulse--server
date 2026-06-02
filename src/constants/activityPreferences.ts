@@ -11,8 +11,10 @@ export const VALID_ACTIVITY_PREFERENCE_SLUGS = [
     'hobbies',
     'outdoors',
     'mindfulness',
-    'self_care',
-    'medical'
+    'self-care',
+    'medical',
+    'meditation',
+    'yoga'
 ] as const
 
 export type ActivityPreferenceSlug

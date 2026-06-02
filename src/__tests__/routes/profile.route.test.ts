@@ -408,418 +408,61 @@ describe('Profile Routes', () => {
         )
     })
 
-    // ==================== HEALTH INTERESTS ====================
+    // ==================== HEALTH INTERESTS & ACTIVITY PREFERENCES ====================
     describe(
-        'POST /api/v1/profile/health-interests',
+        'PATCH /api/v1/profile — healthInterests',
         () => {
-            const endpoint =
-                '/api/v1/profile/health-interests'
+            const endpoint = '/api/v1/profile'
 
             it(
-                'should add single health interest',
+                'should set healthInterests array',
                 async () => {
-                    prismaMock.profile.update
-                        .mockResolvedValue({
-                            ...mockProfile,
-                            healthInterests: ['mental-health']
-                        })
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([])
-
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await request(App)
-                        .post(endpoint)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-                        .send({
-                            slugs: ['mental-health']
-                        })
-
-                    expect(res.status).toBe(200)
-                    expect(
-                        res.body.message
-                    ).toContain('added')
-                }
-            )
-
-            it(
-                'should add multiple health interests',
-                async () => {
-                    prismaMock.profile.update
-                        .mockResolvedValue({
-                            ...mockProfile,
-                            healthInterests: ['mental-health', 'fitness']
-                        })
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([])
-
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await request(App)
-                        .post(endpoint)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-                        .send({
-                            slugs: ['mental-health', 'fitness']
-                        })
-
-                    expect(res.status).toBe(200)
-                    expect(res.body.message).toContain('added')
-                }
-            )
-
-            it(
-                'should return 401 if not authenticated',
-                async () => {
-                    const res = await request(App)
-                        .post(endpoint)
-                        .send({
-                            slugs: ['mental-health']
-                        })
-
-                    expect(res.status).toBe(401)
-                }
-            )
-
-            it(
-                'should reject missing slugs array',
-                async () => {
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await withCsrfAuth(
-                        request(App).post(endpoint),
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    ).send({})
-
-                    expect(res.status).toBe(400)
-                    expect(res.body.error).toBeDefined()
-                }
-            )
-
-            it(
-                'should reject empty slugs array',
-                async () => {
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await withCsrfAuth(
-                        request(App).post(endpoint),
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    ).send({ slugs: [] })
-
-                    expect(res.status).toBe(400)
-                    expect(res.body.error).toBeDefined()
-                }
-            )
-
-            it(
-                'should reject invalid slug',
-                async () => {
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await withCsrfAuth(
-                        request(App).post(endpoint),
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    ).send({ slugs: ['not-a-valid-slug'] })
-
-                    expect(res.status).toBe(400)
-                    expect(res.body.error).toBeDefined()
-                }
-            )
-        }
-    )
-
-    describe(
-        'DELETE /api/v1/profile/health-interests/:slug',
-        () => {
-            const endpoint =
-                '/api/v1/profile/health-interests'
-
-            it(
-                'should remove health interest',
-                async () => {
-                    prismaMock.profile.update
-                        .mockResolvedValue(mockProfile)
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([])
-
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await request(App)
-                        .delete(
-                            `${endpoint}/mental-health`
-                        )
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-
-                    expect(res.status).toBe(200)
-                    expect(
-                        res.body.message
-                    ).toContain('removed')
-                }
-            )
-
-            it(
-                'should return 401 if not authenticated',
-                async () => {
-                    const res = await request(App)
-                        .delete(
-                            `${endpoint}/mental-health`
-                        )
-
-                    expect(res.status).toBe(401)
-                }
-            )
-
-            it(
-                'should validate slug parameter',
-                async () => {
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const slug = 'a'.repeat(51)
-
-                    const res = await request(App)
-                        .delete(`${endpoint}/${slug}`)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-
-                    expect(res.status).toBe(400)
-                }
-            )
-        }
-    )
-
-    // ==================== ACTIVITY PREFERENCES ====================
-    describe(
-        'POST /api/v1/profile/activities',
-        () => {
-            const endpoint =
-                '/api/v1/profile/activities'
-
-            it(
-                'should add single activity preference',
-                async () => {
-                    prismaMock.profile.update
-                        .mockResolvedValue({
-                            ...mockProfile,
-                            activityPreferences: ['meditation']
-                        })
-
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await request(App)
-                        .post(endpoint)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-                        .send({
-                            slugs: ['meditation']
-                        })
-
-                    expect(res.status).toBe(200)
-                    expect(
-                        res.body.message
-                    ).toContain('added')
-                }
-            )
-
-            it(
-                'should add multiple activities',
-                async () => {
-                    const updatedProfile = {
+                    const updated = {
                         ...mockProfile,
-                        activityPreferences: ['meditation', 'yoga']
+                        healthInterests: ['mental-health', 'fitness']
                     }
                     prismaMock.profile.update
-                        .mockResolvedValue(updatedProfile)
-                    // calls: ensureProfileExists(add) → check meditation → check yoga → ensureProfileExists(getProfile)
-                    prismaMock.profile.findUnique
-                        .mockResolvedValueOnce(mockProfile)
-                        .mockResolvedValueOnce(mockProfile)
-                        .mockResolvedValueOnce(mockProfile)
-                        .mockResolvedValue(updatedProfile)
+                        .mockResolvedValue(updated)
 
                     const {
                         token,
                         csrfSecret,
                         csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
+                    } = createAuthenticatedRequest(mockUser)
 
-                    const res = await request(App)
-                        .post(endpoint)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
-                        .send({
-                            slugs: ['meditation', 'yoga']
-                        })
+                    const res = await withCsrfAuth(
+                        request(App).patch(endpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        healthInterests: ['mental-health', 'fitness']
+                    })
 
                     expect(res.status).toBe(200)
                     expect(
-                        res.body.data
-                            .activityPreferences
-                    ).toHaveLength(2)
+                        res.body.data.healthInterests
+                    ).toEqual(['mental-health', 'fitness'])
                 }
             )
 
             it(
-                'should return 401 if not authenticated',
-                async () => {
-                    const res = await request(App)
-                        .post(endpoint)
-                        .send({ slugs: ['meditation'] })
-
-                    expect(res.status).toBe(401)
-                }
-            )
-
-            it(
-                'should reject missing slugs array',
+                'should reject invalid health interest slug',
                 async () => {
                     const {
                         token,
                         csrfSecret,
                         csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
+                    } = createAuthenticatedRequest(mockUser)
 
                     const res = await withCsrfAuth(
-                        request(App).post(endpoint),
+                        request(App).patch(endpoint),
                         token,
                         csrfSecret,
                         csrfToken
-                    ).send({})
-
-                    expect(res.status).toBe(400)
-                    expect(res.body.error).toBeDefined()
-                }
-            )
-
-            it(
-                'should reject invalid slug',
-                async () => {
-                    const {
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
-
-                    const res = await withCsrfAuth(
-                        request(App).post(endpoint),
-                        token,
-                        csrfSecret,
-                        csrfToken
-                    ).send({ slugs: ['not-a-valid-slug'] })
+                    ).send({
+                        healthInterests: ['not-a-valid-slug']
+                    })
 
                     expect(res.status).toBe(400)
                     expect(res.body.error).toBeDefined()
@@ -829,80 +472,62 @@ describe('Profile Routes', () => {
     )
 
     describe(
-        'DELETE /api/v1/profile/activities/:slug',
+        'PATCH /api/v1/profile — activityPreferences',
         () => {
-            const endpoint =
-                '/api/v1/profile/activities'
+            const endpoint = '/api/v1/profile'
 
             it(
-                'should remove activity preference',
+                'should set activityPreferences array',
                 async () => {
+                    const updated = {
+                        ...mockProfile,
+                        activityPreferences: ['walking', 'mindfulness']
+                    }
                     prismaMock.profile.update
-                        .mockResolvedValue(mockProfile)
+                        .mockResolvedValue(updated)
 
                     const {
                         token,
                         csrfSecret,
                         csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
+                    } = createAuthenticatedRequest(mockUser)
 
-                    const res = await request(App)
-                        .delete(
-                            `${endpoint}/meditation`
-                        )
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
+                    const res = await withCsrfAuth(
+                        request(App).patch(endpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        activityPreferences: ['walking', 'mindfulness']
+                    })
 
                     expect(res.status).toBe(200)
                     expect(
-                        res.body.message
-                    ).toContain('removed')
+                        res.body.data.activityPreferences
+                    ).toEqual(['walking', 'mindfulness'])
                 }
             )
 
             it(
-                'should return 401 if not authenticated',
-                async () => {
-                    const res = await request(App)
-                        .delete(`${endpoint}/meditation`)
-
-                    expect(res.status).toBe(401)
-                }
-            )
-
-            it(
-                'should validate slug parameter',
+                'should reject invalid activity preference slug',
                 async () => {
                     const {
                         token,
                         csrfSecret,
                         csrfToken
-                    } =
-                        createAuthenticatedRequest(
-                            mockUser
-                        )
+                    } = createAuthenticatedRequest(mockUser)
 
-                    const res = await request(App)
-                        .delete(`${endpoint}/not-a-valid-slug`)
-                        .set('Cookie', [
-                            `accessToken=${token}`,
-                            `_csrf=${csrfSecret}`
-                        ])
-                        .set(
-                            'x-csrf-token',
-                            csrfToken
-                        )
+                    const res = await withCsrfAuth(
+                        request(App).patch(endpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({
+                        activityPreferences: ['not-a-valid-slug']
+                    })
 
                     expect(res.status).toBe(400)
+                    expect(res.body.error).toBeDefined()
                 }
             )
         }
@@ -961,10 +586,10 @@ describe('Profile Routes', () => {
                     expect(res.status).toBe(200)
                     expect(
                         res.body.data
-                    ).toHaveLength(15)
+                    ).toHaveLength(16)
                     expect(
                         res.body.data[0]
-                    ).toBe('meditation')
+                    ).toBe('walking')
                     expect(
                         res.body.message
                     ).toContain('available')

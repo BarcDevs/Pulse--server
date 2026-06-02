@@ -52,7 +52,7 @@ async function main() {
         'hobbies',
         'outdoors',
         'mindfulness',
-        'self_care',
+        'self-care',
         'medical'
     ]
 
@@ -148,7 +148,7 @@ async function main() {
         ['rest', 'hobbies'],
         ['work', 'study'],
         ['outdoors', 'socializing'],
-        ['therapy', 'self_care'],
+        ['therapy', 'self-care'],
         ['household', 'medical']
     ]
 

@@ -1,9 +1,8 @@
 import { z } from 'zod'
 
-import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../constants/activityPreferences'
-import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
-
-import { caseInsensitiveEnum } from './utils/caseInsensitiveEnum'
+import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../../constants/activityPreferences'
+import { VALID_HEALTH_INTEREST_SLUGS } from '../../constants/healthInterests'
+import { caseInsensitiveEnum } from '../utils/caseInsensitiveEnum'
 
 export const updateProfileSchema = z.object({
     // TODO: update when image upload endpoint is implemented (multipart)
@@ -34,35 +33,17 @@ export const updateProfileSchema = z.object({
     profileVisibility: caseInsensitiveEnum([
         'onlyMe',
         'friends',
-        'public']
-    ).optional(),
-    anonymousParticipation: z.boolean().optional()
-})
-
-export const addHealthInterestsSchema = z.object({
-    slugs: z.array(
+        'public'
+    ]).optional(),
+    anonymousParticipation: z.boolean().optional(),
+    healthInterests: z.array(
         z.enum(VALID_HEALTH_INTEREST_SLUGS, {
             message: 'Invalid health interest slug'
         })
-    ).min(1, 'At least one health interest is required')
-})
-
-export const addActivityPreferencesSchema = z.object({
-    slugs: z.array(
+    ).optional(),
+    activityPreferences: z.array(
         z.enum(VALID_ACTIVITY_PREFERENCE_SLUGS, {
             message: 'Invalid activity preference slug'
         })
-    ).min(1, 'At least one activity preference is required')
-})
-
-export const healthInterestSlugParamSchema = z.object({
-    slug: z.enum(VALID_HEALTH_INTEREST_SLUGS, {
-        message: 'Invalid health interest slug'
-    })
-})
-
-export const activityPreferenceSlugParamSchema = z.object({
-    slug: z.enum(VALID_ACTIVITY_PREFERENCE_SLUGS, {
-        message: 'Invalid activity preference slug'
-    })
+    ).optional()
 })
