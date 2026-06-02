@@ -40,21 +40,20 @@ async function main() {
     ]
 
     const activitySlugs = [
-        'meditation',
-        'yoga',
         'walking',
-        'swimming',
-        'running',
-        'cycling',
-        'strength-training',
-        'journaling',
-        'breathing-exercises',
-        'tai-chi',
-        'pilates',
-        'dancing',
-        'reading',
-        'cooking',
-        'gardening'
+        'exercise',
+        'stretching',
+        'therapy',
+        'work',
+        'study',
+        'household',
+        'socializing',
+        'rest',
+        'hobbies',
+        'outdoors',
+        'mindfulness',
+        'self_care',
+        'medical'
     ]
 
     const testUsers = [
@@ -144,13 +143,13 @@ async function main() {
     console.info('Seeding check-in data...')
     const today = new Date()
     const activityOptions = [
-        ['meditation', 'walking'],
-        ['yoga', 'journaling'],
-        ['swimming', 'breathing-exercises'],
-        ['running', 'strength-training'],
-        ['tai-chi', 'gardening'],
-        ['cycling', 'pilates'],
-        ['reading', 'meditation']
+        ['walking', 'mindfulness'],
+        ['exercise', 'stretching'],
+        ['rest', 'hobbies'],
+        ['work', 'study'],
+        ['outdoors', 'socializing'],
+        ['therapy', 'self_care'],
+        ['household', 'medical']
     ]
 
     for (let i = 0; i < createdUsers.length; i++) {

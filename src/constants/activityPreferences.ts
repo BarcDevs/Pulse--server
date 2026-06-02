@@ -1,19 +1,19 @@
 export const VALID_ACTIVITY_PREFERENCE_SLUGS = [
-    'meditation',
-    'yoga',
     'walking',
-    'swimming',
-    'running',
-    'cycling',
-    'strength-training',
-    'journaling',
-    'breathing-exercises',
-    'tai-chi',
-    'pilates',
-    'dancing',
-    'reading',
-    'cooking',
-    'gardening'
+    'exercise',
+    'stretching',
+    'therapy',
+    'work',
+    'study',
+    'household',
+    'socializing',
+    'rest',
+    'hobbies',
+    'outdoors',
+    'mindfulness',
+    'self_care',
+    'medical'
 ] as const
 
-export type ActivityPreferenceSlug = typeof VALID_ACTIVITY_PREFERENCE_SLUGS[number]
+export type ActivityPreferenceSlug
+    = typeof VALID_ACTIVITY_PREFERENCE_SLUGS[number]
