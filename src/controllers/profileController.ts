@@ -6,10 +6,10 @@ import {
 } from '../errors/ValidationError'
 import { successResponse } from '../responses/success'
 import {
+    activityPreferenceSlugParamSchema,
     addActivityPreferencesSchema,
     addHealthInterestsSchema,
     healthInterestSlugParamSchema,
-    slugParamSchema,
     updateProfileSchema
 } from '../schemas/profileSchema'
 import * as profileService from
@@ -177,7 +177,7 @@ export const removeActivityPreference = async (
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.safeParse({ slug })
+            activityPreferenceSlugParamSchema.safeParse({ slug })
         )
 
     await profileService
@@ -213,13 +213,12 @@ export const getHealthInterests = async (
     )
 }
 
-export const getActivityPreferences = async (
+export const getActivityPreferences = (
     req: Request,
     res: Response
 ) => {
     const activities =
-        await profileService
-            .getAvailableActivityPreferences()
+        profileService.getAvailableActivityPreferences()
 
     return successResponse(
         res,

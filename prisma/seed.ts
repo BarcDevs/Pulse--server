@@ -39,97 +39,22 @@ async function main() {
         'motivation', 'peer-support', 'disability-support', 'goal-progress'
     ]
 
-    const activityPreferences = [
-        {
-            slug: 'meditation',
-            name: 'Meditation',
-            category: 'Mindfulness',
-            sortOrder: 1
-        },
-        {
-            slug: 'yoga',
-            name: 'Yoga',
-            category: 'Physical',
-            sortOrder: 2
-        },
-        {
-            slug: 'walking',
-            name: 'Walking',
-            category: 'Physical',
-            sortOrder: 3
-        },
-        {
-            slug: 'swimming',
-            name: 'Swimming',
-            category: 'Physical',
-            sortOrder: 4
-        },
-        {
-            slug: 'running',
-            name: 'Running',
-            category: 'Physical',
-            sortOrder: 5
-        },
-        {
-            slug: 'cycling',
-            name: 'Cycling',
-            category: 'Physical',
-            sortOrder: 6
-        },
-        {
-            slug: 'strength-training',
-            name: 'Strength Training',
-            category: 'Physical',
-            sortOrder: 7
-        },
-        {
-            slug: 'journaling',
-            name: 'Journaling',
-            category: 'Mindfulness',
-            sortOrder: 8
-        },
-        {
-            slug: 'breathing-exercises',
-            name: 'Breathing Exercises',
-            category: 'Mindfulness',
-            sortOrder: 9
-        },
-        {
-            slug: 'tai-chi',
-            name: 'Tai Chi',
-            category: 'Physical',
-            sortOrder: 10
-        },
-        {
-            slug: 'pilates',
-            name: 'Pilates',
-            category: 'Physical',
-            sortOrder: 11
-        },
-        {
-            slug: 'dancing',
-            name: 'Dancing',
-            category: 'Physical',
-            sortOrder: 12
-        },
-        {
-            slug: 'reading',
-            name: 'Reading',
-            category: 'Mental',
-            sortOrder: 13
-        },
-        {
-            slug: 'cooking',
-            name: 'Cooking',
-            category: 'Self-Care',
-            sortOrder: 14
-        },
-        {
-            slug: 'gardening',
-            name: 'Gardening',
-            category: 'Physical',
-            sortOrder: 15
-        }
+    const activitySlugs = [
+        'meditation',
+        'yoga',
+        'walking',
+        'swimming',
+        'running',
+        'cycling',
+        'strength-training',
+        'journaling',
+        'breathing-exercises',
+        'tai-chi',
+        'pilates',
+        'dancing',
+        'reading',
+        'cooking',
+        'gardening'
     ]
 
     const testUsers = [
@@ -170,17 +95,7 @@ async function main() {
         }
     ]
 
-    console.info('Seeding activity preferences...')
-    for (const { slug, ...activityFields } of activityPreferences) {
-        await prisma.activityPreference.upsert({
-            where: { slug },
-            update: activityFields,
-            create: { slug, ...activityFields }
-        })
-    }
-
     const createdUsers = []
-    const allActivitySlugs = activityPreferences.map(a => a.slug)
 
     const timezones = [
         'America/New_York',
@@ -196,6 +111,7 @@ async function main() {
     for (let i = 0; i < testUsers.length; i++) {
         const userData = testUsers[i]!
         const userHealthInterests = healthInterestSlugs.slice(i * 2, i * 2 + 3)
+        const userActivityPreferences = activitySlugs.slice(i * 2, i * 2 + 3)
 
         const user = await prisma.user.upsert({
             where: { email: userData.email },
@@ -215,40 +131,14 @@ async function main() {
                         dailyReminder: i % 2 === 0,
                         communityAlerts: true,
                         profileVisibility: i === 0 ? 'public' : 'friends',
-                        healthInterests: userHealthInterests
+                        healthInterests: userHealthInterests,
+                        activityPreferences: userActivityPreferences
                     }
                 }
             },
             include: { profile: true }
         })
         createdUsers.push(user)
-    }
-
-    console.info('Adding activity preferences to user profiles...')
-    for (let i = 0; i < createdUsers.length; i++) {
-        const profile = createdUsers[i]!.profile!
-        const userActivities = allActivitySlugs.slice(i * 2, i * 2 + 3)
-
-        for (const slug of userActivities) {
-            const activity = await prisma.activityPreference.findUnique({
-                where: { slug }
-            })
-            if (activity) {
-                await prisma.profileActivityPreference.upsert({
-                    where: {
-                        profileId_activityPreferenceId: {
-                            profileId: profile.id,
-                            activityPreferenceId: activity.id
-                        }
-                    },
-                    update: {},
-                    create: {
-                        profileId: profile.id,
-                        activityPreferenceId: activity.id
-                    }
-                })
-            }
-        }
     }
 
     console.info('Seeding check-in data...')
@@ -274,10 +164,11 @@ async function main() {
             checkInDate.setHours(0, 0, 0, 0)
 
             // Simulate a trend: day 0-4 lower mood, 5-9 improving, 10-13 high mood
-            let baseMood = 5
-            if (day <= 4) baseMood = 3 + Math.floor(Math.random() * 3)
-            else if (day <= 9) baseMood = 5 + Math.floor(Math.random() * 3)
-            else baseMood = 7 + Math.floor(Math.random() * 3)
+            const baseMood = day <= 4
+                ? 3 + Math.floor(Math.random() * 3)
+                : day <= 9
+                    ? 5 + Math.floor(Math.random() * 3)
+                    : 7 + Math.floor(Math.random() * 3)
 
             await prisma.dailyCheckIn.upsert({
                 where: {
@@ -371,12 +262,12 @@ async function main() {
     }
 
     console.info('Seeding posts...')
-    console.log(`Found ${createdUsers.length} users to use as post authors`)
+    console.info(`Found ${createdUsers.length} users to use as post authors`)
     if (createdUsers.length === 0) {
         console.warn('No users created, skipping posts')
     } else {
         const firstUser = createdUsers[0]
-        console.log(`First user: ${firstUser.email}, profile ID: ${firstUser.profile?.id}`)
+        console.info(`First user: ${firstUser.email}, profile ID: ${firstUser.profile?.id}`)
     }
 
     await prisma.reply.deleteMany({})
@@ -502,7 +393,7 @@ async function main() {
                         }
                     })
                 }
-            } catch (e) {
+            } catch {
                 // Skip tag if it fails
             }
         }

@@ -53,50 +53,21 @@ model Profile {
   theme                  String    @default("light")
   lastCheckInAt          DateTime?
 
-  healthInterests     String[]                    @default([])
+  healthInterests     String[] @default([])
+  activityPreferences String[] @default([])
 
-  posts               Post[]
-  replies             Reply[]
-  followedTags        ProfileToTag[]
-  checkIns            DailyCheckIn[]
-  recoveryGoals       RecoveryGoal[]
-  activityPreferences ProfileActivityPreference[]
-  postLikes           PostLike[]
+  posts         Post[]
+  replies       Reply[]
+  followedTags  ProfileToTag[]
+  checkIns      DailyCheckIn[]
+  recoveryGoals RecoveryGoal[]
+  postLikes     PostLike[]
   replyLikes          ReplyLike[]
   savedPosts          SavedPost[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-model ActivityPreference {
-  id          String                      @id @default(uuid())
-  slug        String                      @unique
-  name        String
-  description String?
-  category    String?
-  sortOrder   Int?
-  isActive    Boolean                     @default(true)
-  createdAt   DateTime                    @default(now())
-  updatedAt   DateTime                    @updatedAt
-  profiles    ProfileActivityPreference[]
-
-  @@index([isActive])
-  @@index([category, sortOrder])
-}
-
-model ProfileActivityPreference {
-  id                   String             @id @default(uuid())
-  profileId            String
-  activityPreferenceId String
-  addedAt              DateTime           @default(now())
-  activityPreference   ActivityPreference @relation(fields: [activityPreferenceId], references: [id], onDelete: Cascade)
-  profile              Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, activityPreferenceId])
-  @@index([profileId])
-  @@index([activityPreferenceId])
 }
 
 model Post {

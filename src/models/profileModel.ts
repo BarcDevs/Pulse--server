@@ -1,7 +1,5 @@
-import type {
-    Profile,
-    ProfileActivityPreference
-} from '../../prisma/generated/prisma/client'
+import type { Profile } from '../../prisma/generated/prisma/client'
+import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../constants/activityPreferences'
 import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
 import Prisma from '../utils/prismaClient'
 
@@ -68,63 +66,42 @@ export const removeHealthInterest = async (
 
 export const addActivityPreference = async (
     profileId: string,
-    activityPreferenceId: string
-): Promise<ProfileActivityPreference> => {
-    return Prisma.profileActivityPreference.upsert({
-        where: {
-            profileId_activityPreferenceId: {
-                profileId,
-                activityPreferenceId
-            }
-        },
-        update: {},
-        create: {
-            profileId,
-            activityPreferenceId
-        }
+    slug: string
+): Promise<void> => {
+    const profile = await Prisma.profile.findUnique({
+        where: { id: profileId },
+        select: { activityPreferences: true }
+    })
+    if (!profile || profile.activityPreferences.includes(slug)) return
+    await Prisma.profile.update({
+        where: { id: profileId },
+        data: { activityPreferences: { push: slug } }
     })
 }
 
 export const removeActivityPreference = async (
     profileId: string,
-    activityPreferenceId: string
+    slug: string
 ): Promise<void> => {
-    await Prisma.profileActivityPreference.deleteMany({
-        where: {
-            profileId,
-            activityPreferenceId
+    const profile = await Prisma.profile.findUnique({
+        where: { id: profileId },
+        select: { activityPreferences: true }
+    })
+    if (!profile) return
+    await Prisma.profile.update({
+        where: { id: profileId },
+        data: {
+            activityPreferences: {
+                set: profile.activityPreferences.filter(
+                    s => s !== slug
+                )
+            }
         }
     })
-}
-
-export const getActivityPreferences = async (
-    profileId: string
-) => {
-    return Prisma.profileActivityPreference.findMany(
-        {
-            where: { profileId },
-            include: { activityPreference: true },
-            orderBy: { addedAt: 'desc' }
-        }
-    )
 }
 
 export const getAvailableHealthInterests = () =>
     [...VALID_HEALTH_INTEREST_SLUGS]
 
-export const getAvailableActivityPreferences = async () => {
-    return Prisma.activityPreference.findMany({
-        where: { isActive: true },
-        orderBy: [
-            { category: 'asc' },
-            { sortOrder: 'asc' },
-            { name: 'asc' }
-        ]
-    })
-}
-
-export const getActivityPreferenceBySlug = async (slug: string) => {
-    return Prisma.activityPreference.findUnique({
-        where: { slug }
-    })
-}
+export const getAvailableActivityPreferences = () =>
+    [...VALID_ACTIVITY_PREFERENCE_SLUGS]

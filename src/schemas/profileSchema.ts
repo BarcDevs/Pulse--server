@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../constants/activityPreferences'
 import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
 
 import { caseInsensitiveEnum } from './utils/caseInsensitiveEnum'
@@ -48,7 +49,9 @@ export const addHealthInterestsSchema = z.object({
 
 export const addActivityPreferencesSchema = z.object({
     slugs: z.array(
-        z.string().max(50)
+        z.enum(VALID_ACTIVITY_PREFERENCE_SLUGS, {
+            message: 'Invalid activity preference slug'
+        })
     ).min(1, 'At least one activity preference is required')
 })
 
@@ -58,6 +61,8 @@ export const healthInterestSlugParamSchema = z.object({
     })
 })
 
-export const slugParamSchema = z.object({
-    slug: z.string().max(50)
+export const activityPreferenceSlugParamSchema = z.object({
+    slug: z.enum(VALID_ACTIVITY_PREFERENCE_SLUGS, {
+        message: 'Invalid activity preference slug'
+    })
 })

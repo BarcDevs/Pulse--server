@@ -27,22 +27,11 @@ const createMockProfile = (
     anonymousParticipation: true,
     lastCheckInAt: null,
     healthInterests: [] as string[],
+    activityPreferences: [] as string[],
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides
 })
-
-const mockActivityPreference = {
-    id: 'activity-1',
-    slug: 'meditation',
-    name: 'Meditation',
-    description: 'Meditation practices',
-    category: 'Mindfulness',
-    sortOrder: 1,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-}
 
 describe('Profile Routes', () => {
     const mockUser = createMockUser()
@@ -70,8 +59,6 @@ describe('Profile Routes', () => {
             'should return 200 with profile data',
             async () => {
                 const token = createAuthToken(mockUser)
-                prismaMock.profileActivityPreference
-                    .findMany.mockResolvedValue([])
 
                 const res = await request(App)
                     .get(endpoint)
@@ -97,8 +84,6 @@ describe('Profile Routes', () => {
                         userId: mockUser.id,
                         healthInterests: ['mental-health']
                     }))
-                prismaMock.profileActivityPreference
-                    .findMany.mockResolvedValue([])
 
                 const res = await request(App)
                     .get(endpoint)
@@ -699,31 +684,11 @@ describe('Profile Routes', () => {
             it(
                 'should add single activity preference',
                 async () => {
-                    prismaMock.activityPreference
-                        .findUnique
-                        .mockResolvedValue(
-                            mockActivityPreference
-                        )
-                    prismaMock
-                        .profileActivityPreference
-                        .upsert.mockResolvedValue({
-                        id: 'link-1',
-                        profileId: mockProfile.id,
-                        activityPreferenceId:
-                            mockActivityPreference.id,
-                        addedAt: new Date()
-                    })
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([{
-                            profileId: mockProfile.id,
-                            activityPreferenceId:
-                                mockActivityPreference.id,
-                            addedAt: new Date(),
-                            activityPreference:
-                                mockActivityPreference
-                        }])
+                    prismaMock.profile.update
+                        .mockResolvedValue({
+                            ...mockProfile,
+                            activityPreferences: ['meditation']
+                        })
 
                     const {
                         token,
@@ -758,62 +723,18 @@ describe('Profile Routes', () => {
             it(
                 'should add multiple activities',
                 async () => {
-                    const activity2 = {
-                        ...mockActivityPreference,
-                        id: 'activity-2',
-                        slug: 'yoga'
+                    const updatedProfile = {
+                        ...mockProfile,
+                        activityPreferences: ['meditation', 'yoga']
                     }
-
-                    prismaMock.activityPreference
-                        .findUnique
-                        .mockResolvedValueOnce(
-                            mockActivityPreference
-                        )
-                        .mockResolvedValueOnce(activity2)
-
-                    prismaMock
-                        .profileActivityPreference
-                        .upsert
-                        .mockResolvedValueOnce({
-                            id: 'link-1',
-                            profileId: mockProfile.id,
-                            activityPreferenceId:
-                                mockActivityPreference
-                                    .id,
-                            addedAt: new Date()
-                        })
-                        .mockResolvedValueOnce({
-                            id: 'link-2',
-                            profileId: mockProfile.id,
-                            activityPreferenceId:
-                                activity2.id,
-                            addedAt: new Date()
-                        })
-
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([
-                            {
-                                profileId:
-                                    mockProfile.id,
-                                activityPreferenceId:
-                                    mockActivityPreference
-                                        .id,
-                                addedAt: new Date(),
-                                activityPreference:
-                                    mockActivityPreference
-                            },
-                            {
-                                profileId:
-                                    mockProfile.id,
-                                activityPreferenceId:
-                                    activity2.id,
-                                addedAt: new Date(),
-                                activityPreference:
-                                    activity2
-                            }
-                        ])
+                    prismaMock.profile.update
+                        .mockResolvedValue(updatedProfile)
+                    // calls: ensureProfileExists(add) → check meditation → check yoga → ensureProfileExists(getProfile)
+                    prismaMock.profile.findUnique
+                        .mockResolvedValueOnce(mockProfile)
+                        .mockResolvedValueOnce(mockProfile)
+                        .mockResolvedValueOnce(mockProfile)
+                        .mockResolvedValue(updatedProfile)
 
                     const {
                         token,
@@ -880,6 +801,30 @@ describe('Profile Routes', () => {
                     expect(res.body.error).toBeDefined()
                 }
             )
+
+            it(
+                'should reject invalid slug',
+                async () => {
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } =
+                        createAuthenticatedRequest(
+                            mockUser
+                        )
+
+                    const res = await withCsrfAuth(
+                        request(App).post(endpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({ slugs: ['not-a-valid-slug'] })
+
+                    expect(res.status).toBe(400)
+                    expect(res.body.error).toBeDefined()
+                }
+            )
         }
     )
 
@@ -892,21 +837,8 @@ describe('Profile Routes', () => {
             it(
                 'should remove activity preference',
                 async () => {
-                    prismaMock.activityPreference
-                        .findUnique
-                        .mockResolvedValue(
-                            mockActivityPreference
-                        )
-                    prismaMock
-                        .profileActivityPreference
-                        .deleteMany
-                        .mockResolvedValue({
-                            count: 1
-                        })
-                    prismaMock
-                        .profileActivityPreference
-                        .findMany
-                        .mockResolvedValue([])
+                    prismaMock.profile.update
+                        .mockResolvedValue(mockProfile)
 
                     const {
                         token,
@@ -944,6 +876,33 @@ describe('Profile Routes', () => {
                         .delete(`${endpoint}/meditation`)
 
                     expect(res.status).toBe(401)
+                }
+            )
+
+            it(
+                'should validate slug parameter',
+                async () => {
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } =
+                        createAuthenticatedRequest(
+                            mockUser
+                        )
+
+                    const res = await request(App)
+                        .delete(`${endpoint}/not-a-valid-slug`)
+                        .set('Cookie', [
+                            `accessToken=${token}`,
+                            `_csrf=${csrfSecret}`
+                        ])
+                        .set(
+                            'x-csrf-token',
+                            csrfToken
+                        )
+
+                    expect(res.status).toBe(400)
                 }
             )
         }
@@ -996,28 +955,15 @@ describe('Profile Routes', () => {
             it(
                 'should return available activity preferences',
                 async () => {
-                    const activities = [
-                        mockActivityPreference,
-                        {
-                            ...mockActivityPreference,
-                            id: 'activity-2',
-                            slug: 'yoga'
-                        }
-                    ]
-
-                    prismaMock.activityPreference
-                        .findMany
-                        .mockResolvedValue(activities)
-
                     const res = await request(App)
                         .get(endpoint)
 
                     expect(res.status).toBe(200)
                     expect(
                         res.body.data
-                    ).toHaveLength(2)
+                    ).toHaveLength(15)
                     expect(
-                        res.body.data[0].slug
+                        res.body.data[0]
                     ).toBe('meditation')
                     expect(
                         res.body.message
@@ -1026,29 +972,8 @@ describe('Profile Routes', () => {
             )
 
             it(
-                'should return empty array if no activities',
-                async () => {
-                    prismaMock.activityPreference
-                        .findMany
-                        .mockResolvedValue([])
-
-                    const res = await request(App)
-                        .get(endpoint)
-
-                    expect(res.status).toBe(200)
-                    expect(res.body.data).toEqual([])
-                }
-            )
-
-            it(
                 'should be publicly accessible',
                 async () => {
-                    prismaMock.activityPreference
-                        .findMany
-                        .mockResolvedValue([
-                            mockActivityPreference
-                        ])
-
                     const res = await request(App)
                         .get(endpoint)
 
