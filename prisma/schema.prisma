@@ -72,7 +72,6 @@ model Profile {
 model HealthInterest {
   id          String                  @id @default(uuid())
   slug        String                  @unique
-  name        String
   description String?
   category    String?
   sortOrder   Int?

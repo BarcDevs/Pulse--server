@@ -4,7 +4,6 @@ import type { Prettify } from '../index'
 export type HealthInterestType = {
     id: string
     slug: string
-    name: string
     description?: string | null
     category?: string | null
     sortOrder?: number | null

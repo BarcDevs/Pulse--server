@@ -466,6 +466,11 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ### `GET /posts/:postId`
 
+**Query**
+| Param   | Type   | Notes                                                |
+|---------|--------|------------------------------------------------------|
+| `limit` | number | Max inline replies to embed in response. Default: 10. Use `GET /posts/:postId/replies` for full pagination. |
+
 **Response `200`**
 ```json
 {
@@ -589,6 +594,12 @@ Returns the current user's saved posts. Supports the same pagination query param
 ---
 
 ### `GET /posts/:postId/replies`
+
+**Query**
+| Param   | Type   | Notes                                 |
+|---------|--------|---------------------------------------|
+| `limit` | number | Replies per page. Default: 10         |
+| `page`  | number | Page number (requires `limit`)        |
 
 **Response `200`**
 ```json
@@ -796,6 +807,11 @@ Returns all unknown tag attempts sorted by count descending. Used to discover po
 Returns pre-computed post recommendations based on the user's latest check-in.
 
 **Auth:** Required
+
+**Query**
+| Param  | Type   | Notes                                     |
+|--------|--------|-------------------------------------------|
+| `type` | string | Recommendation type. Only `feed` supported |
 
 **Response `200`**
 ```json
@@ -1111,7 +1127,7 @@ Retrieve the current user's profile with interests and activities.
     "location": "San Francisco, CA",
     "timezone": "America/Los_Angeles",
     "healthInterests": [
-      { "id": "hi-1", "slug": "mental-health", "name": "Mental Health", "category": "Wellness" }
+      { "id": "hi-1", "slug": "mental-health", "category": "Wellness" }
     ],
     "activityPreferences": [
       { "id": "ap-1", "slug": "meditation", "name": "Meditation", "category": "Mindfulness" }
@@ -1279,7 +1295,6 @@ List all available health interests for the platform.
     {
       "id": "hi-1",
       "slug": "mental-health",
-      "name": "Mental Health",
       "category": "Wellness",
       "sortOrder": 1,
       "description": "Psychological wellbeing and mental health support"
@@ -1287,7 +1302,6 @@ List all available health interests for the platform.
     {
       "id": "hi-2",
       "slug": "physical-therapy",
-      "name": "Physical Therapy",
       "category": "Recovery",
       "sortOrder": 2
     }

@@ -380,7 +380,6 @@ describe('Forum Service', () => {
         it('should filter by search', async () => {
             const fixedDate = new Date('2026-01-01')
             prismaMock.tag.findMany
-
                 .mockResolvedValue([createRawMockTag({
                     name: 'javascript',
                     nameHe: `ג'אווהסקריפט`,
@@ -393,7 +392,8 @@ describe('Forum Service', () => {
                 label: {
                     en: 'javascript',
                     he: `ג'אווהסקריפט`
-                }, createdAt: fixedDate
+                },
+                createdAt: fixedDate
             })])
         })
     })

@@ -33,61 +33,51 @@ async function main() {
     const healthInterests = [
         {
             slug: 'mental-health',
-            name: 'Mental Health',
             category: 'Wellness',
             sortOrder: 1
         },
         {
             slug: 'physical-therapy',
-            name: 'Physical Therapy',
             category: 'Recovery',
             sortOrder: 2
         },
         {
             slug: 'nutrition',
-            name: 'Nutrition',
             category: 'Wellness',
             sortOrder: 3
         },
         {
             slug: 'chronic-pain',
-            name: 'Chronic Pain Management',
             category: 'Recovery',
             sortOrder: 4
         },
         {
             slug: 'sleep-health',
-            name: 'Sleep Health',
             category: 'Wellness',
             sortOrder: 5
         },
         {
             slug: 'stress-management',
-            name: 'Stress Management',
             category: 'Wellness',
             sortOrder: 6
         },
         {
             slug: 'diabetes',
-            name: 'Diabetes Management',
             category: 'Condition-Specific',
             sortOrder: 7
         },
         {
             slug: 'heart-health',
-            name: 'Heart Health',
             category: 'Condition-Specific',
             sortOrder: 8
         },
         {
             slug: 'women-health',
-            name: 'Women\'s Health',
             category: 'Condition-Specific',
             sortOrder: 9
         },
         {
             slug: 'joint-health',
-            name: 'Joint & Bone Health',
             category: 'Recovery',
             sortOrder: 10
         }
@@ -249,20 +239,20 @@ async function main() {
     }
 
     console.info('Seeding health interests...')
-    for (const interest of healthInterests) {
+    for (const { slug, ...interestFields } of healthInterests) {
         await prisma.healthInterest.upsert({
-            where: { slug: interest.slug },
-            update: {},
-            create: interest
+            where: { slug },
+            update: interestFields,
+            create: { slug, ...interestFields }
         })
     }
 
     console.info('Seeding activity preferences...')
-    for (const activity of activityPreferences) {
+    for (const { slug, ...activityFields } of activityPreferences) {
         await prisma.activityPreference.upsert({
-            where: { slug: activity.slug },
-            update: {},
-            create: activity
+            where: { slug },
+            update: activityFields,
+            create: { slug, ...activityFields }
         })
     }
 

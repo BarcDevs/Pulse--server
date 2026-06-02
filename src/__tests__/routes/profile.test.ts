@@ -34,7 +34,6 @@ const createMockProfile = (
 const mockHealthInterest = {
     id: 'health-1',
     slug: 'mental-health',
-    name: 'Mental Health',
     description: 'Mental health support',
     category: 'Wellness',
     sortOrder: 1,
