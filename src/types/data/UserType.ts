@@ -1,17 +1,6 @@
 import type { Role } from '../../../prisma/generated/prisma/enums'
 import type { Prettify } from '../index'
 
-export type HealthInterestType = {
-    id: string
-    slug: string
-    description?: string | null
-    category?: string | null
-    sortOrder?: number | null
-    isActive: boolean
-    createdAt: Date
-    updatedAt: Date
-}
-
 export type ActivityPreferenceType = {
     id: string
     slug: string
@@ -22,14 +11,6 @@ export type ActivityPreferenceType = {
     isActive: boolean
     createdAt: Date
     updatedAt: Date
-}
-
-export type ProfileHealthInterestType = {
-    id: string
-    profileId: string
-    healthInterestId: string
-    healthInterest?: HealthInterestType
-    addedAt: Date
 }
 
 export type ProfileActivityPreferenceType = {
@@ -55,7 +36,7 @@ export type ProfileType = {
     profileVisibility: string
     anonymousParticipation: boolean
     lastCheckInAt?: Date | null
-    healthInterests?: ProfileHealthInterestType[]
+    healthInterests: string[]
     activityPreferences?: ProfileActivityPreferenceType[]
     createdAt: Date
     updatedAt: Date

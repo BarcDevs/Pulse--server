@@ -1,7 +1,6 @@
 import {
     ensureProfileExists,
     resolveActivityPreferenceSlug,
-    resolveHealthInterestSlug,
     transformProfileWithInterests
 } from '../lib/profileHelpers'
 import * as forumModel from '../models/forumModel'
@@ -28,11 +27,9 @@ export const getProfile = async (
     const profile = await ensureProfileExists(userId)
 
     const [
-        healthInterestLinks,
         activityPrefLinks,
         interactions
     ] = await Promise.all([
-        profileModel.getHealthInterests(profile.id),
         profileModel.getActivityPreferences(profile.id),
         forumModel.getProfileInteractions(
             profile.id,
@@ -42,7 +39,6 @@ export const getProfile = async (
 
     const profileWithLinks = {
         ...profile,
-        healthInterests: healthInterestLinks,
         activityPreferences: activityPrefLinks
     }
 
@@ -71,22 +67,11 @@ export const addHealthInterests = async (
         userId
     )
 
-    const results = []
-
-    for (const slug of slugs) {
-        const interest =
-            await resolveHealthInterestSlug(slug)
-
-        const added =
-            await profileModel
-                .addHealthInterest(
-                    profile.id,
-                    interest.id
-                )
-        results.push(added)
-    }
-
-    return results
+    await Promise.all(
+        slugs.map(slug =>
+            profileModel.addHealthInterest(profile.id, slug)
+        )
+    )
 }
 
 export const removeHealthInterest = async (
@@ -97,14 +82,7 @@ export const removeHealthInterest = async (
         userId
     )
 
-    const interest =
-        await resolveHealthInterestSlug(slug)
-
-    await profileModel
-        .removeHealthInterest(
-            profile.id,
-            interest.id
-        )
+    await profileModel.removeHealthInterest(profile.id, slug)
 }
 // endregion
 
@@ -155,9 +133,8 @@ export const removeActivityPreference = async (
 // endregion
 
 // region Available Options
-export const getAvailableHealthInterests =
-    async () =>
-        profileModel.getAvailableHealthInterests()
+export const getAvailableHealthInterests = () =>
+    profileModel.getAvailableHealthInterests()
 
 export const getAvailableActivityPreferences =
     async () =>

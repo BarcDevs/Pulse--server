@@ -30,17 +30,13 @@ const hashPassword = (password: string): string =>
     bcrypt.hashSync(password, 10)
 
 async function main() {
-    const healthInterests = [
-        { slug: 'mental-health', sortOrder: 1 },
-        { slug: 'physical-therapy', sortOrder: 2 },
-        { slug: 'nutrition', sortOrder: 3 },
-        { slug: 'chronic-pain', sortOrder: 4 },
-        { slug: 'sleep-health', sortOrder: 5 },
-        { slug: 'stress-management', sortOrder: 6 },
-        { slug: 'diabetes', sortOrder: 7 },
-        { slug: 'heart-health', sortOrder: 8 },
-        { slug: 'womens-health', sortOrder: 9 },
-        { slug: 'joint-health', sortOrder: 10 }
+    const healthInterestSlugs = [
+        'rehabilitation', 'physical-therapy', 'occupational-therapy', 'mobility',
+        'injury-recovery', 'surgery-recovery', 'chronic-pain', 'pain-management',
+        'neurological-recovery', 'strength-building', 'nutrition', 'sleep',
+        'healthy-habits', 'fitness', 'self-care', 'mental-health',
+        'emotional-wellbeing', 'stress-management', 'mindfulness', 'meditation',
+        'motivation', 'peer-support', 'disability-support', 'goal-progress'
     ]
 
     const activityPreferences = [
@@ -136,7 +132,6 @@ async function main() {
         }
     ]
 
-    console.info('Seeding test users...')
     const testUsers = [
         {
             firstName: 'Alice',
@@ -175,21 +170,32 @@ async function main() {
         }
     ]
 
+    console.info('Seeding activity preferences...')
+    for (const { slug, ...activityFields } of activityPreferences) {
+        await prisma.activityPreference.upsert({
+            where: { slug },
+            update: activityFields,
+            create: { slug, ...activityFields }
+        })
+    }
+
     const createdUsers = []
-    const allHealthInterestSlugs = healthInterests.map(h => h.slug)
     const allActivitySlugs = activityPreferences.map(a => a.slug)
 
+    const timezones = [
+        'America/New_York',
+        'America/Los_Angeles',
+        'Europe/London',
+        'Asia/Tokyo',
+        'Australia/Sydney'
+    ]
+    const themes = ['light', 'dark']
+    const languages = ['en-US', 'he-IL']
+
+    console.info('Seeding test users...')
     for (let i = 0; i < testUsers.length; i++) {
         const userData = testUsers[i]!
-        const timezones = [
-            'America/New_York',
-            'America/Los_Angeles',
-            'Europe/London',
-            'Asia/Tokyo',
-            'Australia/Sydney'
-        ]
-        const themes = ['light', 'dark']
-        const languages = ['en-US', 'he-IL']
+        const userHealthInterests = healthInterestSlugs.slice(i * 2, i * 2 + 3)
 
         const user = await prisma.user.upsert({
             where: { email: userData.email },
@@ -208,7 +214,8 @@ async function main() {
                         language: languages[i % languages.length],
                         dailyReminder: i % 2 === 0,
                         communityAlerts: true,
-                        profileVisibility: i === 0 ? 'public' : 'friends'
+                        profileVisibility: i === 0 ? 'public' : 'friends',
+                        healthInterests: userHealthInterests
                     }
                 }
             },
@@ -217,35 +224,11 @@ async function main() {
         createdUsers.push(user)
     }
 
-    console.info('Adding health interests and activity preferences to user profiles...')
+    console.info('Adding activity preferences to user profiles...')
     for (let i = 0; i < createdUsers.length; i++) {
         const profile = createdUsers[i]!.profile!
-        const userHealthInterests = allHealthInterestSlugs.slice(i * 2, i * 2 + 3)
         const userActivities = allActivitySlugs.slice(i * 2, i * 2 + 3)
 
-        // Add health interests
-        for (const slug of userHealthInterests) {
-            const healthInterest = await prisma.healthInterest.findUnique({
-                where: { slug }
-            })
-            if (healthInterest) {
-                await prisma.profileHealthInterest.upsert({
-                    where: {
-                        profileId_healthInterestId: {
-                            profileId: profile.id,
-                            healthInterestId: healthInterest.id
-                        }
-                    },
-                    update: {},
-                    create: {
-                        profileId: profile.id,
-                        healthInterestId: healthInterest.id
-                    }
-                })
-            }
-        }
-
-        // Add activity preferences
         for (const slug of userActivities) {
             const activity = await prisma.activityPreference.findUnique({
                 where: { slug }
@@ -266,28 +249,6 @@ async function main() {
                 })
             }
         }
-    }
-
-    console.info('Seeding health interests...')
-    for (const interest of healthInterests) {
-        await prisma.healthInterest.upsert({
-            where: { slug: interest.slug },
-            update: { sortOrder: interest.sortOrder },
-            create: {
-                slug: interest.slug,
-                sortOrder: interest.sortOrder,
-                isActive: true
-            }
-        })
-    }
-
-    console.info('Seeding activity preferences...')
-    for (const { slug, ...activityFields } of activityPreferences) {
-        await prisma.activityPreference.upsert({
-            where: { slug },
-            update: activityFields,
-            create: { slug, ...activityFields }
-        })
     }
 
     console.info('Seeding check-in data...')

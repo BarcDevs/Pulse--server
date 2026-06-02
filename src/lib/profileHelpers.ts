@@ -2,9 +2,7 @@ import { errorFactory } from '../errors/factory/ErrorFactory'
 import * as profileModel from '../models/profileModel'
 import type {
     ActivityPreferenceType,
-    HealthInterestType,
     ProfileActivityPreferenceType,
-    ProfileHealthInterestType,
     ProfileType
 } from '../types/data/UserType'
 
@@ -19,21 +17,6 @@ export const ensureProfileExists = async (
     }
 
     return profile
-}
-
-export const resolveHealthInterestSlug = async (
-    slug: string
-) => {
-    const interest = await profileModel
-        .getHealthInterestBySlug(slug)
-
-    if (!interest) {
-        throw errorFactory.generic.notFound(
-            'Health interest'
-        )
-    }
-
-    return interest
 }
 
 export const resolveActivityPreferenceSlug = async (
@@ -53,33 +36,14 @@ export const resolveActivityPreferenceSlug = async (
 
 export const transformProfileWithInterests = (
     profile: ProfileType
-): Omit<
-    ProfileType,
-    'healthInterests' | 'activityPreferences'
-> & {
-    healthInterests: HealthInterestType[]
+): Omit<ProfileType, 'activityPreferences'> & {
     activityPreferences: ActivityPreferenceType[]
 } => {
-    const healthInterestLinks =
-        profile.healthInterests || []
-    const activityPrefLinks =
-        profile.activityPreferences || []
-
     return {
         ...profile,
-        healthInterests: healthInterestLinks
-            .map(
-                (
-                    hi: ProfileHealthInterestType
-                ) => hi.healthInterest
-            )
-            .filter(
-                (
-                    hi: HealthInterestType | undefined
-                ): hi is HealthInterestType =>
-                    hi !== undefined
-            ),
-        activityPreferences: activityPrefLinks
+        activityPreferences: (
+            profile.activityPreferences || []
+        )
             .map(
                 (
                     ap: ProfileActivityPreferenceType

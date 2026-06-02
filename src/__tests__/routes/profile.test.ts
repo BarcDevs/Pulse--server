@@ -26,21 +26,11 @@ const createMockProfile = (
     profileVisibility: 'friends',
     anonymousParticipation: true,
     lastCheckInAt: null,
+    healthInterests: [] as string[],
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides
 })
-
-const mockHealthInterest = {
-    id: 'health-1',
-    slug: 'mental-health',
-    description: 'Mental health support',
-    category: 'Wellness',
-    sortOrder: 1,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-}
 
 const mockActivityPreference = {
     id: 'activity-1',
@@ -80,8 +70,6 @@ describe('Profile Routes', () => {
             'should return 200 with profile data',
             async () => {
                 const token = createAuthToken(mockUser)
-                prismaMock.profileHealthInterest
-                    .findMany.mockResolvedValue([])
                 prismaMock.profileActivityPreference
                     .findMany.mockResolvedValue([])
 
@@ -104,13 +92,11 @@ describe('Profile Routes', () => {
             'should include health interests in profile',
             async () => {
                 const token = createAuthToken(mockUser)
-                prismaMock.profileHealthInterest
-                    .findMany.mockResolvedValue([{
-                        profileId: mockProfile.id,
-                        healthInterestId: 'health-1',
-                        addedAt: new Date(),
-                        healthInterest: mockHealthInterest
-                    }])
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(createMockProfile({
+                        userId: mockUser.id,
+                        healthInterests: ['mental-health']
+                    }))
                 prismaMock.profileActivityPreference
                     .findMany.mockResolvedValue([])
 
@@ -447,31 +433,11 @@ describe('Profile Routes', () => {
             it(
                 'should add single health interest',
                 async () => {
-                    prismaMock.healthInterest
-                        .findUnique
-                        .mockResolvedValue(
-                            mockHealthInterest
-                        )
-                    prismaMock
-                        .profileHealthInterest
-                        .upsert.mockResolvedValue({
-                        id: 'link-1',
-                        profileId: mockProfile.id,
-                        healthInterestId:
-                            mockHealthInterest.id,
-                        addedAt: new Date()
-                    })
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([{
-                            profileId: mockProfile.id,
-                            healthInterestId:
-                                mockHealthInterest.id,
-                            addedAt: new Date(),
-                            healthInterest:
-                                mockHealthInterest
-                        }])
+                    prismaMock.profile.update
+                        .mockResolvedValue({
+                            ...mockProfile,
+                            healthInterests: ['mental-health']
+                        })
                     prismaMock
                         .profileActivityPreference
                         .findMany
@@ -510,59 +476,11 @@ describe('Profile Routes', () => {
             it(
                 'should add multiple health interests',
                 async () => {
-                    const interest2 = {
-                        ...mockHealthInterest,
-                        id: 'health-2',
-                        slug: 'fitness'
-                    }
-
-                    prismaMock.healthInterest
-                        .findUnique
-                        .mockResolvedValueOnce(
-                            mockHealthInterest
-                        )
-                        .mockResolvedValueOnce(interest2)
-
-                    prismaMock
-                        .profileHealthInterest
-                        .upsert
-                        .mockResolvedValueOnce({
-                            id: 'link-1',
-                            profileId: mockProfile.id,
-                            healthInterestId:
-                                mockHealthInterest.id,
-                            addedAt: new Date()
+                    prismaMock.profile.update
+                        .mockResolvedValue({
+                            ...mockProfile,
+                            healthInterests: ['mental-health', 'fitness']
                         })
-                        .mockResolvedValueOnce({
-                            id: 'link-2',
-                            profileId: mockProfile.id,
-                            healthInterestId:
-                                interest2.id,
-                            addedAt: new Date()
-                        })
-
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([
-                            {
-                                profileId:
-                                    mockProfile.id,
-                                healthInterestId:
-                                    mockHealthInterest.id,
-                                addedAt: new Date(),
-                                healthInterest:
-                                    mockHealthInterest
-                            },
-                            {
-                                profileId:
-                                    mockProfile.id,
-                                healthInterestId:
-                                    interest2.id,
-                                addedAt: new Date(),
-                                healthInterest: interest2
-                            }
-                        ])
                     prismaMock
                         .profileActivityPreference
                         .findMany
@@ -592,10 +510,7 @@ describe('Profile Routes', () => {
                         })
 
                     expect(res.status).toBe(200)
-                    expect(
-                        res.body.data
-                            .healthInterests
-                    ).toHaveLength(2)
+                    expect(res.body.message).toContain('added')
                 }
             )
 
@@ -659,6 +574,30 @@ describe('Profile Routes', () => {
                     expect(res.body.error).toBeDefined()
                 }
             )
+
+            it(
+                'should reject invalid slug',
+                async () => {
+                    const {
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    } =
+                        createAuthenticatedRequest(
+                            mockUser
+                        )
+
+                    const res = await withCsrfAuth(
+                        request(App).post(endpoint),
+                        token,
+                        csrfSecret,
+                        csrfToken
+                    ).send({ slugs: ['not-a-valid-slug'] })
+
+                    expect(res.status).toBe(400)
+                    expect(res.body.error).toBeDefined()
+                }
+            )
         }
     )
 
@@ -671,21 +610,8 @@ describe('Profile Routes', () => {
             it(
                 'should remove health interest',
                 async () => {
-                    prismaMock.healthInterest
-                        .findUnique
-                        .mockResolvedValue(
-                            mockHealthInterest
-                        )
-                    prismaMock
-                        .profileHealthInterest
-                        .deleteMany
-                        .mockResolvedValue({
-                            count: 1
-                        })
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([])
+                    prismaMock.profile.update
+                        .mockResolvedValue(mockProfile)
                     prismaMock
                         .profileActivityPreference
                         .findMany
@@ -798,10 +724,6 @@ describe('Profile Routes', () => {
                             activityPreference:
                                 mockActivityPreference
                         }])
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([])
 
                     const {
                         token,
@@ -892,10 +814,6 @@ describe('Profile Routes', () => {
                                     activity2
                             }
                         ])
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([])
 
                     const {
                         token,
@@ -989,10 +907,6 @@ describe('Profile Routes', () => {
                         .profileActivityPreference
                         .findMany
                         .mockResolvedValue([])
-                    prismaMock
-                        .profileHealthInterest
-                        .findMany
-                        .mockResolvedValue([])
 
                     const {
                         token,
@@ -1045,28 +959,16 @@ describe('Profile Routes', () => {
             it(
                 'should return available health interests',
                 async () => {
-                    const interests = [
-                        mockHealthInterest,
-                        {
-                            ...mockHealthInterest,
-                            id: 'health-2',
-                            slug: 'fitness'
-                        }
-                    ]
-
-                    prismaMock.healthInterest.findMany
-                        .mockResolvedValue(interests)
-
                     const res = await request(App)
                         .get(endpoint)
 
                     expect(res.status).toBe(200)
                     expect(
                         res.body.data
-                    ).toHaveLength(2)
+                    ).toHaveLength(24)
                     expect(
-                        res.body.data[0].slug
-                    ).toBe('mental-health')
+                        res.body.data[0]
+                    ).toBe('rehabilitation')
                     expect(
                         res.body.message
                     ).toContain('available')
@@ -1074,27 +976,8 @@ describe('Profile Routes', () => {
             )
 
             it(
-                'should return empty array if no interests',
-                async () => {
-                    prismaMock.healthInterest.findMany
-                        .mockResolvedValue([])
-
-                    const res = await request(App)
-                        .get(endpoint)
-
-                    expect(res.status).toBe(200)
-                    expect(res.body.data).toEqual([])
-                }
-            )
-
-            it(
                 'should be publicly accessible',
                 async () => {
-                    prismaMock.healthInterest.findMany
-                        .mockResolvedValue([
-                            mockHealthInterest
-                        ])
-
                     const res = await request(App)
                         .get(endpoint)
 

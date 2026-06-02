@@ -53,13 +53,14 @@ model Profile {
   theme                  String    @default("light")
   lastCheckInAt          DateTime?
 
+  healthInterests     String[]                    @default([])
+
   posts               Post[]
   replies             Reply[]
   followedTags        ProfileToTag[]
   checkIns            DailyCheckIn[]
   recoveryGoals       RecoveryGoal[]
   activityPreferences ProfileActivityPreference[]
-  healthInterests     ProfileHealthInterest[]
   postLikes           PostLike[]
   replyLikes          ReplyLike[]
   savedPosts          SavedPost[]
@@ -67,18 +68,6 @@ model Profile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-model HealthInterest {
-  id          String                  @id @default(uuid())
-  slug        String                  @unique
-  sortOrder   Int?
-  isActive    Boolean                 @default(true)
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-  profiles    ProfileHealthInterest[]
-
-  @@index([isActive])
 }
 
 model ActivityPreference {
@@ -95,19 +84,6 @@ model ActivityPreference {
 
   @@index([isActive])
   @@index([category, sortOrder])
-}
-
-model ProfileHealthInterest {
-  id               String         @id @default(uuid())
-  profileId        String
-  healthInterestId String
-  addedAt          DateTime       @default(now())
-  healthInterest   HealthInterest @relation(fields: [healthInterestId], references: [id], onDelete: Cascade)
-  profile          Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, healthInterestId])
-  @@index([profileId])
-  @@index([healthInterestId])
 }
 
 model ProfileActivityPreference {

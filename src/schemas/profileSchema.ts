@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
+
 import { caseInsensitiveEnum } from './utils/caseInsensitiveEnum'
 
 export const updateProfileSchema = z.object({
@@ -38,7 +40,9 @@ export const updateProfileSchema = z.object({
 
 export const addHealthInterestsSchema = z.object({
     slugs: z.array(
-        z.string().max(50)
+        z.enum(VALID_HEALTH_INTEREST_SLUGS, {
+            message: 'Invalid health interest slug'
+        })
     ).min(1, 'At least one health interest is required')
 })
 
