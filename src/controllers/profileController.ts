@@ -8,6 +8,7 @@ import { successResponse } from '../responses/success'
 import {
     addActivityPreferencesSchema,
     addHealthInterestsSchema,
+    healthInterestSlugParamSchema,
     slugParamSchema,
     updateProfileSchema
 } from '../schemas/profileSchema'
@@ -111,7 +112,7 @@ export const removeHealthInterest = async (
 
     const validatedParams =
         ValidationError.catchValidationErrors(
-            slugParamSchema.safeParse({ slug })
+            healthInterestSlugParamSchema.safeParse({ slug })
         )
 
     await profileService.removeHealthInterest(

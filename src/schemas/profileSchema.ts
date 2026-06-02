@@ -52,6 +52,12 @@ export const addActivityPreferencesSchema = z.object({
     ).min(1, 'At least one activity preference is required')
 })
 
+export const healthInterestSlugParamSchema = z.object({
+    slug: z.enum(VALID_HEALTH_INTEREST_SLUGS, {
+        message: 'Invalid health interest slug'
+    })
+})
+
 export const slugParamSchema = z.object({
     slug: z.string().max(50)
 })
