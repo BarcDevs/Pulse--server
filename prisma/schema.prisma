@@ -53,6 +53,10 @@ model Profile {
   theme                  String    @default("light")
   lastCheckInAt          DateTime?
 
+  dateOfBirth   DateTime?
+  recoveryType  String?
+  careProvider  String?
+
   healthInterests     String[] @default([])
   activityPreferences String[] @default([])
 

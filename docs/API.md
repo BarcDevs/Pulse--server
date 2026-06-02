@@ -1131,6 +1131,9 @@ Retrieve the current user's profile with interests and activities.
     "bio": "Health recovery journey",
     "location": "San Francisco, CA",
     "timezone": "America/Los_Angeles",
+    "dateOfBirth": "ISO 8601 date | null",
+    "recoveryType": "string | null",
+    "careProvider": "string | null",
     "healthInterests": ["mental-health", "stress-management"],
     "activityPreferences": ["meditation", "yoga"],
     "createdAt": "ISO 8601 date",
@@ -1161,6 +1164,9 @@ Update user profile presentation and preferences.
 | `communityAlerts` | boolean | |
 | `profileVisibility` | string | `onlyMe` · `friends` · `public` |
 | `anonymousParticipation` | boolean | |
+| `dateOfBirth` | string | ISO 8601 date string |
+| `recoveryType` | string | Free text — type of recovery (e.g. `addiction`, `injury`) |
+| `careProvider` | string | Free text — name of provider or facility |
 | `healthInterests` | string[] | Full replace — valid slugs from `GET /list/health-interests` |
 | `activityPreferences` | string[] | Full replace — valid slugs from `GET /list/activities` |
 

@@ -16,6 +16,9 @@ type ProfileData = Partial<
         | 'communityAlerts'
         | 'profileVisibility'
         | 'anonymousParticipation'
+        | 'dateOfBirth'
+        | 'recoveryType'
+        | 'careProvider'
         | 'healthInterests'
         | 'activityPreferences'
     >

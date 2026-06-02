@@ -16,6 +16,9 @@ export type ProfileType = {
     profileVisibility: string
     anonymousParticipation: boolean
     lastCheckInAt?: Date | null
+    dateOfBirth?: Date
+    recoveryType?: string
+    careProvider?: string
     healthInterests: string[]
     activityPreferences: string[]
     createdAt: Date

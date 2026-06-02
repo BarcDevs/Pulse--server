@@ -26,6 +26,9 @@ const createMockProfile = (
     profileVisibility: 'friends',
     anonymousParticipation: true,
     lastCheckInAt: null,
+    dateOfBirth: null,
+    recoveryType: null,
+    careProvider: null,
     healthInterests: [] as string[],
     activityPreferences: [] as string[],
     createdAt: new Date(),
@@ -355,6 +358,60 @@ describe('Profile Routes', () => {
                 expect(
                     res.body.error[0].property
                 ).toBe('bio')
+            }
+        )
+
+        it(
+            'should update dateOfBirth',
+            async () => {
+                const dob = new Date('1990-01-15')
+                const updated = {
+                    ...mockProfile,
+                    dateOfBirth: dob
+                }
+                prismaMock.profile.update
+                    .mockResolvedValue(updated)
+
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const res = await withCsrfAuth(
+                    request(App).patch(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ dateOfBirth: '1990-01-15' })
+
+                expect(res.status).toBe(200)
+                expect(
+                    res.body.data.dateOfBirth
+                ).toBeDefined()
+            }
+        )
+
+        it(
+            'should reject invalid dateOfBirth format',
+            async () => {
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const res = await withCsrfAuth(
+                    request(App).patch(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ dateOfBirth: 'not-a-date' })
+
+                expect(res.status).toBe(400)
+                expect(
+                    res.body.error[0].property
+                ).toBe('dateOfBirth')
             }
         )
 

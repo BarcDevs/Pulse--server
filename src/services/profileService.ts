@@ -13,6 +13,9 @@ type UpdateProfileData = {
     communityAlerts?: boolean
     profileVisibility?: string
     anonymousParticipation?: boolean
+    dateOfBirth?: string
+    recoveryType?: string
+    careProvider?: string
     healthInterests?: string[]
     activityPreferences?: string[]
 }
@@ -31,11 +34,13 @@ export const getProfile = async (
 export const updateProfile = async (
     userId: string,
     data: UpdateProfileData
-) =>
-    profileModel.updateProfile(
-        userId,
-        data
-    )
+) => {
+    const { dateOfBirth, ...rest } = data
+    return profileModel.updateProfile(userId, {
+        ...rest,
+        ...(dateOfBirth !== undefined && { dateOfBirth: new Date(dateOfBirth) })
+    })
+}
 // endregion
 
 // region Available Options

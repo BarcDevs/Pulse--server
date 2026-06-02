@@ -36,6 +36,15 @@ export const updateProfileSchema = z.object({
         'public'
     ]).optional(),
     anonymousParticipation: z.boolean().optional(),
+    dateOfBirth: z.string()
+        .date('Invalid date. Use ISO 8601 format (YYYY-MM-DD)')
+        .optional(),
+    recoveryType: z.string()
+        .max(100, 'Recovery type must be 100 characters or fewer')
+        .optional(),
+    careProvider: z.string()
+        .max(150, 'Care provider must be 150 characters or fewer')
+        .optional(),
     healthInterests: z.array(
         z.enum(VALID_HEALTH_INTEREST_SLUGS, {
             message: 'Invalid health interest slug'
