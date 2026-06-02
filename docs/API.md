@@ -1115,6 +1115,11 @@ Generates a human-readable summary of recovery progress by comparing the last 7 
 
 Retrieve the current user's profile with interests and activities.
 
+**Query**
+| Param          | Type    | Notes                                                        |
+|----------------|---------|--------------------------------------------------------------|
+| `includePosts` | boolean | If `true`, includes liked posts, saved posts, liked replies  |
+
 **Response `200`**
 ```json
 {
@@ -1126,12 +1131,8 @@ Retrieve the current user's profile with interests and activities.
     "bio": "Health recovery journey",
     "location": "San Francisco, CA",
     "timezone": "America/Los_Angeles",
-    "healthInterests": [
-      { "id": "hi-1", "slug": "mental-health", "category": "Wellness" }
-    ],
-    "activityPreferences": [
-      { "id": "ap-1", "slug": "meditation", "name": "Meditation", "category": "Mindfulness" }
-    ],
+    "healthInterests": ["mental-health", "stress-management"],
+    "activityPreferences": ["meditation", "yoga"],
     "createdAt": "ISO 8601 date",
     "updatedAt": "ISO 8601 date"
   }
@@ -1147,13 +1148,19 @@ Retrieve the current user's profile with interests and activities.
 
 Update user profile presentation and preferences.
 
-**Body**
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `image` | string / null | no | Avatar URL or null to clear |
-| `bio` | string / null | no | Max 500 chars, null to clear |
-| `location` | string / null | no | Broad region (no coordinates), null to clear |
-| `timezone` | string / null | no | IANA timezone (e.g., "America/New_York"), null resets to default (`Asia/Jerusalem`) |
+**Body** _(all fields optional)_
+| Field | Type | Notes |
+|-------|------|-------|
+| `image` | string | Avatar URL |
+| `bio` | string | Max 500 chars |
+| `location` | string | Max 100 chars, broad region (no coordinates) |
+| `timezone` | string | IANA format (e.g., `America/New_York`) or `UTC` |
+| `theme` | string | `light` or `dark` |
+| `language` | string | Max 10 chars |
+| `dailyReminder` | boolean | |
+| `communityAlerts` | boolean | |
+| `profileVisibility` | string | `onlyMe` · `friends` · `public` |
+| `anonymousParticipation` | boolean | |
 
 **Example Request**
 ```json
@@ -1280,32 +1287,13 @@ Remove an activity preference from the user's profile.
 ### `GET /list/health-interests`
 > No auth required
 
-List all available health interests for the platform.
-
-**Query Parameters (Optional)**
-| Param | Type | Notes |
-|-------|------|-------|
-| N/A | - | - |
+List all available health interest slugs for the platform.
 
 **Response `200`**
 ```json
 {
   "message": "10 health interests available",
-  "data": [
-    {
-      "id": "hi-1",
-      "slug": "mental-health",
-      "category": "Wellness",
-      "sortOrder": 1,
-      "description": "Psychological wellbeing and mental health support"
-    },
-    {
-      "id": "hi-2",
-      "slug": "physical-therapy",
-      "category": "Recovery",
-      "sortOrder": 2
-    }
-  ]
+  "data": ["mental-health", "stress-management", "physical-therapy"]
 }
 ```
 
@@ -1316,29 +1304,13 @@ List all available health interests for the platform.
 ### `GET /list/activities`
 > No auth required
 
-List all available activity preferences for the platform.
+List all available activity preference slugs for the platform.
 
 **Response `200`**
 ```json
 {
   "message": "15 activity preferences available",
-  "data": [
-    {
-      "id": "ap-1",
-      "slug": "meditation",
-      "name": "Meditation",
-      "category": "Mindfulness",
-      "sortOrder": 1,
-      "description": "Mindfulness and meditation practices"
-    },
-    {
-      "id": "ap-2",
-      "slug": "yoga",
-      "name": "Yoga",
-      "category": "Physical",
-      "sortOrder": 2
-    }
-  ]
+  "data": ["meditation", "yoga", "walking"]
 }
 ```
 
