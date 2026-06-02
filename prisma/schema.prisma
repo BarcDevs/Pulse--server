@@ -72,8 +72,6 @@ model Profile {
 model HealthInterest {
   id          String                  @id @default(uuid())
   slug        String                  @unique
-  description String?
-  category    String?
   sortOrder   Int?
   isActive    Boolean                 @default(true)
   createdAt   DateTime                @default(now())
@@ -81,7 +79,6 @@ model HealthInterest {
   profiles    ProfileHealthInterest[]
 
   @@index([isActive])
-  @@index([category, sortOrder])
 }
 
 model ActivityPreference {
