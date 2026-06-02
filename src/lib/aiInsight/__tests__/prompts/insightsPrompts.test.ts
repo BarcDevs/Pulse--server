@@ -45,11 +45,33 @@ describe('generateTitle()', () => {
             .toBeTruthy()
     })
 
-    // TODO: add when he.json is translated
-    test.todo('returns Hebrew title for MOOD_DROP_ALERT distinct from English')
-    test.todo('returns Hebrew title for MOTIVATIONAL distinct from English')
-    test.todo('returns Hebrew title for WEEKLY_SUMMARY distinct from English')
-    test.todo('returns Hebrew title for BAD_DAY_SUPPORT distinct from English')
+    it('returns Hebrew title for MOOD_DROP_ALERT distinct from English', () => {
+        const he = generateTitle('MOOD_DROP_ALERT', 'he')
+        const en = generateTitle('MOOD_DROP_ALERT', 'en')
+        expect(he).toBeTruthy()
+        expect(he).not.toBe(en)
+    })
+
+    it('returns Hebrew title for MOTIVATIONAL distinct from English', () => {
+        const he = generateTitle('MOTIVATIONAL', 'he')
+        const en = generateTitle('MOTIVATIONAL', 'en')
+        expect(he).toBeTruthy()
+        expect(he).not.toBe(en)
+    })
+
+    it('returns Hebrew title for WEEKLY_SUMMARY distinct from English', () => {
+        const he = generateTitle('WEEKLY_SUMMARY', 'he')
+        const en = generateTitle('WEEKLY_SUMMARY', 'en')
+        expect(he).toBeTruthy()
+        expect(he).not.toBe(en)
+    })
+
+    it('returns Hebrew title for BAD_DAY_SUPPORT distinct from English', () => {
+        const he = generateTitle('BAD_DAY_SUPPORT', 'he')
+        const en = generateTitle('BAD_DAY_SUPPORT', 'en')
+        expect(he).toBeTruthy()
+        expect(he).not.toBe(en)
+    })
 })
 
 describe('language instruction injection', () => {
