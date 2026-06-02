@@ -22,6 +22,7 @@
 - String blocks with `'` in them, use backticks to avoid escaping
 - Avoid redundant braces or parentheses
 - Avoid redundant line breaking — break only when it improves readability or meets the line length threshold; don't make line-breaking too strict
+- Avoid unnecessary `| null`, `| undefined` types for optional types unless explicitly required
 
 ## Reading Files
 - Whenever reading files to understand and identify patterns that may be needed in the future, document them in corresponding context to avoid repeating it afterwards
