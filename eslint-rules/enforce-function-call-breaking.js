@@ -28,7 +28,7 @@ export default {
 
                 if (startLine === endLine) {
                     const line = sourceCode.lines[startLine - 1] ?? ''
-                    if (line.length <= MAX_LINE_LENGTH) return
+                    if (line.replace(/\s/g, '').length <= MAX_LINE_LENGTH) return
                     context.report({
                         node,
                         message:

@@ -19,7 +19,7 @@ export default {
 
         const exceedsLimit = (startLine) => {
             const line = sourceCode.lines[startLine - 1] ?? ''
-            return line.length > MAX_LINE_LENGTH
+            return line.replace(/\s/g, '').length > MAX_LINE_LENGTH
         }
 
         return {
