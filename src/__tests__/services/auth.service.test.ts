@@ -333,6 +333,15 @@ describe('Auth Service', () => {
 
     // ==================== login ====================
     describe('login', () => {
+        it('propagates DB error from getUserByEmail', async () => {
+            prismaMock.user.findUnique
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                login('test@test.com', 'Password123!')
+            ).rejects.toThrow('DB error')
+        })
+
         it(
             'should return token for valid credentials',
             async () => {
@@ -422,6 +431,40 @@ describe('Auth Service', () => {
                 .rejects
                 .toThrow('User already exists!')
         })
+
+        it('should throw error for taken username', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValueOnce(null)
+                .mockResolvedValue(createMockUser())
+
+            const newUser = {
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'takenname',
+                email: 'new@test.com',
+                password: 'Password123!'
+            }
+
+            await expect(signup(newUser))
+                .rejects
+                .toThrow('Username already taken!')
+        })
+
+        it('propagates DB error from createUser', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(null)
+            prismaMock.user.create
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(signup({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'newuser',
+                email: 'new@test.com',
+                password: 'Password123!'
+            })).rejects.toThrow('DB error')
+        })
     })
 
     // ==================== getUser ====================
@@ -486,6 +529,15 @@ describe('Auth Service', () => {
             )
             expect(result).toEqual(user)
         })
+
+        it('propagates DB error', async () => {
+            prismaMock.user.update
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                updateEmail('user-id', 'new@test.com')
+            ).rejects.toThrow('DB error')
+        })
     })
 
     // ==================== deactivateUser ====================
@@ -510,6 +562,16 @@ describe('Auth Service', () => {
                     where: { id: user.id }
                 })
             )
+        })
+
+        it('propagates DB error from disableUser', async () => {
+            const user = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(user)
+            prismaMock.user.update.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                deactivateUser(user.id)
+            ).rejects.toThrow('DB error')
         })
     })
 })

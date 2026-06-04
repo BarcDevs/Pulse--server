@@ -232,6 +232,37 @@ describe('Forum Service', () => {
 
     // ==================== createPost ====================
     describe('createPost', () => {
+        it('propagates DB error from profileModel lookup', async () => {
+            prismaMock.profile.findUnique
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                createPost({
+                    title: 'Post',
+                    body: 'Body',
+                    category: 'general',
+                    authorId: 'user-id'
+                })
+            ).rejects.toThrow('DB error')
+        })
+
+        it('propagates DB error from resolveKnownTags', async () => {
+            prismaMock.profile.findUnique
+                .mockResolvedValue({ id: 'profile-id', userId: 'user-id' } as never)
+            prismaMock.tag.findMany
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                createPost({
+                    title: 'Post',
+                    body: 'Body',
+                    category: 'general',
+                    authorId: 'user-id',
+                    tags: ['tag1']
+                })
+            ).rejects.toThrow('DB error')
+        })
+
         it('should create post with tags', async () => {
             const mockPost = createMockPost()
             const mockProfile = {
@@ -473,6 +504,21 @@ describe('Forum Service', () => {
                 ).rejects.toThrow('Post not found')
             }
         )
+
+        it('propagates DB error from profileModel lookup', async () => {
+            prismaMock.post.findUnique
+                .mockResolvedValue(createMockPost())
+            prismaMock.profile.findUnique
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                createReply({
+                    body: 'Reply content',
+                    authorId: 'user-id',
+                    postId: 'post-id'
+                })
+            ).rejects.toThrow('DB error')
+        })
     })
 
     // ==================== getPost ====================
@@ -620,6 +666,17 @@ describe('Forum Service', () => {
             expect(prismaMock.postLike.deleteMany).toHaveBeenCalled()
             expect(result).toEqual({ liked: true, likes: 1 })
         })
+
+        it('propagates DB error from togglePostLike model call', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique.mockResolvedValue(mockProfile as never)
+            prismaMock.postLike.deleteMany.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                togglePostLike('post-id', 'user-id')
+            ).rejects.toThrow('DB error')
+        })
     })
 
     // ==================== toggleReplyLike ====================
@@ -692,6 +749,19 @@ describe('Forum Service', () => {
 
             expect(prismaMock.savedPost.deleteMany).toHaveBeenCalled()
             expect(result).toEqual({ saved: true })
+        })
+
+        it('propagates DB error from toggleSavePost model call', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique
+                .mockResolvedValue({ id: 'profile-id', userId: 'user-id' } as never)
+            prismaMock.savedPost.deleteMany
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                toggleSavePost('post-id', 'user-id')
+            ).rejects.toThrow('DB error')
         })
     })
 

@@ -54,6 +54,57 @@ describe('CheckInService', () => {
         jest.spyOn(recommendationsService, 'generateRecommendationsSafely').mockResolvedValue(undefined)
     })
 
+    // ==================== model error propagation ====================
+    describe('model error propagation', () => {
+        it('getCheckIns propagates getProfileIdForUser error', async () => {
+            jest.spyOn(checkInModel, 'getProfileIdForUser')
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                getCheckIns(USER_ID)
+            ).rejects.toThrow('DB error')
+        })
+
+        it('createCheckIn propagates getProfileContext error', async () => {
+            jest.spyOn(checkInModel, 'getProfileContext')
+                .mockRejectedValue(new Error('Profile not found'))
+
+            await expect(
+                createCheckIn({ userId: USER_ID, moodScore: 7, painLevel: 3, activities: [] })
+            ).rejects.toThrow('Profile not found')
+        })
+
+        it('createCheckIn propagates updateUserLastCheckIn error', async () => {
+            mockProfileContext()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(null)
+            jest.spyOn(checkInModel, 'createCheckIn').mockResolvedValue(mockCheckIn())
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn')
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                createCheckIn({ userId: USER_ID, moodScore: 7, painLevel: 3, activities: [] })
+            ).rejects.toThrow('DB error')
+        })
+
+        it('updateCheckIn propagates getProfileContext error', async () => {
+            jest.spyOn(checkInModel, 'getProfileContext')
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                updateCheckIn({ userId: USER_ID, moodScore: 8 })
+            ).rejects.toThrow('DB error')
+        })
+
+        it('getCheckInStats propagates getProfileContext error', async () => {
+            jest.spyOn(checkInModel, 'getProfileContext')
+                .mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                getCheckInStats(USER_ID)
+            ).rejects.toThrow('DB error')
+        })
+    })
+
     // ==================== getCheckIns ====================
     describe('getCheckIns', () => {
         it('fetches profileId and delegates to model', async () => {

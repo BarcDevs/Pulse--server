@@ -9,6 +9,7 @@ import {
     fetchGoogleProfile,
     findOrCreateUser,
     generateState,
+    handleCallback,
     validateState
 } from '../../services/googleOAuthService'
 import { prismaMock } from '../setup/jestSetup'
@@ -237,6 +238,77 @@ describe('GoogleOAuthService', () => {
 
             expect(prismaMock.user.create).toHaveBeenCalled()
             expect(result.id).toBe('new-user-id')
+        })
+
+        it('throws AuthError when all username generation attempts are exhausted', async () => {
+            const existingUser = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(null)
+            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(null)
+            // All attempts (base + 10 retries) return a taken username
+            jest.spyOn(authModel, 'getUserByUsername')
+                .mockResolvedValue(existingUser)
+
+            await expect(
+                findOrCreateUser(mockGoogleProfile)
+            ).rejects.toThrow(AuthError)
+        })
+
+        it('propagates transaction error when createGoogleUser fails', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null)
+            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(null)
+            jest.spyOn(authModel, 'getUserByUsername').mockResolvedValue(null)
+            prismaMock.user.create.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                findOrCreateUser(mockGoogleProfile)
+            ).rejects.toThrow('DB error')
+        })
+
+        it('propagates transaction error when linkGoogleId fails', async () => {
+            const emailUser = createMockUser({ id: 'email-user-id' })
+            prismaMock.user.findUnique.mockResolvedValue(null)
+            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser)
+            prismaMock.user.update.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                findOrCreateUser(mockGoogleProfile)
+            ).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== handleCallback ====================
+    describe('handleCallback', () => {
+        const validPayload = {
+            sub: 'google-sub-123',
+            email: 'user@test.com',
+            email_verified: true,
+            given_name: 'John',
+            family_name: 'Doe',
+            picture: 'https://example.com/photo.jpg'
+        }
+
+        it('returns user on successful OAuth flow', async () => {
+            const tokens = { id_token: 'valid-id-token', access_token: 'access' }
+            mockGetToken.mockResolvedValue({ tokens })
+            mockVerifyIdToken.mockResolvedValue({ getPayload: () => validPayload })
+            const user = createMockUser({ id: 'callback-user' })
+            prismaMock.user.findUnique.mockResolvedValue(user)
+
+            const result = await handleCallback('auth-code')
+
+            expect(result.id).toBe('callback-user')
+        })
+
+        it('throws AuthError when id_token is missing from token response', async () => {
+            mockGetToken.mockResolvedValue({ tokens: { access_token: 'access', id_token: null } })
+
+            await expect(handleCallback('auth-code')).rejects.toThrow(AuthError)
+        })
+
+        it('propagates AuthError from token exchange failure', async () => {
+            mockGetToken.mockRejectedValue(new Error('invalid_grant'))
+
+            await expect(handleCallback('bad-code')).rejects.toThrow(AuthError)
         })
     })
 })
