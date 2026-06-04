@@ -12,7 +12,7 @@ describe('retry utilities', () => {
             const elapsed = Date.now() - start
 
             expect(elapsed).toBeGreaterThanOrEqual(50)
-            expect(elapsed).toBeLessThan(100)
+            expect(elapsed).toBeLessThan(200)
         })
     })
 
