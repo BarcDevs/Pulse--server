@@ -129,7 +129,7 @@ coverageThreshold: {
 }
 ```
 
-### 2. GitHub Actions Workflow — ⚠️ Missing (30 min fix)
+### 2. GitHub Actions Workflow — ✅ Done (2026-06-04)
 
 No `.github/workflows/` directory exists. Nothing runs on push/PR.
 
@@ -170,7 +170,7 @@ Every test — including all 9 route tests — mocks Prisma via `jest-mock-exten
 | # | Task | Effort | Blocking CI? |
 |---|------|--------|--------------|
 | 1 | ~~Add `coverageThreshold` to `jest.config.ts`~~ ✅ | 5 min | Yes — CI is blind without it |
-| 2 | Create `.github/workflows/ci.yml` | 30 min | Yes — nothing runs without it |
+| 2 | ~~Create `.github/workflows/ci.yml`~~ ✅ | 30 min | Yes — nothing runs without it |
 | 3 | Real DB integration tests | 3–4 days | No — but mocked-only CI is incomplete |
 
 Steps 1 + 2 unblock a functional (if shallow) CI pipeline immediately.
