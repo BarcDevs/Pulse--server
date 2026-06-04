@@ -24,6 +24,33 @@ describe('UserController', () => {
         jest.spyOn(authHelpers, 'sanitizeUserData').mockImplementation(u => u)
     })
 
+    // ==================== service error propagation ====================
+    describe('service error propagation', () => {
+        it('updateUser propagates service error', async () => {
+            jest.spyOn(authHelpers, 'updateUserData').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { firstName: 'Jane' }
+            }) as unknown as Request
+            await expect(userController.updateUser(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('updatePassword propagates service error', async () => {
+            jest.spyOn(authHelpers, 'updateUserPassword').mockRejectedValue(new Error('wrong password'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { currentPassword: 'Password123!', newPassword: 'NewPassword123!' }
+            }) as unknown as Request
+            await expect(userController.updatePassword(req, res)).rejects.toThrow('wrong password')
+        })
+
+        it('deleteUser propagates service error', async () => {
+            jest.spyOn(authService, 'deactivateUser').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(userController.deleteUser(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
     // ==================== updateUser ====================
     describe('updateUser', () => {
         it('throws unauthorized when no userId', async () => {

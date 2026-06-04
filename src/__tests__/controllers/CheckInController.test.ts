@@ -35,6 +35,45 @@ describe('CheckInController', () => {
         res = createMockResponse() as unknown as Response
     })
 
+    // ==================== service error propagation ====================
+    describe('service error propagation', () => {
+        it('getCheckIns propagates service error', async () => {
+            jest.spyOn(checkInService, 'getCheckIns').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(checkInController.getCheckIns(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('createCheckIn propagates service error', async () => {
+            jest.spyOn(checkInService, 'createCheckIn').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { moodScore: 7, painLevel: 3, activities: [] }
+            }) as unknown as Request
+            await expect(checkInController.createCheckIn(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('updateCheckIn propagates service error', async () => {
+            jest.spyOn(checkInService, 'updateCheckIn').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { moodScore: 8 }
+            }) as unknown as Request
+            await expect(checkInController.updateCheckIn(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('getCheckInStats propagates service error', async () => {
+            jest.spyOn(checkInService, 'getCheckInStats').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(checkInController.getCheckInStats(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('getProgressInsights propagates service error', async () => {
+            jest.spyOn(progressInsightsService, 'generateProgressInsight').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(checkInController.getProgressInsights(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
     // ==================== getCheckIns ====================
     describe('getCheckIns', () => {
         it('throws unauthorized when no userId', async () => {

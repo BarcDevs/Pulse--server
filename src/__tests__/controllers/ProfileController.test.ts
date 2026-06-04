@@ -31,6 +31,30 @@ describe('ProfileController', () => {
         res = createMockResponse() as unknown as Response
     })
 
+    // ==================== service error propagation ====================
+    describe('service error propagation', () => {
+        it('getProfile propagates service error', async () => {
+            jest.spyOn(profileService, 'getProfile').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(profileController.getProfile(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('updateProfile propagates service error', async () => {
+            jest.spyOn(profileService, 'updateProfile').mockRejectedValue(new Error('not found'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { bio: 'New bio' }
+            }) as unknown as Request
+            await expect(profileController.updateProfile(req, res)).rejects.toThrow('not found')
+        })
+
+        it('getHealthInterests propagates service error', async () => {
+            jest.spyOn(profileService, 'getAvailableHealthInterests').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest() as unknown as Request
+            await expect(profileController.getHealthInterests(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
     // ==================== getProfile ====================
     describe('getProfile', () => {
         it('throws unauthorized when no userId', async () => {

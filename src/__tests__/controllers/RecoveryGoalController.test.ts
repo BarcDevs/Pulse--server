@@ -32,6 +32,116 @@ describe('RecoveryGoalController', () => {
         res = createMockResponse() as unknown as Response
     })
 
+    // ==================== service error propagation ====================
+    describe('service error propagation', () => {
+        it('createGoal propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'createGoal').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { title: 'Goal', category: 'LIFESTYLE' }
+            }) as unknown as Request
+            await expect(recoveryGoalController.createGoal(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('getGoals propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'getUserGoals').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(recoveryGoalController.getGoals(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('getGoal propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'getGoal').mockRejectedValue(new Error('not found'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID }
+            }) as unknown as Request
+            await expect(recoveryGoalController.getGoal(req, res)).rejects.toThrow('not found')
+        })
+
+        it('updateGoal propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'updateGoal').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID },
+                body: { title: 'Updated' }
+            }) as unknown as Request
+            await expect(recoveryGoalController.updateGoal(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('deleteGoal propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'deleteGoal').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID }
+            }) as unknown as Request
+            await expect(recoveryGoalController.deleteGoal(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('createMilestones propagates getMaxMilestoneOrder error', async () => {
+            jest.spyOn(recoveryGoalService, 'getMaxMilestoneOrder').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID },
+                body: { title: 'Milestone' }
+            }) as unknown as Request
+            await expect(recoveryGoalController.createMilestones(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('createMilestones propagates createMilestones error', async () => {
+            jest.spyOn(recoveryGoalService, 'getMaxMilestoneOrder').mockResolvedValue(0)
+            jest.spyOn(recoveryGoalService, 'createMilestones').mockRejectedValue(new Error('limit exceeded'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID },
+                body: { title: 'Milestone' }
+            }) as unknown as Request
+            await expect(recoveryGoalController.createMilestones(req, res)).rejects.toThrow('limit exceeded')
+        })
+
+        it('updateMilestone propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'updateMilestone').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { milestoneId: MILESTONE_ID },
+                body: { title: 'Updated' }
+            }) as unknown as Request
+            await expect(recoveryGoalController.updateMilestone(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('deleteMilestone propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'deleteMilestone').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { milestoneId: MILESTONE_ID }
+            }) as unknown as Request
+            await expect(recoveryGoalController.deleteMilestone(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('completeMilestone propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'completeMilestone').mockRejectedValue(new Error('already done'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID, milestoneId: MILESTONE_ID }
+            }) as unknown as Request
+            await expect(recoveryGoalController.completeMilestone(req, res)).rejects.toThrow('already done')
+        })
+
+        it('completeGoal propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'completeGoal').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: USER_ID,
+                params: { goalId: GOAL_ID }
+            }) as unknown as Request
+            await expect(recoveryGoalController.completeGoal(req, res)).rejects.toThrow('DB error')
+        })
+
+        it('getStats propagates service error', async () => {
+            jest.spyOn(recoveryGoalService, 'getStats').mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            await expect(recoveryGoalController.getStats(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
     // ==================== createGoal ====================
     describe('createGoal', () => {
         it('throws unauthorized when no userId', async () => {

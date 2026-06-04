@@ -24,7 +24,14 @@ jest.mock('../../services/forumService', () => ({
     updateReply: jest.fn(),
     deleteReply: jest.fn(),
     getTags: jest.fn(),
-    getTag: jest.fn()
+    getTag: jest.fn(),
+    togglePostLike: jest.fn(),
+    toggleReplyLike: jest.fn(),
+    toggleSavePost: jest.fn(),
+    getSavedPosts: jest.fn(),
+    reportUnknownTag: jest.fn(),
+    getUnknownTagAttempts: jest.fn(),
+    getCategoryStats: jest.fn()
 }))
 
 describe('ForumController', () => {
@@ -542,6 +549,254 @@ describe('ForumController', () => {
             )
             expect(res.status)
                 .toHaveBeenCalledWith(200)
+        })
+    })
+
+    // ==================== LIKE POST ====================
+    describe('likePost', () => {
+        it('throws unauthorized when no userId', async () => {
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.likePost(req, res)).rejects.toThrow()
+        })
+
+        it('toggles post like and returns liked=true', async () => {
+            ;(forumService.togglePostLike as jest.Mock).mockResolvedValue({ liked: true })
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await forumController.likePost(req, res)
+            expect(forumService.togglePostLike).toHaveBeenCalledWith('test-post-id-123', 'test-user-id-123')
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Post liked' }))
+        })
+
+        it('toggles post like and returns liked=false', async () => {
+            ;(forumService.togglePostLike as jest.Mock).mockResolvedValue({ liked: false })
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await forumController.likePost(req, res)
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Post unliked' }))
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.togglePostLike as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.likePost(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== LIKE REPLY ====================
+    describe('likeReply', () => {
+        it('throws unauthorized when no userId', async () => {
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123', replyId: 'test-reply-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.likeReply(req, res)).rejects.toThrow()
+        })
+
+        it('toggles reply like and returns liked state', async () => {
+            ;(forumService.toggleReplyLike as jest.Mock).mockResolvedValue({ liked: true })
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123', replyId: 'test-reply-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await forumController.likeReply(req, res)
+            expect(forumService.toggleReplyLike).toHaveBeenCalledWith('test-post-id-123', 'test-reply-id-123', 'test-user-id-123')
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Reply liked' }))
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.toggleReplyLike as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123', replyId: 'test-reply-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.likeReply(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== SAVE POST ====================
+    describe('savePost', () => {
+        it('throws unauthorized when no userId', async () => {
+            const req = createMockRequest({
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.savePost(req, res)).rejects.toThrow()
+        })
+
+        it('toggles save and returns saved=true', async () => {
+            ;(forumService.toggleSavePost as jest.Mock).mockResolvedValue({ saved: true })
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await forumController.savePost(req, res)
+            expect(forumService.toggleSavePost).toHaveBeenCalledWith('test-post-id-123', 'test-user-id-123')
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Post saved' }))
+        })
+
+        it('toggles save and returns saved=false', async () => {
+            ;(forumService.toggleSavePost as jest.Mock).mockResolvedValue({ saved: false })
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await forumController.savePost(req, res)
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Post unsaved' }))
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.toggleSavePost as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.savePost(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== GET SAVED POSTS ====================
+    describe('getSavedPosts', () => {
+        it('throws unauthorized when no userId', async () => {
+            const req = createMockRequest() as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.getSavedPosts(req, res)).rejects.toThrow()
+        })
+
+        it('returns saved posts for user', async () => {
+            const mockPosts = [createMockPost()]
+            ;(forumService.getSavedPosts as jest.Mock).mockResolvedValue(mockPosts)
+            const req = createMockRequest({ userId: 'test-user-id-123' }) as Request
+            const res = createMockResponse() as Response
+            await forumController.getSavedPosts(req, res)
+            expect(forumService.getSavedPosts).toHaveBeenCalledWith('test-user-id-123', expect.anything())
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: mockPosts }))
+        })
+
+        it('returns empty array when no saved posts', async () => {
+            ;(forumService.getSavedPosts as jest.Mock).mockResolvedValue(null)
+            const req = createMockRequest({ userId: 'test-user-id-123' }) as Request
+            const res = createMockResponse() as Response
+            await forumController.getSavedPosts(req, res)
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: [] }))
+        })
+    })
+
+    // ==================== REPORT UNKNOWN TAG ====================
+    describe('reportUnknownTag', () => {
+        it('calls service with tagName', async () => {
+            ;(forumService.reportUnknownTag as jest.Mock).mockResolvedValue(undefined)
+            const req = createMockRequest({ body: { tagName: 'unknown-tag' } }) as Request
+            const res = createMockResponse() as Response
+            await forumController.reportUnknownTag(req, res)
+            expect(forumService.reportUnknownTag).toHaveBeenCalledWith('unknown-tag')
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Tag attempt recorded' }))
+        })
+
+        it('throws validation error when tagName missing', async () => {
+            const req = createMockRequest({ body: {} }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.reportUnknownTag(req, res)).rejects.toThrow()
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.reportUnknownTag as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest({ body: { tagName: 'unknown-tag' } }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.reportUnknownTag(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== GET UNKNOWN TAG ATTEMPTS ====================
+    describe('getUnknownTagAttempts', () => {
+        it('returns list of unknown tag attempts', async () => {
+            const attempts = [{ tagName: 'foo', count: 3 }, { tagName: 'bar', count: 1 }]
+            ;(forumService.getUnknownTagAttempts as jest.Mock).mockResolvedValue(attempts)
+            const req = createMockRequest() as Request
+            const res = createMockResponse() as Response
+            await forumController.getUnknownTagAttempts(req, res)
+            expect(forumService.getUnknownTagAttempts).toHaveBeenCalled()
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: attempts }))
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.getUnknownTagAttempts as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest() as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.getUnknownTagAttempts(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== GET CATEGORY STATS ====================
+    describe('getCategoryStats', () => {
+        it('returns category stats', async () => {
+            const stats = [{ category: 'health', count: 5 }]
+            ;(forumService.getCategoryStats as jest.Mock).mockResolvedValue(stats)
+            const req = createMockRequest() as Request
+            const res = createMockResponse() as Response
+            await forumController.getCategoryStats(req, res)
+            expect(forumService.getCategoryStats).toHaveBeenCalled()
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: stats }))
+        })
+
+        it('propagates service error', async () => {
+            ;(forumService.getCategoryStats as jest.Mock).mockRejectedValue(new Error('DB error'))
+            const req = createMockRequest() as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.getCategoryStats(req, res)).rejects.toThrow('DB error')
+        })
+    })
+
+    // ==================== validateOwner throw paths ====================
+    describe('validateOwner error propagation', () => {
+        it('updatePost throws when validateOwner rejects', async () => {
+            ;(forumService.validateOwner as jest.Mock).mockRejectedValue(new Error('not owner'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123' },
+                body: { title: 'Updated' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.updatePost(req, res)).rejects.toThrow('not owner')
+        })
+
+        it('updateReply throws when validateOwner rejects', async () => {
+            ;(forumService.validateOwner as jest.Mock).mockRejectedValue(new Error('not owner'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123', replyId: 'test-reply-id-123' },
+                body: { body: 'Updated' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.updateReply(req, res)).rejects.toThrow('not owner')
+        })
+
+        it('deleteReply throws when validateOwner rejects', async () => {
+            ;(forumService.validateOwner as jest.Mock).mockRejectedValue(new Error('not owner'))
+            const req = createMockRequest({
+                userId: 'test-user-id-123',
+                params: { postId: 'test-post-id-123', replyId: 'test-reply-id-123' }
+            }) as Request
+            const res = createMockResponse() as Response
+            await expect(forumController.deleteReply(req, res)).rejects.toThrow('not owner')
         })
     })
 
