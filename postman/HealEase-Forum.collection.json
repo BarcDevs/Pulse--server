@@ -391,6 +391,14 @@
                   "pm.test('Returns array of replies', () => {",
                   "    const json = pm.response.json()",
                   "    pm.expect(json.data).to.be.an('array')",
+                  "})",
+                  "",
+                  "pm.test('Each reply has _count.likes', () => {",
+                  "    const json = pm.response.json()",
+                  "    if (json.data.length > 0) {",
+                  "        pm.expect(json.data[0]).to.have.property('_count')",
+                  "        pm.expect(json.data[0]._count).to.have.property('likes')",
+                  "    }",
                   "})"
                 ],
                 "type": "text/javascript"
@@ -401,7 +409,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/reply",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -411,7 +419,7 @@
                 "forum",
                 "posts",
                 "{{postId}}",
-                "reply"
+                "replies"
               ]
             }
           }

@@ -10,6 +10,7 @@ export type ReplyType = {
     updatedAt?: Date
     post?: PostType
     postId?: string
+    _count?: { likes?: number }
 }
 
 export type NewReplyType = {

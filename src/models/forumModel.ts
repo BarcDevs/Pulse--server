@@ -220,6 +220,9 @@ export const getReplies = async (
                             }
                         }
                     }
+                },
+                _count: {
+                    select: { likes: true }
                 }
             },
             orderBy: {

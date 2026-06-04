@@ -610,7 +610,8 @@ Returns the current user's saved posts. Supports the same pagination query param
       "id": "string",
       "body": "string",
       "author": { "id": "string", "username": "string" },
-      "createdAt": "ISO date"
+      "createdAt": "ISO date",
+      "_count": { "likes": 0 }
     }
   ]
 }

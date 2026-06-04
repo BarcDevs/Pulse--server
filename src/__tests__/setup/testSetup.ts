@@ -116,6 +116,7 @@ export const createMockReply = (
     },
     createdAt: new Date(),
     updatedAt: undefined,
+    _count: { likes: 0 },
     ...overrides
 })
 

@@ -661,7 +661,7 @@ describe('Forum Routes', () => {
 
     // ==================== GET REPLIES ====================
     describe('GET /api/v1/forum/posts/:postId/replies', () => {
-        it('should return 200 and replies array', async () => {
+        it('should return 200 and replies array with _count', async () => {
             const mockPost = createMockPost()
             const mockReplies = [
                 createMockReply(),
@@ -680,6 +680,13 @@ describe('Forum Routes', () => {
             expect(response.status).toBe(200)
             expect(response.body.data)
                 .toBeInstanceOf(Array)
+            expect(response.body.data.length)
+                .toBeGreaterThan(0)
+            response.body.data.forEach((reply: unknown) => {
+                expect(reply).toHaveProperty('_count')
+                expect((reply as { _count: unknown })._count)
+                    .toHaveProperty('likes')
+            })
         })
 
         it(

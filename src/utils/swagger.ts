@@ -106,7 +106,12 @@ const options: swaggerJsdoc.Options = {
                     properties: {
                         id: { type: 'string' },
                         body: { type: 'string' },
-                        likes: { type: 'integer' }
+                        _count: {
+                            type: 'object',
+                            properties: {
+                                likes: { type: 'integer' }
+                            }
+                        }
                     }
                 },
                 AIInsight: {
