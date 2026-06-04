@@ -202,6 +202,24 @@ describe('authOTP', () => {
                 expect.any(String)
             )
         })
+
+        it('propagates error when sendEmail throws', async () => {
+            mockGetUserByEmail.mockResolvedValue(createMockUser())
+            mockSendEmail.mockRejectedValue(new Error('SMTP failure'))
+
+            await expect(
+                sendForgotPasswordOTP('test@test.com')
+            ).rejects.toThrow('SMTP failure')
+        })
+
+        it('propagates error when setUserOTP throws', async () => {
+            mockGetUserByEmail.mockResolvedValue(createMockUser())
+            mockSetUserOTP.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                sendForgotPasswordOTP('test@test.com')
+            ).rejects.toThrow('DB error')
+        })
     })
 
     // ==================== sendConfirmEmailOTP ====================
@@ -237,6 +255,15 @@ describe('authOTP', () => {
                 expect.any(String),
                 expect.any(String)
             )
+        })
+
+        it('propagates error when sendEmail throws', async () => {
+            mockGetUserByEmail.mockResolvedValue(createMockUser())
+            mockSendEmail.mockRejectedValue(new Error('SMTP failure'))
+
+            await expect(
+                sendConfirmEmailOTP('test@test.com')
+            ).rejects.toThrow('SMTP failure')
         })
     })
 
@@ -287,6 +314,22 @@ describe('authOTP', () => {
             await expect(
                 sendEmailChangeOTP('user-123', 'new@test.com')
             ).resolves.not.toThrow()
+        })
+
+        it('propagates error when sendEmail throws', async () => {
+            mockSendEmail.mockRejectedValue(new Error('SMTP failure'))
+
+            await expect(
+                sendEmailChangeOTP('user-123', 'new@test.com')
+            ).rejects.toThrow('SMTP failure')
+        })
+
+        it('propagates error when setEmailChangeOTP throws', async () => {
+            mockSetEmailChangeOTP.mockRejectedValue(new Error('DB error'))
+
+            await expect(
+                sendEmailChangeOTP('user-123', 'new@test.com')
+            ).rejects.toThrow('DB error')
         })
     })
 })

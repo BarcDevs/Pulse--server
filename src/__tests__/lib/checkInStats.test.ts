@@ -1,5 +1,10 @@
 import { prevDay, toDateStr } from '../../lib/checkInDateHelpers'
-import { calculateStreaks } from '../../lib/checkInStats'
+import {
+    calculateAverageMood,
+    calculateAveragePain,
+    calculateStreaks,
+    calculateTopActivities
+} from '../../lib/checkInStats'
 
 const d = (dateStr: string) => new Date(`${dateStr}T00:00:00Z`)
 
@@ -109,5 +114,99 @@ describe('calculateStreaks', () => {
             )
             expect(result.currentStreak).toBe(2)
         })
+    })
+})
+
+const makeCheckIn = (overrides: Record<string, unknown> = {}) => ({
+    moodScore: 5,
+    painLevel: 3,
+    activities: [] as string[],
+    checkInDate: new Date(),
+    ...overrides
+})
+
+describe('calculateAverageMood', () => {
+    it('returns 0 for empty array', () => {
+        expect(calculateAverageMood([])).toBe(0)
+    })
+
+    it('returns score for single check-in', () => {
+        expect(calculateAverageMood([makeCheckIn({ moodScore: 8 })])).toBe(8)
+    })
+
+    it('returns average for multiple check-ins', () => {
+        const checkIns = [
+            makeCheckIn({ moodScore: 6 }),
+            makeCheckIn({ moodScore: 8 }),
+            makeCheckIn({ moodScore: 10 })
+        ]
+        expect(calculateAverageMood(checkIns)).toBeCloseTo(8)
+    })
+
+    it('returns fractional average when not whole number', () => {
+        const checkIns = [makeCheckIn({ moodScore: 7 }), makeCheckIn({ moodScore: 8 })]
+        expect(calculateAverageMood(checkIns)).toBe(7.5)
+    })
+})
+
+describe('calculateAveragePain', () => {
+    it('returns 0 for empty array', () => {
+        expect(calculateAveragePain([])).toBe(0)
+    })
+
+    it('returns score for single check-in', () => {
+        expect(calculateAveragePain([makeCheckIn({ painLevel: 4 })])).toBe(4)
+    })
+
+    it('returns average for multiple check-ins', () => {
+        const checkIns = [
+            makeCheckIn({ painLevel: 2 }),
+            makeCheckIn({ painLevel: 4 }),
+            makeCheckIn({ painLevel: 6 })
+        ]
+        expect(calculateAveragePain(checkIns)).toBeCloseTo(4)
+    })
+
+    it('returns 0 for all-zero pain levels', () => {
+        const checkIns = [makeCheckIn({ painLevel: 0 }), makeCheckIn({ painLevel: 0 })]
+        expect(calculateAveragePain(checkIns)).toBe(0)
+    })
+})
+
+describe('calculateTopActivities', () => {
+    it('returns empty array for empty input', () => {
+        expect(calculateTopActivities([])).toEqual([])
+    })
+
+    it('returns single activity for single check-in', () => {
+        expect(
+            calculateTopActivities([makeCheckIn({ activities: ['walking'] })])
+        ).toEqual(['walking'])
+    })
+
+    it('returns activities ranked by frequency', () => {
+        const checkIns = [
+            makeCheckIn({ activities: ['walking', 'yoga'] }),
+            makeCheckIn({ activities: ['walking', 'swimming'] }),
+            makeCheckIn({ activities: ['yoga'] })
+        ]
+        const result = calculateTopActivities(checkIns)
+        expect(result[0]).toBe('walking')
+        expect(result[1]).toBe('yoga')
+    })
+
+    it('returns at most 5 activities', () => {
+        const checkIns = [
+            makeCheckIn({ activities: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] })
+        ]
+        expect(calculateTopActivities(checkIns)).toHaveLength(5)
+    })
+
+    it('handles check-ins with no activities', () => {
+        const checkIns = [
+            makeCheckIn({ activities: [] }),
+            makeCheckIn({ activities: ['running'] })
+        ]
+        expect(calculateTopActivities(checkIns)).toEqual(['running'])
     })
 })
