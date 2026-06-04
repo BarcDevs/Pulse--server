@@ -213,4 +213,206 @@ describe('AuthModel', () => {
             expect(result).toBe('he')
         })
     })
+
+    describe('getUserByUsername', () => {
+        it('returns user when found and active', async () => {
+            const user = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(user)
+
+            const result = await authModel.getUserByUsername('testuser')
+
+            expect(result).toEqual(user)
+        })
+
+        it('returns null when user is inactive', async () => {
+            const user = createMockUser({ active: false })
+            prismaMock.user.findUnique.mockResolvedValue(user)
+
+            const result = await authModel.getUserByUsername('testuser')
+
+            expect(result).toBeNull()
+        })
+
+        it('returns null when user not found', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null)
+
+            const result = await authModel.getUserByUsername('nobody')
+
+            expect(result).toBeNull()
+        })
+
+        it('queries by username', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(createMockUser())
+
+            await authModel.getUserByUsername('targetuser')
+
+            expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { username: 'targetuser' }
+                })
+            )
+        })
+    })
+
+    describe('setUserOTP', () => {
+        it('calls update with OTP data and active constraint', async () => {
+            const user = createMockUser()
+            const expiration = new Date('2026-01-01T12:00:00Z')
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.setUserOTP(user.id, {
+                resetPasswordOTP: 123456,
+                resetPasswordExpiration: expiration
+            })
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: user.id, active: true },
+                    data: expect.objectContaining({
+                        resetPasswordOTP: 123456,
+                        resetPasswordExpiration: expiration
+                    })
+                })
+            )
+        })
+
+        it('can clear OTP with null values', async () => {
+            const user = createMockUser()
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.setUserOTP(user.id, {
+                resetPasswordOTP: null,
+                resetPasswordExpiration: null
+            })
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        resetPasswordOTP: null,
+                        resetPasswordExpiration: null
+                    })
+                })
+            )
+        })
+    })
+
+    describe('setEmailChangeOTP', () => {
+        it('calls update with email change data and active constraint', async () => {
+            const user = createMockUser()
+            const expiration = new Date('2026-01-01T12:00:00Z')
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.setEmailChangeOTP(user.id, {
+                pendingEmail: 'new@test.com',
+                emailChangeOTP: 654321,
+                emailChangeExpiration: expiration
+            })
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: user.id, active: true },
+                    data: expect.objectContaining({
+                        pendingEmail: 'new@test.com',
+                        emailChangeOTP: 654321,
+                        emailChangeExpiration: expiration
+                    })
+                })
+            )
+        })
+
+        it('can clear pending email with null values', async () => {
+            const user = createMockUser()
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.setEmailChangeOTP(user.id, {
+                pendingEmail: null,
+                emailChangeOTP: null,
+                emailChangeExpiration: null
+            })
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        pendingEmail: null,
+                        emailChangeOTP: null,
+                        emailChangeExpiration: null
+                    })
+                })
+            )
+        })
+    })
+
+    describe('updateEmail', () => {
+        it('sets new email and clears all OTP fields', async () => {
+            const user = createMockUser()
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.updateEmail(user.id, 'new@test.com')
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: user.id, active: true },
+                    data: expect.objectContaining({
+                        email: 'new@test.com',
+                        pendingEmail: null,
+                        emailChangeOTP: null,
+                        emailChangeExpiration: null
+                    })
+                })
+            )
+        })
+    })
+
+    describe('linkGoogleId', () => {
+        it('calls update with googleId and active constraint', async () => {
+            const user = createMockUser()
+            prismaMock.user.update.mockResolvedValue(user)
+
+            await authModel.linkGoogleId(user.id, 'google-oauth-id-123')
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: user.id, active: true },
+                    data: { googleId: 'google-oauth-id-123' }
+                })
+            )
+        })
+    })
+
+    describe('Prisma error propagation', () => {
+        it('getUserById propagates Prisma connection error', async () => {
+            prismaMock.user.findUnique.mockRejectedValue(new Error('Connection refused'))
+
+            await expect(authModel.getUserById('any-id')).rejects.toThrow('Connection refused')
+        })
+
+        it('createUser propagates error when profile creation fails mid-transaction', async () => {
+            prismaMock.user.create.mockResolvedValue(createMockUser())
+            prismaMock.profile.create.mockRejectedValue(new Error('Profile creation failed'))
+
+            await expect(
+                authModel.createUser({
+                    firstName: 'Test',
+                    lastName: 'User',
+                    username: 'testuser',
+                    email: 'test@test.com',
+                    password: 'hashed-pw'
+                })
+            ).rejects.toThrow('Profile creation failed')
+        })
+
+        it('updateUser propagates Prisma error for non-existent user', async () => {
+            prismaMock.user.update.mockRejectedValue(new Error('P2025'))
+
+            await expect(
+                authModel.updateUser('non-existent', { firstName: 'X' })
+            ).rejects.toThrow('P2025')
+        })
+
+        it('deleteUser propagates Prisma error for non-existent user', async () => {
+            prismaMock.user.delete.mockRejectedValue(new Error('P2025'))
+
+            await expect(authModel.deleteUser('non-existent')).rejects.toThrow('P2025')
+        })
+    })
 })

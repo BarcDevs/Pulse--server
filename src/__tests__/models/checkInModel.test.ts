@@ -208,5 +208,80 @@ describe('CheckInModel', () => {
             )
             expect(result).toEqual([mockCheckIn])
         })
+
+        it('returns empty array when no check-ins in range', async () => {
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([])
+
+            const result = await checkInModel.getCheckInsForDateRange(
+                'profile-id',
+                new Date('2026-01-01'),
+                new Date('2026-01-07')
+            )
+
+            expect(result).toEqual([])
+        })
+    })
+
+    describe('getCheckIns (additional)', () => {
+        it('accepts custom limit', async () => {
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([])
+
+            await checkInModel.getCheckIns('profile-id', 10)
+
+            expect(prismaMock.dailyCheckIn.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({ take: 10 })
+            )
+        })
+
+        it('returns empty array when no check-ins exist', async () => {
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([])
+
+            const result = await checkInModel.getCheckIns('profile-id')
+
+            expect(result).toEqual([])
+        })
+    })
+
+    describe('updateUserLastCheckIn', () => {
+        it('updates profile lastCheckInAt for user', async () => {
+            prismaMock.profile.update.mockResolvedValue(mockProfile)
+
+            await checkInModel.updateUserLastCheckIn('user-id')
+
+            expect(prismaMock.profile.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { userId: 'user-id' },
+                    data: expect.objectContaining({ lastCheckInAt: expect.any(Date) })
+                })
+            )
+        })
+    })
+
+    describe('Prisma error propagation', () => {
+        it('createCheckIn propagates duplicate key error', async () => {
+            prismaMock.dailyCheckIn.create.mockRejectedValue(new Error('P2002'))
+
+            await expect(
+                checkInModel.createCheckIn(
+                    { userId: 'user-id', moodScore: 7, painLevel: 3, activities: [] },
+                    'profile-id',
+                    new Date('2026-01-01')
+                )
+            ).rejects.toThrow('P2002')
+        })
+
+        it('updateCheckIn propagates error when record not found', async () => {
+            prismaMock.dailyCheckIn.update.mockRejectedValue(new Error('P2025'))
+
+            await expect(
+                checkInModel.updateCheckIn('profile-id', new Date('2026-01-01'), { moodScore: 8 })
+            ).rejects.toThrow('P2025')
+        })
+
+        it('getCheckIns propagates Prisma connection error', async () => {
+            prismaMock.dailyCheckIn.findMany.mockRejectedValue(new Error('Connection refused'))
+
+            await expect(checkInModel.getCheckIns('profile-id')).rejects.toThrow('Connection refused')
+        })
     })
 })

@@ -48,6 +48,14 @@ describe('ProfileModel', () => {
             })
             expect(result).toEqual(updated)
         })
+
+        it('propagates Prisma error when user not found', async () => {
+            prismaMock.profile.update.mockRejectedValue(new Error('P2025'))
+
+            await expect(
+                profileModel.updateProfile('non-existent', { bio: 'test' })
+            ).rejects.toThrow('P2025')
+        })
     })
 
     describe('getAvailableHealthInterests', () => {
