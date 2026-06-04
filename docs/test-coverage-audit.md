@@ -29,14 +29,16 @@ Strong in validation & auth security. Weak in infrastructure and concurrency fai
 - Missing fields (7+ tests), invalid formats, conflicts, expired OTP, non-existent users
 - **Missing:** network errors during Prisma calls, cascading service failures
 
-### Libs — 50% error coverage
+### Libs — ✅ filled (2026-06-04)
 - `authOTP`: OTP mismatch, user not found, expiration, wrong OTP
-- **Missing:** email service failures during OTP send, race conditions on OTP generation
+- Added: SMTP + DB failure propagation for `sendForgotPasswordOTP`, `sendConfirmEmailOTP`, `sendEmailChangeOTP`
+- Added: `calculateAverageMood/Pain/TopActivities` — empty, single, multi, N=50, no-activities, fractional avg
+- Added: `forumHelpers.test.ts` (new) — `extractRemovedTags` boundary cases (undefined, empty, partial/full overlap, N=50), `ensurePostExists` (found, not found, model error), `validateOwnerHelper` (post/reply, wrong author, missing replyId)
 
-### Services — 45% error coverage
+### Services — ✅ filled (2026-06-04)
 - Auth: duplicate email, missing user, wrong password, expired OTP, DB conflicts
 - CheckIn: P2002 constraint violations, missing records, timezone edge cases
-- **Missing:** external service timeouts, transaction rollback, network failures
+- Added: external service failure paths, model-throw propagation, `handleCallback` full coverage (21 new tests)
 
 ### Controllers — ✅ filled (2026-06-04)
 - Auth failures, invalid input, missing userId
@@ -71,7 +73,7 @@ Strong in validation & auth security. Weak in infrastructure and concurrency fai
 
 ## Priority Fix Areas
 
-1. **Models** — add Prisma error scenarios (connection failure, unique constraint, not found)
-2. **Controllers** — add tests for when service throws (DB error, null return)
-3. **Services** — add external service failure paths (email, Google OAuth token exchange)
-4. **Libs** — boundary values on arrays (empty, single, large N)
+1. **Models** — ✅ filled (2026-06-04)
+2. **Controllers** — ✅ filled (2026-06-04)
+3. **Services** — ✅ filled (2026-06-04)
+4. **Libs** — ✅ filled (2026-06-04)
