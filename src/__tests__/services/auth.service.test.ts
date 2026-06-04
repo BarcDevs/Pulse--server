@@ -14,8 +14,12 @@ import {
 } from '../../lib/authHelpers'
 import { verifyOTP } from '../../lib/authOTP'
 import {
+    deactivateUser,
+    getUser,
     login,
-    signup
+    resetPassword,
+    signup,
+    updateEmail
 } from '../../services/authService'
 import { prismaMock } from '../setup/jestSetup'
 import { createMockUser } from '../setup/testSetup'
@@ -417,6 +421,95 @@ describe('Auth Service', () => {
             await expect(signup(newUser))
                 .rejects
                 .toThrow('User already exists!')
+        })
+    })
+
+    // ==================== getUser ====================
+    describe('getUser', () => {
+        it('returns user when found by email', async () => {
+            const user = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(user)
+
+            const result = await getUser('email', user.email)
+
+            expect(result).toEqual(user)
+        })
+
+        it('returns user when found by id', async () => {
+            const user = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(user)
+
+            const result = await getUser('id', user.id)
+
+            expect(result).toEqual(user)
+        })
+
+        it('returns null when user not found', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null)
+
+            const result = await getUser('email', 'nobody@test.com')
+
+            expect(result).toBeNull()
+        })
+    })
+
+    // ==================== resetPassword ====================
+    describe('resetPassword', () => {
+        it('calls updatePassword with hashed password', async () => {
+            const user = createMockUser()
+            prismaMock.user.update.mockResolvedValue(user)
+
+            const result = await resetPassword('user-id', 'NewPassword123!')
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({ id: 'user-id' })
+                })
+            )
+            expect(result).toEqual(user)
+        })
+    })
+
+    // ==================== updateEmail ====================
+    describe('updateEmail', () => {
+        it('delegates to authModel.updateEmail', async () => {
+            const user = createMockUser({ email: 'new@test.com' })
+            prismaMock.user.update.mockResolvedValue(user)
+
+            const result = await updateEmail('user-id', 'new@test.com')
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({ id: 'user-id' }),
+                    data: expect.objectContaining({ email: 'new@test.com' })
+                })
+            )
+            expect(result).toEqual(user)
+        })
+    })
+
+    // ==================== deactivateUser ====================
+    describe('deactivateUser', () => {
+        it('throws NotFoundError when user does not exist', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null)
+
+            await expect(
+                deactivateUser('nonexistent-id')
+            ).rejects.toThrow('User not found')
+        })
+
+        it('calls disableUser when user exists', async () => {
+            const user = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue(user)
+            prismaMock.user.update.mockResolvedValue({ ...user, active: false })
+
+            await deactivateUser(user.id)
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: user.id }
+                })
+            )
         })
     })
 })

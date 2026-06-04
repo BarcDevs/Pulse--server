@@ -8,8 +8,12 @@ import {
     getPosts,
     getPostsCount,
     getReplies,
+    getSavedPosts,
     getTag,
     getTags,
+    togglePostLike,
+    toggleReplyLike,
+    toggleSavePost,
     updatePost,
     updateReply,
     validateOwner
@@ -578,6 +582,140 @@ describe('Forum Service', () => {
                     postId: 'post-id'
                 }
             })
+        })
+    })
+
+    // ==================== togglePostLike ====================
+    describe('togglePostLike', () => {
+        const mockProfile = { id: 'profile-id', userId: 'user-id' }
+
+        it('throws NotFoundError when post not found', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(null)
+
+            await expect(
+                togglePostLike('nonexistent-post', 'user-id')
+            ).rejects.toThrow('Post not found')
+        })
+
+        it('throws NotFoundError when profile not found', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique.mockResolvedValue(null)
+
+            await expect(
+                togglePostLike('post-id', 'user-id')
+            ).rejects.toThrow('User profile not found')
+        })
+
+        it('toggles like and returns result', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique.mockResolvedValue(mockProfile as never)
+            prismaMock.postLike.deleteMany.mockResolvedValue({ count: 0 })
+            prismaMock.postLike.create.mockResolvedValue({} as never)
+            prismaMock.postLike.count.mockResolvedValue(1)
+
+            const result = await togglePostLike('post-id', 'user-id')
+
+            expect(prismaMock.postLike.deleteMany).toHaveBeenCalled()
+            expect(result).toEqual({ liked: true, likes: 1 })
+        })
+    })
+
+    // ==================== toggleReplyLike ====================
+    describe('toggleReplyLike', () => {
+        const mockProfile = { id: 'profile-id', userId: 'user-id' }
+
+        it('throws NotFoundError when reply not found', async () => {
+            prismaMock.reply.findFirst.mockResolvedValue(null)
+
+            await expect(
+                toggleReplyLike('post-id', 'nonexistent-reply', 'user-id')
+            ).rejects.toThrow('Reply not found')
+        })
+
+        it('throws NotFoundError when profile not found', async () => {
+            const mockReply = createMockReply()
+            prismaMock.reply.findUnique.mockResolvedValue(mockReply)
+            prismaMock.profile.findUnique.mockResolvedValue(null)
+
+            await expect(
+                toggleReplyLike('post-id', 'reply-id', 'user-id')
+            ).rejects.toThrow('User profile not found')
+        })
+
+        it('toggles reply like and returns result', async () => {
+            const mockReply = createMockReply()
+            prismaMock.reply.findUnique.mockResolvedValue(mockReply)
+            prismaMock.profile.findUnique.mockResolvedValue(mockProfile as never)
+            prismaMock.replyLike.deleteMany.mockResolvedValue({ count: 0 })
+            prismaMock.replyLike.create.mockResolvedValue({} as never)
+            prismaMock.replyLike.count.mockResolvedValue(2)
+
+            const result = await toggleReplyLike('post-id', 'reply-id', 'user-id')
+
+            expect(prismaMock.replyLike.deleteMany).toHaveBeenCalled()
+            expect(result).toEqual({ liked: true, likes: 2 })
+        })
+    })
+
+    // ==================== toggleSavePost ====================
+    describe('toggleSavePost', () => {
+        const mockProfile = { id: 'profile-id', userId: 'user-id' }
+
+        it('throws NotFoundError when post not found', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(null)
+
+            await expect(
+                toggleSavePost('nonexistent-post', 'user-id')
+            ).rejects.toThrow('Post not found')
+        })
+
+        it('throws NotFoundError when profile not found', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique.mockResolvedValue(null)
+
+            await expect(
+                toggleSavePost('post-id', 'user-id')
+            ).rejects.toThrow('User profile not found')
+        })
+
+        it('toggles save and returns result', async () => {
+            const mockPost = createMockPost()
+            prismaMock.post.findUnique.mockResolvedValue(mockPost)
+            prismaMock.profile.findUnique.mockResolvedValue(mockProfile as never)
+            prismaMock.savedPost.deleteMany.mockResolvedValue({ count: 0 })
+            prismaMock.savedPost.create.mockResolvedValue({} as never)
+
+            const result = await toggleSavePost('post-id', 'user-id')
+
+            expect(prismaMock.savedPost.deleteMany).toHaveBeenCalled()
+            expect(result).toEqual({ saved: true })
+        })
+    })
+
+    // ==================== getSavedPosts ====================
+    describe('getSavedPosts', () => {
+        const mockProfile = { id: 'profile-id', userId: 'user-id' }
+
+        it('throws NotFoundError when profile not found', async () => {
+            prismaMock.profile.findUnique.mockResolvedValue(null)
+
+            await expect(
+                getSavedPosts('user-id')
+            ).rejects.toThrow('User profile not found')
+        })
+
+        it('returns saved posts for user', async () => {
+            const posts = [createMockPost()]
+            prismaMock.profile.findUnique.mockResolvedValue(mockProfile as never)
+            prismaMock.post.findMany.mockResolvedValue(posts)
+
+            const result = await getSavedPosts('user-id')
+
+            expect(prismaMock.post.findMany).toHaveBeenCalled()
+            expect(result).toEqual(posts)
         })
     })
 })
