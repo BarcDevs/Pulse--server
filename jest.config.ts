@@ -12,5 +12,13 @@ export default {
     ],
     setupFilesAfterEnv: [
         '<rootDir>/src/__tests__/setup/jestSetup.ts'
-    ]
+    ],
+    coverageThreshold: {
+        global: {
+            branches: 70,
+            functions: 83,
+            lines: 87,
+            statements: 87
+        }
+    }
 }

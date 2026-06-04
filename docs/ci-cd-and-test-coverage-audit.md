@@ -86,3 +86,92 @@ Strong in validation, auth security, models, cache. Remaining gaps: concurrent r
 2. **Controllers** — ✅ filled (2026-06-04)
 3. **Services** — ✅ filled (2026-06-04)
 4. **Libs** — ✅ filled (2026-06-04)
+
+---
+
+# CI/CD Readiness Audit
+
+**Date:** 2026-06-04
+**Branch:** tests
+
+## Current Test Inventory
+
+| Layer | Files | Status |
+|-------|-------|--------|
+| Controllers | 6 | ✅ |
+| Services | 11 | ✅ |
+| Models | 8 | ✅ |
+| Middlewares | 7 | ✅ |
+| Routes (supertest) | 9 | ✅ |
+| Libs | 14 | ✅ |
+| Schemas / Utils | 8 | ✅ |
+| **Total** | **63** | |
+
+`devRoute.ts` intentionally untested — dev-only email preview, excluded from prod build.
+
+---
+
+## Gaps Before CI/CD
+
+### 1. Coverage Thresholds — ✅ Done (2026-06-04)
+
+`jest.config.ts` has no `coverageThreshold`. CI runs pass even at 0% coverage.
+
+**Fix:** add to `jest.config.ts`:
+```ts
+coverageThreshold: {
+    global: {
+        branches: 80,
+        functions: 85,
+        lines: 85,
+        statements: 85
+    }
+}
+```
+
+### 2. GitHub Actions Workflow — ⚠️ Missing (30 min fix)
+
+No `.github/workflows/` directory exists. Nothing runs on push/PR.
+
+**Minimum CI pipeline steps:**
+```
+install → typecheck → lint:check → test (with coverage gate)
+```
+
+All scripts already exist in `package.json` (`typecheck`, `lint:check`, `test`). Just need the workflow file.
+
+### 3. Real DB Integration Tests — ❌ Major Gap (days of work)
+
+Every test — including all 9 route tests — mocks Prisma via `jest-mock-extended`. Zero tests touch real PostgreSQL.
+
+**What mocked tests miss:**
+- Migration drift (schema out of sync with migrations)
+- Constraint violations (unique, FK, NOT NULL) under real data
+- Transaction rollback behavior
+- `@db.Date` / `@@unique` compound key behavior
+- Prisma query builder bugs masked by mocks
+
+**Approach for CI:**
+- Docker Compose with `postgres:16-alpine` test DB service
+- Separate Jest project/config (`jest.integration.config.ts`) hitting real DB
+- Run `prisma migrate deploy` before test suite
+- Seed minimal fixture data
+- Separate npm script: `test:integration`
+
+**Scope estimate:**
+- Setup (Docker Compose + config): ~2h
+- Auth + CheckIn routes against real DB: ~1 day
+- Full route coverage against real DB: ~3–4 days
+
+---
+
+## Priority Order
+
+| # | Task | Effort | Blocking CI? |
+|---|------|--------|--------------|
+| 1 | ~~Add `coverageThreshold` to `jest.config.ts`~~ ✅ | 5 min | Yes — CI is blind without it |
+| 2 | Create `.github/workflows/ci.yml` | 30 min | Yes — nothing runs without it |
+| 3 | Real DB integration tests | 3–4 days | No — but mocked-only CI is incomplete |
+
+Steps 1 + 2 unblock a functional (if shallow) CI pipeline immediately.
+Step 3 is the meaningful quality gate but requires dedicated effort.
