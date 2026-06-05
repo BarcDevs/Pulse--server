@@ -71,11 +71,11 @@ Strong in validation, auth security, models, cache. Remaining gaps: concurrent r
 | Gap | Status | Affected Layers |
 |-----|--------|----------------|
 | DB connection / network failures | ✅ covered in models | Models, Services, Controllers |
-| Null/undefined propagation chains | Partial | Controllers, Services |
-| Concurrent requests / race conditions | Open | Models, Services |
+| Null/undefined propagation chains | ✅ covered (2026-06-05) | Controllers, Services |
+| Concurrent requests / race conditions | ✅ covered (2026-06-05) | Integration tests |
 | External service failures (email, OAuth) | ✅ emailSender covered | Services |
 | Empty/single-element/large array boundaries | ✅ covered in models/libs | Libs, Services |
-| Prisma throws unexpectedly mid-transaction | Partial | Models, Services |
+| Prisma throws unexpectedly mid-transaction | ✅ covered (2026-06-05) | Models, Services |
 | Cache TTL expiry and isolation | ✅ covered (2026-06-04) | Lib/Cache |
 
 ---
