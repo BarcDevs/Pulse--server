@@ -26,6 +26,8 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DEV_DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Typecheck
         run: npm run typecheck
@@ -70,6 +72,8 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DEV_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/healease_test
 
       - name: Integration tests
         run: npm run test:integration
