@@ -18,8 +18,8 @@ describe('Logger', () => {
                 .toBeGreaterThan(0)
         })
 
-        it('should have exactly 2 transports', () => {
-            expect(logger.transports).toHaveLength(2)
+        it('should have exactly 3 transports', () => {
+            expect(logger.transports).toHaveLength(3)
         })
 
         it('should have error level transport', () => {
