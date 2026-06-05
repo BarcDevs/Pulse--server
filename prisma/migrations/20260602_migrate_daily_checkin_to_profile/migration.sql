@@ -1,5 +1,5 @@
 -- Drop existing constraint and index
-ALTER TABLE "DailyCheckIn" DROP CONSTRAINT "DailyCheckIn_userId_fkey";
+ALTER TABLE "DailyCheckIn" DROP CONSTRAINT IF EXISTS "DailyCheckIn_userId_fkey";
 DROP INDEX IF EXISTS "DailyCheckIn_userId_checkInDate_key";
 DROP INDEX IF EXISTS "DailyCheckIn_userId_createdAt_idx";
 
