@@ -3,6 +3,14 @@ ALTER TABLE "DailyCheckIn" DROP CONSTRAINT "DailyCheckIn_userId_fkey";
 DROP INDEX IF EXISTS "DailyCheckIn_userId_checkInDate_key";
 DROP INDEX IF EXISTS "DailyCheckIn_userId_createdAt_idx";
 
+-- Backfill profiles for any users that don't have one (prod may have users without profiles)
+INSERT INTO "Profile" ("id", "userId", "timezone", "createdAt", "updatedAt")
+SELECT gen_random_uuid()::text, u."id", 'Asia/Jerusalem', NOW(), NOW()
+FROM "User" u
+WHERE NOT EXISTS (
+  SELECT 1 FROM "Profile" p WHERE p."userId" = u."id"
+);
+
 -- Add profileId column
 ALTER TABLE "DailyCheckIn" ADD COLUMN "profileId" TEXT;
 

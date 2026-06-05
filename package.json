@@ -1,6 +1,6 @@
 {
   "name": "express-ts-api",
-  "version": "0.15.6",
+  "version": "0.15.7",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -11,7 +11,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/src/app.js",
-    "build": "npx prisma generate && npx prisma migrate deploy && tsc",
+    "build": "npx prisma generate && (npx prisma migrate resolve --rolled-back 20260602_migrate_daily_checkin_to_profile || true) && npx prisma migrate deploy && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
     "start:prod": "NODE_ENV=production node build/index.bundle.js",
     "prod": "npm run prisma:generate && npm run prisma:deploy && webpack",
