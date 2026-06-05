@@ -5,7 +5,7 @@ import * as authModel from '../../models/authModel'
 import * as checkInModel from '../../models/checkInModel'
 import * as progressInsightsService from '../../services/progressInsightsService'
 
-jest.mock('../../models/CheckInModel')
+jest.mock('../../models/checkInModel')
 jest.mock('../../models/authModel')
 jest.mock('../../lib/cache/progressInsightsCache')
 jest.mock('../../services/aiProviders/ProviderFactory')
