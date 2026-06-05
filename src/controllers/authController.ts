@@ -42,6 +42,7 @@ import type {
     ServerUserType,
     UserType
 } from '../types/data/UserType'
+import logger from '../utils/logger'
 
 // region Login and Signup
 export const login = async (
@@ -433,6 +434,8 @@ export const googleCallback = async (
 ) => {
     const { code, state } = req.query
     const storedState = req.cookies?.oauth_state
+
+    logger.info(`[OAuth callback] cookies=${JSON.stringify(Object.keys(req.cookies ?? {}))} storedState=${storedState ? 'present' : 'MISSING'} queryState=${state ? 'present' : 'MISSING'} match=${storedState === state}`)
 
     res.clearCookie('oauth_state')
 
