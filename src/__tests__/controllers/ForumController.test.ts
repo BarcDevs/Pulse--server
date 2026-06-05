@@ -153,7 +153,7 @@ describe('ForumController', () => {
                     })
                 )
                 expect(res.status)
-                    .toHaveBeenCalledWith(200)
+                    .toHaveBeenCalledWith(201)
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
                         message: 'Post created successfully'

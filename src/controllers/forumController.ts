@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 
 import { FORUM_PAGINATION } from '../constants/forum/pagination'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
 import { successResponse } from '../responses/success'
@@ -62,7 +63,8 @@ export const createPost = async (
     return successResponse<PostType>(
         res,
         data,
-        'Post created successfully'
+        'Post created successfully',
+        HttpStatusCodes.CREATED
     )
 }
 

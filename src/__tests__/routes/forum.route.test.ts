@@ -217,7 +217,7 @@ describe('Forum Routes', () => {
         const postsEndpoint = '/api/v1/forum/posts'
 
         it(
-            'should return 200 for valid post creation',
+            'should return 201 for valid post creation',
             async () => {
                 const mockUser = createMockUser()
                 const mockPost = createMockPost()
@@ -253,7 +253,7 @@ describe('Forum Routes', () => {
                     ]
                 })
 
-                expect(response.status).toBe(200)
+                expect(response.status).toBe(201)
                 expect(response.body.message)
                     .toBe('Post created successfully')
             }
@@ -409,7 +409,7 @@ describe('Forum Routes', () => {
                     category: 'general'
                 })
 
-                expect(response.status).toBe(200)
+                expect(response.status).toBe(201)
             }
         )
     })
