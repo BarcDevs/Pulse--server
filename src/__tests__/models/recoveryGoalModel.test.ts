@@ -331,6 +331,16 @@ describe('RecoveryGoalModel', () => {
                 })
             )
         })
+
+        it('propagates error when second update fails mid-transaction', async () => {
+            prismaMock.$executeRaw.mockResolvedValue(0)
+            prismaMock.recoveryGoal.updateMany.mockResolvedValue({ count: 2 })
+            prismaMock.recoveryGoal.update.mockRejectedValue(new Error('DB write failed'))
+
+            await expect(
+                recoveryGoalModel.setPrimaryGoal('profile-id', 'goal-id')
+            ).rejects.toThrow('DB write failed')
+        })
     })
 
     describe('createMilestonesInBatch', () => {
@@ -466,6 +476,34 @@ describe('RecoveryGoalModel', () => {
                     data: expect.objectContaining({ status: GoalStatus.COMPLETED })
                 })
             )
+        })
+
+        it('propagates error when milestone.update fails mid-transaction', async () => {
+            const { MilestoneStatus } = require('../../../prisma/generated/prisma/enums')
+            prismaMock.$executeRaw.mockResolvedValue(0)
+            prismaMock.milestone.findUnique.mockResolvedValue(
+                createMockMilestone({ status: MilestoneStatus.ACTIVE })
+            )
+            prismaMock.milestone.update.mockRejectedValue(new Error('Partial write failure'))
+
+            await expect(
+                recoveryGoalModel.completeMilestoneAndAdvance('ms-id', 'goal-id')
+            ).rejects.toThrow('Partial write failure')
+        })
+
+        it('propagates error when goal.update fails after completing last milestone', async () => {
+            const { MilestoneStatus } = require('../../../prisma/generated/prisma/enums')
+            prismaMock.$executeRaw.mockResolvedValue(0)
+            prismaMock.milestone.findUnique.mockResolvedValue(
+                createMockMilestone({ status: MilestoneStatus.ACTIVE })
+            )
+            prismaMock.milestone.update.mockResolvedValue(createMockMilestone())
+            prismaMock.milestone.findFirst.mockResolvedValue(null)
+            prismaMock.recoveryGoal.update.mockRejectedValue(new Error('Goal update failed'))
+
+            await expect(
+                recoveryGoalModel.completeMilestoneAndAdvance('ms-id', 'goal-id')
+            ).rejects.toThrow('Goal update failed')
         })
     })
 

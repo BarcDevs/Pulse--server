@@ -109,6 +109,22 @@ describe('Profile Routes', () => {
                 expect(res.body.error).toBeDefined()
             }
         )
+
+        it(
+            'should return 404 when profile not found',
+            async () => {
+                const token = createAuthToken(mockUser)
+                prismaMock.profile.findUnique
+                    .mockResolvedValue(null)
+
+                const res = await request(App)
+                    .get(endpoint)
+                    .set('Cookie', [`accessToken=${token}`])
+
+                expect(res.status).toBe(404)
+                expect(res.body.error[0].statusType).toBe('Not Found')
+            }
+        )
     })
 
     // ==================== UPDATE PROFILE ====================

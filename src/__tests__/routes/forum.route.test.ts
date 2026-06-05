@@ -443,6 +443,32 @@ describe('Forum Routes', () => {
                     .toBe('Not Found')
             }
         )
+
+        it(
+            'should return null author image in response without error',
+            async () => {
+                const mockPost = createMockPost({
+                    author: {
+                        id: 'test-user-id-123',
+                        image: null,
+                        user: {
+                            id: 'test-user-id-123',
+                            username: 'testuser',
+                            firstName: 'Test',
+                            lastName: 'User'
+                        }
+                    }
+                })
+                prismaMock.post.findUnique
+                    .mockResolvedValue(mockPost)
+
+                const response = await supertest(App)
+                    .get('/api/v1/forum/posts/test-post-id-123')
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.author.image).toBeNull()
+            }
+        )
     })
 
     // ==================== UPDATE POST ====================
@@ -1937,6 +1963,49 @@ describe('Forum Routes', () => {
                     .set('Cookie', [`accessToken=${token}`])
 
                 expect(response.status).toBe(403)
+            }
+        )
+    })
+
+    // ==================== CASCADING SERVICE FAILURES ====================
+    describe('Cascading service failure paths', () => {
+        it(
+            'POST /posts returns 500 when Prisma throws connection error on profile lookup',
+            async () => {
+                const mockUser = createMockUser()
+                const { token, csrfSecret, csrfToken } = createAuthenticatedRequest(mockUser)
+
+                prismaMock.profile.findUnique
+                    .mockRejectedValue(new Error('ECONNREFUSED'))
+
+                const response = await supertest(App)
+                    .post('/api/v1/forum/posts')
+                    .set('Cookie', [
+                        `accessToken=${token}`,
+                        `_csrf=${csrfSecret}`
+                    ])
+                    .set('x-csrf-token', csrfToken)
+                    .send({
+                        title: 'Test Post',
+                        body: 'Content',
+                        category: 'general',
+                        tags: []
+                    })
+
+                expect(response.status).toBe(500)
+            }
+        )
+
+        it(
+            'GET /posts returns 500 when Prisma throws connection error',
+            async () => {
+                prismaMock.post.findMany
+                    .mockRejectedValue(new Error('ECONNREFUSED'))
+
+                const response = await supertest(App)
+                    .get('/api/v1/forum/posts')
+
+                expect(response.status).toBe(500)
             }
         )
     })

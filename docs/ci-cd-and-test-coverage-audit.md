@@ -174,3 +174,74 @@ Every test — including all 9 route tests — mocks Prisma via `jest-mock-exten
 | 3 | ~~Real DB integration tests~~ ✅ | 3–4 days | No — but mocked-only CI is incomplete |
 
 All three gaps resolved. CI pipeline is functional with both unit (mocked) and integration (real DB) jobs.
+
+---
+
+## Remaining Coverage Gaps
+
+### 4. Concurrent Requests / Race Conditions — ✅ Done (2026-06-05)
+
+Integration tests added: `src/__tests__/integration/concurrency.integration.test.ts`
+
+**Covered:**
+- Two simultaneous POST /check-in for same user same day → exactly 1 DB record (upsert race)
+- Two concurrent PATCH /profile → DB in consistent state (one valid value)
+- Two simultaneous POST /forum/posts/:postId/like → at most 1 PostLike row (P2002 handled)
+- Sequential like → unlike → 0 rows (toggle behavior)
+
+---
+
+### 5. Null/Undefined Propagation Chains — ✅ Done (2026-06-05)
+
+**Covered:**
+- `GET /profile` when `profile.findUnique` returns null → 404 (added to `profile.route.test.ts`)
+- GET /posts/:postId with `author.image: null` → response well-formed, `author.image` is null (added to `forum.route.test.ts`)
+- All other null paths (getSavedPosts null→[], findFirst null→404) previously covered
+
+---
+
+### 6. Prisma Throws Mid-Transaction — ✅ Done (2026-06-05)
+
+**Covered:**
+- `createUser` profile create fails mid-transaction → propagates error (pre-existing in `authModel.test.ts`)
+- `setPrimaryGoal`: second update throws → error propagated (added to `recoveryGoalModel.test.ts`)
+- `completeMilestoneAndAdvance`: `milestone.update` throws mid-sequence → error propagated (added)
+- `completeMilestoneAndAdvance`: `goal.update` throws after completing last milestone → error propagated (added)
+
+---
+
+### 7. Schema Edge Cases — ✅ Done (2026-06-05)
+
+New file: `src/__tests__/schemas/adversarial.schemas.test.ts` (38 tests)
+
+**Covered:**
+- SQL injection strings in email/username → schema rejects (invalid email format, invalid username chars)
+- XSS payloads in firstName → schema rejects (alphanumeric regex)
+- XSS/SQL in image URL field → rejects (not a valid URL structure)
+- Malformed email (10K chars, no @) → rejected
+- Unicode/emoji in post titles, reply bodies, profile bio → accepted (text fields)
+- 500+ char bio → rejected; 10K char post body → accepted (no max on text fields)
+- Invalid timezone format → rejected; invalid image URL → rejected
+
+---
+
+### 8. Route-Level Cascading Service Failures — ✅ Done (2026-06-05)
+
+**Covered (added to existing route test files):**
+- `GET /forgot-password` when `sendEmail` throws `ECONNREFUSED` → 500 (auth.route.test.ts)
+- `POST /signup` when Prisma `user.create` throws connection error → 500 (auth.route.test.ts)
+- `POST /auth/login` when Prisma `user.findUnique` throws connection error → 500 (auth.route.test.ts)
+- `POST /forum/posts` when `profile.findUnique` throws `ECONNREFUSED` → 500 (forum.route.test.ts)
+- `GET /forum/posts` when `post.findMany` throws connection error → 500 (forum.route.test.ts)
+
+---
+
+## All Gaps Resolved
+
+| # | Task | Status |
+|---|------|--------|
+| 4 | Concurrent request / race condition tests | ✅ Done (2026-06-05) |
+| 5 | Null/undefined propagation chain tests | ✅ Done (2026-06-05) |
+| 6 | Prisma mid-transaction failure tests | ✅ Done (2026-06-05) |
+| 7 | Schema adversarial input tests | ✅ Done (2026-06-05) |
+| 8 | Route cascading service failure tests | ✅ Done (2026-06-05) |

@@ -2,6 +2,7 @@
 import supertest from 'supertest'
 
 import App from '../../app'
+import { sendEmail } from '../../utils/emailSender'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthenticatedRequest,
@@ -1308,6 +1309,59 @@ describe('Auth Routes', () => {
                     })
 
                 expect(response.status).toBe(400)
+            }
+        )
+    })
+
+    // ==================== CASCADING SERVICE FAILURES ====================
+    describe('Cascading service failure paths', () => {
+        it(
+            'GET /forgot-password returns 500 when email send fails',
+            async () => {
+                const mockUser = createMockUser()
+                prismaMock.user.findUnique.mockResolvedValue(mockUser)
+                prismaMock.user.update.mockResolvedValue(mockUser)
+                jest.mocked(sendEmail).mockRejectedValue(new Error('ECONNREFUSED'))
+
+                const response = await supertest(App)
+                    .get('/api/v1/auth/forgot-password/test@test.com')
+
+                expect(response.status).toBe(500)
+            }
+        )
+
+        it(
+            'POST /signup returns 500 when Prisma create throws connection error',
+            async () => {
+                prismaMock.user.findUnique.mockResolvedValue(null)
+                prismaMock.user.create.mockRejectedValue(new Error('ECONNREFUSED'))
+
+                const response = await supertest(App)
+                    .post('/api/v1/auth/signup')
+                    .send({
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john@test.com',
+                        password: 'Password123!'
+                    })
+
+                expect(response.status).toBe(500)
+            }
+        )
+
+        it(
+            'POST /login returns 500 when Prisma throws connection error',
+            async () => {
+                prismaMock.user.findUnique.mockRejectedValue(new Error('ECONNREFUSED'))
+
+                const response = await supertest(App)
+                    .post('/api/v1/auth/login')
+                    .send({
+                        email: 'test@test.com',
+                        password: 'Password123!'
+                    })
+
+                expect(response.status).toBe(500)
             }
         )
     })
