@@ -23,6 +23,8 @@ const port = serverConfig.port
 
 const app: Express = express()
 
+app.set('trust proxy', 1)
+
 declareMiddlewares(app)
 
 declareRoutes(app)
