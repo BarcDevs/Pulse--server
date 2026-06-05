@@ -30,6 +30,8 @@
 /values.dev.yaml
 /build
 /dist
+/coverage
+*.tsbuildinfo
 
 # DO NOT ignore Prisma files:
 !prisma/

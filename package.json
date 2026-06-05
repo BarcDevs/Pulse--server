@@ -1,6 +1,6 @@
 {
   "name": "express-ts-api",
-  "version": "0.14.4",
+  "version": "0.15.0",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -88,7 +88,6 @@
     "@types/webpack-shell-plugin": "^0.5.7",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
-    "config-webpack": "^1.0.5",
     "esbuild": "^0.28.0",
     "ts-loader": "^9.5.7",
     "eslint": "^10.2.1",

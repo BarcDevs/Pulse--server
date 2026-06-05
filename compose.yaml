@@ -1,19 +1,41 @@
-version: '3.9'
-
 services:
+    postgres:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: healease_dev
+        ports:
+            - '5432:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
     app:
-        container_name: auth-ms
         build:
             context: .
-            dockerfile: Dockerfile
+            target: dev
         ports:
-            - '3000:3000'
+            - '4000:4000'
         env_file:
             - .env
+        environment:
+            # Override .env database URLs to point at the postgres container
+            DEV_DATABASE_URL: postgresql://postgres:password@postgres:5432/healease_dev
+            DATABASE_URL: postgresql://postgres:password@postgres:5432/healease_dev
         volumes:
             - .:/app
+            # Preserve container node_modules and prisma generated — don't overwrite with host
             - /app/node_modules
-            - /app/prisma
+            - /app/prisma/generated
+        depends_on:
+            postgres:
+                condition: service_healthy
+        command: sh -c "npx prisma migrate deploy && npm run start:dev"
 
 volumes:
-    nodetsapi:
+    postgres_data:
