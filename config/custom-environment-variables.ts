@@ -17,7 +17,7 @@ export default {
         clientId: 'GOOGLE_CLIENT_ID',
         clientSecret: 'GOOGLE_CLIENT_SECRET',
         redirectUri: 'GOOGLE_REDIRECT_URI',
-        clientUrl: 'CLIENT_URL'
+        clientUrl: 'ORIGIN'
     },
     ai: {
         provider: 'AI_PROVIDER',
