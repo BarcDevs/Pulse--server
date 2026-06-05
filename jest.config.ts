@@ -10,6 +10,10 @@ export default {
         '**/*.spec.ts',
         '**/*.test.ts'
     ],
+    testPathIgnorePatterns: [
+        '/node_modules/',
+        '\\.integration\\.test\\.ts$'
+    ],
     setupFilesAfterEnv: [
         '<rootDir>/src/__tests__/setup/jestSetup.ts'
     ],
