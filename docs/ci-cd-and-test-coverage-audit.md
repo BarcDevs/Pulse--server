@@ -140,7 +140,7 @@ install → typecheck → lint:check → test (with coverage gate)
 
 All scripts already exist in `package.json` (`typecheck`, `lint:check`, `test`). Just need the workflow file.
 
-### 3. Real DB Integration Tests — ❌ Major Gap (days of work)
+### 3. Real DB Integration Tests — ✅ Done (2026-06-05)
 
 Every test — including all 9 route tests — mocks Prisma via `jest-mock-extended`. Zero tests touch real PostgreSQL.
 
@@ -171,7 +171,6 @@ Every test — including all 9 route tests — mocks Prisma via `jest-mock-exten
 |---|------|--------|--------------|
 | 1 | ~~Add `coverageThreshold` to `jest.config.ts`~~ ✅ | 5 min | Yes — CI is blind without it |
 | 2 | ~~Create `.github/workflows/ci.yml`~~ ✅ | 30 min | Yes — nothing runs without it |
-| 3 | Real DB integration tests | 3–4 days | No — but mocked-only CI is incomplete |
+| 3 | ~~Real DB integration tests~~ ✅ | 3–4 days | No — but mocked-only CI is incomplete |
 
-Steps 1 + 2 unblock a functional (if shallow) CI pipeline immediately.
-Step 3 is the meaningful quality gate but requires dedicated effort.
+All three gaps resolved. CI pipeline is functional with both unit (mocked) and integration (real DB) jobs.
