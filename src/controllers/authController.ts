@@ -417,8 +417,8 @@ export const googleSignIn = async (
 
     res.cookie('oauth_state', state, {
         httpOnly: true,
-        sameSite: 'none',
-        secure: true,
+        sameSite: !isDev ? 'none' : 'lax',
+        secure: !isDev,
         maxAge: 10 * minuteInMs
     })
 
