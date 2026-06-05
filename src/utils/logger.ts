@@ -32,13 +32,16 @@ const transports: winston.transport[] = [
     })
 ]
 
-if (isDev) {
-    transports.push(
-        new winston.transports.Console({
-            format: consoleFormat
-        })
-    )
-}
+transports.push(
+    new winston.transports.Console({
+        format: isDev
+            ? consoleFormat
+            : winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            )
+    })
+)
 
 const logger: winston.Logger = winston.createLogger({
     level: 'http',
