@@ -179,16 +179,23 @@ describe('CheckInService', () => {
             expect(recommendationsService.generateRecommendationsSafely).toHaveBeenCalledWith(USER_ID, CHECK_IN_ID)
         })
 
-        it('throws conflict on P2002 unique constraint violation', async () => {
+        it('falls through to update on P2002 (concurrent create race)', async () => {
             mockProfileContext()
-            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(null)
+            const existing = mockCheckIn()
             const p2002Error = new Prisma.PrismaClientKnownRequestError('Unique', {
                 code: 'P2002',
                 clientVersion: '5.0'
             })
+            jest.spyOn(checkInModel, 'findTodayCheckIn')
+                .mockResolvedValueOnce(null)
+                .mockResolvedValue(existing)
             jest.spyOn(checkInModel, 'createCheckIn').mockRejectedValue(p2002Error)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined)
 
-            await expect(createCheckIn(newCheckInData)).rejects.toThrow(/check-in/)
+            const result = await createCheckIn(newCheckInData)
+
+            expect(checkInModel.updateCheckIn).toHaveBeenCalled()
+            expect(result).toEqual({ checkIn: existing, created: false })
         })
 
         it('rethrows non-P2002 errors', async () => {

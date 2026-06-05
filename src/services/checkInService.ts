@@ -90,8 +90,20 @@ export const createCheckIn = async (
         if (
             err instanceof Prisma.PrismaClientKnownRequestError
             && err.code === 'P2002'
-        )
-            throw errorFactory.generic.conflict(`Today's check-in`)
+        ) {
+            const { userId: _userId, ...updateData } = data
+            await checkInModel.updateCheckIn(
+                profileId,
+                checkInDate,
+                updateData,
+                createdAt
+            )
+            const checkIn = await checkInModel
+                .findTodayCheckIn(profileId, checkInDate)
+            await generateInsightSafely(data.userId, checkIn!.id)
+            await generateRecommendationsSafely(data.userId, checkIn!.id)
+            return { checkIn: checkIn!, created: false }
+        }
         throw err
     }
 }
