@@ -8,7 +8,7 @@ export default {
         protocol: 'https',
         origin:
             process.env.ORIGIN
-            || 'https://healease-client.onrender.com',
+            || 'pulse-client.vercel.app',
         host: '0.0.0.0'
     },
     auth: {
