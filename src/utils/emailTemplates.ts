@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
+import { appConfig } from '../config/app'
 import { getMessages, resolveLanguage } from '../locales'
 
 let LOGO_URL = ''
@@ -76,11 +77,11 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="vertical-align:middle;padding-${s.dir === 'rtl' ? 'left' : 'right'}:10px;">
-                    <img src="${LOGO_URL}" alt="HealEase" width="36" height="36"
+                    <img src="${LOGO_URL}" alt="${esc(appConfig.brandName)}" width="36" height="36"
                       style="display:block;border-radius:8px;width:36px;height:36px;">
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="font-size:18px;font-weight:700;color:#FFFFFF;letter-spacing:-0.3px;">HealEase</span>
+                    <span style="font-size:18px;font-weight:700;color:#FFFFFF;letter-spacing:-0.3px;">${esc(appConfig.brandName)}</span>
                   </td>
                 </tr>
               </table>
@@ -139,14 +140,20 @@ const buildStrings = (
     const resolved = resolveLanguage(lang)
     const msgs = getMessages(resolved)
     const isRtl = resolved === 'he'
+    const brandName = appConfig.brandName
     return {
         dir: isRtl ? 'rtl' : 'ltr',
         lang: resolved,
         headingFont: isRtl
             ? "Heebo, 'Arial Hebrew', Arial, sans-serif"
             : 'inherit',
-        ...msgs.emails.shared,
-        ...msgs.emails[type].html
+        title: msgs.emails.shared.title.replaceAll('{{brandName}}', brandName),
+        otpLabel: msgs.emails.shared.otpLabel,
+        heading: msgs.emails.shared.heading,
+        expiry: msgs.emails.shared.expiry,
+        footer: msgs.emails.shared.footer.replaceAll('{{brandName}}', brandName),
+        intro: msgs.emails[type].html.intro.replaceAll('{{brandName}}', brandName),
+        disclaimer: msgs.emails[type].html.disclaimer
     }
 }
 
