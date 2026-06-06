@@ -408,19 +408,29 @@ export const confirmEmailChange = async (
 
 // region Google OAuth
 export const googleSignIn = async (
-    _req: Request,
+    req: Request,
     res: Response
 ) => {
     const state = crypto
         .randomBytes(32)
         .toString('hex')
 
-    res.cookie('oauth_state', state, {
+    const redirect =
+        typeof req.query.redirect === 'string'
+            ? req.query.redirect
+            : null
+
+    const oauthCookieOptions = {
         httpOnly: true,
-        sameSite: !isDev ? 'none' : 'lax',
+        sameSite: !isDev ? 'none' as const : 'lax' as const,
         secure: !isDev,
         maxAge: 10 * minuteInMs
-    })
+    }
+
+    res.cookie('oauth_state', state, oauthCookieOptions)
+
+    if (redirect)
+        res.cookie('oauth_redirect', redirect, oauthCookieOptions)
 
     const authUrl =
         googleOAuthService.buildAuthUrl(state)
@@ -437,7 +447,9 @@ export const googleCallback = async (
 
     logger.info(`[OAuth callback] cookies=${JSON.stringify(Object.keys(req.cookies ?? {}))} storedState=${storedState ? 'present' : 'MISSING'} queryState=${state ? 'present' : 'MISSING'} match=${storedState === state}`)
 
+    const storedRedirect = req.cookies?.oauth_redirect
     res.clearCookie('oauth_state')
+    res.clearCookie('oauth_redirect')
 
     if (
         !state
@@ -477,6 +489,15 @@ export const googleCallback = async (
         maxAge: hourInMs
     })
 
-    res.redirect(`${googleOAuthConfig.clientUrl}/dashboard`)
+    const isValidRedirect =
+        typeof storedRedirect === 'string'
+        && storedRedirect.startsWith('/')
+        && !storedRedirect.startsWith('//')
+
+    const redirectPath = isValidRedirect
+        ? storedRedirect
+        : '/dashboard'
+
+    res.redirect(`${googleOAuthConfig.clientUrl}${redirectPath}`)
 }
 // endregion
