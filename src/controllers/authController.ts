@@ -425,6 +425,8 @@ export const googleSignIn = async (
     const authUrl =
         googleOAuthService.buildAuthUrl(state)
 
+    logger.info(`[OAuth signIn] authUrl=${authUrl}`)
+
     res.redirect(authUrl)
 }
 
