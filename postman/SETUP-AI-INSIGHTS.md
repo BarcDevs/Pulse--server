@@ -60,7 +60,7 @@ npm run dev
 ### Step 4: Verify Setup
 
 1. Check that server started without errors
-2. Look for logs like: `✓ Server is running on http://localhost:4000`
+2. Look for logs like: `✓ Server is running on http://localhost:4001`
 3. No errors about "GOOGLE_AI_API_KEY is not configured"
 
 ### Step 5: Run Postman Tests
@@ -156,7 +156,7 @@ npm run dev  # Restart
 When you restart with a valid key, you should see logs like:
 
 ```
-✓ Server is running on http://localhost:4000
+✓ Server is running on http://localhost:4001
 ✓ Database connected
 ```
 
@@ -213,7 +213,7 @@ Should show:
 ### In the API Response
 
 ```bash
-curl http://localhost:4000/api/v1/check-in?limit=1 \
+curl http://localhost:4001/api/v1/check-in?limit=1 \
   -H "Cookie: your_auth_cookie"
 ```
 
