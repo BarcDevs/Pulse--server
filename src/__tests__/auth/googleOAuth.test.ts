@@ -465,7 +465,7 @@ describe('Google OAuth', () => {
                         .toBe(302)
                     expect(
                         response.headers.location
-                    ).toBe('http://localhost:5173')
+                    ).toBe('http://localhost:5173/dashboard')
                 }
             )
 
@@ -534,6 +534,113 @@ describe('Google OAuth', () => {
                         )
 
                     expect(clearedStateCookie)
+                        .toBe(true)
+                }
+            )
+            it(
+                'should redirect to stored oauth_redirect path on success',
+                async () => {
+                    const mockState =
+                        'h'.repeat(64)
+                    const mockUser =
+                        createGoogleUser()
+
+                    mockHandleCallback
+                        .mockResolvedValue(mockUser)
+
+                    const response =
+                        await supertest(App)
+                            .get(
+                                googleCallbackEndpoint
+                            )
+                            .query({
+                                code: 'auth-code-redir-path',
+                                state: mockState
+                            })
+                            .set('Cookie', [
+                                `oauth_state=${mockState}`,
+                                'oauth_redirect=/profile'
+                            ])
+
+                    expect(response.status)
+                        .toBe(302)
+                    expect(
+                        response.headers.location
+                    ).toBe('http://localhost:5173/profile')
+                }
+            )
+
+            it(
+                'should fall back to /dashboard for invalid oauth_redirect',
+                async () => {
+                    const mockState =
+                        'i'.repeat(64)
+                    const mockUser =
+                        createGoogleUser()
+
+                    mockHandleCallback
+                        .mockResolvedValue(mockUser)
+
+                    const response =
+                        await supertest(App)
+                            .get(
+                                googleCallbackEndpoint
+                            )
+                            .query({
+                                code: 'auth-code-bad-redir',
+                                state: mockState
+                            })
+                            .set('Cookie', [
+                                `oauth_state=${mockState}`,
+                                'oauth_redirect=//evil.com'
+                            ])
+
+                    expect(response.status)
+                        .toBe(302)
+                    expect(
+                        response.headers.location
+                    ).toBe('http://localhost:5173/dashboard')
+                }
+            )
+
+            it(
+                'should clear oauth_redirect cookie on successful callback',
+                async () => {
+                    const mockState =
+                        'j'.repeat(64)
+                    const mockUser =
+                        createGoogleUser()
+
+                    mockHandleCallback
+                        .mockResolvedValue(mockUser)
+
+                    const response =
+                        await supertest(App)
+                            .get(
+                                googleCallbackEndpoint
+                            )
+                            .query({
+                                code: 'auth-code-clear-redir',
+                                state: mockState
+                            })
+                            .set('Cookie', [
+                                `oauth_state=${mockState}`,
+                                'oauth_redirect=/dashboard'
+                            ])
+
+                    const cookies =
+                        response.headers['set-cookie']
+                    const clearedRedirectCookie =
+                        cookies?.some(
+                            (c: string) =>
+                                c.includes(
+                                    'oauth_redirect'
+                                ) && c.includes(
+                                    'Expires=Thu, 01 Jan 1970'
+                                )
+                        )
+
+                    expect(clearedRedirectCookie)
                         .toBe(true)
                 }
             )
