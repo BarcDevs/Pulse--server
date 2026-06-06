@@ -7,7 +7,7 @@ import { getMessages, resolveLanguage } from '../locales'
 let LOGO_URL = ''
 try {
     const logoBase64 = fs.readFileSync(
-        path.join(__dirname, '../../public/logos/HealEaseLogoNoCaption.webp')
+        path.join(__dirname, '../../public/logos/PulseLogoNoCaption.webp')
     ).toString('base64')
     LOGO_URL = `data:image/webp;base64,${logoBase64}`
 } catch {
