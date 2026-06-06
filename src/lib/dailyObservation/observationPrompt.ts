@@ -1,3 +1,4 @@
+import { appConfig } from '../../config/app'
 import { resolveLanguage } from '../../locales'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 
@@ -46,6 +47,9 @@ const patternHint = (
     }
 }
 
+const injectBrandName = (prompt: string): string =>
+    prompt.replaceAll('{{brandName}}', appConfig.brandName)
+
 export const buildObservationPrompt = ({
     type,
     topActivity,
@@ -53,8 +57,8 @@ export const buildObservationPrompt = ({
 }: PromptContext): string => {
     const hint = patternHint(type, topActivity)
 
-    return `
-You are an observation assistant for HealEase, a health and wellness recovery app.
+    return injectBrandName(`
+You are an observation assistant for {{brandName}}, a health and wellness recovery app.
 Your role is to write a calm, human observation that helps the user notice a meaningful pattern in their recovery journey.
 ${languageInstruction(language)}
 
@@ -121,5 +125,5 @@ icon must match the observation type:
 - better_days_pattern   → Zap
 
 Do NOT include any text outside the JSON object.
-`.trim()
+`).trim()
 }
