@@ -477,6 +477,6 @@ export const googleCallback = async (
         maxAge: hourInMs
     })
 
-    res.redirect(googleOAuthConfig.clientUrl)
+    res.redirect(`${googleOAuthConfig.clientUrl}/dashboard`)
 }
 // endregion
