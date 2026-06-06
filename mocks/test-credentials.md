@@ -1,4 +1,4 @@
-# HealEase Test User Credentials
+# Pulse Test User Credentials
 
 All test users have password: `password123`
 

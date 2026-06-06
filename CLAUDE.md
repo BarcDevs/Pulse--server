@@ -1,6 +1,6 @@
 # Claude Code Preferences
 
-HealEase Server — Node.js/Express TypeScript backend for a health/wellness forum with auth, CSRF protection, and community features.
+Pulse Server — Node.js/Express TypeScript backend for a health/wellness forum with auth, CSRF protection, and community features.
 Architecture: MVC — Controller → Service → Model → Database.
 
 ## Model Selection
@@ -27,7 +27,7 @@ Architecture: MVC — Controller → Service → Model → Database.
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
 ## Project Roadmap
-[HealEase Roadmap](https://www.notion.so/HealEase-Development-Timeline-3129e15469d28100be18df6e1ce0a984?source=copy_link)
+[Pulse Roadmap](https://www.notion.so/Pulse-Development-Timeline-3129e15469d28100be18df6e1ce0a984?source=copy_link)
 
 ## Code Style
 Rules in `CORE_RULES.md`. Non-negotiable — follow exactly.

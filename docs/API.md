@@ -1,4 +1,4 @@
-# HealEase API — Route Map
+# Pulse API — Route Map
 
 **Base URL:** `http://localhost:3000`
 **API prefix:** `/api/v1`
