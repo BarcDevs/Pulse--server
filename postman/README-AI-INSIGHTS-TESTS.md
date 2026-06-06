@@ -1,4 +1,4 @@
-# HealEase AI Insights — Postman Test Guide
+# pulse AI Insights — Postman Test Guide
 
 This guide explains how to test the AI insight generation and validation layer using the updated Postman collection.
 
@@ -11,7 +11,7 @@ The AI insights feature generates personalized insights after each check-in. The
 
 ## Prerequisites
 
-1. **Server running**: Start the HealEase server
+1. **Server running**: Start the pulse server
    ```bash
    npm run dev
    ```
@@ -130,7 +130,7 @@ When you submit a check-in, the service:
 ## Running Tests in Postman
 
 ### Option 1: Run All Tests
-1. Open `HealEase-CheckIn.collection.json` in Postman
+1. Open `pulse-CheckIn.collection.json` in Postman
 2. Click "Run" (play button)
 3. Run the entire collection
 
@@ -195,7 +195,7 @@ These are used automatically in subsequent requests.
 
 ## Files Modified
 
-- `postman/HealEase-CheckIn.collection.json` — Updated with 5 new insight tests
+- `postman/pulse-CheckIn.collection.json` — Updated with 5 new insight tests
 - This README file — Documentation for testing
 
 ## Next Steps

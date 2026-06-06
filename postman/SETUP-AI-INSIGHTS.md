@@ -66,7 +66,7 @@ npm run dev
 ### Step 5: Run Postman Tests
 
 1. Open Postman
-2. Import `HealEase-CheckIn.collection.json`
+2. Import `pulse-CheckIn.collection.json`
 3. Click "Run"
 4. Watch for the test: `🚨 AI Insights — MUST HAVE Insights (Fail if Empty)`
 
@@ -242,7 +242,7 @@ Should return:
 - **Validator**: `src/modules/ai-insight/ai-insight-validator.ts`
 - **Generator**: `src/modules/ai-insight/ai-insight-generator.service.ts`
 - **Service**: `src/services/checkInService.ts` (calls generator after check-in)
-- **Tests**: `postman/HealEase-CheckIn.collection.json`
+- **Tests**: `postman/pulse-CheckIn.collection.json`
 
 ---
 

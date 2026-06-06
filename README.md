@@ -361,7 +361,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 ### Authentication
 
-**Postman Collection:** [`postman/HealEase-Auth.collection.json`](postman/HealEase-Auth.collection.json)
+**Postman Collection:** [`postman/HealEase-Auth.collection.json`](postman/Pulse-Auth.collection.json)
 
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
@@ -429,7 +429,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 Structured goal tracking with milestones and progress calculation. Complete reference in [`docs/API.md`](docs/API.md).
 
-**Postman Collection:** [`postman/HealEase-RecoveryGoals.collection.json`](postman/HealEase-RecoveryGoals.collection.json)
+**Postman Collection:** [`postman/HealEase-RecoveryGoals.collection.json`](postman/Pulse-RecoveryGoals.collection.json)
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
