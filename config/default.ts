@@ -29,7 +29,7 @@ export default {
     googleOAuth: {
         clientId: '',
         clientSecret: '',
-        redirectUri: 'http://localhost:4000/api/v1/auth/google/callback',
+        redirectUri: 'http://localhost:4001/api/v1/auth/google/callback',
         clientUrl: 'http://localhost:5173'
     },
     ai: {
