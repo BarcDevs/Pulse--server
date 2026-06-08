@@ -1,4 +1,4 @@
-# HealEase Server — Feature Implementation Workflow
+# Pulse Server — Feature Implementation Workflow
 
 Quick-reference guide. Find your scenario, read constraints + references only.
 

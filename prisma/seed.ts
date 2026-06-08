@@ -124,7 +124,7 @@ async function main() {
                 profile: {
                     create: {
                         timezone: timezones[i % timezones.length],
-                        bio: `I'm ${userData.firstName}, a member of the HealEase community focused on recovery and wellness.`,
+                        bio: `I'm ${userData.firstName}, a member of the Pulse community focused on recovery and wellness.`,
                         theme: themes[i % themes.length],
                         language: languages[i % languages.length],
                         dailyReminder: i % 2 === 0,
@@ -313,7 +313,7 @@ async function main() {
             title: 'Complete beginner — what should I actually track in my check-ins?',
             category: 'questions',
             tags: ['beginner-question', 'advice', 'routines'],
-            body: '<p>Hi everyone — just joined HealEase after my occupational therapist recommended it. I am 3 weeks post-surgery and trying to figure out what actually matters to track.</p><p>I have been logging mood and pain but I feel like I am missing something. Questions I have:</p><ul><li>Do you track <strong>energy levels</strong> separately from mood? They feel different to me.</li><li>How detailed should my notes be? I have been writing paragraphs but it feels unsustainable.</li><li>Is it useful to track which activities made things better or worse, or is that too granular?</li></ul><p>I do not want to spend more time tracking than recovering, but I also do not want to miss patterns that could help my care team. Any advice from people further along would be really appreciated.</p>'
+            body: '<p>Hi everyone — just joined Pulse after my occupational therapist recommended it. I am 3 weeks post-surgery and trying to figure out what actually matters to track.</p><p>I have been logging mood and pain but I feel like I am missing something. Questions I have:</p><ul><li>Do you track <strong>energy levels</strong> separately from mood? They feel different to me.</li><li>How detailed should my notes be? I have been writing paragraphs but it feels unsustainable.</li><li>Is it useful to track which activities made things better or worse, or is that too granular?</li></ul><p>I do not want to spend more time tracking than recovering, but I also do not want to miss patterns that could help my care team. Any advice from people further along would be really appreciated.</p>'
         },
         {
             title: 'Two years after my accident — a story about getting my life back',

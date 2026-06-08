@@ -4,9 +4,9 @@ const options: swaggerJsdoc.Options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'HealEase API',
+            title: 'Pulse API',
             version: '1.0.0',
-            description: 'HealEase health and wellness platform API'
+            description: 'Pulse health and wellness platform API'
         },
         servers: [
             {

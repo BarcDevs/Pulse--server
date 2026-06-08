@@ -1,21 +1,21 @@
-> **Sync reminder**: On every update to this file, re-sync to [Notion](https://www.notion.so/HealEase-technical-PRD-3599e15469d280aa940cd64b53b46d38) via:
+> **Sync reminder**: On every update to this file, re-sync to [Notion](https://www.notion.so/Pulse-technical-PRD-3599e15469d280aa940cd64b53b46d38) via:
 > ```bash
 > ~/.local/bin/notion-update 3599e15469d280aa940cd64b53b46d38 write "$(cat docs/TECHNICAL_PRD.md)"
 > ```
 
-# HealEase — Technical Product Requirements
+# Pulse — Technical Product Requirements
 
 **Version**: 0.9 POC
 **Last Updated**: 2026-05-30
 **Owner**: @BarcDevs
-**Repository**: Full-stack — server (`HealEase--server`) + client (`HealEase--client`)
-**Notion**: [Technical PRD — HealEase](https://www.notion.so/HealEase-technical-PRD-3599e15469d280aa940cd64b53b46d38)
+**Repository**: Full-stack — server (`Pulse--server`) + client (`Pulse--client`)
+**Notion**: [Technical PRD — Pulse](https://www.notion.so/Pulse-technical-PRD-3599e15469d280aa940cd64b53b46d38)
 
 ---
 
 ## Executive Summary
 
-HealEase is a recovery support platform for patients transitioning from hospital or clinical care back home. The core value proposition is providing structure, visibility, and emotional support during recovery through daily check-ins, trend analytics, and community connection.
+Pulse is a recovery support platform for patients transitioning from hospital or clinical care back home. The core value proposition is providing structure, visibility, and emotional support during recovery through daily check-ins, trend analytics, and community connection.
 
 The platform centers on a single daily check-in ritual designed to encourage consistency and generate meaningful trend data for supportive insights.
 
@@ -27,7 +27,7 @@ Recovery requires structure and visibility to maintain momentum.
 
 Patients leaving clinical care face a critical gap: the loss of daily medical oversight and structured routine. Between appointments, motivation declines, progress becomes invisible, and recovery drifts without reinforcement.
 
-HealEase fills this gap by creating:
+Pulse fills this gap by creating:
 1. A daily behavioral anchor (the check-in ritual)
 2. Objective visibility into personal trends (charts and analytics)
 3. Early detection of disengagement (pattern analysis)
@@ -793,4 +793,4 @@ Fallback to deterministic template if AI fails
 - API Reference: [docs/API.md](./API.md)
 - Code Standards: [CLAUDE.md](../CLAUDE.md) · [CORE_RULES.md](../CORE_RULES.md)
 - Folder Structure: [docs/STRUCTURE.md](./STRUCTURE.md)
-- Notion (this doc): [Technical PRD — HealEase](https://www.notion.so/HealEase-technical-PRD-3599e15469d280aa940cd64b53b46d38)
+- Notion (this doc): [Technical PRD — Pulse](https://www.notion.so/Pulse-technical-PRD-3599e15469d280aa940cd64b53b46d38)

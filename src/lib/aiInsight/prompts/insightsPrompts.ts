@@ -1,3 +1,4 @@
+import { appConfig } from '../../../config/app'
 import { getMessages, resolveLanguage } from '../../../locales'
 import type { CheckInType } from '../../../types/data/CheckInType'
 import type { InsightType } from '../../../types/insight'
@@ -23,6 +24,9 @@ const languageInstruction = (
     return base + terminology
 }
 
+const injectBrandName = (prompt: string): string =>
+    prompt.replaceAll('{{brandName}}', appConfig.brandName)
+
 // region Prompt Builders
 
 export const buildPromptForMoodDropAlert = (
@@ -33,8 +37,8 @@ export const buildPromptForMoodDropAlert = (
     const recentMoods = formatMoodTrend(moodTrend)
     const activities = extractRecentActivities(checkIns)
 
-    return `
-You are a recovery support assistant for HealEase.
+    return injectBrandName(`
+You are a recovery support assistant for {{brandName}}.
 Your role is to help users reflect on recovery patterns in a calm, supportive, non-clinical way.
 ${languageInstruction(language)}
 
@@ -55,7 +59,7 @@ Requirements:
 - Make it feel human, calm, and specific to a recovery journey
 
 Output only the final message text.
-`.trim()
+`).trim()
 }
 
 export const buildPromptForMotivational = (
@@ -66,8 +70,8 @@ export const buildPromptForMotivational = (
     const streakLine = formatStreakLine(currentStreak)
     const latestMood = getLatestMood(checkIns)
 
-    return `
-You are a recovery support assistant for HealEase.
+    return injectBrandName(`
+You are a recovery support assistant for {{brandName}}.
 Your role is to encourage consistency without sounding cheesy or exaggerated.
 ${languageInstruction(language)}
 
@@ -86,7 +90,7 @@ Requirements:
 - Do not sound generic
 
 Output only the final message text.
-`.trim()
+`).trim()
 }
 
 export const buildPromptForWeeklySummary = (
@@ -100,8 +104,8 @@ export const buildPromptForWeeklySummary = (
     const displayStreak = currentStreak ?? 1
     const streakLabel = `${displayStreak} day${displayStreak > 1 ? 's' : ''}`
 
-    return `
-You are a recovery support assistant for HealEase.
+    return injectBrandName(`
+You are a recovery support assistant for {{brandName}}.
 Your role is to summarize recovery check-in patterns in a supportive and practical way.
 ${languageInstruction(language)}
 
@@ -123,7 +127,7 @@ Requirements:
 - Avoid generic phrasing that could apply to anyone
 
 Output only the final message text.
-`.trim()
+`).trim()
 }
 
 // endregion

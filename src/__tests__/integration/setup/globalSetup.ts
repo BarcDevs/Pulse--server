@@ -3,7 +3,7 @@ import { execSync } from 'child_process'
 const globalSetup = async (): Promise<void> => {
     const testDbUrl =
         process.env.TEST_DATABASE_URL
-        ?? 'postgresql://postgres:postgres@localhost:5433/healease_test'
+        ?? 'postgresql://postgres:postgres@localhost:5433/pulse_test'
 
     execSync('npx prisma migrate deploy', {
         env: {

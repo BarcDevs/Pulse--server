@@ -2,6 +2,7 @@ import { randomInt } from 'crypto'
 import ms from 'ms'
 
 import { authConfig } from '../../config'
+import { appConfig } from '../config/app'
 import { getMessages } from '../locales'
 import * as authModel from '../models/authModel'
 import { sendEmail } from '../utils/emailSender'
@@ -83,8 +84,8 @@ export const sendForgotPasswordOTP = async (
     const messages = getMessages(lang).emails.resetPassword
     await sendEmail(
         email,
-        messages.subject,
-        t(messages.body, { otp }),
+        t(messages.subject, { brandName: appConfig.brandName }),
+        t(messages.body, { otp, brandName: appConfig.brandName }),
         resetPasswordTemplate(otp, lang)
     )
 
@@ -113,8 +114,8 @@ export const sendConfirmEmailOTP = async (
     const messages = getMessages(lang).emails.confirmEmail
     await sendEmail(
         email,
-        messages.subject,
-        t(messages.body, { otp }),
+        t(messages.subject, { brandName: appConfig.brandName }),
+        t(messages.body, { otp, brandName: appConfig.brandName }),
         confirmEmailTemplate(otp, lang)
     )
 
@@ -137,8 +138,8 @@ export const sendEmailChangeOTP = async (
     const messages = getMessages(language).emails.changeEmail
     await sendEmail(
         newEmail,
-        messages.subject,
-        t(messages.body, { otp }),
+        t(messages.subject, { brandName: appConfig.brandName }),
+        t(messages.body, { otp, brandName: appConfig.brandName }),
         changeEmailTemplate(otp, language)
     )
 

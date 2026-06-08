@@ -1,4 +1,4 @@
-# HealEase Backend
+# Pulse Backend
 
 Recovery tracking API with AI-powered behavioral insights and community features.
 
@@ -7,7 +7,7 @@ Recovery tracking API with AI-powered behavioral insights and community features
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
-[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/HealEase--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
+[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/Pulse--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
 
 ---
 
@@ -327,8 +327,8 @@ graph TD
 
 1. **Clone and install dependencies**
    ```bash
-   git clone https://github.com/BarcDevs/HealEase--server.git
-   cd HealEase--server
+   git clone https://github.com/BarcDevs/Pulse--server.git
+   cd Pulse--server
    npm install
    ```
 
@@ -336,7 +336,7 @@ graph TD
    ```env
    NODE_ENV=development
    PORT=3000
-   DATABASE_URL=postgresql://user:password@host/healease
+   DATABASE_URL=postgresql://user:password@host/pulse
    JWT_SECRET=your-secret-key
    GEMINI_API_KEY=your-gemini-api-key
    SENTRY_DSN=your-sentry-dsn
@@ -361,7 +361,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 ### Authentication
 
-**Postman Collection:** [`postman/HealEase-Auth.collection.json`](postman/HealEase-Auth.collection.json)
+**Postman Collection:** [`postman/Pulse-Auth.collection.json`](postman/Pulse-Auth.collection.json)
 
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
@@ -429,7 +429,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 Structured goal tracking with milestones and progress calculation. Complete reference in [`docs/API.md`](docs/API.md).
 
-**Postman Collection:** [`postman/HealEase-RecoveryGoals.collection.json`](postman/HealEase-RecoveryGoals.collection.json)
+**Postman Collection:** [`postman/Pulse-RecoveryGoals.collection.json`](postman/Pulse-RecoveryGoals.collection.json)
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
@@ -617,6 +617,6 @@ fix/*       # bug fixes
 
 ## License
 
-HealEase © [Bar Cohen](https://bardevs.com)
+Pulse © [Bar Cohen](https://bardevs.com)
 
 For support or questions: [barcprodevelopments@gmail.com](mailto:barcprodevelopments@gmail.com) · [LinkedIn](https://www.linkedin.com/in/barcohendev)
