@@ -27,10 +27,13 @@ export const declareMiddlewares = (app: Express) => {
                     return
                 }
 
+                const normalizeUrl = (url: string) => url.replace(/\/$/, '')
+                const normalizedOrigin = normalizeUrl(serverConfig.origin)
+
                 if (
                     origin.startsWith('http://localhost:')
                     || origin.startsWith('http://127.0.0.1:')
-                    || origin === serverConfig.origin
+                    || normalizeUrl(origin) === normalizedOrigin
                 ) {
                     callback(null, true)
                 } else {
