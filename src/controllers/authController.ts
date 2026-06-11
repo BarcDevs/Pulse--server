@@ -430,7 +430,11 @@ export const googleSignIn = async (
     res.cookie('oauth_state', state, oauthCookieOptions)
 
     if (redirect)
-        res.cookie('oauth_redirect', redirect, oauthCookieOptions)
+        res.cookie(
+            'oauth_redirect',
+            redirect,
+            oauthCookieOptions
+        )
 
     const authUrl =
         googleOAuthService.buildAuthUrl(state)

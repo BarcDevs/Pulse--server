@@ -2,6 +2,7 @@
 // Unmock so we test the real implementation (jestSetup globally mocks it)
 import nodemailer from 'nodemailer'
 
+import type { sendEmail as SendEmailFn } from '../../utils/emailSender'
 import logger from '../../utils/logger'
 
 jest.unmock('../../utils/emailSender')
@@ -23,7 +24,7 @@ jest.mock('../../utils/logger', () => ({
     }
 }))
 
-let sendEmail: typeof import('../../utils/emailSender').sendEmail
+let sendEmail: typeof SendEmailFn
 let mockSendMail: jest.Mock
 
 beforeAll(async () => {
