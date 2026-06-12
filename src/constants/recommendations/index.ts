@@ -1,8 +1,8 @@
-import { secondInMs } from '../time'
+import { minuteInMs } from '../time'
 
 export const recommendationsConfig = {
     semanticGatingThreshold: 0.15,
-    generationPendingTimeoutMs: 10 * secondInMs,
+    generationPendingTimeoutMs: minuteInMs,
     maxRecommendationsPerUser: 5,
     candidatePoolLimit: 50,
     coldStartThreshold: 3,

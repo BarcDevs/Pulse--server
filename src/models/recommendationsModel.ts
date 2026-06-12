@@ -89,6 +89,16 @@ export const setPendingGeneration = async (
     userId: string,
     checkInId: string
 ): Promise<void> => {
+    const existing = await Prisma.postRecommendation.findUnique({
+        where: { checkInId },
+        select: {
+            generationPending: true,
+            pendingSince: true
+        }
+    })
+
+    if (existing?.generationPending && existing.pendingSince) return
+
     await Prisma.postRecommendation.upsert({
         where: { checkInId },
         create: {
