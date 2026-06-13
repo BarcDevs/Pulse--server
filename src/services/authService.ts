@@ -4,7 +4,9 @@ import {
     createToken,
     hashPassword
 } from '../lib/authCrypto'
+import { getTimezoneFromIp } from '../lib/geoLocation'
 import * as authModel from '../models/authModel'
+import * as profileModel from '../models/profileModel'
 import type {
     NewUserType,
     ServerUserType
@@ -30,9 +32,30 @@ export const getUser = async (
     return user
 }
 
+export const applyDetectedTimezone = async (
+    userId: string,
+    currentTimezone?: string,
+    ip?: string
+): Promise<void> => {
+    const detectedTimezone = ip
+        ? getTimezoneFromIp(ip)
+        : null
+
+    if (
+        detectedTimezone
+        && detectedTimezone !== currentTimezone
+    ) {
+        await profileModel.updateProfile(
+            userId,
+            { timezone: detectedTimezone }
+        )
+    }
+}
+
 export const login = async (
     email: string,
-    password: string
+    password: string,
+    ip?: string
 ): Promise<string> => {
     const user: ServerUserType | null =
         await getUser('email', email)
@@ -48,6 +71,12 @@ export const login = async (
             'Invalid password!'
         )
     }
+
+    await applyDetectedTimezone(
+        user.id,
+        user.profile?.timezone,
+        ip
+    )
 
     return createToken(user)
 }

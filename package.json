@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "0.15.22",
+  "version": "0.16.0",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -47,6 +47,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "express-winston": "^4.2.0",
+    "geoip-lite": "^2.0.2",
     "google-auth-library": "^10.6.1",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
@@ -72,6 +73,7 @@
     "@types/cors": "^2.8.17",
     "@types/dompurify": "^3.0.5",
     "@types/express": "^5.0.6",
+    "@types/geoip-lite": "^1.4.4",
     "@types/hpp": "^0.2.6",
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^28.0.1",

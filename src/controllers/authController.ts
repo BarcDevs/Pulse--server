@@ -57,7 +57,11 @@ export const login = async (
         loginSchema.safeParse(req.body)
     )
 
-    const token = await authServices.login(email, password)
+    const token = await authServices.login(
+        email,
+        password,
+        req.ip
+    )
     const {
         csrfSecret,
         csrfToken: _csrf
@@ -471,7 +475,8 @@ export const googleCallback = async (
 
     const user =
         await googleOAuthService.handleCallback(
-            code
+            code,
+            req.ip
         )
 
     const token = createToken(user)
