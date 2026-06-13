@@ -405,6 +405,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `GET` | `/api/v1/forum/posts/:postId` | Cookie | Get single post |
 | `PUT` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Update post |
 | `DELETE` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Delete post |
+| `POST` | `/api/v1/forum/posts/:postId/share` | — | Increment post share count |
 | `GET` | `/api/v1/forum/replies` | Cookie | List replies |
 | `POST` | `/api/v1/forum/replies` | Cookie + CSRF | Add reply to a post |
 | `PUT` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Update reply |

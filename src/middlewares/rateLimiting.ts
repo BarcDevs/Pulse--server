@@ -1,7 +1,7 @@
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev } from '../../config'
-import { minuteInMs } from '../constants/time'
+import { hourInMs, minuteInMs } from '../constants/time'
 
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
@@ -20,4 +20,16 @@ export const otpRateLimiter = rateLimit({
     limit: isDev ? 100 : 5,
     message:
         'Too many OTP requests from this IP, please try again after 15 minutes'
+})
+
+export const sharePostRateLimiter = rateLimit({
+    windowMs: hourInMs,
+    limit: isDev ? 100 : 1,
+    message:
+        'You can only share this post once per hour',
+    keyGenerator: (req) => {
+        const ip = ipKeyGenerator(req.ip ?? '')
+        const postId = req.params.postId
+        return `${ip}:${postId}`
+    }
 })

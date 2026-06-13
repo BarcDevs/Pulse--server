@@ -22,6 +22,7 @@ export type PostType = {
     updatedAt?: Date
     replies: ReplyType[]
     views: number
+    shareCount: number
     category: string
     tags: PostTagType[]
     _count?: {

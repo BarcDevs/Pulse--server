@@ -1,7 +1,10 @@
 // @ts-nocheck
 import type { Request, Response } from 'express'
 
-import { rateLimiter } from '../../middlewares/rateLimiting'
+import {
+    rateLimiter,
+    sharePostRateLimiter
+} from '../../middlewares/rateLimiting'
 import {
     createMockNext,
     createMockRequest,
@@ -43,5 +46,32 @@ describe('Rate Limiting Middleware', () => {
                 expect(next).toHaveBeenCalled()
             }
         )
+    })
+
+    describe('sharePostRateLimiter', () => {
+        it('should be defined', () => {
+            expect(sharePostRateLimiter).toBeDefined()
+        })
+
+        it('should be a function (middleware)', () => {
+            expect(typeof sharePostRateLimiter).toBe('function')
+        })
+
+        it('should call next for the first share request on a post', async () => {
+            const req = createMockRequest({
+                ip: '127.0.0.1',
+                params: { postId: 'rate-limit-test-post' },
+                method: 'POST',
+                originalUrl: '/api/v1/forum/posts/rate-limit-test-post/share'
+            }) as Request
+
+            const res = createMockResponse() as Response
+            res.setHeader = jest.fn()
+            const next = createMockNext()
+
+            await sharePostRateLimiter(req, res, next)
+
+            expect(next).toHaveBeenCalled()
+        })
     })
 })

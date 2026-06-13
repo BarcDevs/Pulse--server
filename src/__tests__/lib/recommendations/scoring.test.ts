@@ -19,6 +19,7 @@ const createMockPost = (overrides?: Partial<PostType>): PostType => ({
     createdAt: new Date(Date.now() - 5 * dayInMs),
     updatedAt: undefined,
     views: 100,
+    shareCount: 0,
     category: 'fitness',
     tags: [
         {

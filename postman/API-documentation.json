@@ -595,6 +595,37 @@
               "response": []
             },
             {
+              "name": "share post",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/share",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "{{apiVersion}}",
+                    "forum",
+                    "posts",
+                    "{{postId}}",
+                    "share"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
               "name": "delete post",
               "request": {
                 "method": "DELETE",
@@ -1548,7 +1579,7 @@
           "response": []
         },
         {
-          "name": "Resume Goal (PAUSED → ACTIVE)",
+          "name": "Resume Goal (PAUSED \u2192 ACTIVE)",
           "request": {
             "method": "PATCH",
             "header": [
@@ -1614,7 +1645,7 @@
           "response": []
         },
         {
-          "name": "Restore Goal (ABANDONED → ACTIVE)",
+          "name": "Restore Goal (ABANDONED \u2192 ACTIVE)",
           "request": {
             "method": "PATCH",
             "header": [

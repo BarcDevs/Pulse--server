@@ -44,7 +44,8 @@ const mapTag = (raw: RawTag): TagType => ({
     slug: raw.slug,
     ...(raw.description != null
         && { description: raw.description }),
-    ...(raw.createdAt && { createdAt: raw.createdAt }),
+    ...(raw.createdAt
+        && { createdAt: raw.createdAt }),
     ...(raw._count && { _count: raw._count })
 })
 
@@ -67,7 +68,9 @@ export const getPosts = async (
             * (query?.limit || 10),
         ...postQuery
     })
-    if (!posts) return null as unknown as PostType[]
+    if (!posts) {
+        return null as unknown as PostType[]
+    }
     return posts.map(mapPostTags) as unknown as PostType[]
 }
 
@@ -106,8 +109,9 @@ export const getPost = async (
         : null
 }
 
-export const createPost = async (post: NewPostType):
-    Promise<PostType> => {
+export const createPost = async (
+    post: NewPostType
+): Promise<PostType> => {
     const {
         authorId,
         tags,
@@ -169,6 +173,15 @@ export const deletePost = async (id: string) =>
         }
     })
 
+export const incrementShareCount = async (
+    id: string
+): Promise<{shareCount: number}> =>
+    Prisma.post.update({
+        where: { id },
+        data: { shareCount: { increment: 1 } },
+        select: { shareCount: true }
+    })
+
 export const getReply = async (
     postId: string,
     replyId: string
@@ -228,10 +241,13 @@ export const getReplies = async (
             orderBy: {
                 createdAt: 'desc'
             },
-            ...(limit !== undefined && { take: limit }),
-            ...(limit !== undefined && page !== undefined && {
-                skip: (page - 1) * limit
-            })
+            ...(limit !== undefined
+                && { take: limit }),
+            ...(limit !== undefined
+                && page !== undefined
+                && {
+                    skip: (page - 1) * limit
+                })
         })
     ) as unknown as ReplyType[]
 
@@ -303,9 +319,11 @@ export const getTag = async (id: string):
     return row ? mapTag(row as RawTag) : null
 }
 
-export const getPopularTags = async (limit = 10):
-    Promise<TagType[]> => {
-    const orderByClause: PrismaTypes.TagOrderByWithRelationInput =
+export const getPopularTags = async (
+    limit = 10
+): Promise<TagType[]> => {
+    const orderByClause:
+        PrismaTypes.TagOrderByWithRelationInput =
         { posts: { _count: 'desc' } }
     const rows = await Prisma.tag.findMany({
         orderBy: orderByClause,
@@ -320,8 +338,9 @@ export const getPopularTags = async (limit = 10):
     return rows.map(mapTag)
 }
 
-export const getTagsByPostId = async (id: string):
-    Promise<TagType[]> => {
+export const getTagsByPostId = async (
+    id: string
+): Promise<TagType[]> => {
     const rows = await Prisma.tag.findMany({
         where: { posts: { some: { id } } },
         select: {
@@ -388,10 +407,11 @@ export const getUnknownTagAttempts = async () =>
         orderBy: { count: 'desc' }
     })
 
-export const getCategoryStats = async (): Promise<{
-    category: string
-    count: number
-}[]> => {
+export const getCategoryStats = async ():
+    Promise<{
+        category: string
+        count: number
+    }[]> => {
     const rows = await Prisma.post.groupBy({
         by: ['category'],
         _count: { category: true }
@@ -532,7 +552,9 @@ export const getSavedPosts = async (
         ...postQuery
     })
 
-    if (!posts) return null as unknown as PostType[]
+    if (!posts) {
+        return null as unknown as PostType[]
+    }
     return posts.map(mapPostTags) as unknown as PostType[]
 }
 
@@ -639,8 +661,9 @@ export const getProfileInteractions = async (
     }
 }
 
-export const createReply = async (reply: NewReplyType):
-    Promise<ReplyType> => {
+export const createReply = async (
+    reply: NewReplyType
+): Promise<ReplyType> => {
     const {
         authorId,
         postId,

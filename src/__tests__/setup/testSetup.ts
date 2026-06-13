@@ -91,6 +91,7 @@ export const createMockPost = (
         }
     },
     views: 0,
+    shareCount: 0,
     createdAt: new Date(),
     updatedAt: undefined,
     tags: [],
