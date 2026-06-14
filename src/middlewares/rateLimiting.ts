@@ -24,7 +24,7 @@ export const otpRateLimiter = rateLimit({
 
 export const sharePostRateLimiter = rateLimit({
     windowMs: hourInMs,
-    limit: isDev ? 100 : 1,
+    limit: 1,
     message:
         'You can only share this post once per hour',
     keyGenerator: (req) => {

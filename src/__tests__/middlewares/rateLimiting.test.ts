@@ -74,4 +74,82 @@ describe('Rate Limiting Middleware', () => {
             expect(next).toHaveBeenCalled()
         })
     })
+
+    describe('sharePostRateLimiter behavior (real implementation)', () => {
+        const { sharePostRateLimiter: realSharePostRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            const res: Partial<MockResponse> & {
+                getHeader: jest.Mock
+                removeHeader: jest.Mock
+                headersSent: boolean
+            } = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            }
+            return res as unknown as Response
+        }
+
+        it('should allow the first share request for a post', async () => {
+            const req = createMockRequest({
+                ip: '10.0.0.1',
+                params: { postId: 'limit-post-first' }
+            }) as Request
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+
+            await realSharePostRateLimiter(req, res, next)
+
+            expect(next).toHaveBeenCalled()
+            expect(res.status).not.toHaveBeenCalled()
+        })
+
+        it('should return 429 for a second share request on the same post from the same IP within an hour', async () => {
+            const req = createMockRequest({
+                ip: '10.0.0.2',
+                params: { postId: 'limit-post-repeat' }
+            }) as Request
+
+            await realSharePostRateLimiter(req, createRateLimitMockResponse(), createMockNext())
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realSharePostRateLimiter(req, res, next)
+
+            expect(next).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(429)
+        })
+
+        it('should rate limit independently per post for the same IP', async () => {
+            const ip = '10.0.0.3'
+
+            await realSharePostRateLimiter(
+                createMockRequest({ ip, params: { postId: 'limit-post-a' } }) as Request,
+                createRateLimitMockResponse(),
+                createMockNext()
+            )
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realSharePostRateLimiter(
+                createMockRequest({ ip, params: { postId: 'limit-post-b' } }) as Request,
+                res,
+                next
+            )
+
+            expect(next).toHaveBeenCalled()
+            expect(res.status).not.toHaveBeenCalled()
+        })
+    })
 })
