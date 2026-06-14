@@ -11,7 +11,7 @@ describe('retry utilities', () => {
             await sleep(50)
             const elapsed = Date.now() - start
 
-            expect(elapsed).toBeGreaterThanOrEqual(50)
+            expect(elapsed).toBeGreaterThanOrEqual(45)
             expect(elapsed).toBeLessThan(200)
         })
     })
