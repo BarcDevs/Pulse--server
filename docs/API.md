@@ -403,6 +403,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
       "body": "string",
       "category": "string",
       "views": 0,
+      "shareCount": 0,
       "_count": { "replies": 0, "likes": 0 },
       "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
       "replies": []
@@ -453,6 +454,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
+    "shareCount": 0,
     "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
@@ -481,6 +483,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
+    "shareCount": 0,
     "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": [{ "id": "string", "body": "string" }]
@@ -513,6 +516,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
     "body": "string",
     "category": "string",
     "views": 0,
+    "shareCount": 0,
     "_count": { "replies": 0, "likes": 0 },
     "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
     "replies": []
@@ -533,6 +537,22 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 ```
 
 **Errors:** `401` not authenticated or invalid CSRF · `403` not the post owner
+
+---
+
+### `POST /posts/:postId/share`
+
+Increments a post's share count. Rate limited to 1 request per IP per post per hour.
+
+**Response `200`**
+```json
+{
+  "message": "Post <id> shared",
+  "data": { "shareCount": 1 }
+}
+```
+
+**Errors:** `404` post not found, `429` rate limit exceeded
 
 ---
 

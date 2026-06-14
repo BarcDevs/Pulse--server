@@ -17,6 +17,7 @@ import {
     likeReply,
     reportUnknownTag,
     savePost,
+    sharePost,
     updatePost,
     updateReply
 } from '../controllers/forumController'
@@ -26,6 +27,7 @@ import {
 } from '../middlewares/csrf'
 import { isAdmin } from '../middlewares/isAdmin'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { sharePostRateLimiter } from '../middlewares/rateLimiting'
 
 import recommendationsRoute from './recommendationsRoute'
 
@@ -159,7 +161,9 @@ const router = Router()
  *                       count:
  *                         type: integer
  */
-router.route('/posts/categories').get(getCategoryStats)
+router
+    .route('/posts/categories')
+    .get(getCategoryStats)
 
 /**
  * @swagger
@@ -195,7 +199,9 @@ router.route('/posts/categories').get(getCategoryStats)
  *       401:
  *         description: Not authenticated
  */
-router.route('/posts/saved').get(isAuthenticated, getSavedPosts)
+router
+    .route('/posts/saved')
+    .get(isAuthenticated, getSavedPosts)
 
 router
     .route('/posts')
@@ -442,6 +448,51 @@ router.route('/posts/:postId/save').post(
     csrfMiddleware,
     savePost
 )
+
+/**
+ * @swagger
+ * /api/v1/forum/posts/{postId}/share:
+ *   post:
+ *     summary: Increment a post's share count
+ *     description: Rate limited to 1 request per IP per post per hour.
+ *     tags: [Forum]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Share count incremented
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     shareCount:
+ *                       type: integer
+ *       404:
+ *         description: Post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router
+    .route('/posts/:postId/share')
+    .post(sharePostRateLimiter, sharePost)
 
 /**
  * @swagger

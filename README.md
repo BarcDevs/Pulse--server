@@ -7,7 +7,7 @@ Recovery tracking API with AI-powered behavioral insights and community features
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
-[🌐 Live API](https://healease-server.onrender.com) · [📱 Frontend Repo](https://github.com/BarcDevs/Pulse--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
+[🌐 Live API](https://pulse-rehab.vercel.app) · [📱 Frontend Repo](https://github.com/BarcDevs/Pulse--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
 
 ---
 
@@ -405,6 +405,7 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 | `GET` | `/api/v1/forum/posts/:postId` | Cookie | Get single post |
 | `PUT` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Update post |
 | `DELETE` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Delete post |
+| `POST` | `/api/v1/forum/posts/:postId/share` | — | Increment post share count |
 | `GET` | `/api/v1/forum/replies` | Cookie | List replies |
 | `POST` | `/api/v1/forum/replies` | Cookie + CSRF | Add reply to a post |
 | `PUT` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Update reply |

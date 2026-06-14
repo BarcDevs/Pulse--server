@@ -1,3 +1,4 @@
+import { Prisma } from '../../prisma/generated/prisma/client'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     ensurePostExists,
@@ -115,6 +116,22 @@ export const updatePost = async (
 export const deletePost = async (
     id: string
 ) => forumModel.deletePost(id)
+
+export const sharePost = async (
+    id: string
+) => {
+    try {
+        return await forumModel.incrementShareCount(id)
+    } catch (err: unknown) {
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError
+            && err.code === 'P2025'
+        ) {
+            throw errorFactory.generic.notFound('Post')
+        }
+        throw err
+    }
+}
 // endregion
 
 // region Tags

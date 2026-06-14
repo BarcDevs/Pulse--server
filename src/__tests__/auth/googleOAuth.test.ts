@@ -492,7 +492,8 @@ describe('Google OAuth', () => {
 
                     expect(mockHandleCallback)
                         .toHaveBeenCalledWith(
-                            'my-auth-code'
+                            'my-auth-code',
+                            expect.any(String)
                         )
                 }
             )

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { Prisma } from '../../../prisma/generated/prisma/client'
 import App from '../../app'
 import { prismaMock } from '../setup/jestSetup'
 import {
@@ -1237,6 +1238,47 @@ describe('Forum Routes', () => {
                     csrfSecret,
                     csrfToken
                 )
+
+                expect(response.status).toBe(404)
+                expect(response.body.error[0].statusType)
+                    .toBe('Not Found')
+            }
+        )
+    })
+
+    // ==================== SHARE POST ====================
+    describe('POST /api/v1/forum/posts/:postId/share', () => {
+        const shareEndpoint =
+            '/api/v1/forum/posts/test-post-id-123/share'
+
+        it(
+            'should return 200 with incremented shareCount',
+            async () => {
+                prismaMock.post.update
+                    .mockResolvedValue({ shareCount: 1 } as never)
+
+                const response = await supertest(App)
+                    .post(shareEndpoint)
+
+                expect(response.status).toBe(200)
+                expect(response.body.data.shareCount).toBe(1)
+                expect(response.body.message)
+                    .toBe('Post test-post-id-123 shared')
+            }
+        )
+
+        it(
+            'should return 404 when post not found',
+            async () => {
+                prismaMock.post.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError(
+                        'Record not found',
+                        { code: 'P2025', clientVersion: '5.0' }
+                    )
+                )
+
+                const response = await supertest(App)
+                    .post('/api/v1/forum/posts/test-post-id-404/share')
 
                 expect(response.status).toBe(404)
                 expect(response.body.error[0].statusType)

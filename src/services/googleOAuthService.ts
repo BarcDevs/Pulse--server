@@ -5,9 +5,12 @@ import { googleOAuthConfig } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
 import * as authModel from '../models/authModel'
+import * as profileModel from '../models/profileModel'
 import type { ServerUserType } from '../types/data/UserType'
 import logger from '../utils/logger'
 import Prisma from '../utils/prismaClient'
+
+import { applyDetectedTimezone } from './authService'
 
 const oAuth2Client = new OAuth2Client(
     googleOAuthConfig.clientId,
@@ -268,7 +271,8 @@ export const findOrCreateUser = async (
 }
 
 export const handleCallback = async (
-    code: string
+    code: string,
+    ip?: string
 ): Promise<ServerUserType> => {
     const tokens =
         await exchangeCodeForTokens(code)
@@ -284,5 +288,16 @@ export const handleCallback = async (
     const profile =
         await fetchGoogleProfile(tokens.id_token)
 
-    return findOrCreateUser(profile)
+    const user = await findOrCreateUser(profile)
+
+    const userProfile =
+        await profileModel.getProfileByUserId(user.id)
+
+    await applyDetectedTimezone(
+        user.id,
+        userProfile?.timezone,
+        ip
+    )
+
+    return user
 }

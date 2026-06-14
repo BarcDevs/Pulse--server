@@ -146,6 +146,21 @@ export const deletePost = async (
         `Post ${postId} deleted!`
     )
 }
+
+export const sharePost = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId } = req.params as { postId: string }
+
+    const data = await forumService.sharePost(postId)
+
+    return successResponse(
+        res,
+        data,
+        `Post ${postId} shared`
+    )
+}
 // endregion
 
 // region Replies
@@ -180,10 +195,13 @@ export const getReplies = async (
     req: Request,
     res: Response
 ) => {
-    const { postId } = req.params as { postId: string }
-    const { limit, page } = ValidationError.catchValidationErrors(
-        replyQuerySchema.safeParse(req.query)
-    )
+    const { postId } = req.params as {
+        postId: string
+    }
+    const { limit, page } =
+        ValidationError.catchValidationErrors(
+            replyQuerySchema.safeParse(req.query)
+        )
 
     const resolvedLimit = limit ?? FORUM_PAGINATION.DEFAULT_REPLY_LIMIT
 

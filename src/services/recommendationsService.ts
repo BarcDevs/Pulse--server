@@ -354,22 +354,20 @@ export const getRecommendations = async (
 
                 const transformedPosts = validPosts.map(mapPostToRecommendation)
 
-                const hasSufficientPosts = transformedPosts.length > 0
-                const finalPosts = hasSufficientPosts
-                    ? transformedPosts
-                    : await getFallbackPosts()
-
                 return {
-                    status: hasSufficientPosts ? 'ready' : 'processing',
+                    status: 'ready',
                     isStale: false,
-                    posts: finalPosts,
+                    posts: transformedPosts.length > 0
+                        ? transformedPosts
+                        : await getFallbackPosts(),
                     generatedAt: newSnapshot.generatedAt,
                     basedOnCheckInId: newSnapshot.basedOnCheckInId
                 }
             }
 
             return {
-                status: 'processing',
+                // todo - make statuses enum
+                status: 'ready',
                 isStale: false,
                 posts: await getFallbackPosts()
             }

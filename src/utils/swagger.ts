@@ -90,6 +90,7 @@ const options: swaggerJsdoc.Options = {
                         body: { type: 'string' },
                         category: { type: 'string' },
                         views: { type: 'integer' },
+                        shareCount: { type: 'integer' },
                         likes: { type: 'integer' },
                         tags: {
                             type: 'array',

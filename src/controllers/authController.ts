@@ -57,7 +57,11 @@ export const login = async (
         loginSchema.safeParse(req.body)
     )
 
-    const token = await authServices.login(email, password)
+    const token = await authServices.login(
+        email,
+        password,
+        req.ip
+    )
     const {
         csrfSecret,
         csrfToken: _csrf
@@ -430,7 +434,11 @@ export const googleSignIn = async (
     res.cookie('oauth_state', state, oauthCookieOptions)
 
     if (redirect)
-        res.cookie('oauth_redirect', redirect, oauthCookieOptions)
+        res.cookie(
+            'oauth_redirect',
+            redirect,
+            oauthCookieOptions
+        )
 
     const authUrl =
         googleOAuthService.buildAuthUrl(state)
@@ -467,7 +475,8 @@ export const googleCallback = async (
 
     const user =
         await googleOAuthService.handleCallback(
-            code
+            code,
+            req.ip
         )
 
     const token = createToken(user)

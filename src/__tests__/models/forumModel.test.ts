@@ -534,9 +534,6 @@ describe('forumModel', () => {
         })
 
         it('handles P2002 race condition as liked=true', async () => {
-            const { Prisma: PrismaNamespace } = jest.requireActual(
-                '../../utils/prismaClient'
-            )
             prismaMock.postLike.deleteMany.mockResolvedValue({ count: 0 })
             const p2002 = Object.assign(new Error('Unique'), { code: 'P2002' })
             // Simulate PrismaClientKnownRequestError duck-type

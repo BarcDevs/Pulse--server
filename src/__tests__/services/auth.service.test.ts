@@ -13,6 +13,7 @@ import {
     sanitizeUserData
 } from '../../lib/authHelpers'
 import { verifyOTP } from '../../lib/authOTP'
+import { getTimezoneFromIp } from '../../lib/geoLocation'
 import {
     deactivateUser,
     getUser,
@@ -23,6 +24,8 @@ import {
 } from '../../services/authService'
 import { prismaMock } from '../setup/jestSetup'
 import { createMockUser } from '../setup/testSetup'
+
+jest.mock('../../lib/geoLocation')
 
 describe('Auth Service', () => {
     // ==================== hashPassword ====================
@@ -385,6 +388,84 @@ describe('Auth Service', () => {
                 )
                     .rejects
                     .toThrow('Invalid password!')
+            }
+        )
+
+        // ==================== timezone auto-detect ====================
+        it(
+            'should not update profile timezone when ip is not provided',
+            async () => {
+                const mockUser = createMockUser({
+                    profile: { timezone: 'Asia/Jerusalem' }
+                })
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+
+                await login('test@test.com', 'Password123!')
+
+                expect(prismaMock.profile.update)
+                    .not.toHaveBeenCalled()
+            }
+        )
+
+        it(
+            'should not update profile timezone when geoip returns null',
+            async () => {
+                const mockUser = createMockUser({
+                    profile: { timezone: 'Asia/Jerusalem' }
+                })
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+                jest.mocked(getTimezoneFromIp)
+                    .mockReturnValue(null)
+
+                await login('test@test.com', 'Password123!', '1.2.3.4')
+
+                expect(prismaMock.profile.update)
+                    .not.toHaveBeenCalled()
+            }
+        )
+
+        it(
+            'should not update profile timezone when detected timezone matches current',
+            async () => {
+                const mockUser = createMockUser({
+                    profile: { timezone: 'America/New_York' }
+                })
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+                jest.mocked(getTimezoneFromIp)
+                    .mockReturnValue('America/New_York')
+
+                await login('test@test.com', 'Password123!', '1.2.3.4')
+
+                expect(prismaMock.profile.update)
+                    .not.toHaveBeenCalled()
+            }
+        )
+
+        it(
+            'should update profile timezone when detected timezone differs from current',
+            async () => {
+                const mockUser = createMockUser({
+                    profile: { timezone: 'Asia/Jerusalem' }
+                })
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser)
+                prismaMock.profile.update
+                    .mockResolvedValue({} as never)
+                jest.mocked(getTimezoneFromIp)
+                    .mockReturnValue('America/New_York')
+
+                await login('test@test.com', 'Password123!', '1.2.3.4')
+
+                expect(prismaMock.profile.update)
+                    .toHaveBeenCalledWith(
+                        expect.objectContaining({
+                            where: { userId: mockUser.id },
+                            data: { timezone: 'America/New_York' }
+                        })
+                    )
             }
         )
     })

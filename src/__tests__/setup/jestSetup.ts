@@ -26,7 +26,8 @@ jest.mock('../../utils/emailSender', () => ({
 // Mock rate limiters to prevent test requests from hitting limits
 jest.mock('../../middlewares/rateLimiting', () => ({
     rateLimiter: jest.fn((_req, _res, next) => next()),
-    otpRateLimiter: jest.fn((_req, _res, next) => next())
+    otpRateLimiter: jest.fn((_req, _res, next) => next()),
+    sharePostRateLimiter: jest.fn((_req, _res, next) => next())
 }))
 
 // Reset mocks before each test

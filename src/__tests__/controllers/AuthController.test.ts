@@ -53,7 +53,8 @@ describe('AuthController', () => {
 
                 expect(mockLogin).toHaveBeenCalledWith(
                     'test@test.com',
-                    'Password123!'
+                    'Password123!',
+                    req.ip
                 )
                 expect(res.cookie).toHaveBeenCalledWith(
                     'accessToken',

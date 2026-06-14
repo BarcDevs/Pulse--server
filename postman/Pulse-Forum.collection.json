@@ -642,13 +642,67 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "like"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Share Post (increment count)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test(\"Has shareCount number\", () => pm.expect(typeof data.shareCount).to.eql(\"number\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/share",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "share"
+              ]
             }
           }
         },
@@ -670,13 +724,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/save",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "save"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "save"
+              ]
             }
           }
         },
@@ -697,12 +766,23 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/saved",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "forum", "posts", "saved"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "saved"
+              ]
             }
           }
         },
@@ -725,13 +805,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "x-csrf-token", "value": "{{csrfToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-csrf-token",
+                "value": "{{csrfToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/{{apiVersion}}/forum/posts/{{postId}}/replies/{{replyId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "forum", "posts", "{{postId}}", "replies", "{{replyId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{apiVersion}}",
+                "forum",
+                "posts",
+                "{{postId}}",
+                "replies",
+                "{{replyId}}",
+                "like"
+              ]
             }
           }
         },
