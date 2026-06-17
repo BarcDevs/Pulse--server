@@ -28,16 +28,15 @@ const baseRoute = (route: string) =>
 export const declareRoutes = (app: Express) => {
     app.get('/api/status', getServerStatus)
 
-    if (env !== 'production') {
-        app.use(
-            '/api-docs',
-            swagger,
-            swaggerUi.serve,
-            swaggerUi.setup(swaggerSpec)
-        )
+    app.use(
+        '/api-docs',
+        swagger,
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerSpec)
+    )
 
-        app.use('/dev', devRoute)
-    }
+    app.use('/dev', devRoute)
+
 
     app.use(baseRoute('auth'), authRoute)
     app.use(baseRoute('check-in'), checkInRoute)
