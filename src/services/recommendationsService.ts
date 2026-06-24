@@ -33,6 +33,9 @@ const generateAction = (
     if (post.title.endsWith('?'))
         return { actionKey: 'recommendations.action.askedQuestion' }
 
+    if (post.category === 'sharedProgress')
+        return { actionKey: 'recommendations.action.sharedProgress' }
+
     if (post.category) {
         return {
             actionKey: 'recommendations.action.postedAbout',

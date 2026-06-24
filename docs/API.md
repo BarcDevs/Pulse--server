@@ -867,6 +867,7 @@ Returns pre-computed post recommendations based on the user's latest check-in.
 | `actionKey` | `actionParams` | Example output |
 |---|---|---|
 | `recommendations.action.askedQuestion` | — | "asked a question" |
+| `recommendations.action.sharedProgress` | — | "shared their progress" |
 | `recommendations.action.postedAbout` | `{ category: string }` | "posted about fitness" |
 | `recommendations.action.sharedPost` | — | "shared a post" |
 

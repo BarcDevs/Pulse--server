@@ -90,6 +90,21 @@ const makeSnapshot = (overrides = {}): RecommendationSnapshot => ({
     ...overrides
 })
 
+const mockReadySnapshotFlow = (firstPost: PostType): void => {
+    jest.mocked(checkInModel.getCheckIns)
+        .mockResolvedValue([makeCheckIn()])
+    jest.mocked(recommendationsModel.getSnapshotWithFlags)
+        .mockResolvedValue({
+            snapshot: makeSnapshot(),
+            generationPending: false,
+            pendingSince: null
+        })
+    jest.mocked(forumModel.getPost)
+        .mockResolvedValueOnce(firstPost)
+        .mockResolvedValueOnce(makePost({ id: 'post-2' }))
+        .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+}
+
 describe('recommendationsService.getRecommendations', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -345,22 +360,26 @@ describe('recommendationsService.getRecommendations', () => {
             category: 'fitness'
         })
 
-        jest.mocked(checkInModel.getCheckIns)
-            .mockResolvedValue([makeCheckIn()])
-        jest.mocked(recommendationsModel.getSnapshotWithFlags)
-            .mockResolvedValue({
-                snapshot: makeSnapshot(),
-                generationPending: false,
-                pendingSince: null
-            })
-        jest.mocked(forumModel.getPost)
-            .mockResolvedValueOnce(post)
-            .mockResolvedValueOnce(makePost({ id: 'post-2' }))
-            .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+        mockReadySnapshotFlow(post)
 
         const result = await getRecommendations(USER_ID)
 
         expect(result.posts[0].actionKey).toBe('recommendations.action.askedQuestion')
+    })
+
+    it('generates shared progress action for sharedProgress category posts', async () => {
+        const post = makePost({
+            id: 'post-1',
+            title: 'My recovery this month',
+            category: 'sharedProgress'
+        })
+
+        mockReadySnapshotFlow(post)
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.posts[0].actionKey).toBe('recommendations.action.sharedProgress')
+        expect(result.posts[0].actionParams).toBeUndefined()
     })
 
     it('generates category action for non-question posts', async () => {
@@ -370,18 +389,7 @@ describe('recommendationsService.getRecommendations', () => {
             category: 'wellness'
         })
 
-        jest.mocked(checkInModel.getCheckIns)
-            .mockResolvedValue([makeCheckIn()])
-        jest.mocked(recommendationsModel.getSnapshotWithFlags)
-            .mockResolvedValue({
-                snapshot: makeSnapshot(),
-                generationPending: false,
-                pendingSince: null
-            })
-        jest.mocked(forumModel.getPost)
-            .mockResolvedValueOnce(post)
-            .mockResolvedValueOnce(makePost({ id: 'post-2' }))
-            .mockResolvedValueOnce(makePost({ id: 'post-3' }))
+        mockReadySnapshotFlow(post)
 
         const result = await getRecommendations(USER_ID)
 
