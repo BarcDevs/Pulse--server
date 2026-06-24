@@ -40,6 +40,9 @@ MVC layers: controller → service → model → Prisma (never skip layers)
 **Never:** `function` declarations | `interface` (except declaration merging/Express extension) | `console.log`
 **Never:** Direct `process.env` access | Commented-out code | String literal object keys | Hardcoded values
 
+## Testing
+Integration tests (`npm run test:integration`) need Postgres on `localhost:5433` — not running by default. Start it with `docker-compose -f docker-compose.test.yml up -d` before running them locally. CI provisions its own Postgres service, so this is local-only.
+
 ## Git & Commits
 **Read `GIT_RULES.md` before committing or when instructed to commit.** Do not skip it.
 Full rules there. Key constraint: never invoke `/commit` skill on small fixes, formatting, or docs changes — use plain `git commit` for those.

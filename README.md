@@ -507,6 +507,17 @@ npm run seed     # Seed database with test data
 
 ## Testing
 
+### Integration Tests
+
+Integration tests need Postgres on `localhost:5433` (see `src/__tests__/integration/setup/envSetup.ts`). Start it locally with:
+
+```bash
+docker-compose -f docker-compose.test.yml up -d
+npm run test:integration
+```
+
+CI runs its own Postgres service container automatically — no setup needed there.
+
 ### Manual Testing
 
 ```bash
