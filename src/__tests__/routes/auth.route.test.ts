@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { sendEmail } from '../../utils/emailSender'
 import { prismaMock } from '../setup/jestSetup'
@@ -13,8 +14,8 @@ import {
 
 describe('Auth Routes', () => {
     // ==================== LOGIN ====================
-    describe('POST /api/v1/auth/login', () => {
-        const loginEndpoint = '/api/v1/auth/login'
+    describe(`POST /api/${serverConfig.apiVersion}/auth/login`, () => {
+        const loginEndpoint = `/api/${serverConfig.apiVersion}/auth/login`
 
         it(
             'should return 200 and token for valid credentials',
@@ -182,8 +183,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== SIGNUP ====================
-    describe('POST /api/v1/auth/signup', () => {
-        const signupEndpoint = '/api/v1/auth/signup'
+    describe(`POST /api/${serverConfig.apiVersion}/auth/signup`, () => {
+        const signupEndpoint = `/api/${serverConfig.apiVersion}/auth/signup`
 
         it('should return 201 for valid signup', async () => {
             prismaMock.user.findUnique.mockResolvedValue(null)
@@ -403,12 +404,12 @@ describe('Auth Routes', () => {
     })
 
     // ==================== LOGOUT ====================
-    describe('GET /api/v1/auth/logout', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/auth/logout`, () => {
         it(
             'should return 200 and clear accessToken cookie',
             async () => {
                 const response = await supertest(App)
-                    .get('/api/v1/auth/logout')
+                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
 
                 expect(response.status).toBe(200)
                 expect(response.body.message)
@@ -420,7 +421,7 @@ describe('Auth Routes', () => {
             'should clear both accessToken and _csrf cookies',
             async () => {
                 const response = await supertest(App)
-                    .get('/api/v1/auth/logout')
+                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
 
                 expect(response.status).toBe(200)
 
@@ -440,8 +441,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== ME ====================
-    describe('GET /api/v1/auth/me', () => {
-        const meEndpoint = '/api/v1/auth/me'
+    describe(`GET /api/${serverConfig.apiVersion}/auth/me`, () => {
+        const meEndpoint = `/api/${serverConfig.apiVersion}/auth/me`
 
         it(
             'should return 200 and user data for authenticated user',
@@ -581,8 +582,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== REFRESH ====================
-    describe('GET /api/v1/auth/refresh', () => {
-        const csrfEndpoint = '/api/v1/auth/refresh'
+    describe(`GET /api/${serverConfig.apiVersion}/auth/refresh`, () => {
+        const csrfEndpoint = `/api/${serverConfig.apiVersion}/auth/refresh`
 
         it(
             'should return 200 and CSRF token for authenticated user',
@@ -618,7 +619,7 @@ describe('Auth Routes', () => {
     })
 
     // ==================== FORGOT PASSWORD ====================
-    describe('GET /api/v1/auth/forgot-password/:email', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/auth/forgot-password/:email`, () => {
         it(
             'should return 200 and send OTP for valid email',
             async () => {
@@ -630,7 +631,7 @@ describe('Auth Routes', () => {
 
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/auth/forgot-password/test@test.com'
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password/test@test.com`
                     )
 
                 expect(response.status).toBe(200)
@@ -645,7 +646,7 @@ describe('Auth Routes', () => {
 
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/auth/forgot-password/notfound@test.com'
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password/notfound@test.com`
                     )
 
                 expect(response.status).toBe(200)
@@ -657,7 +658,7 @@ describe('Auth Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/auth/forgot-password/invalid-email'
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password/invalid-email`
                     )
 
                 expect(response.status).toBe(400)
@@ -668,8 +669,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== CONFIRM EMAIL ====================
-    describe('POST /api/v1/auth/confirm-email', () => {
-        const confirmEmailEndpoint = '/api/v1/auth/confirm-email'
+    describe(`POST /api/${serverConfig.apiVersion}/auth/confirm-email`, () => {
+        const confirmEmailEndpoint = `/api/${serverConfig.apiVersion}/auth/confirm-email`
 
         it(
             'should confirm email with valid OTP',
@@ -815,8 +816,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== CHANGE EMAIL ====================
-    describe('POST /api/v1/auth/change-email', () => {
-        const endpoint = '/api/v1/auth/change-email'
+    describe(`POST /api/${serverConfig.apiVersion}/auth/change-email`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/auth/change-email`
 
         it(
             'should return 200 and send OTP for valid request',
@@ -974,8 +975,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== CONFIRM EMAIL CHANGE ====================
-    describe('POST /api/v1/auth/confirm-email-change', () => {
-        const endpoint = '/api/v1/auth/confirm-email-change'
+    describe(`POST /api/${serverConfig.apiVersion}/auth/confirm-email-change`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/auth/confirm-email-change`
 
         it(
             'should return 200 and updated user on valid OTP',
@@ -1116,8 +1117,8 @@ describe('Auth Routes', () => {
     })
 
     // ==================== RESET PASSWORD ====================
-    describe('PUT /api/v1/auth/reset-password', () => {
-        const resetPasswordEndpoint = '/api/v1/auth/reset-password'
+    describe(`PUT /api/${serverConfig.apiVersion}/auth/reset-password`, () => {
+        const resetPasswordEndpoint = `/api/${serverConfig.apiVersion}/auth/reset-password`
 
         it(
             'should reset password with valid OTP',
@@ -1324,7 +1325,7 @@ describe('Auth Routes', () => {
                 jest.mocked(sendEmail).mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .get('/api/v1/auth/forgot-password/test@test.com')
+                    .get(`/api/${serverConfig.apiVersion}/auth/forgot-password/test@test.com`)
 
                 expect(response.status).toBe(500)
             }
@@ -1337,7 +1338,7 @@ describe('Auth Routes', () => {
                 prismaMock.user.create.mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .post('/api/v1/auth/signup')
+                    .post(`/api/${serverConfig.apiVersion}/auth/signup`)
                     .send({
                         firstName: 'John',
                         lastName: 'Doe',
@@ -1355,7 +1356,7 @@ describe('Auth Routes', () => {
                 prismaMock.user.findUnique.mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .post('/api/v1/auth/login')
+                    .post(`/api/${serverConfig.apiVersion}/auth/login`)
                     .send({
                         email: 'test@test.com',
                         password: 'Password123!'

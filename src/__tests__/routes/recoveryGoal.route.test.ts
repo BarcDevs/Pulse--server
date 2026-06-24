@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import {
     GoalStatus,
     MilestoneStatus
@@ -20,7 +21,7 @@ import {
     withCsrfAuth
 } from '../setup/testSetup'
 
-const API_BASE = '/api/v1/recovery-goals'
+const API_BASE = `/api/${serverConfig.apiVersion}/recovery-goals`
 
 describe('Recovery Goals Routes', () => {
     beforeEach(() => {
@@ -80,7 +81,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== CREATE GOAL ====================
-    describe('POST /api/v1/recovery-goals', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/recovery-goals`, () => {
         const endpoint = API_BASE
 
         it('should create goal with all fields', async () => {
@@ -334,7 +335,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== GET ALL GOALS ====================
-    describe('GET /api/v1/recovery-goals', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/recovery-goals`, () => {
         it('should return goals with progress', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
@@ -498,7 +499,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== GET SINGLE GOAL ====================
-    describe('GET /api/v1/recovery-goals/:goalId', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/recovery-goals/:goalId`, () => {
         it('should return goal with milestones and progress', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
@@ -549,7 +550,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== UPDATE GOAL ====================
-    describe('PATCH /api/v1/recovery-goals/:goalId', () => {
+    describe(`PATCH /api/${serverConfig.apiVersion}/recovery-goals/:goalId`, () => {
         it('should update goal fields', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -898,7 +899,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== DELETE GOAL ====================
-    describe('DELETE /api/v1/recovery-goals/:goalId', () => {
+    describe(`DELETE /api/${serverConfig.apiVersion}/recovery-goals/:goalId`, () => {
         it('should delete goal', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -958,7 +959,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== CREATE MILESTONES ====================
-    describe('POST /api/v1/recovery-goals/:goalId/milestones', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/recovery-goals/:goalId/milestones`, () => {
         it('should create single milestone with auto-increment order', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -1147,7 +1148,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== UPDATE MILESTONE ====================
-    describe('PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId', () => {
+    describe(`PATCH /api/${serverConfig.apiVersion}/recovery-goals/:goalId/milestones/:milestoneId`, () => {
         it('should update milestone title', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -1320,7 +1321,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== DELETE MILESTONE ====================
-    describe('DELETE /api/v1/recovery-goals/:goalId/milestones/:milestoneId', () => {
+    describe(`DELETE /api/${serverConfig.apiVersion}/recovery-goals/:goalId/milestones/:milestoneId`, () => {
         it('should delete milestone', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -1373,7 +1374,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== COMPLETE MILESTONE ====================
-    describe('PATCH /api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete', () => {
+    describe(`PATCH /api/${serverConfig.apiVersion}/recovery-goals/:goalId/milestones/:milestoneId/complete`, () => {
         it('should complete milestone and advance next', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -1483,7 +1484,7 @@ describe('Recovery Goals Routes', () => {
     })
 
     // ==================== COMPLETE GOAL ====================
-    describe('PATCH /api/v1/recovery-goals/:goalId/complete', () => {
+    describe(`PATCH /api/${serverConfig.apiVersion}/recovery-goals/:goalId/complete`, () => {
         it('should complete goal', async () => {
             const mockUser = createMockUser()
             const mockGoal = createMockRecoveryGoal({
@@ -1611,7 +1612,7 @@ describe('Recovery Goals Routes', () => {
         })
     })
 
-    describe('GET /api/v1/recovery-goals/stats', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/recovery-goals/stats`, () => {
         it('should return stats for authenticated user with no filters', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)

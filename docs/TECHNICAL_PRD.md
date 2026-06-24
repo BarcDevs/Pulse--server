@@ -83,7 +83,7 @@ Home (CTA: "Check In Today") → /check-in/new → Form → Submit → Dashboard
 ### Flow 4: Check-In Submission Behavior
 ```
 1. User submits form
-2. Client sends POST /api/v1/check-in
+2. Client sends POST /api/{version}/check-in
 3. Server upserts: creates new check-in (201) or updates today's existing one (200)
 4. On success: Redirect to check-in dashboard
 ```
@@ -106,25 +106,25 @@ Check-In Overview → Mood/Pain Charts → Check-In History → Community Forum
 
 ### Backend Behavior
 
-**POST /api/v1/check-in**
+**POST /api/{version}/check-in**
 - Upserts today's check-in: creates if none exists, updates if already submitted today
 - Request body: `{ moodScore, painLevel, activities, notes }`
 - Response (201): new check-in created — `{ message: string, data: CheckIn }`
 - Response (200): existing check-in updated — `{ message: string, data: CheckIn }`
 
-**PATCH /api/v1/check-in**
+**PATCH /api/{version}/check-in**
 - Explicitly updates today's check-in (partial update, at least one field required)
 - Returns 404 if no check-in exists for today — use POST to create
 - Request body: `{ moodScore?, painLevel?, activities?, notes? }`
 - Response (200): `{ message: string, data: CheckIn }`
 
-**GET /api/v1/check-in**
+**GET /api/{version}/check-in**
 - Fetches check-ins (optionally filtered by date range)
 - Returns array of check-ins with insights included
 - Query params: `?from=DATE&to=DATE`
 - Response (200): `{ message: string, data: CheckIn[] }`
 
-**GET /api/v1/check-in/stats**
+**GET /api/{version}/check-in/stats**
 - Aggregate statistics for dashboard
 - Returns mood/pain averages, streak data, etc.
 - Response (200): `{ message: string, data: Stats }`
@@ -163,7 +163,7 @@ Activities are suggested based on recent history:
 
 **Algorithm**:
 ```
-1. Fetch user's last 14 days of check-ins via GET /api/v1/check-in
+1. Fetch user's last 14 days of check-ins via GET /api/{version}/check-in
 2. Aggregate all activities across those check-ins
 3. Count frequency for each activity
 4. Rank by frequency (most common first)
@@ -171,7 +171,7 @@ Activities are suggested based on recent history:
 6. Allow custom activity entry
 ```
 
-**Implementation**: Derived on the client from GET /api/v1/check-in response, not from a dedicated suggestions endpoint.
+**Implementation**: Derived on the client from GET /api/{version}/check-in response, not from a dedicated suggestions endpoint.
 
 ### 3. Dashboard & Charts
 - Check-in stats summary (streak, averages, total check-ins)
@@ -245,7 +245,7 @@ React Context (Auth state) + TanStack Query (Server state)
     ↓
 Axios API Client (with CSRF interceptor)
     ↓
-Express Backend (/api/v1 routes)
+Express Backend (/api/{version} routes)
     ↓
 PostgreSQL (via Prisma ORM)
     ↓
@@ -367,7 +367,7 @@ profileId, activityPreferenceId
 
 ```
 Base URL: http://localhost:3000
-API Prefix: /api/v1
+API Prefix: /api/{version} (configurable via SERVER_API_VERSION env var, defaults to v1)
 ```
 
 **Success Response**:
@@ -386,7 +386,7 @@ API Prefix: /api/v1
 }
 ```
 
-### Auth Endpoints — /api/v1/auth
+### Auth Endpoints — /api/{version}/auth
 
 **POST /login** — `{ email, password, remember? }` → 200 User + sets cookies
 
@@ -412,7 +412,7 @@ API Prefix: /api/v1
 
 **PUT /reset-password** — `{ email, newPassword, userOTP }` → 200 User
 
-### Check-In Endpoints — /api/v1/check-in
+### Check-In Endpoints — /api/{version}/check-in
 
 **POST /** — Upsert today's check-in
 ```
@@ -445,7 +445,7 @@ Response 200: { summary, trend (improving|declining|stable|mixed), highlights, p
 Cached 10 minutes per time window. Falls back to static template if AI fails.
 ```
 
-### Users Endpoints — /api/v1/users
+### Users Endpoints — /api/{version}/users
 
 **PATCH /me** — Update identity fields (auth + CSRF)
 ```
@@ -460,7 +460,7 @@ Request: { currentPassword, newPassword }
 Response 200: User
 ```
 
-### Profile Endpoints — /api/v1/profile
+### Profile Endpoints — /api/{version}/profile
 
 **GET /**
 ```
@@ -505,7 +505,7 @@ Response 200: { message, data: HealthInterest[] }
 Response 200: { message, data: ActivityPreference[] }
 ```
 
-### Insight Endpoints — /api/v1/insight
+### Insight Endpoints — /api/{version}/insight
 
 **GET /observation** — Daily AI observation (auth required, no CSRF)
 ```
@@ -515,7 +515,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
   better_days_pattern, mood_stability, streak_consistency, checkin_consistency
 ```
 
-### Recovery Goal Endpoints — /api/v1/recovery-goals
+### Recovery Goal Endpoints — /api/{version}/recovery-goals
 
 **POST /** — Create goal (auth + CSRF) — `{ title, category, description?, targetDate?, isPrimary? }` → 201 Goal
 
@@ -539,7 +539,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **PATCH /:goalId/complete** — Manually complete goal (all milestones must be complete) → 200
 
-### Forum Endpoints — /api/v1/forum
+### Forum Endpoints — /api/{version}/forum
 
 **GET /posts** — `?limit&page&filter&search&tag&category` → 200 Post[]
 
@@ -587,7 +587,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **Per-Check-In Pipeline**
 ```
-1. User submits check-in → POST /api/v1/check-in
+1. User submits check-in → POST /api/{version}/check-in
 2. After upsert committed, fetch last N check-ins for user
 3. decideInsightType() evaluates mood trend, streak, check-in count
 4. Determine type: mood_drop_alert | motivational | weekly_summary
@@ -597,7 +597,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **Daily Observation Pipeline**
 ```
-1. GET /api/v1/insight/observation (on-demand, first call each day)
+1. GET /api/{version}/insight/observation (on-demand, first call each day)
 2. Fetch last 30 days of check-ins
 3. Run detection rules in priority order (6 types)
 4. If pattern detected: generate AI observation via Gemini
@@ -607,7 +607,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 ### Progress Insights (separate, comparison-based)
 ```
-GET /api/v1/check-in/progress-insights
+GET /api/{version}/check-in/progress-insights
 Compare last 7 days vs previous 7 days across mood, pain, activity
 Generate AI narrative via Gemini; cached 10 minutes per time window
 Fallback to deterministic template if AI fails

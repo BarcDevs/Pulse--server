@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { hashPassword } from '../../lib/authCrypto'
 import { prismaMock } from '../setup/jestSetup'
@@ -11,9 +12,9 @@ import {
 } from '../setup/testSetup'
 
 describe('User Routes', () => {
-    // ==================== PATCH /api/v1/users/me ====================
-    describe('PATCH /api/v1/users/me', () => {
-        const updateUserEndpoint = '/api/v1/users/me'
+    // ==================== PATCH /users/me ====================
+    describe(`PATCH /api/${serverConfig.apiVersion}/users/me`, () => {
+        const updateUserEndpoint = `/api/${serverConfig.apiVersion}/users/me`
 
         it('should update user firstName', async () => {
             const mockUser = createMockUser()
@@ -261,9 +262,9 @@ describe('User Routes', () => {
         )
     })
 
-    // ==================== PATCH /api/v1/users/password ====================
-    describe('PATCH /api/v1/users/password', () => {
-        const updatePasswordEndpoint = '/api/v1/users/password'
+    // ==================== PATCH /users/password ====================
+    describe(`PATCH /api/${serverConfig.apiVersion}/users/password`, () => {
+        const updatePasswordEndpoint = `/api/${serverConfig.apiVersion}/users/password`
 
         it('should update password with valid input',
             async () => {
@@ -480,9 +481,9 @@ describe('User Routes', () => {
         )
     })
 
-    // ==================== DELETE /api/v1/users/me ====================
-    describe('DELETE /api/v1/users/me', () => {
-        const deleteUserEndpoint = '/api/v1/users/me'
+    // ==================== DELETE /users/me ====================
+    describe(`DELETE /api/${serverConfig.apiVersion}/users/me`, () => {
+        const deleteUserEndpoint = `/api/${serverConfig.apiVersion}/users/me`
 
         it('should deactivate user account', async () => {
             const mockUser = createMockUser()

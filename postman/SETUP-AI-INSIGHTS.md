@@ -213,7 +213,7 @@ Should show:
 ### In the API Response
 
 ```bash
-curl http://localhost:4001/api/v1/check-in?limit=1 \
+curl http://localhost:4001/api/{api_version}/check-in?limit=1 \
   -H "Cookie: your_auth_cookie"
 ```
 

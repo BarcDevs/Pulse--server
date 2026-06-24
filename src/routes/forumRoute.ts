@@ -35,7 +35,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/forum/posts:
+ * /forum/posts:
  *   get:
  *     summary: Get a paginated list of posts
  *     tags: [Forum]
@@ -137,7 +137,7 @@ const router = Router()
  */
 /**
  * @swagger
- * /api/v1/forum/posts/categories:
+ * /forum/posts/categories:
  *   get:
  *     summary: Get post count grouped by category
  *     tags: [Forum]
@@ -167,7 +167,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/saved:
+ * /forum/posts/saved:
  *   get:
  *     summary: Get current user's saved posts
  *     tags: [Forum]
@@ -215,7 +215,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}:
+ * /forum/posts/{postId}:
  *   get:
  *     summary: Get a single post by ID
  *     tags: [Forum]
@@ -365,7 +365,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/like:
+ * /forum/posts/{postId}/like:
  *   post:
  *     summary: Toggle like on a post
  *     tags: [Forum]
@@ -409,7 +409,7 @@ router.route('/posts/:postId/like').post(
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/save:
+ * /forum/posts/{postId}/save:
  *   post:
  *     summary: Toggle save on a post
  *     tags: [Forum]
@@ -451,7 +451,7 @@ router.route('/posts/:postId/save').post(
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/share:
+ * /forum/posts/{postId}/share:
  *   post:
  *     summary: Increment a post's share count
  *     description: Rate limited to 1 request per IP per post per hour.
@@ -496,7 +496,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/replies:
+ * /forum/posts/{postId}/replies:
  *   get:
  *     summary: Get replies for a post with pagination
  *     tags: [Forum]
@@ -589,7 +589,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/replies/{replyId}:
+ * /forum/posts/{postId}/replies/{replyId}:
  *   put:
  *     summary: Update a reply (owner only)
  *     tags: [Forum]
@@ -708,7 +708,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/posts/{postId}/replies/{replyId}/like:
+ * /forum/posts/{postId}/replies/{replyId}/like:
  *   post:
  *     summary: Toggle like on a reply
  *     tags: [Forum]
@@ -757,7 +757,7 @@ router.route('/posts/:postId/replies/:replyId/like').post(
 
 /**
  * @swagger
- * /api/v1/forum/tags:
+ * /forum/tags:
  *   get:
  *     summary: Get a list of tags
  *     tags: [Forum]
@@ -805,7 +805,7 @@ router.route('/tags').get(getTags)
 
 /**
  * @swagger
- * /api/v1/forum/tags/unknown:
+ * /forum/tags/unknown:
  *   get:
  *     summary: Get unknown tag attempts (admin only)
  *     tags: [Forum]
@@ -845,7 +845,7 @@ router.route('/tags').get(getTags)
  */
 /**
  * @swagger
- * /api/v1/forum/tags/unknown:
+ * /forum/tags/unknown:
  *   post:
  *     summary: Report an unknown tag attempt
  *     tags: [Forum]
@@ -884,7 +884,7 @@ router
 
 /**
  * @swagger
- * /api/v1/forum/tags/{tagId}:
+ * /forum/tags/{tagId}:
  *   get:
  *     summary: Get a single tag by ID
  *     tags: [Forum]

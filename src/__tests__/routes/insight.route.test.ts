@@ -1,5 +1,6 @@
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import * as dailyObservationService from '../../services/dailyObservationService'
 import {
@@ -13,7 +14,7 @@ const mockGetTodayObservation =
     dailyObservationService.getTodayObservation as jest.Mock
 
 describe('Insight Routes', () => {
-    const baseUrl = '/api/v1/insight'
+    const baseUrl = `/api/${serverConfig.apiVersion}/insight`
     const endpoint = `${baseUrl}/observation`
     const mockUser = createMockUser()
     const token = createAuthToken(mockUser)
@@ -22,7 +23,7 @@ describe('Insight Routes', () => {
         jest.clearAllMocks()
     })
 
-    describe('GET /api/v1/insight/observation', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/insight/observation`, () => {
         it('returns 401 when not authenticated', async () => {
             const response = await supertest(App).get(endpoint)
             expect(response.status).toBe(401)

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import request from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { prismaMock } from '../setup/jestSetup'
 import {
@@ -55,8 +56,8 @@ describe('Profile Routes', () => {
     })
 
     // ==================== GET PROFILE ====================
-    describe('GET /api/v1/profile', () => {
-        const endpoint = '/api/v1/profile'
+    describe(`GET /api/${serverConfig.apiVersion}/profile`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/profile`
 
         it(
             'should return 200 with profile data',
@@ -128,8 +129,8 @@ describe('Profile Routes', () => {
     })
 
     // ==================== UPDATE PROFILE ====================
-    describe('PATCH /api/v1/profile', () => {
-        const endpoint = '/api/v1/profile'
+    describe(`PATCH /api/${serverConfig.apiVersion}/profile`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/profile`
 
         it(
             'should update bio and timezone',
@@ -483,9 +484,9 @@ describe('Profile Routes', () => {
 
     // ==================== HEALTH INTERESTS & ACTIVITY PREFERENCES ====================
     describe(
-        'PATCH /api/v1/profile — healthInterests',
+        `PATCH /api/${serverConfig.apiVersion}/profile — healthInterests`,
         () => {
-            const endpoint = '/api/v1/profile'
+            const endpoint = `/api/${serverConfig.apiVersion}/profile`
 
             it(
                 'should set healthInterests array',
@@ -545,9 +546,9 @@ describe('Profile Routes', () => {
     )
 
     describe(
-        'PATCH /api/v1/profile — activityPreferences',
+        `PATCH /api/${serverConfig.apiVersion}/profile — activityPreferences`,
         () => {
-            const endpoint = '/api/v1/profile'
+            const endpoint = `/api/${serverConfig.apiVersion}/profile`
 
             it(
                 'should set activityPreferences array',
@@ -608,10 +609,10 @@ describe('Profile Routes', () => {
 
     // ==================== LIST ENDPOINTS ====================
     describe(
-        'GET /api/v1/profile/list/health-interests',
+        `GET /api/${serverConfig.apiVersion}/profile/list/health-interests`,
         () => {
             const endpoint =
-                '/api/v1/profile/list/health-interests'
+                `/api/${serverConfig.apiVersion}/profile/list/health-interests`
 
             it(
                 'should return available health interests',
@@ -645,10 +646,10 @@ describe('Profile Routes', () => {
     )
 
     describe(
-        'GET /api/v1/profile/list/activities',
+        `GET /api/${serverConfig.apiVersion}/profile/list/activities`,
         () => {
             const endpoint =
-                '/api/v1/profile/list/activities'
+                `/api/${serverConfig.apiVersion}/profile/list/activities`
 
             it(
                 'should return available activity preferences',

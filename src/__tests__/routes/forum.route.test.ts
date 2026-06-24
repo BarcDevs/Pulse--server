@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import { Prisma } from '../../../prisma/generated/prisma/client'
 import App from '../../app'
 import { prismaMock } from '../setup/jestSetup'
@@ -17,8 +18,8 @@ import {
 
 describe('Forum Routes', () => {
     // ==================== GET POSTS ====================
-    describe('GET /api/v1/forum/posts', () => {
-        const postsEndpoint = '/api/v1/forum/posts'
+    describe(`GET /api/${serverConfig.apiVersion}/forum/posts`, () => {
+        const postsEndpoint = `/api/${serverConfig.apiVersion}/forum/posts`
 
         it(
             'should return 200 and posts array',
@@ -214,8 +215,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== CREATE POST ====================
-    describe('POST /api/v1/forum/posts', () => {
-        const postsEndpoint = '/api/v1/forum/posts'
+    describe(`POST /api/${serverConfig.apiVersion}/forum/posts`, () => {
+        const postsEndpoint = `/api/${serverConfig.apiVersion}/forum/posts`
 
         it(
             'should return 201 for valid post creation',
@@ -416,14 +417,14 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET SINGLE POST ====================
-    describe('GET /api/v1/forum/posts/:postId', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/forum/posts/:postId`, () => {
         it('should return 200 and single post', async () => {
             const mockPost = createMockPost()
             prismaMock.post.findUnique
                 .mockResolvedValue(mockPost)
 
             const response = await supertest(App)
-                .get('/api/v1/forum/posts/test-post-id-123')
+                .get(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
 
             expect(response.status).toBe(200)
             expect(response.body.data.id)
@@ -437,7 +438,7 @@ describe('Forum Routes', () => {
                     .mockResolvedValue(null)
 
                 const response = await supertest(App)
-                    .get('/api/v1/forum/posts/non-existent-id')
+                    .get(`/api/${serverConfig.apiVersion}/forum/posts/non-existent-id`)
 
                 expect(response.status).toBe(404)
                 expect(response.body.error[0].statusType)
@@ -464,7 +465,7 @@ describe('Forum Routes', () => {
                     .mockResolvedValue(mockPost)
 
                 const response = await supertest(App)
-                    .get('/api/v1/forum/posts/test-post-id-123')
+                    .get(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
 
                 expect(response.status).toBe(200)
                 expect(response.body.data.author.image).toBeNull()
@@ -473,7 +474,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== UPDATE POST ====================
-    describe('PUT /api/v1/forum/posts/:postId', () => {
+    describe(`PUT /api/${serverConfig.apiVersion}/forum/posts/:postId`, () => {
         it(
             'should return 200 for valid update by owner',
             async () => {
@@ -504,7 +505,7 @@ describe('Forum Routes', () => {
 
                 const response = await withCsrfAuth(
                     supertest(App).put(
-                        '/api/v1/forum/posts/test-post-id-123'
+                        `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`
                     ),
                     token,
                     csrfSecret,
@@ -521,7 +522,7 @@ describe('Forum Routes', () => {
             'should return 401 for unauthenticated request',
             async () => {
                 const response = await supertest(App)
-                    .put('/api/v1/forum/posts/test-post-id-123')
+                    .put(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
                     .send({
                         title: 'Updated Title'
                     })
@@ -551,7 +552,7 @@ describe('Forum Routes', () => {
                 .mockResolvedValue(mockPost)
 
             const response = await supertest(App)
-                .put('/api/v1/forum/posts/test-post-id-123')
+                .put(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
                 .set('Cookie', [
                     `accessToken=${token}`,
                     `_csrf=${csrfSecret}`
@@ -585,7 +586,7 @@ describe('Forum Routes', () => {
 
                 const response = await withCsrfAuth(
                     supertest(App).put(
-                        '/api/v1/forum/posts/non-existent-id'
+                        `/api/${serverConfig.apiVersion}/forum/posts/non-existent-id`
                     ),
                     token,
                     csrfSecret,
@@ -600,7 +601,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== DELETE POST ====================
-    describe('DELETE /api/v1/forum/posts/:postId', () => {
+    describe(`DELETE /api/${serverConfig.apiVersion}/forum/posts/:postId`, () => {
         it(
             'should return 200 for valid delete by owner',
             async () => {
@@ -627,7 +628,7 @@ describe('Forum Routes', () => {
 
                 const response = await withCsrfAuth(
                     supertest(App).delete(
-                        '/api/v1/forum/posts/test-post-id-123'
+                        `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`
                     ),
                     token,
                     csrfSecret,
@@ -645,7 +646,7 @@ describe('Forum Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .delete(
-                        '/api/v1/forum/posts/test-post-id-123'
+                        `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`
                     )
 
                 expect(response.status).toBe(401)
@@ -674,7 +675,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .delete(
-                    '/api/v1/forum/posts/test-post-id-123'
+                    `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`
                 )
                 .set('Cookie', [
                     `accessToken=${token}`,
@@ -687,7 +688,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET REPLIES ====================
-    describe('GET /api/v1/forum/posts/:postId/replies', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/forum/posts/:postId/replies`, () => {
         it('should return 200 and replies array with _count', async () => {
             const mockPost = createMockPost()
             const mockReplies = [
@@ -701,7 +702,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .get(
-                    '/api/v1/forum/posts/test-post-id-123/replies'
+                    `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies`
                 )
 
             expect(response.status).toBe(200)
@@ -724,7 +725,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(
-                        '/api/v1/forum/posts/non-existent/replies'
+                        `/api/${serverConfig.apiVersion}/forum/posts/non-existent/replies`
                     )
 
                 expect(response.status).toBe(404)
@@ -733,7 +734,7 @@ describe('Forum Routes', () => {
     })
 
     // ==================== CREATE REPLY ====================
-    describe('POST /api/v1/forum/posts/:postId/replies', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/forum/posts/:postId/replies`, () => {
         it(
             'should return 200 for valid reply creation',
             async () => {
@@ -759,7 +760,7 @@ describe('Forum Routes', () => {
 
                 const response = await withCsrfAuth(
                     supertest(App).post(
-                        '/api/v1/forum/posts/test-post-id-123/replies'
+                        `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies`
                     ),
                     token,
                     csrfSecret,
@@ -779,7 +780,7 @@ describe('Forum Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .post(
-                        '/api/v1/forum/posts/test-post-id-123/replies'
+                        `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies`
                     )
                     .send({
                         body: 'This is a reply'
@@ -799,7 +800,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .post(
-                    '/api/v1/forum/posts/test-post-id-123/replies'
+                    `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies`
                 )
                 .set('Cookie', [
                     `accessToken=${token}`,
@@ -816,7 +817,7 @@ describe('Forum Routes', () => {
 
     // ==================== UPDATE REPLY ====================
     describe(
-        'PUT /api/v1/forum/posts/:postId/replies/:replyId',
+        `PUT /api/${serverConfig.apiVersion}/forum/posts/:postId/replies/:replyId`,
         () => {
             it(
                 'should return 200 for valid update by owner',
@@ -846,7 +847,7 @@ describe('Forum Routes', () => {
 
                     const response = await withCsrfAuth(
                         supertest(App).put(
-                            '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
+                            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies/test-reply-id-123`
                         ),
                         token,
                         csrfSecret,
@@ -883,7 +884,7 @@ describe('Forum Routes', () => {
 
                     const response = await withCsrfAuth(
                         supertest(App).put(
-                            '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
+                            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies/test-reply-id-123`
                         ),
                         token,
                         csrfSecret,
@@ -917,7 +918,7 @@ describe('Forum Routes', () => {
 
                     const response = await withCsrfAuth(
                         supertest(App).put(
-                            '/api/v1/forum/posts/test-post-id-123/replies/non-existent-id'
+                            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies/non-existent-id`
                         ),
                         token,
                         csrfSecret,
@@ -934,10 +935,10 @@ describe('Forum Routes', () => {
 
     // ==================== DELETE REPLY ====================
     describe(
-        'DELETE /api/v1/forum/posts/:postId/replies/:replyId',
+        `DELETE /api/${serverConfig.apiVersion}/forum/posts/:postId/replies/:replyId`,
         () => {
             const deleteReplyEndpoint =
-                '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123'
+                `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies/test-reply-id-123`
 
             it(
                 'should return 200 for valid delete by owner',
@@ -1111,9 +1112,9 @@ describe('Forum Routes', () => {
     )
 
     // ==================== LIKE POST ====================
-    describe('POST /api/v1/forum/posts/:postId/like', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/forum/posts/:postId/like`, () => {
         const likeEndpoint =
-            '/api/v1/forum/posts/test-post-id-123/like'
+            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/like`
 
         const setupLikeMocks = (mockProfile: {
             id: string
@@ -1247,9 +1248,9 @@ describe('Forum Routes', () => {
     })
 
     // ==================== SHARE POST ====================
-    describe('POST /api/v1/forum/posts/:postId/share', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/forum/posts/:postId/share`, () => {
         const shareEndpoint =
-            '/api/v1/forum/posts/test-post-id-123/share'
+            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/share`
 
         it(
             'should return 200 with incremented shareCount',
@@ -1278,7 +1279,7 @@ describe('Forum Routes', () => {
                 )
 
                 const response = await supertest(App)
-                    .post('/api/v1/forum/posts/test-post-id-404/share')
+                    .post(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-404/share`)
 
                 expect(response.status).toBe(404)
                 expect(response.body.error[0].statusType)
@@ -1289,10 +1290,10 @@ describe('Forum Routes', () => {
 
     // ==================== LIKE REPLY ====================
     describe(
-        'POST /api/v1/forum/posts/:postId/replies/:replyId/like',
+        `POST /api/${serverConfig.apiVersion}/forum/posts/:postId/replies/:replyId/like`,
         () => {
             const likeReplyEndpoint =
-                '/api/v1/forum/posts/test-post-id-123/replies/test-reply-id-123/like'
+                `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies/test-reply-id-123/like`
 
             it(
                 'should return 200 with liked=true on first like',
@@ -1410,9 +1411,9 @@ describe('Forum Routes', () => {
     )
 
     // ==================== SAVE POST ====================
-    describe('POST /api/v1/forum/posts/:postId/save', () => {
+    describe(`POST /api/${serverConfig.apiVersion}/forum/posts/:postId/save`, () => {
         const saveEndpoint =
-            '/api/v1/forum/posts/test-post-id-123/save'
+            `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/save`
 
         const setupSaveMocks = (mockProfile: {
             id: string
@@ -1540,8 +1541,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET SAVED POSTS ====================
-    describe('GET /api/v1/forum/posts/saved', () => {
-        const savedEndpoint = '/api/v1/forum/posts/saved'
+    describe(`GET /api/${serverConfig.apiVersion}/forum/posts/saved`, () => {
+        const savedEndpoint = `/api/${serverConfig.apiVersion}/forum/posts/saved`
 
         it(
             'should return 200 with saved posts array',
@@ -1637,8 +1638,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET TAGS ====================
-    describe('GET /api/v1/forum/tags', () => {
-        const tagsEndpoint = '/api/v1/forum/tags'
+    describe(`GET /api/${serverConfig.apiVersion}/forum/tags`, () => {
+        const tagsEndpoint = `/api/${serverConfig.apiVersion}/forum/tags`
 
         it('should return 200 and tags array', async () => {
             prismaMock.tag.findMany
@@ -1715,13 +1716,13 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET SINGLE TAG ====================
-    describe('GET /api/v1/forum/tags/:tagId', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/forum/tags/:tagId`, () => {
         it('should return 200 and single tag', async () => {
             prismaMock.tag.findUnique
                 .mockResolvedValue(createRawMockTag())
 
             const response = await supertest(App)
-                .get('/api/v1/forum/tags/test-tag-id-123')
+                .get(`/api/${serverConfig.apiVersion}/forum/tags/test-tag-id-123`)
 
             expect(response.status).toBe(200)
             expect(response.body.data.id)
@@ -1735,7 +1736,7 @@ describe('Forum Routes', () => {
                     .mockResolvedValue(null)
 
                 const response = await supertest(App)
-                    .get('/api/v1/forum/tags/non-existent-id')
+                    .get(`/api/${serverConfig.apiVersion}/forum/tags/non-existent-id`)
 
                 expect(response.status).toBe(404)
                 expect(response.body.error[0].statusType)
@@ -1745,8 +1746,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== REPORT UNKNOWN TAG ====================
-    describe('POST /api/v1/forum/tags/unknown', () => {
-        const endpoint = '/api/v1/forum/tags/unknown'
+    describe(`POST /api/${serverConfig.apiVersion}/forum/tags/unknown`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/forum/tags/unknown`
 
         it(
             'should return 200 and record unknown tag attempt',
@@ -1852,8 +1853,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET CATEGORY STATS ====================
-    describe('GET /api/v1/forum/posts/categories', () => {
-        const endpoint = '/api/v1/forum/posts/categories'
+    describe(`GET /api/${serverConfig.apiVersion}/forum/posts/categories`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/forum/posts/categories`
 
         it(
             'should return 200 and category counts array',
@@ -1932,8 +1933,8 @@ describe('Forum Routes', () => {
     })
 
     // ==================== GET UNKNOWN TAG ATTEMPTS (ADMIN) ====================
-    describe('GET /api/v1/forum/tags/unknown', () => {
-        const endpoint = '/api/v1/forum/tags/unknown'
+    describe(`GET /api/${serverConfig.apiVersion}/forum/tags/unknown`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/forum/tags/unknown`
 
         it(
             'should return 200 and attempts list for admin',
@@ -2021,7 +2022,7 @@ describe('Forum Routes', () => {
                     .mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .post('/api/v1/forum/posts')
+                    .post(`/api/${serverConfig.apiVersion}/forum/posts`)
                     .set('Cookie', [
                         `accessToken=${token}`,
                         `_csrf=${csrfSecret}`
@@ -2045,7 +2046,7 @@ describe('Forum Routes', () => {
                     .mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .get('/api/v1/forum/posts')
+                    .get(`/api/${serverConfig.apiVersion}/forum/posts`)
 
                 expect(response.status).toBe(500)
             }

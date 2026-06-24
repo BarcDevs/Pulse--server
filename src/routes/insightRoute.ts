@@ -7,7 +7,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/insight/observation:
+ * /insight/observation:
  *   get:
  *     summary: Get today's observation
  *     description: >

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { Request, Response } from 'express'
 
+import { serverConfig } from '../../../config'
 import { cacheMiddleware } from '../../middlewares/cache'
 import {
     createMockNext,
@@ -15,7 +16,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'POST',
-                    originalUrl: '/api/v1/posts'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -34,7 +35,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'PUT',
-                    originalUrl: '/api/v1/posts/123'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts/123`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -51,7 +52,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'DELETE',
-                    originalUrl: '/api/v1/posts/123'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts/123`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -68,7 +69,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'GET',
-                    originalUrl: '/api/v1/uncached-endpoint'
+                    originalUrl: `/api/${serverConfig.apiVersion}/uncached-endpoint`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -87,7 +88,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'GET',
-                    originalUrl: '/api/v1/test-wrap-send'
+                    originalUrl: `/api/${serverConfig.apiVersion}/test-wrap-send`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -106,7 +107,7 @@ describe('Cache Middleware', () => {
             () => {
                 const req = createMockRequest({
                     method: 'GET',
-                    originalUrl: '/api/v1/posts?page=1&limit=10'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts?page=1&limit=10`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -124,12 +125,12 @@ describe('Cache Middleware', () => {
             () => {
                 const req1 = createMockRequest({
                     method: 'GET',
-                    originalUrl: '/api/v1/posts?page=1'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts?page=1`
                 }) as Request
 
                 const req2 = createMockRequest({
                     method: 'GET',
-                    originalUrl: '/api/v1/posts?page=2'
+                    originalUrl: `/api/${serverConfig.apiVersion}/posts?page=2`
                 }) as Request
 
                 const res1 = createMockResponse() as Response

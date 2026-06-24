@@ -357,7 +357,7 @@ graph TD
 
 ## API Endpoints
 
-All endpoints are prefixed with `/api/v1`. Full interactive documentation is available at `/api-docs` in development.
+All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_VERSION` env var, defaults to `v1`). Full interactive documentation is available at `/api-docs` in development.
 
 ### Authentication
 
@@ -365,14 +365,14 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
-| `POST` | `/api/v1/auth/login` | — | — | Login and receive JWT cookie |
-| `POST` | `/api/v1/auth/signup` | — | — | Register new user |
-| `GET` | `/api/v1/auth/csrf` | — | — | Get CSRF token |
-| `GET` | `/api/v1/auth/logout` | Cookie | — | Logout and clear session |
-| `GET` | `/api/v1/auth/me` | Cookie | — | Get current user profile |
-| `GET` | `/api/v1/auth/forgot-password/:email` | — | 5/15min | Send password reset OTP to email |
-| `POST` | `/api/v1/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
-| `PUT` | `/api/v1/auth/reset-password` | — | 5/15min | Reset password with OTP |
+| `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
+| `POST` | `/api/{version}/auth/signup` | — | — | Register new user |
+| `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
+| `GET` | `/api/{version}/auth/logout` | Cookie | — | Logout and clear session |
+| `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
+| `GET` | `/api/{version}/auth/forgot-password/:email` | — | 5/15min | Send password reset OTP to email |
+| `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
+| `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
 **Password Requirements:**
 - Minimum 8 characters
@@ -384,47 +384,47 @@ All endpoints are prefixed with `/api/v1`. Full interactive documentation is ava
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/check-in` | Cookie | Get check-in history |
-| `POST` | `/api/v1/check-in` | Cookie + CSRF | Upsert today's check-in (201 new, 200 updated) |
-| `PATCH` | `/api/v1/check-in` | Cookie + CSRF | Update today's check-in (404 if none) |
-| `GET` | `/api/v1/check-in/stats` | Cookie | Get aggregated check-in stats |
-| `GET` | `/api/v1/check-in/progress-insights` | Cookie | Get weekly progress narrative (7-day vs 7-day comparison) |
+| `GET` | `/api/{version}/check-in` | Cookie | Get check-in history |
+| `POST` | `/api/{version}/check-in` | Cookie + CSRF | Upsert today's check-in (201 new, 200 updated) |
+| `PATCH` | `/api/{version}/check-in` | Cookie + CSRF | Update today's check-in (404 if none) |
+| `GET` | `/api/{version}/check-in/stats` | Cookie | Get aggregated check-in stats |
+| `GET` | `/api/{version}/check-in/progress-insights` | Cookie | Get weekly progress narrative (7-day vs 7-day comparison) |
 
 ### Insight *(protected)*
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/insight/observation` | Cookie | Get today's AI observation about a detected recovery pattern |
+| `GET` | `/api/{version}/insight/observation` | Cookie | Get today's AI observation about a detected recovery pattern |
 
 ### Forum *(protected)*
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/forum/posts` | Cookie | List posts (supports `?tag=`) |
-| `POST` | `/api/v1/forum/posts` | Cookie + CSRF | Create new post |
-| `GET` | `/api/v1/forum/posts/:postId` | Cookie | Get single post |
-| `PUT` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Update post |
-| `DELETE` | `/api/v1/forum/posts/:postId` | Cookie + CSRF | Delete post |
-| `POST` | `/api/v1/forum/posts/:postId/share` | — | Increment post share count |
-| `GET` | `/api/v1/forum/replies` | Cookie | List replies |
-| `POST` | `/api/v1/forum/replies` | Cookie + CSRF | Add reply to a post |
-| `PUT` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Update reply |
-| `DELETE` | `/api/v1/forum/replies/:replyId` | Cookie + CSRF | Delete reply |
-| `GET` | `/api/v1/forum/tags` | Cookie | List all tags |
-| `GET` | `/api/v1/forum/votes` | Cookie + CSRF | Vote on a post or reply |
+| `GET` | `/api/{version}/forum/posts` | Cookie | List posts (supports `?tag=`) |
+| `POST` | `/api/{version}/forum/posts` | Cookie + CSRF | Create new post |
+| `GET` | `/api/{version}/forum/posts/:postId` | Cookie | Get single post |
+| `PUT` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Update post |
+| `DELETE` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Delete post |
+| `POST` | `/api/{version}/forum/posts/:postId/share` | — | Increment post share count |
+| `GET` | `/api/{version}/forum/replies` | Cookie | List replies |
+| `POST` | `/api/{version}/forum/replies` | Cookie + CSRF | Add reply to a post |
+| `PUT` | `/api/{version}/forum/replies/:replyId` | Cookie + CSRF | Update reply |
+| `DELETE` | `/api/{version}/forum/replies/:replyId` | Cookie + CSRF | Delete reply |
+| `GET` | `/api/{version}/forum/tags` | Cookie | List all tags |
+| `GET` | `/api/{version}/forum/votes` | Cookie + CSRF | Vote on a post or reply |
 
 ### Profile *(protected)*
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/profile` | Cookie | Get user profile with interests/activities |
-| `PATCH` | `/api/v1/profile` | Cookie + CSRF | Update profile (image, bio, location, timezone) |
-| `POST` | `/api/v1/profile/health-interests` | Cookie + CSRF | Add health interests by slug |
-| `DELETE` | `/api/v1/profile/health-interests/:slug` | Cookie + CSRF | Remove health interest |
-| `POST` | `/api/v1/profile/activities` | Cookie + CSRF | Add activity preferences by slug |
-| `DELETE` | `/api/v1/profile/activities/:slug` | Cookie + CSRF | Remove activity preference |
-| `GET` | `/api/v1/profile/list/health-interests` | — | List all available health interests |
-| `GET` | `/api/v1/profile/list/activities` | — | List all available activity preferences |
+| `GET` | `/api/{version}/profile` | Cookie | Get user profile with interests/activities |
+| `PATCH` | `/api/{version}/profile` | Cookie + CSRF | Update profile (image, bio, location, timezone) |
+| `POST` | `/api/{version}/profile/health-interests` | Cookie + CSRF | Add health interests by slug |
+| `DELETE` | `/api/{version}/profile/health-interests/:slug` | Cookie + CSRF | Remove health interest |
+| `POST` | `/api/{version}/profile/activities` | Cookie + CSRF | Add activity preferences by slug |
+| `DELETE` | `/api/{version}/profile/activities/:slug` | Cookie + CSRF | Remove activity preference |
+| `GET` | `/api/{version}/profile/list/health-interests` | — | List all available health interests |
+| `GET` | `/api/{version}/profile/list/activities` | — | List all available activity preferences |
 
 ### Recovery Goals *(protected)*
 
@@ -434,18 +434,18 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/v1/recovery-goals` | Cookie | List all goals with progress |
-| `GET` | `/api/v1/recovery-goals?status=ACTIVE` | Cookie | Filter goals by status (ACTIVE/PAUSED/COMPLETED/ABANDONED) |
-| `POST` | `/api/v1/recovery-goals` | Cookie + CSRF | Create goal (category: PHYSICAL/MENTAL/LIFESTYLE) |
-| `GET` | `/api/v1/recovery-goals/:goalId` | Cookie | Get goal with milestones |
-| `PATCH` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Update goal details or transition status (see state machine below) |
-| `DELETE` | `/api/v1/recovery-goals/:goalId` | Cookie + CSRF | Delete goal and milestones |
-| `POST` | `/api/v1/recovery-goals/:goalId/milestones` | Cookie + CSRF | Create milestones (1–8 per goal) |
-| `PATCH` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Update milestone (title/description/order) |
-| `PATCH` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId/complete` | Cookie + CSRF | Mark milestone complete (unlocks next) |
-| `DELETE` | `/api/v1/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Delete milestone |
-| `PATCH` | `/api/v1/recovery-goals/:goalId/complete` | Cookie + CSRF | Mark goal complete (all milestones must be done) |
-| `GET` | `/api/v1/recovery-goals/stats` | Cookie | Goal and milestone completion stats with streak |
+| `GET` | `/api/{version}/recovery-goals` | Cookie | List all goals with progress |
+| `GET` | `/api/{version}/recovery-goals?status=ACTIVE` | Cookie | Filter goals by status (ACTIVE/PAUSED/COMPLETED/ABANDONED) |
+| `POST` | `/api/{version}/recovery-goals` | Cookie + CSRF | Create goal (category: PHYSICAL/MENTAL/LIFESTYLE) |
+| `GET` | `/api/{version}/recovery-goals/:goalId` | Cookie | Get goal with milestones |
+| `PATCH` | `/api/{version}/recovery-goals/:goalId` | Cookie + CSRF | Update goal details or transition status (see state machine below) |
+| `DELETE` | `/api/{version}/recovery-goals/:goalId` | Cookie + CSRF | Delete goal and milestones |
+| `POST` | `/api/{version}/recovery-goals/:goalId/milestones` | Cookie + CSRF | Create milestones (1–8 per goal) |
+| `PATCH` | `/api/{version}/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Update milestone (title/description/order) |
+| `PATCH` | `/api/{version}/recovery-goals/:goalId/milestones/:milestoneId/complete` | Cookie + CSRF | Mark milestone complete (unlocks next) |
+| `DELETE` | `/api/{version}/recovery-goals/:goalId/milestones/:milestoneId` | Cookie + CSRF | Delete milestone |
+| `PATCH` | `/api/{version}/recovery-goals/:goalId/complete` | Cookie + CSRF | Mark goal complete (all milestones must be done) |
+| `GET` | `/api/{version}/recovery-goals/stats` | Cookie | Goal and milestone completion stats with streak |
 
 **Status state machine:** ACTIVE → PAUSED/ABANDONED/COMPLETED · PAUSED → ACTIVE/ABANDONED · ABANDONED → ACTIVE · COMPLETED is terminal. Timestamps (`pausedAt`, `completedAt`, `abandonedAt`) set automatically.
 
@@ -455,7 +455,7 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 
 Powered by **Google Gemini API** for personalized recovery insights.
 
-### Daily Observation (`GET /api/v1/insight/observation`)
+### Daily Observation (`GET /api/{version}/insight/observation`)
 
 A short AI-phrased observation surfacing one detected pattern from the user's recent check-ins.
 
@@ -480,7 +480,7 @@ A short AI-phrased observation surfacing one detected pattern from the user's re
 
 Returns `null` when no pattern meets the threshold — no forced insight.
 
-### Progress Insights (`GET /api/v1/check-in/progress-insights`)
+### Progress Insights (`GET /api/{version}/check-in/progress-insights`)
 
 Compares the last 7 days against the previous 7 days and returns a narrative trend summary with delta metrics.
 
@@ -507,16 +507,27 @@ npm run seed     # Seed database with test data
 
 ## Testing
 
+### Integration Tests
+
+Integration tests need Postgres on `localhost:5433` (see `src/__tests__/integration/setup/envSetup.ts`). Start it locally with:
+
+```bash
+docker-compose -f docker-compose.test.yml up -d
+npm run test:integration
+```
+
+CI runs its own Postgres service container automatically — no setup needed there.
+
 ### Manual Testing
 
 ```bash
 # Sign up a new user
-curl -X POST http://localhost:3000/api/v1/auth/signup \
+curl -X POST http://localhost:3000/api/{version}/auth/signup \
   -H 'Content-Type: application/json' \
   -d '{"email":"test@example.com","firstName":"Test","lastName":"User","password":"Password123"}'
 
 # Create a check-in (replace <token> with JWT from login)
-curl -X POST http://localhost:3000/api/v1/check-in \
+curl -X POST http://localhost:3000/api/{version}/check-in \
   -H 'Content-Type: application/json' \
   -H 'Cookie: accessToken=<token>' \
   -H 'x-csrf-token: <csrfToken>' \
@@ -544,6 +555,24 @@ JWT_SECRET
 GEMINI_API_KEY
 SENTRY_DSN
 ```
+
+---
+
+## Staging Environment
+
+Every push to `development` auto-deploys `Pulse--server-staging`, isolated from production.
+
+| Property | Value |
+|---|---|
+| URL | https://pulse-server-staging-thrx.onrender.com |
+| Branch | `development` |
+| Render project/env | Project **Pulse** → Environment **Staging** (prod lives in **Production**) |
+| Database | Neon branch `staging` (copy-on-write snapshot of `main` taken at branch creation — does not live-sync, drifts independently) |
+| CORS | `ORIGIN` set to the staging client URL only — prod client origin gets no CORS headers |
+| Google OAuth | Separate Authorized JS origin + redirect URI (`/api/{version}/auth/google/callback` on the staging URL) |
+| `NODE_ENV` | `production` (Render's default for Node web services) — **do not change.** `webpack.config.ts` uses `NODE_ENV` directly as webpack's `mode`, which only accepts `production`/`development`/`none`. Setting `staging` breaks the build. |
+
+Frontend staging build: see [client README](https://github.com/BarcDevs/Pulse--client#staging-environment).
 
 ---
 

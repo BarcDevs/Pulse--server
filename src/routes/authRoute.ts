@@ -25,7 +25,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/auth/login:
+ * /auth/login:
  *   post:
  *     summary: Login with email and password
  *     tags: [Auth]
@@ -81,7 +81,7 @@ router.route('/login').post(login)
 
 /**
  * @swagger
- * /api/v1/auth/signup:
+ * /auth/signup:
  *   post:
  *     summary: Register a new user account
  *     tags: [Auth]
@@ -132,7 +132,7 @@ router.route('/signup').post(signup)
 
 /**
  * @swagger
- * /api/v1/auth/google:
+ * /auth/google:
  *   get:
  *     summary: Initiate Google OAuth sign-in flow
  *     description: Generates a state parameter, stores it in an httpOnly cookie, and redirects the user to Google's authorization page.
@@ -145,7 +145,7 @@ router.route('/google').get(googleSignIn)
 
 /**
  * @swagger
- * /api/v1/auth/google/callback:
+ * /auth/google/callback:
  *   get:
  *     summary: Handle Google OAuth callback
  *     description: Validates the state parameter, exchanges the authorization code for tokens, finds or creates the user, sets auth cookies, and redirects to the client application.
@@ -179,7 +179,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/confirm-email:
+ * /auth/confirm-email:
  *   post:
  *     summary: Verify OTP to confirm ownership of the email address
  *     tags: [Auth]
@@ -228,7 +228,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/refresh:
+ * /auth/refresh:
  *   get:
  *     summary: Generate a new CSRF token
  *     description: Returns a fresh CSRF token and sets the _csrf cookie. Use the returned token as the x-csrf-token header on mutation requests.
@@ -264,7 +264,7 @@ router.route('/refresh').get(
 
 /**
  * @swagger
- * /api/v1/auth/logout:
+ * /auth/logout:
  *   get:
  *     summary: Logout and clear authentication cookies
  *     description: Clears both the accessToken and _csrf cookies
@@ -286,7 +286,7 @@ router.route('/logout').get(logout)
 
 /**
  * @swagger
- * /api/v1/auth/me:
+ * /auth/me:
  *   get:
  *     summary: Get the current authenticated user
  *     tags: [Auth]
@@ -321,7 +321,7 @@ router.route('/me').get(
 
 /**
  * @swagger
- * /api/v1/auth/forgot-password/{email}:
+ * /auth/forgot-password/{email}:
  *   get:
  *     summary: Request a password reset OTP via email
  *     tags: [Auth]
@@ -368,7 +368,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/reset-password:
+ * /auth/reset-password:
  *   put:
  *     summary: Reset password using a verified OTP
  *     tags: [Auth]
@@ -421,7 +421,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/change-email:
+ * /auth/change-email:
  *   post:
  *     summary: Request an email address change
  *     description: Verifies the user's current password, then sends an OTP to the new email address.
@@ -485,7 +485,7 @@ router
 
 /**
  * @swagger
- * /api/v1/auth/confirm-email-change:
+ * /auth/confirm-email-change:
  *   post:
  *     summary: Confirm the new email address with OTP
  *     description: Verifies the OTP sent to the new email and updates the account email address.
