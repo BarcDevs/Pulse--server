@@ -23,7 +23,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/recovery-goals:
+ * /recovery-goals:
  *   post:
  *     summary: Create a new recovery goal
  *     tags: [Recovery Goals]
@@ -83,7 +83,7 @@ router
 
 /**
  * @swagger
- * /api/v1/recovery-goals/stats:
+ * /recovery-goals/stats:
  *   get:
  *     summary: Get goals and milestones stats for the current user
  *     tags: [Recovery Goals]
@@ -157,7 +157,7 @@ router.route('/stats').get(isAuthenticated, getStats)
 
 /**
  * @swagger
- * /api/v1/recovery-goals/{goalId}:
+ * /recovery-goals/{goalId}:
  *   get:
  *     summary: Get a single recovery goal with all milestones
  *     tags: [Recovery Goals]
@@ -249,7 +249,7 @@ router
 
 /**
  * @swagger
- * /api/v1/recovery-goals/{goalId}/milestones:
+ * /recovery-goals/{goalId}/milestones:
  *   post:
  *     summary: Create milestones for a recovery goal
  *     tags: [Recovery Milestones]
@@ -314,7 +314,7 @@ router
 
 /**
  * @swagger
- * /api/v1/recovery-goals/{goalId}/milestones/{milestoneId}:
+ * /recovery-goals/{goalId}/milestones/{milestoneId}:
  *   patch:
  *     summary: Update a milestone (title, description, and/or order)
  *     tags: [Recovery Milestones]
@@ -403,7 +403,7 @@ router
 
 /**
  * @swagger
- * /api/v1/recovery-goals/{goalId}/milestones/{milestoneId}/complete:
+ * /recovery-goals/{goalId}/milestones/{milestoneId}/complete:
  *   patch:
  *     summary: Mark milestone as completed and advance to next
  *     tags: [Recovery Milestones]
@@ -444,7 +444,7 @@ router
 
 /**
  * @swagger
- * /api/v1/recovery-goals/{goalId}/complete:
+ * /recovery-goals/{goalId}/complete:
  *   patch:
  *     summary: Manually mark goal as completed
  *     tags: [Recovery Goals]

@@ -1,5 +1,7 @@
 import swaggerJsdoc from 'swagger-jsdoc'
 
+import { serverConfig } from '../../config'
+
 const options: swaggerJsdoc.Options = {
     definition: {
         openapi: '3.0.0',
@@ -10,7 +12,7 @@ const options: swaggerJsdoc.Options = {
         },
         servers: [
             {
-                url: '/',
+                url: `/api/${serverConfig.apiVersion}`,
                 description: 'API server'
             }
         ],
@@ -26,7 +28,7 @@ const options: swaggerJsdoc.Options = {
                     type: 'apiKey',
                     in: 'header',
                     name: 'x-csrf-token',
-                    description: 'CSRF token from the login response or GET /api/v1/auth/csrf'
+                    description: `CSRF token from the login response or GET /api/${serverConfig.apiVersion}/auth/csrf`
                 }
             },
             schemas: {

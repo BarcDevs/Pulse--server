@@ -17,7 +17,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/check-in:
+ * /check-in:
  *   get:
  *     summary: Get check-ins for the current user
  *     tags: [Check-In]
@@ -191,7 +191,7 @@ router
 
 /**
  * @swagger
- * /api/v1/check-in/stats:
+ * /check-in/stats:
  *   get:
  *     summary: Get aggregated check-in statistics for the current user
  *     tags: [Check-In]
@@ -225,7 +225,7 @@ router
 
 /**
  * @swagger
- * /api/v1/check-in/progress-insights:
+ * /check-in/progress-insights:
  *   get:
  *     summary: Get weekly progress insights
  *     description: >

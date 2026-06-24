@@ -16,7 +16,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/profile:
+ * /profile:
  *   get:
  *     summary: Get user profile
  *     tags: [Profile]
@@ -83,14 +83,14 @@ router
 
 /**
  * @swagger
- * /api/v1/health-interests:
+ * /health-interests:
  *   get:
  *     summary: List all available health interests
  *     tags: [Profile]
  *     responses:
  *       200:
  *         description: List of health interests
- * /api/v1/activities:
+ * /activities:
  *   get:
  *     summary: List all available activity preferences
  *     tags: [Profile]

@@ -7,7 +7,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/forum/recommendations:
+ * /forum/recommendations:
  *   get:
  *     summary: Get post recommendations for the current user
  *     description: >

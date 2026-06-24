@@ -15,7 +15,7 @@ const router = Router()
 
 /**
  * @swagger
- * /api/v1/users/me:
+ * /users/me:
  *   patch:
  *     summary: Update user account information
  *     tags: [Users]
@@ -89,7 +89,7 @@ router
 
 /**
  * @swagger
- * /api/v1/users/password:
+ * /users/password:
  *   patch:
  *     summary: Update user password
  *     tags: [Users]
@@ -149,7 +149,7 @@ router
 
 /**
  * @swagger
- * /api/v1/users/me:
+ * /users/me:
  *   delete:
  *     summary: Deactivate user account
  *     tags: [Users]
