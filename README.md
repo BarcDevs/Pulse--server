@@ -547,6 +547,24 @@ SENTRY_DSN
 
 ---
 
+## Staging Environment
+
+Every push to `development` auto-deploys `Pulse--server-staging`, isolated from production.
+
+| Property | Value |
+|---|---|
+| URL | https://pulse-server-staging-thrx.onrender.com |
+| Branch | `development` |
+| Render project/env | Project **Pulse** → Environment **Staging** (prod lives in **Production**) |
+| Database | Neon branch `staging` (copy-on-write snapshot of `main` taken at branch creation — does not live-sync, drifts independently) |
+| CORS | `ORIGIN` set to the staging client URL only — prod client origin gets no CORS headers |
+| Google OAuth | Separate Authorized JS origin + redirect URI (`/api/v1/auth/google/callback` on the staging URL) |
+| `NODE_ENV` | `production` (Render's default for Node web services) — **do not change.** `webpack.config.ts` uses `NODE_ENV` directly as webpack's `mode`, which only accepts `production`/`development`/`none`. Setting `staging` breaks the build. |
+
+Frontend staging build: see [client README](https://github.com/BarcDevs/Pulse--client#staging-environment).
+
+---
+
 ## Security
 
 | Measure | Detail |
