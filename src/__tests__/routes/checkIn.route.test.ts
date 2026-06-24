@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { dayInMs } from '../../constants/time'
 import * as insightService from '../../services/insightService'
@@ -58,8 +59,8 @@ describe('Check-in Routes', () => {
     })
 
     // ==================== GET CHECK-INS ====================
-    describe('GET /api/v1/check-in', () => {
-        const endpoint = '/api/v1/check-in'
+    describe(`GET /api/${serverConfig.apiVersion}/check-in`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/check-in`
 
         it(
             'should return 200 and check-ins array',
@@ -139,8 +140,8 @@ describe('Check-in Routes', () => {
     })
 
     // ==================== CREATE CHECK-IN ====================
-    describe('POST /api/v1/check-in', () => {
-        const endpoint = '/api/v1/check-in'
+    describe(`POST /api/${serverConfig.apiVersion}/check-in`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/check-in`
         const validBody = {
             moodScore: 7,
             painLevel: 3,
@@ -350,8 +351,8 @@ describe('Check-in Routes', () => {
     })
 
     // ==================== UPDATE CHECK-IN ====================
-    describe('PATCH /api/v1/check-in', () => {
-        const endpoint = '/api/v1/check-in'
+    describe(`PATCH /api/${serverConfig.apiVersion}/check-in`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/check-in`
         const validBody = {
             moodScore: 9,
             activities: [
@@ -481,8 +482,8 @@ describe('Check-in Routes', () => {
     })
 
     // ==================== GET CHECK-IN STATS ====================
-    describe('GET /api/v1/check-in/stats', () => {
-        const endpoint = '/api/v1/check-in/stats'
+    describe(`GET /api/${serverConfig.apiVersion}/check-in/stats`, () => {
+        const endpoint = `/api/${serverConfig.apiVersion}/check-in/stats`
 
         it('should return 200 with stats', async () => {
             const mockUser = createMockUser()

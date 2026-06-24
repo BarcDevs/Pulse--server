@@ -2,6 +2,7 @@
 import crypto from 'crypto'
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { AuthError } from '../../errors/AuthError'
@@ -29,9 +30,9 @@ const mockHandleCallback =
 
 // ==================== HELPERS ====================
 const googleSignInEndpoint =
-    '/api/v1/auth/google'
+    `/api/${serverConfig.apiVersion}/auth/google`
 const googleCallbackEndpoint =
-    '/api/v1/auth/google/callback'
+    `/api/${serverConfig.apiVersion}/auth/google/callback`
 
 const createGoogleUser = (
     overrides?: Record<string, unknown>
@@ -235,7 +236,7 @@ describe('Google OAuth', () => {
 
     // ==================== INTEGRATION: GET /auth/google ====================
     describe(
-        'GET /api/v1/auth/google',
+        `GET /api/${serverConfig.apiVersion}/auth/google`,
         () => {
             it(
                 'should redirect to Google authorization URL',
@@ -331,7 +332,7 @@ describe('Google OAuth', () => {
 
     // ==================== INTEGRATION: GET /auth/google/callback ====================
     describe(
-        'GET /api/v1/auth/google/callback',
+        `GET /api/${serverConfig.apiVersion}/auth/google/callback`,
         () => {
             // region Successful flows
             it(

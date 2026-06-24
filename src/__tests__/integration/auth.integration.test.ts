@@ -5,10 +5,10 @@ import App from '../../app'
 import { createToken } from '../../lib/authCrypto'
 import Prisma from '../../utils/prismaClient'
 
-const SIGNUP_URL = '/api/v1/auth/signup'
-const LOGIN_URL = '/api/v1/auth/login'
-const ME_URL = '/api/v1/auth/me'
-const LOGOUT_URL = '/api/v1/auth/logout'
+const SIGNUP_URL = `/api/${serverConfig.apiVersion}/auth/signup`
+const LOGIN_URL = `/api/${serverConfig.apiVersion}/auth/login`
+const ME_URL = `/api/${serverConfig.apiVersion}/auth/me`
+const LOGOUT_URL = `/api/${serverConfig.apiVersion}/auth/logout`
 
 const testUser = {
     firstName: 'Integration',

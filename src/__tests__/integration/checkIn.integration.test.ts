@@ -2,12 +2,13 @@
 import Csrf from 'csrf'
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { createToken } from '../../lib/authCrypto'
 import Prisma from '../../utils/prismaClient'
 
-const SIGNUP_URL = '/api/v1/auth/signup'
-const CHECK_IN_URL = '/api/v1/check-in'
+const SIGNUP_URL = `/api/${serverConfig.apiVersion}/auth/signup`
+const CHECK_IN_URL = `/api/${serverConfig.apiVersion}/check-in`
 
 const csrfLib = new Csrf()
 

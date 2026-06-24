@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import {
     createAuthToken,
@@ -10,7 +11,7 @@ import {
 jest.mock('../../services/progressInsightsService')
 
 describe('Progress Insights Routes', () => {
-    const baseUrl = '/api/v1/check-in'
+    const baseUrl = `/api/${serverConfig.apiVersion}/check-in`
     const endpoint = `${baseUrl}/progress-insights`
     const mockUser = createMockUser()
     const token = createAuthToken(mockUser)
@@ -19,7 +20,7 @@ describe('Progress Insights Routes', () => {
         jest.clearAllMocks()
     })
 
-    describe('GET /api/v1/check-in/progress-insights', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/check-in/progress-insights`, () => {
         it('should return 200 with progress insights when authenticated', async () => {
             const mockInsights = {
                 summary:

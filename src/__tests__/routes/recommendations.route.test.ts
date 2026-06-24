@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import * as recommendationsService
     from '../../services/recommendationsService'
@@ -11,7 +12,7 @@ import {
 
 jest.mock('../../services/recommendationsService')
 
-const endpoint = '/api/v1/forum/recommendations'
+const endpoint = `/api/${serverConfig.apiVersion}/forum/recommendations`
 
 const makeReadyResponse = (posts = [{
     id: 'post-1',
@@ -41,7 +42,7 @@ describe('Recommendations Routes', () => {
         jest.clearAllMocks()
     })
 
-    describe('GET /api/v1/forum/recommendations', () => {
+    describe(`GET /api/${serverConfig.apiVersion}/forum/recommendations`, () => {
         it('should return 401 for unauthenticated request', async () => {
             const response = await supertest(App).get(endpoint)
 

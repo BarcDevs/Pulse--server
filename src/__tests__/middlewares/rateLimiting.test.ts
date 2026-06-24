@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { Request, Response } from 'express'
 
+import { serverConfig } from '../../../config'
 import {
     rateLimiter,
     sharePostRateLimiter
@@ -34,7 +35,7 @@ describe('Rate Limiting Middleware', () => {
                 const req = createMockRequest({
                     ip: '127.0.0.1',
                     method: 'GET',
-                    originalUrl: '/api/v1/test'
+                    originalUrl: `/api/${serverConfig.apiVersion}/test`
                 }) as Request
 
                 const res = createMockResponse() as Response
@@ -62,7 +63,7 @@ describe('Rate Limiting Middleware', () => {
                 ip: '127.0.0.1',
                 params: { postId: 'rate-limit-test-post' },
                 method: 'POST',
-                originalUrl: '/api/v1/forum/posts/rate-limit-test-post/share'
+                originalUrl: `/api/${serverConfig.apiVersion}/forum/posts/rate-limit-test-post/share`
             }) as Request
 
             const res = createMockResponse() as Response
