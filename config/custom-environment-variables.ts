@@ -1,7 +1,8 @@
 export default {
     server: {
         port: 'PORT',
-        origin: 'ORIGIN'
+        origin: 'ORIGIN',
+        apiVersion: 'SERVER_API_VERSION'
     },
     database: {
         url: 'DEV_DATABASE_URL'
