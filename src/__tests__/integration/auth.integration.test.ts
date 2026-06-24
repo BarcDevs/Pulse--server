@@ -1,6 +1,7 @@
 // @ts-nocheck
 import supertest from 'supertest'
 
+import { serverConfig } from '../../../config'
 import App from '../../app'
 import { createToken } from '../../lib/authCrypto'
 import Prisma from '../../utils/prismaClient'
