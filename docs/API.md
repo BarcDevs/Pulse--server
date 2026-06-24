@@ -1,7 +1,7 @@
 # Pulse API — Route Map
 
 **Base URL:** `http://localhost:3000`
-**API prefix:** `/api/v1`
+**API prefix:** `/api/{version}` (`{version}` from `SERVER_API_VERSION` env var, defaults to `v1` — see `config/default.ts`)
 
 All responses follow the shape `{ message: string, data: T }`.
 Error responses follow `{ message: string, error: string }`.
@@ -23,7 +23,7 @@ Error responses follow `{ message: string, error: string }`.
 
 ---
 
-## Auth — `/api/v1/auth`
+## Auth — `/api/{version}/auth`
 
 ---
 
@@ -312,7 +312,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
-## Users — `/api/v1/users`
+## Users — `/api/{version}/users`
 
 ---
 
@@ -376,7 +376,7 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
-## Forum — `/api/v1/forum`
+## Forum — `/api/{version}/forum`
 
 ---
 
@@ -875,7 +875,7 @@ Returns pre-computed post recommendations based on the user's latest check-in.
 
 ---
 
-## Check-In — `/api/v1/check-in`
+## Check-In — `/api/{version}/check-in`
 
 ---
 
@@ -1128,7 +1128,7 @@ Generates a human-readable summary of recovery progress by comparing the last 7 
 
 ---
 
-## Profile — `/api/v1/profile`
+## Profile — `/api/{version}/profile`
 
 ---
 
@@ -1248,7 +1248,7 @@ List all available activity preference slugs for the platform.
 
 ---
 
-## Recovery Goals — `/api/v1/recovery-goals`
+## Recovery Goals — `/api/{version}/recovery-goals`
 
 ---
 
@@ -1665,7 +1665,7 @@ Manually mark a goal as completed. Goal must be active and all milestones must b
 
 ---
 
-## Insight — `/api/v1/insight`
+## Insight — `/api/{version}/insight`
 
 ---
 
