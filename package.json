@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.1.7",
+  "version": "1.1.9",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -10,6 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "prepare": "husky",
     "start": "node dist/src/app.js",
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",

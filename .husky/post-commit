@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
-# Auto-bumps package.json version per commit type (see GIT_RULES.md):
-#   feat        -> minor bump, patch reset to 0
-#   fix/rfc/docs/style/test/chore -> patch bump
-# Major is never bumped automatically — real major bumps stay manual.
+# Auto-bumps package.json + package-lock.json version per commit type (see GIT_RULES.md):
+#   feat            -> minor bump, patch reset to 0
+#   fix/rfc/refactor/perf -> patch bump
+#   any type + `!` or a BREAKING CHANGE footer -> major bump
 # SKIP_VERSION_BUMP guards against re-triggering itself on the amend below
 # (git still runs post-commit on --amend even with --no-verify).
-# Not run mid-rebase/cherry-pick/merge — amending there is invalid.
+# Not run mid-rebase/cherry-pick/merge -- amending there is invalid.
 
 if [ -n "$SKIP_VERSION_BUMP" ]; then
     exit 0
@@ -18,40 +18,82 @@ if [ -d "$(git rev-parse --git-dir)/rebase-merge" ] || \
     exit 0
 fi
 
-msg=$(git log -1 --pretty=%s)
-type=$(printf '%s' "$msg" | sed -nE 's/^([a-zA-Z]+)(!)?(\(.+\))?:.*/\1\2/p')
+commitMsg=$(git log -1 --pretty=%B)
 
-case "$type" in
-    feat|feat!) bump=minor ;;
-    fix|rfc|docs|style|test|chore) bump=patch ;;
-    *) exit 0 ;;
+# Skip if already bumped (amended commit)
+case "$commitMsg" in
+    *Version-Bump:*) exit 0 ;;
 esac
+
+subject=$(printf '%s' "$commitMsg" | head -1)
+
+bumpType=""
+case "$subject" in
+    feat*!*) bumpType="major" ;;
+    fix*!*|rfc*!*|refactor*!*|perf*!*) bumpType="major" ;;
+    feat*) bumpType="minor" ;;
+    fix*|rfc*|refactor*|perf*) bumpType="patch" ;;
+esac
+
+case "$commitMsg" in
+    *BREAKING\ CHANGE*) bumpType="major" ;;
+esac
+
+if [ -z "$bumpType" ]; then
+    exit 0
+fi
 
 if [ ! -f package.json ]; then
     exit 0
 fi
 
-version=$(node -p "require('./package.json').version")
-major=$(printf '%s' "$version" | cut -d. -f1)
-minor=$(printf '%s' "$version" | cut -d. -f2)
-patch=$(printf '%s' "$version" | cut -d. -f3)
+newVer=$(node -e "
+const fs = require('fs')
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'))
+const [maj, min, pat] = (pkg.version || '0.0.0').split('.').map(Number)
+let m = maj || 0
+let n = min || 0
+let p = pat || 0
 
-if [ "$bump" = "minor" ]; then
-    minor=$((minor + 1))
-    patch=0
-else
-    patch=$((patch + 1))
+if ('$bumpType' === 'major') { m++; n = 0; p = 0 }
+else if ('$bumpType' === 'minor') { n++; p = 0 }
+else if ('$bumpType' === 'patch') { p++ }
+
+console.log(\`\${m}.\${n}.\${p}\`)
+" 2>/dev/null)
+
+if [ -z "$newVer" ]; then
+    exit 1
 fi
 
-new_version="$major.$minor.$patch"
+case "$newVer" in
+    *NaN*) exit 1 ;;
+esac
 
 node -e "
-const fs = require('fs');
-const p = require('./package.json');
-p.version = '$new_version';
-fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+const fs = require('fs')
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'))
+pkg.version = '$newVer'
+fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n')
 "
 
-git add package.json
-SKIP_VERSION_BUMP=1 git commit --amend --no-edit --no-verify > /dev/null
-echo "post-commit: bumped version to $new_version ($bump, from '$type' commit)"
+if [ -f ./package-lock.json ]; then
+node -e "
+const fs = require('fs')
+const pkg = JSON.parse(fs.readFileSync('./package-lock.json', 'utf8'))
+pkg.version = '$newVer'
+if (pkg.packages && pkg.packages[''] && pkg.packages[''].version) {
+    pkg.packages[''].version = '$newVer'
+}
+fs.writeFileSync('./package-lock.json', JSON.stringify(pkg, null, 2) + '\n')
+"
+fi
+
+git add package.json package-lock.json
+SKIP_VERSION_BUMP=1 git commit --amend -m "$commitMsg
+
+Version-Bump: $newVer" --no-verify > /dev/null
+
+git tag "v$newVer"
+
+echo "post-commit: bumped version to $newVer ($bumpType)"
