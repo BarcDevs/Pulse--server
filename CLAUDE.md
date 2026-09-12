@@ -31,7 +31,6 @@ collaborator/agent can read, each shaped `index.md` + `<topic>.md` files + `arch
 **Read both `index.md` files at the start of every new session** — load-bearing context, same tier as this file. Topic files are loaded on demand, not routinely.
 **Write immediately, same turn as the correction/decision.** Don't wait for the user to ask "did you save that." Missing one is a bug.
 **Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place.
-Full spec (format, rules, promotion to cross-project/global tiers): `~/Claude/work/projects/RULES.md`.
 
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
