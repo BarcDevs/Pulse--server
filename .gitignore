@@ -40,7 +40,6 @@ next-env.d.ts
 
 # IDE
 .idea
-.husky
 .qodo
 
 # Claude code
