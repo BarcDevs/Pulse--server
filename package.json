@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "husky || true",
     "start": "node dist/src/app.js",
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
@@ -101,5 +101,8 @@
   },
   "optionalDependencies": {
     "win-node-env": "^0.6.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }
