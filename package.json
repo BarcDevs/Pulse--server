@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "postinstall": "git config core.hooksPath .husky",
+    "prepare": "husky",
     "start": "node dist/src/app.js",
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
