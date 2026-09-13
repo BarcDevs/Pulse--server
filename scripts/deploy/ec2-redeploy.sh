@@ -13,6 +13,7 @@ REGION="eu-central-1"
 ACCOUNT_ID="110015905368"
 ECR="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 REPO="pulse-server-app"
+API_VERSION="${SERVER_API_VERSION:-v2}"
 IMAGE_TAG="${1:?image tag required}"
 
 # /api/ready executes a real SELECT against the DB — /api/status alone is a
@@ -74,7 +75,7 @@ docker run --rm -e DATABASE_URL="$DATABASE_URL" "$ECR/$REPO:migrate-$IMAGE_TAG" 
 
 RUN_ARGS=(
     -e NODE_ENV=production
-    -e SERVER_API_VERSION=v2
+    -e SERVER_API_VERSION="$API_VERSION"
     -e ORIGIN=https://pulserehab.app
     -e DATABASE_URL="$DATABASE_URL"
     -e JWT_SECRET="$JWT_SECRET"
@@ -84,7 +85,7 @@ RUN_ARGS=(
     -e OPENAI_API_KEY="$OPENAI_API_KEY"
     -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID"
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
-    -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/v2/auth/google/callback"
+    -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 
 echo "Starting candidate container on a staging port..."
