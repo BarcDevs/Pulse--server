@@ -34,6 +34,8 @@ Evaluated three options for the underlying IP-stability problem:
 
 **How to apply:** Add the Elastic IP only when the ASG work from the original 13/08/2026 entry is actually implemented — no cost or benefit to adding it while still on a single manually-managed instance. Tracked alongside the ASG item in `TODO.md`.
 
+**Confirmed via Billing console (Free Tier page), not just the API:** only 3 service offerings show as free-tier-tracked on this account at all — KMS, Glue, SNS, all trivial and unrelated to compute. EC2, RDS, and VPC/NAT don't appear on the Free Tier usage page whatsoever, meaning the August EC2+RDS charges were never partially offset by free tier and never could have been, regardless of instance type or hours run — this account simply isn't enrolled/tracked for free tier on those services, full stop. Rules out any remaining theory that instance-type eligibility (t3.small vs. t3.micro) was the deciding factor.
+
 ---
 
 ## 07/09/2026 — Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified)
