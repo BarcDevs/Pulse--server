@@ -1,5 +1,5 @@
 # ---- Base image
-FROM node:20-bullseye-slim AS base
+FROM node:24-bookworm-slim AS base
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
@@ -33,7 +33,7 @@ COPY . .
 RUN npx tsc --project tsconfig.json
 
 # ---- Production runner
-FROM node:20-bullseye-slim AS runner
+FROM node:24-bookworm-slim AS runner
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deps-prod --chown=node:node /app/node_modules ./node_modules
