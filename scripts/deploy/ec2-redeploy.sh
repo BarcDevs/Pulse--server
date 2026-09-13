@@ -84,7 +84,7 @@ RUN_ARGS=(
     -e OPENAI_API_KEY="$OPENAI_API_KEY"
     -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID"
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
-    -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/v1/auth/google/callback"
+    -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/v2/auth/google/callback"
 )
 
 echo "Starting candidate container on a staging port..."
