@@ -1,4 +1,5 @@
 import { FEEDBACK_DETECTION } from '../../constants/feedback/detection'
+import { dayInMs } from '../../constants/time'
 import type { CheckInType } from '../../types/data/CheckInType'
 import type { InterventionContext } from '../../types/feedback'
 
@@ -13,25 +14,51 @@ export const buildInterventionContext = (
     trendDuration: number
 ): InterventionContext => {
     const recentCheckIns = [current, ...history].slice(0, 7)
+    const gapDays = calculateMaxGapDays(recentCheckIns)
 
-    const direction = determineTrendDirection(current, history)
+    const direction = determineTrendDirection(
+        current,
+        history,
+        gapDays
+    )
     const highlights = extractHighlights(recentCheckIns, current)
 
     return {
         recentCheckIns,
         trend: {
             direction,
-            duration: trendDuration
+            duration: trendDuration,
+            gapDays
         },
         highlights
     }
 }
 
+// Largest gap, in days, between consecutive check-ins (newest-first order)
+const calculateMaxGapDays = (checkIns: CheckInType[]): number => {
+    let maxGap = 0
+
+    for (let i = 0; i < checkIns.length - 1; i++) {
+        const gapMs = checkIns[i].checkInDate.getTime()
+            - checkIns[i + 1].checkInDate.getTime()
+        const gapDays = Math.round(gapMs / dayInMs)
+
+        if (gapDays > maxGap) maxGap = gapDays
+    }
+
+    return maxGap
+}
+
 const determineTrendDirection = (
     current: CheckInType,
-    history: CheckInType[]
+    history: CheckInType[],
+    gapDays: number
 ): 'up' | 'down' | 'stable' => {
     if (history.length === 0) {
+        return 'stable'
+    }
+
+    if (gapDays >= FEEDBACK_DETECTION.TREND.GAP_DAYS_THRESHOLD) {
         return 'stable'
     }
 

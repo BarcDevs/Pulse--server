@@ -1,3 +1,4 @@
+import { FEEDBACK_DETECTION } from '../../constants/feedback/detection'
 import type {
     InterventionContext,
     InterventionIntent
@@ -91,12 +92,14 @@ CONSTRAINTS:
 ${structureJson}
 
 CONTEXT:
-- Trend direction: ${context.trend.direction} 
+- Trend direction: ${context.trend.direction}
   over ${context.trend.duration} day(s)
 - Recent patterns: ${context.highlights
         .map(h => h.type)
         .join(', ')
-    || 'stable'}
+    || 'stable'}${context.trend.gapDays >= FEEDBACK_DETECTION.TREND.GAP_DAYS_THRESHOLD
+        ? `\n- Note: ${context.trend.gapDays} day gap since a prior check-in — do not imply a continuous trend`
+        : ''}
 
 MESSAGE STRUCTURE:
 - acknowledge: Validate their experience (1 sentence)

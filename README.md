@@ -542,9 +542,9 @@ curl -X POST http://localhost:3000/api/{version}/check-in \
 Full infra details, redeploy steps, secrets layout, and build-time gotchas specific to
 this stack: see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-Live at [pulserehab.app](https://pulserehab.app) (client not yet deployed — root path
-currently just hits this server directly; will be repointed to the client once that
-ships).
+The client (separate EC2+Docker instance) is the public front door at
+[pulserehab.app](https://pulserehab.app), proxying `/api/:path*` to this server over
+the private VPC — this server is no longer hit directly on the root path.
 
 ### Required Environment Variables
 

@@ -767,23 +767,23 @@ Fallback to deterministic template if AI fails
 
 ## Deployment & Operations
 
-### Current Deployment
-- **Frontend**: Render (Node.js / Express static serving)
-- **Backend**: Render (Node.js runtime)
-- **Database**: PostgreSQL on Render (production) / local (development)
-- Automatic builds on main branch push
+### Current Deployment (production)
+- **Frontend**: AWS EC2 + Docker, separate instance from the server — sole public front door at `pulserehab.app`, proxies `/api/:path*` to the server over the private VPC
+- **Backend**: AWS EC2 + Docker (`eu-central-1`) — blue/green container swap via SSM, no downtime
+- **Database**: AWS RDS PostgreSQL (`pulse-db`, encrypted, deletion-protected, not publicly accessible)
+- **Registry**: AWS ECR (`pulse-server-app`), image scanning on push
+- Automatic builds + deploy on every CI-green push to `main` (see `docs/DEPLOYMENT.md`)
 
-### Future Production Infrastructure
-- **Frontend**: AWS S3 + CloudFront (CDN)
-- **Backend**: AWS ECS / Lambda
-- **Database**: AWS RDS PostgreSQL
-- **Monitoring**: CloudWatch, Sentry
+### Preview / Staging
+- **Frontend preview**: Vercel — both a persistent preview at `pulse-rehab.vercel.app` and a `development`-branch staging build
+- **Backend staging**: Render (`Pulse--server-staging`), auto-deploys on push to `development` — isolated from AWS production
+- Render is preview/staging only now, not production — production moved fully to AWS
 
 ### Development Workflow
-- Branch per feature/fix
+- Branch per feature/fix → PR into `development` → PR from `development` into `main` (never feature branch straight to `main`)
 - Pull requests for code review
-- Automated tests run on PR
-- Merge to main triggers production deploy
+- Automated tests run on PR (typecheck, lint, unit, integration)
+- Merge to `main` (through the CI-gated `development` → `main` hop) triggers automated production deploy via GitHub Actions OIDC + SSM — see `docs/DEPLOYMENT.md`
 
 ---
 

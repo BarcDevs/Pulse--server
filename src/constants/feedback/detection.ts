@@ -16,7 +16,8 @@ export const FEEDBACK_DETECTION = {
         SIGNIFICANCE_THRESHOLD: 1.5,
         WEIGHT_MIN: 0.5,
         WEIGHT_MAX: 0.9,
-        WEIGHT_DIVISOR: 5
+        WEIGHT_DIVISOR: 5,
+        GAP_DAYS_THRESHOLD: 7
     },
     MODE: {
         FULL_THRESHOLD: 1,

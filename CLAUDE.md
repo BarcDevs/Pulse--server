@@ -23,6 +23,15 @@ Architecture: MVC — Controller → Service → Model → Database.
 **Learn from mistakes:** Save feedback memory on any correction or confirmed non-obvious choice. User should never repeat the same correction. Check memory before similar work.
 **Goal-driven:** Define success criteria before starting. For multi-step tasks, state a plan: `1. [step] → verify: [check]`. Loop until verified.
 
+## Repo-Visible Decisions & Corrections Log
+Alongside auto-memory (cross-session, not repo-visible), this repo tracks two parallel trees any
+collaborator/agent can read, each shaped `index.md` + `<topic>.md` files + `archive/<topic>.md`:
+- `decisions/` — architecture/technical decisions made during sessions, with reasoning (problem, decision, why over alternatives, how to apply).
+- `corrections/` — corrections or confirmed preferences given to Claude during sessions (Claude's mistakes, user corrections to Claude's behavior/claims). Not app-generated user feedback.
+**Read both `index.md` files at the start of every new session** — load-bearing context, same tier as this file. Topic files are loaded on demand, not routinely.
+**Write immediately, same turn as the correction/decision.** Don't wait for the user to ask "did you save that." Missing one is a bug.
+**Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place.
+
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
 
@@ -65,6 +74,7 @@ MVC layers: controller → service → model → Prisma (never skip layers)
 
 **Never:** `function` declarations | `interface` (except declaration merging/Express extension) | `console.log`
 **Never:** Direct `process.env` access | Commented-out code | String literal object keys | Hardcoded values
+**Never:** Raw numeric HTTP status codes (`200`, `404`, `500`) — always `HttpStatusCodes.OK`/`.NOT_FOUND`/etc. from `@src/constants/httpStatusCodes.ts`
 
 ## Testing
 Integration tests (`npm run test:integration`) need Postgres on `localhost:5433` — not running by default. Start it with `docker-compose -f docker-compose.test.yml up -d` before running them locally. CI provisions its own Postgres service, so this is local-only.

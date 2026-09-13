@@ -58,6 +58,7 @@ export type InterventionContext = {
     trend: {
         direction: 'up' | 'down' | 'stable'
         duration: number
+        gapDays: number
     }
     highlights: Array<{
         type: 'consistency' | 'spike' | 'drop' | 'recovery'

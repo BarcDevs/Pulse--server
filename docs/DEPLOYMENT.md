@@ -10,7 +10,7 @@ Server runs on **EC2 + RDS** in `eu-central-1` (Frankfurt), replacing Render. Cl
 | AWS account | `110015905368` (Bardevs) |
 | EC2 instance | `i-0df518d8572bfcfd6` — `t3.small`, `35.157.40.177`, Amazon Linux 2023, encrypted 30GB gp3 root volume |
 | RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t3.micro`, encrypted, deletion-protected, not publicly accessible |
-| Domain | `pulserehab.app` (Cloudflare DNS, proxied, SSL mode: Flexible) → EC2 public IP. Client will take over the root path once deployed; API already lives under `/api/v2` so no path-routing conflict yet. |
+| Domain | `pulserehab.app` (Cloudflare DNS, proxied, SSL mode: Flexible) → client's EC2 public IP. Client is the public front door, proxying `/api/:path*` to this server's EC2 over the private VPC — this server's public IP is not the domain target anymore. |
 | EC2 security group | `sg-0c263224f1d77df26` — SSH (22) restricted to operator's IP only, HTTP/HTTPS (80/443) open |
 | RDS security group | `sg-0d6e9cdd1a065d584` — Postgres (5432) restricted to the EC2 security group only, no public CIDR |
 | IAM role (EC2) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), and ECR pull scoped to `pulse-server-app` only |
@@ -28,6 +28,14 @@ Server runs on **EC2 + RDS** in `eu-central-1` (Frankfurt), replacing Render. Cl
 | `pulse/app/GOOGLE_AI_API_KEY` | Raw key |
 | `pulse/app/GOOGLE_FREE_AI_API_KEY` | Raw key |
 | `pulse/app/OPENAI_API_KEY` | Raw key |
+| `pulse/app/GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `pulse/app/GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+
+`GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
+var in `ec2-redeploy.sh`'s `RUN_ARGS` (`https://pulserehab.app/api/v1/auth/google/callback`),
+not hardcoded in `config/production.ts`. Both AWS prod and the Render staging
+instance run `NODE_ENV=production` and share `config/production.ts` — hardcoding
+one URL there would break whichever environment didn't match it.
 
 The EC2 instance role can read all of these directly — no keys live in `.env` files
 or shell history on the box itself.
@@ -111,9 +119,6 @@ hops — see `GIT_RULES.md`) and the redeploy happens automatically. Nothing to 
 
 ## Not yet done
 
-- Client deploy path-routing on `pulserehab.app` — client is EC2-deployed separately
-  (Next.js SSR); root path still needs to be handed over from this server's Express
-  app once that's wired at the DNS/proxy layer.
 - `staging.pulserehab.app` — not yet configured.
 - AWS Activate / startup credits — domain and AWS account are both recent, worth
   applying once there's a concrete product description to submit.
