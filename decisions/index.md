@@ -33,6 +33,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 |---|---|
 | 13/08/2026 | Single EC2 instance has no automated recovery (flagged as CRITICAL TODO), with 02/09/2026 capacity/rightsizing/IP-stability follow-up |
 | 07/09/2026 | Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified) |
+| 13/09/2026 | Fixed EOL Docker base (bullseye→bookworm) + Node 20→24 bump; root-caused intermittent prod latency to a leftover, permission-denied ECS agent baked into the instance's AMI — disabled |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.
