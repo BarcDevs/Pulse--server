@@ -36,6 +36,8 @@ Evaluated three options for the underlying IP-stability problem:
 
 **Confirmed via Billing console (Free Tier page), not just the API:** only 3 service offerings show as free-tier-tracked on this account at all — KMS, Glue, SNS, all trivial and unrelated to compute. EC2, RDS, and VPC/NAT don't appear on the Free Tier usage page whatsoever, meaning the August EC2+RDS charges were never partially offset by free tier and never could have been, regardless of instance type or hours run — this account simply isn't enrolled/tracked for free tier on those services, full stop. Rules out any remaining theory that instance-type eligibility (t3.small vs. t3.micro) was the deciding factor.
 
+**Closed 15/09/2026 — AWS Support case result: no credit available, no override possible.** AWS Support (case re: missing $200 credit) confirmed account is enrolled in Free Tier v2, credits issued only at account-enrollment time, none remain, no reinstatement possible. Support flagged possible cause: overlapping credentials (phone/email/payment method) with another AWS account — not investigated further, account itself accepted no override exists. AWS Activate (startup credits) application resubmitted same window as a separate path — outcome pending, user will report back. No further action on the Free Tier credit question itself; closed.
+
 ---
 
 ## 07/09/2026 — Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified)
