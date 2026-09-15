@@ -54,6 +54,8 @@ Evaluated three options for the underlying IP-stability problem:
 
 **How to apply:** Not yet verified — nothing deployed or tested end-to-end. Still needed: (1) verify `https://pulserehab.app/api/v1/auth/google/callback` is added to the Authorized redirect URIs list on the Google Cloud Console OAuth client (AWS-side CLI has no access to that); (2) merge the PR, deploy, and actually run the login flow against prod to confirm it works — the analysis pinpointing the missing secrets is solid, but that alone doesn't prove the fix works. Old/previous OAuth client secret left untouched (not disabled) since it may still be in use by a preview server the user doesn't have access to — confirm before rotating.
 
+**Closed 15/09/2026 — user confirmed Google OAuth login verified working in prod.** Deployed and tested end-to-end. No longer tracked in `TODO.md`.
+
 **Follow-up 13/09/2026 — found `/api/v1/` above was itself wrong, fixed to `/api/v2/`.** `SERVER_API_VERSION=v2` is set in `ec2-redeploy.sh`'s `RUN_ARGS`, and `config/custom-environment-variables.ts` maps it into `serverConfig.apiVersion`, which `declare_routes/index.ts` uses to mount every route including `authRoute` — so prod's real Google callback path is `/api/v2/auth/google/callback`, not `/api/v1/...`. The v1 path in this entry 404s; user caught it live while reviewing a newly-created OAuth client's redirect URIs. Fixed `GOOGLE_REDIRECT_URI` in `ec2-redeploy.sh` to `/api/v2/auth/google/callback`. This was part of a separate GCP-project-consolidation migration (new OAuth client created in `gen-lang-client-0497058436`, both v1 and v2 callback paths registered on it defensively) — not a regression from this decision, just a stale value in it never previously verified end-to-end.
 
 ---
