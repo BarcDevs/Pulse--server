@@ -61,9 +61,11 @@ const googleOAuthConfig: GoogleOAuthConfig = {
     clientSecret: config.get<string>(
         'googleOAuth.clientSecret'
     ),
-    redirectUri: config.get<string>(
-        'googleOAuth.redirectUri'
-    ),
+    redirectUri: config.get<string>('googleOAuth.redirectUri')
+        .replace(/\{protocol}/g, serverConfig.protocol)
+        .replace(/\{host}/g, serverConfig.host)
+        .replace(/\{port}/g, serverConfig.port.toString())
+        .replace(/\{apiVersion}/g, serverConfig.apiVersion),
     clientUrl: config.get<string>(
         'googleOAuth.clientUrl'
     )
