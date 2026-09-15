@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.1.15",
+  "version": "1.2.0",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -26,6 +26,8 @@
     "prisma:studio": "npx prisma studio",
     "db:dev:migrate": "npx prisma migrate dev",
     "db:dev:reset": "npx prisma migrate reset",
+    "db:dev:up": "docker-compose -f docker-compose.dev.yml up -d",
+    "db:dev:down": "docker-compose -f docker-compose.dev.yml down",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
