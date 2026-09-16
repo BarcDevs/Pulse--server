@@ -569,7 +569,7 @@ Every push to `development` auto-deploys `Pulse--server-staging`, isolated from 
 
 | Property | Value |
 |---|---|
-| URL | https://pulse-server-staging-thrx.onrender.com |
+| URL | https://pulse-server-staging-thrx.onrender.com, https://pulse-owgg.onrender.com |
 | Branch | `development` |
 | Render project/env | Project **Pulse** → Environment **Staging** (prod lives in **Production**) |
 | Database | Neon branch `staging` (copy-on-write snapshot of `main` taken at branch creation — does not live-sync, drifts independently) |
