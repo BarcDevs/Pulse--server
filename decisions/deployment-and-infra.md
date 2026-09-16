@@ -81,3 +81,19 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why this approach over alternatives:** Granting the missing `ecs:RegisterContainerInstance` IAM permission was considered and rejected — that would make the agent actually succeed and register this instance into a real ECS cluster (named `default`), pulling it under ECS's scheduling alongside the manually-managed `pulse-app` container. This project's architecture is deliberately plain EC2 + Docker; adopting ECS is a legitimate future option but a much bigger, deliberate decision, not something to back into by patching a permissions error.
 
 **How to apply:** `systemctl disable --now ecs` does not survive a full instance replacement (new instance from the same ECS-optimized AMI would reintroduce this) — when the ASG work from the 13/08/2026 entry happens, either launch from a plain (non-ECS) AL2023 AMI, or bake `systemctl disable ecs` into the instance's user-data/launch template so it can't resurface silently again.
+
+---
+
+## 16/09/2026 — GCP project consolidation completed; old projects deleted
+
+**Problem:** Project was spread across 3 GCP projects (`healease` — original OAuth client, `gen-lang-client-0064017105`/pulse-dev, `gen-lang-client-0497058436`) with only the last having an active billing account. OAuth client and Gemini API key lived on `healease`, inherited from a prior migration, creating a dependency on a project with no billing safety net.
+
+**Decision:** Consolidated everything onto `gen-lang-client-0497058436` (display name "Pulse", project number `583038005639`) — new OAuth consent screen + Web client created there (published to Production), new Gemini "free-tier" API key created there, both wired into AWS Secrets Manager (`pulse/app/GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_FREE_AI_API_KEY`). Good/active client ID: `583038005639-piausj2fm3n1mqe3s0peg5p1gnute76i.apps.googleusercontent.com`. `GOOGLE_AI_API_KEY` (paid-tier fallback) was confirmed already living in the same target project — never needed migrating despite an older `LastChangedDate` (08/2026), verified by matching its Secrets Manager value against `gcloud services api-keys get-key-string` output across all 4 remaining accessible projects (only 1 match, in `gen-lang-client-0497058436`).
+
+**Verification before deletion (all confirmed 16/09/2026):** no traffic on old client IDs (both replaced during the 07-13/09 OAuth-login fix chain), no stale-secret risk (same fix chain replaced secrets everywhere), all environments (prod EC2, Render staging) already on new client, zero `redirect_uri_mismatch`/`invalid_client`/`unauthorized_client` in prod container logs since the 13/09 fix (checked via SSM `docker logs pulse-app --since 2026-09-13T12:00:00`), `GOOGLE_AI_API_KEY` confirmed already in the correct project.
+
+**Decision:** Deleted `healease` and `gen-lang-client-0064017105` via `gcloud projects delete` — both confirmed via `gcloud projects undelete <id>` availability for the standard 30-day GCP recovery window, not treated as instantly irreversible.
+
+**Why this approach over alternatives:** No reason to keep either project once verification passed — an orphaned project with a live OAuth client/API key is pure attack surface and consolidation-defeats-the-purpose risk if anyone later re-enables it by accident.
+
+**How to apply:** Only remaining GCP project for this app is `gen-lang-client-0497058436`. Full original audit/migration plan lives in `docs/GCP-PROJECT-MIGRATION.md`. 30-day undelete window closes ~16/10/2026 — after that, deletion is final.
