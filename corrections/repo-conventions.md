@@ -26,3 +26,11 @@ context in this topic — not routinely.
 **Correction:** `prisma migrate reset` destroys all data in the dev DB.
 
 **Lesson:** never run it without explicit user confirmation, including in auto mode. Use `prisma migrate dev` (keeps data) or `prisma migrate deploy` (CI/prod) instead; only ever suggest `reset` as an option and wait for an explicit yes.
+
+---
+
+## 18/09/2026 — Don't push a branch or open a PR after a fix unless explicitly asked
+
+**Correction:** after committing a bug fix locally, auto-followed with `git push` then `gh pr create` into `development` — neither asked for. User caught both: "you shouldn't pr every fix if im not telling u", then "also why did u pushed from a fix branch?????"
+
+**Lesson:** committing locally is fine by default (matches the feature→development→main pipeline), but pushing to remote and opening a PR are separate, explicit actions — push publishes to a shared remote, which the global permission rules already gate on confirmation. After a local commit, stop and report the commit (branch, hash); only push/PR when the user actually says to.
