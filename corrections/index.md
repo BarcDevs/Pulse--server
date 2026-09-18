@@ -23,10 +23,10 @@ Stale/wrong claims about current infrastructure, corrected against what's actual
 
 | Date | Entry |
 |---|---|
-| 10/08/2026 | DB is RDS, not Neon |
 | 10/08/2026 | CI/CD pushes images to ECR, not S3 |
 | 10/08/2026 | Client is deployed on its own EC2+Docker instance, not S3+CloudFront |
 | 10/08/2026 | Domain DNS is Cloudflare, not Route53 |
+| 18/09/2026 | Local dev DB is Neon only; local app never runs against RDS (supersedes archived "DB is RDS, not Neon") |
 
 ## Code Quality — [[corrections/code-quality]]
 Implementation habits corrected mid-session — reaching for an existing utility instead of reinventing it.
