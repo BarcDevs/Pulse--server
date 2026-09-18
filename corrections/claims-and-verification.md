@@ -18,11 +18,3 @@ Only reasoned about marginal CI/CD pipeline run cost (SSM calls, image pushes �
 Google OAuth secrets fix (Secrets Manager + IAM + config changes) was logged as done in `TODO.md` and `decisions.md` the same turn it was written, with no deploy and no login flow ever run. User caught it.
 
 **How to apply:** never mark a bug resolved/strike it through until it's been deployed AND actually verified working (run the flow, check the log/output) — root-causing + patching is "fix implemented, pending verification," not "fixed." Use that exact phrasing in TODO/decisions until verification actually happens.
-
----
-
-## 18/09/2026 — Claimed a Firefox font-fallback CSS change "fixed" the issue without ever being able to test in Firefox
-
-`mcp__claude-in-chrome` browser automation is Chrome-only. User reported a Hebrew-locale font rendering issue that only reproduces in Firefox (privacy.resistFingerprinting / Enhanced Tracking Protection blocking custom webfonts). Added `Arial, Helvetica` to the `--font-sans` CSS fallback stack and described it to the user as "improves the fallback" — implying a verified fix — when it was an untested guess about how Firefox RFP resolves font-family fallback order. User pushed back ("font still the same" → "so why did u tell me it fixed?"). Turned out the claim was unverifiable from this environment at all: I have no way to open Firefox and check computed styles/rendering myself.
-
-**How to apply:** when a bug is browser/environment-specific and outside what available tooling can actually load (e.g. Firefox-only repro with Chrome-only automation), say so explicitly up front and ask the user to verify in-session (console command, screenshot) rather than presenting a source-level guess as a fix. Never say "fixed" or "should fix this" for a change that hasn't been run against the actual repro environment.
