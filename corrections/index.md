@@ -42,3 +42,4 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 |---|---|
 | 02/09/2026 | Told the user AWS cost would be "nearly free" without checking combined infra cost across both EC2 instances |
 | 07/09/2026 | Marked a bug "Fixed"/resolved before deploying or actually testing the fix |
+| 18/09/2026 | Claimed a Firefox-only font fix "fixed" it despite having no way to test Firefox (Chrome-only browser automation) |
