@@ -9,6 +9,7 @@
 
 ## Commit Rules
 - **ALWAYS ask before committing** — never auto-commit
+- **Exception - records (user decision 2026-09-21):** a commit that ONLY records a correction or decision (`corrections/`, `decisions/` and their `index.md` rows) is made in the same turn as the correction, as a `docs` commit, without asking and without waiting for a "commit" instruction. Every session, not just this one. It does not extend to any other change.
 - Don't run /commit skill on small fixes, formatting or docs changing
 - Always ask before invoking /commit
 - Never jump ahead to commit without being asked
