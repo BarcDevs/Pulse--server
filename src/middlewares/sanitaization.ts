@@ -86,6 +86,14 @@ const sanitizeString = (str: string): string =>
         }
     })
 
+// Passwords are hashed, never rendered; sanitizing would mangle characters like & < >
+const UNSANITIZED_FIELDS = new Set([
+    'csrfToken',
+    'password',
+    'currentPassword',
+    'newPassword'
+])
+
 const extractCsrfToken = (req: Request) => {
     const { csrfToken } = req.body
 
@@ -123,7 +131,7 @@ export const sanitizeData = (
     extractCsrfToken(req)
 
     Object.keys(req.body).forEach((key) => {
-        if (key !== 'csrfToken') req.body[key] = sanitize(req.body[key])
+        if (!UNSANITIZED_FIELDS.has(key)) req.body[key] = sanitize(req.body[key])
     })
 
     return next()
