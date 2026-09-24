@@ -730,6 +730,7 @@ Fallback to deterministic template if AI fails
 
 2. **Data Privacy**: Health data requires strict security and compliance
    - Mitigation: Encryption at rest/transit, clear privacy policy, HIPAA-readiness roadmap
+   - Client-side: the privacy policy and terms are static client pages with pre-generated downloadable PDFs (`public/legal/` in the client repo); no server endpoint is involved
 
 3. **AI Accuracy**: Insights must be meaningful and non-harmful
    - Mitigation: Extensive testing, explicit "supportive not medical" framing, human review

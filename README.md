@@ -545,6 +545,8 @@ this stack: see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 The client (separate EC2+Docker instance) is the public front door at
 [pulserehab.app](https://pulserehab.app), proxying `/api/:path*` to this server over
 the private VPC — this server is no longer hit directly on the root path.
+The client also serves the legal pages (`/privacy`, `/terms`) and their downloadable PDFs as
+static files; the server has no endpoints for them.
 
 ### Required Environment Variables
 
