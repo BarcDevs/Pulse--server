@@ -68,7 +68,7 @@ export class GoogleAIProvider extends AIProvider {
                 // Ignore JSON parse errors
             }
             logger.error(
-                `Google AI API request failed: ${response.status} — ${errorMsg}`
+                `Google AI API request failed: ${response.status} - ${errorMsg}`
             )
             throw new Error(
                 `Failed to generate content from Google AI: ${response.status}`

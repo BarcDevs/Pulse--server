@@ -98,7 +98,7 @@ CONTEXT:
         .map(h => h.type)
         .join(', ')
     || 'stable'}${context.trend.gapDays >= FEEDBACK_DETECTION.TREND.GAP_DAYS_THRESHOLD
-        ? `\n- Note: ${context.trend.gapDays} day gap since a prior check-in — do not imply a continuous trend`
+        ? `\n- Note: ${context.trend.gapDays} day gap since a prior check-in, do not imply a continuous trend`
         : ''}
 
 MESSAGE STRUCTURE:
