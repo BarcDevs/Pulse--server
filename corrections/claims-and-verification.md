@@ -18,3 +18,11 @@ Only reasoned about marginal CI/CD pipeline run cost (SSM calls, image pushes �
 Google OAuth secrets fix (Secrets Manager + IAM + config changes) was logged as done in `TODO.md` and `decisions.md` the same turn it was written, with no deploy and no login flow ever run. User caught it.
 
 **How to apply:** never mark a bug resolved/strike it through until it's been deployed AND actually verified working (run the flow, check the log/output) — root-causing + patching is "fix implemented, pending verification," not "fixed." Use that exact phrasing in TODO/decisions until verification actually happens.
+
+---
+
+## 24/09/2026 — Told the user to restore a form field to a past value without asking what it represented
+
+Comparing a resubmitted AWS Activate form against the earlier one, I saw "annual marketing spend" had gone from `< $250,000` to empty and told the user to set it back, assuming the earlier value was intentional. User corrected: they spend nothing on marketing and the earlier value was the mistake.
+
+**How to apply:** when a value differs from a previous version of a form or config, flag the difference and ask which is correct — don't assume the older value is the right one. Never guess a factual answer about the user's own business (spend, revenue, headcount).
