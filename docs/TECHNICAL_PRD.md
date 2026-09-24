@@ -445,6 +445,10 @@ Response 200: { summary, trend (improving|declining|stable|mixed), highlights, p
 Cached 10 minutes per time window. Falls back to static template if AI fails.
 ```
 
+### Support Endpoints — /api/{version}/support
+
+**POST /contact** — Public (optional auth, no CSRF), 5 req/15min/IP — `{ topic, message, email? }` → 200 `{ message: 'Support message sent' }`. `topic` is one of account/billing/technical/privacy/careTeam/feedback/other; `message` 1-2000 chars; `email` required when logged out (a signed-in user's account email is used instead). Delivered via `sendEmail` to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
+
 ### Users Endpoints — /api/{version}/users
 
 **PATCH /me** — Update identity fields (auth + CSRF)

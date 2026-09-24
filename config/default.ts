@@ -24,7 +24,8 @@ export default {
         port: 2525,
         secure: false,
         emailUser: 'EMAIL_USER',
-        emailPass: 'EMAIL_PASSWORD'
+        emailPass: 'EMAIL_PASSWORD',
+        supportEmail: 'support@pulserehab.app'
     },
     googleOAuth: {
         clientId: '',

@@ -17,6 +17,7 @@ jest.mock('../../routes/forumRoute', () => 'forumRoute')
 jest.mock('../../routes/insightRoute', () => 'insightRoute')
 jest.mock('../../routes/profileRoute', () => 'profileRoute')
 jest.mock('../../routes/recoveryGoalRoute', () => 'recoveryGoalRoute')
+jest.mock('../../routes/supportRoute', () => 'supportRoute')
 jest.mock('../../routes/userRoute', () => 'userRoute')
 
 describe('/dev route gating', () => {

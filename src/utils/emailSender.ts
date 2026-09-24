@@ -18,14 +18,16 @@ export const sendEmail = async (
     email: string,
     subject: string,
     text: string,
-    html?: string
+    html?: string,
+    replyTo?: string
 ): Promise<void> => {
     const mailOptions = {
         from: emailConfig.emailUser!,
         to: email,
         subject,
         text,
-        ...(html && { html })
+        ...(html && { html }),
+        ...(replyTo && { replyTo })
     }
 
     try {

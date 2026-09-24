@@ -426,6 +426,14 @@ All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_V
 | `GET` | `/api/{version}/profile/list/health-interests` | — | List all available health interests |
 | `GET` | `/api/{version}/profile/list/activities` | — | List all available activity preferences |
 
+### Support
+
+**Postman Collection:** [`postman/Pulse-Support.collection.json`](postman/Pulse-Support.collection.json)
+
+| Method | Endpoint | Auth | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Email a message to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required |
+
 ### Recovery Goals *(protected)*
 
 Structured goal tracking with milestones and progress calculation. Complete reference in [`docs/API.md`](docs/API.md).

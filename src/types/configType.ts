@@ -23,6 +23,7 @@ type EmailConfig = {
     secure: boolean
     emailUser: string
     emailPass: string
+    supportEmail: string
 }
 
 type AuthConfig = {

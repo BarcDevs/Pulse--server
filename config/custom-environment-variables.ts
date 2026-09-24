@@ -13,7 +13,8 @@ export default {
     },
     email: {
         emailUser: 'EMAIL_USER',
-        emailPass: 'EMAIL_PASSWORD'
+        emailPass: 'EMAIL_PASSWORD',
+        supportEmail: 'SUPPORT_EMAIL'
     },
     googleOAuth: {
         clientId: 'GOOGLE_CLIENT_ID',

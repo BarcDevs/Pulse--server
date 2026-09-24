@@ -73,6 +73,31 @@ describe('emailSender', () => {
             expect(call).not.toHaveProperty('html')
         })
 
+        it('includes replyTo when provided', async () => {
+            mockSendMail.mockResolvedValue({ response: '250 OK' })
+
+            await sendEmail(
+                'to@test.com',
+                'Subject',
+                'Text',
+                undefined,
+                'sender@test.com'
+            )
+
+            const call = mockSendMail.mock.calls[0][0]
+            expect(call.replyTo).toBe('sender@test.com')
+            expect(call).not.toHaveProperty('html')
+        })
+
+        it('omits replyTo key when not provided', async () => {
+            mockSendMail.mockResolvedValue({ response: '250 OK' })
+
+            await sendEmail('to@test.com', 'Subject', 'Text')
+
+            const call = mockSendMail.mock.calls[0][0]
+            expect(call).not.toHaveProperty('replyTo')
+        })
+
         it('logs info with response on success', async () => {
             mockSendMail.mockResolvedValue({ response: '250 OK' })
 

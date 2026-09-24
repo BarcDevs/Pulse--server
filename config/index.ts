@@ -51,7 +51,8 @@ const emailConfig: EmailConfig = {
     port: config.get<number>('email.port'),
     secure: config.get<boolean>('email.secure'),
     emailUser: config.get<string>('email.emailUser'),
-    emailPass: config.get<string>('email.emailPass')
+    emailPass: config.get<string>('email.emailPass'),
+    supportEmail: config.get<string>('email.supportEmail')
 }
 
 const googleOAuthConfig: GoogleOAuthConfig = {

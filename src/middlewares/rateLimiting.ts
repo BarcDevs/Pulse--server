@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { hourInMs, minuteInMs } from '../constants/time'
 
 export const rateLimiter = rateLimit({
@@ -31,6 +32,28 @@ export const loginRateLimiter = rateLimit({
         const ip = ipKeyGenerator(req.ip ?? '')
         const email = req.body?.email ?? ''
         return `${ip}:${email}`
+    }
+})
+
+const supportRateLimitMessage =
+    'Too many support messages, please try again after 15 minutes'
+
+export const supportRateLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: isDev ? 100 : 5,
+    handler: (_req, res) => {
+        res
+            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
+            .json({
+                message: supportRateLimitMessage,
+                error: [
+                    {
+                        statusType: 'Too Many Requests',
+                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
+                        error: supportRateLimitMessage
+                    }
+                ]
+            })
     }
 })
 

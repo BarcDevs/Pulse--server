@@ -312,6 +312,43 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
+## Support — `/api/{version}/support`
+
+---
+
+### `POST /contact`
+> Public. Rate limited: 5 requests per 15 minutes per IP
+
+No `accessToken` and no CSRF token required (same as login/signup). If a valid `accessToken` cookie is present, the signed-in user's account email is used as the sender and the body `email` is ignored. Email is sent to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
+
+| Field     | Type   | Required        | Notes                                                                       |
+|-----------|--------|-----------------|-----------------------------------------------------------------------------|
+| `topic`   | string | yes             | `account` `billing` `technical` `privacy` `careTeam` `feedback` `other`     |
+| `message` | string | yes             | trimmed, 1-2000 chars                                                       |
+| `email`   | string | when logged out | valid email                                                                 |
+
+```json
+{
+  "topic": "technical",
+  "message": "The dashboard will not load",
+  "email": "visitor@example.com"
+}
+```
+
+**Response `200`**
+```json
+{
+  "message": "Support message sent",
+  "data": {}
+}
+```
+
+**Errors:** `400` validation error (bad topic/message/email, or no `email` when logged out) · `429` rate limit exceeded · `500` email delivery failed
+
+Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "error": "..." }] }`
+
+---
+
 ## Users — `/api/{version}/users`
 
 ---
