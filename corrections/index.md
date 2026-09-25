@@ -43,3 +43,4 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 02/09/2026 | Told the user AWS cost would be "nearly free" without checking combined infra cost across both EC2 instances |
 | 07/09/2026 | Marked a bug "Fixed"/resolved before deploying or actually testing the fix |
 | 24/09/2026 | Told the user to restore a form field to its old value without asking what it represented (marketing spend was the mistake, not the fix) |
+| 26/09/2026 | Called the VPC charge a "NAT Gateway" without checking usage types (it is public IPv4 addresses; no NAT exists) |
