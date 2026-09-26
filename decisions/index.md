@@ -37,6 +37,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 16/09/2026 | GCP project consolidation verified + completed — old `healease`/`gen-lang-client-0064017105` projects deleted |
 | 26/09/2026 | Keep production on RDS, not Neon — private in-VPC DB; ~$15/mo saving not worth the architecture trade-off |
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
+| 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

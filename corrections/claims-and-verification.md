@@ -34,3 +34,11 @@ Comparing a resubmitted AWS Activate form against the earlier one, I saw "annual
 The $7.74 August VPC line (and later the September one) was repeated across sessions as "VPC/NAT Gateway" and even offered as a saving to investigate ("is the NAT Gateway needed?"). Cost Explorer usage types show it is 100% `PublicIPv4:InUseAddress` (2 addresses × $0.005/hr) and `describe-nat-gateways` returns none.
 
 **How to apply:** name a cost line only after grouping it by USAGE_TYPE (or checking the resource exists); never label a service's charge from what that stack usually contains. Also, two public IPv4 addresses cost ~$7/mo — the client and server instances each carry one.
+
+---
+
+## 26/09/2026 — Planned "Elastic IP on the server" without reading how traffic actually reaches it
+
+Across several turns I framed the server's changing public IP as the ASG blocker, called the reason the site survived the resize an unconfirmed "Cloudflare mechanism", and priced an EIP on `pulse-server`. `docs/DEPLOYMENT.md` line 13 already documented the answer: Cloudflare points at the **client** instance's public IP, and the client proxies `/api` to the server over its **private** IP, which is baked into the client build (`NEXT_PUBLIC_SERVER_URL=http://172.31.25.240:80` in `pulse--client/.github/workflows/deploy.yml`). The server's public IP is used by nothing, so an EIP there fixes nothing; the real risks are the client's public IP (site down if the client restarts) and the server's private IP (client breaks if an ASG replaces the server).
+
+**How to apply:** before designing HA/IP-stability changes, read the deployment doc's topology and grep the callers (client workflow/config) for the address in question. Don't call a mechanism "unconfirmed" while the repo's own docs state it.
