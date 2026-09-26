@@ -103,3 +103,15 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why this approach over alternatives:** No reason to keep either project once verification passed — an orphaned project with a live OAuth client/API key is pure attack surface and consolidation-defeats-the-purpose risk if anyone later re-enables it by accident.
 
 **How to apply:** Only remaining GCP project for this app is `gen-lang-client-0497058436`. Full original audit/migration plan lives in `docs/GCP-PROJECT-MIGRATION.md`. 30-day undelete window closes ~16/10/2026 — after that, deletion is final.
+
+---
+
+## 26/09/2026 — Keep production on RDS; do not move the prod DB to Neon to save ~$15/mo
+
+**Problem:** RDS is the largest single line (~$14.78 for 1–25 Sep: db.t3.micro $12.37, 20 GB gp2 $2.24, backups $0.17), which prompted asking why prod isn't on Neon (still used for local dev and Render staging). The repo had no recorded rationale for RDS over Neon.
+
+**Decision (user):** keep prod on RDS. `pulse-db` is not publicly accessible (verified: `PubliclyAccessible=False`), so only instances inside the VPC reach it; moving prod to Neon would put production data behind an internet-facing endpoint and split the stack across two providers, which the user judges a weak point in the architecture and in interviews.
+
+**Why this approach over alternatives:** Neon would save at most ~$15/mo but requires a prod data migration, TLS-over-internet (or peering) access, and losing RDS automated backups; the instance is already the smallest standard class, and the only other lever is `db.t4g.micro` ($0.019/hr vs $0.021/hr, ~$1.50/mo, not worth a restart). Neon pricing/limits were not re-verified this session.
+
+**How to apply:** do not propose moving prod off RDS as a cost saving; treat RDS as fixed baseline (~$15-18/mo). Cost levers live elsewhere (second EC2 + its public IPv4, Secrets Manager secret count). Original reason for choosing RDS at migration time was not recorded; the reasons above are the user's current rationale.
