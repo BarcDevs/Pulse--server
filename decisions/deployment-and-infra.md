@@ -27,7 +27,7 @@ context in this topic — not routinely.
 
 Evaluated three options for the underlying IP-stability problem:
 - **Current state (dynamic IP, relying on Cloudflare to stay in sync):** $0 extra cost, but the actual sync mechanism is unconfirmed — real risk once ASG exists.
-- **Elastic IP:** confirmed via AWS Pricing API at the flat post-Feb-2024 rate, $0.005/hr (~$3.60/mo) for any public IPv4, attached or idle — replacing the old "first EIP free" rule. Solves the problem directly: same IP persists across instance replacement via an ASG lifecycle-hook re-association script, Cloudflare's origin record is set once and never needs to change again.
+- **Elastic IP:** confirmed via AWS Pricing API at the flat post-Feb-2024 rate, $0.005/hr (~$3.60/mo) for any public IPv4, attached or idle — replacing the old "first EIP free" rule. Net cost of adding one is ~$0 (added 26/09/2026): it replaces the auto-assigned public IPv4 the instance already pays the same $0.005/hr for, so the bill only changes if an extra address is added. Solves the problem directly: same IP persists across instance replacement via an ASG lifecycle-hook re-association script, Cloudflare's origin record is set once and never needs to change again.
 - **Route53:** confirmed via AWS Pricing API at $0.50/mo per hosted zone + $0.40/million queries (trivial at current traffic) — cheap in isolation, but redundant, since Cloudflare already provides the DNS/proxy layer Route53 would add. Route53 only earns its place if paired with health-check-triggered failover routing, which duplicates what an Elastic IP + lifecycle hook already solves more simply. Confirmed via `list-hosted-zones` (empty) and Cost Explorer ($0.00 for August) that Route53 isn't in use and cost nothing this cycle.
 
 **Why this approach over alternatives:** Elastic IP is the direct fix (removes the need for anything to "stay in sync" at all) at negligible cost; Route53 was considered and rejected as redundant given Cloudflare is already the DNS layer in use.
@@ -115,3 +115,15 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why this approach over alternatives:** Neon would save at most ~$15/mo but requires a prod data migration, TLS-over-internet (or peering) access, and losing RDS automated backups; the instance is already the smallest standard class, and the only other lever is `db.t4g.micro` ($0.019/hr vs $0.021/hr, ~$1.50/mo, not worth a restart). Neon pricing/limits were not re-verified this session.
 
 **How to apply:** do not propose moving prod off RDS as a cost saving; treat RDS as fixed baseline (~$15-18/mo). Cost levers live elsewhere (second EC2 + its public IPv4, Secrets Manager secret count). Original reason for choosing RDS at migration time was not recorded; the reasons above are the user's current rationale.
+
+---
+
+## 26/09/2026 — Cost impact of ASG + Elastic IP (calculated, ~$0/mo change)
+
+**Problem:** user asked how the bill changes with the planned ASG (`min=1/desired=1/max=2`) plus a fixed Elastic IP (or Route53).
+
+**Calculation (eu-central-1, list prices from the Pricing API; instance facts from the CLI on 26/09/2026):** `pulse-server` = t3.micro $0.012/hr (~$8.76/mo) + one auto-assigned public IPv4 $0.005/hr (~$3.65/mo) + 30 GB gp3 at $0.0952/GB-mo (~$2.86/mo) = ~$15.27/mo. With ASG + EIP at steady state: same instance, same volume, the EIP replaces the auto-assigned IPv4 at the identical $0.005/hr → ~$15.27/mo, delta ~$0. No Elastic IPs exist on the account today. ASG control plane is free. `max=2` only costs during a replacement overlap: ~10 min of a second t3.micro + volume ≈ under $0.01 per event. Re-associating the EIP from the new instance's user-data with its instance role (`aws ec2 associate-address`) needs no Lambda and costs $0.
+
+**Alternatives priced:** Route53 adds $0.50/mo per hosted zone + $0.40/million queries — extra cost and redundant with Cloudflare, so still rejected. An ALB is not in the plan (rejected earlier as premature) and would be the first real cost jump; not priced here.
+
+**How to apply:** projected monthly bill stays ~$58.78 after the ASG/EIP work; do not describe the EIP as a $3.60/mo addition. Applying the same setup to the client instance is likewise cost-neutral. Still unverified against AWS docs this session: that associating an EIP releases an instance's auto-assigned IP (documented AWS behavior; confirm when implementing, and launch ASG instances with no auto-assigned IP to be safe).
