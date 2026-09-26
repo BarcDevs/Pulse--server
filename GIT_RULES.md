@@ -18,6 +18,7 @@
 - **Never claim commit succeeded without running actual `git commit`** — /caveman-commit is drafting only
 - When committing after review fixes: include original work scope, not just the fix
 - Use branches for features/fixes
+- **Every separate piece of work gets its own branch.** At the start of any new piece of work, check `git branch --show-current`; if it is not a branch for that work, create one (`rfc/<topic>`, `feat/<topic>`, `fix/<topic>` etc.) before the first commit, without waiting to be asked. Never pile unrelated work onto whatever branch happens to be checked out.
 - Conventional commits: `feat`, `fix`, `docs`, `style`, `rfc`, `test`, `chore`. Breaking changes: `feat!:`
 - Think on what the current commit job is before deciding if it either `feat`, `rfc`, `fix`, etc and REPORT BACK your reasoning - Don't just mechanically label as `feat` for everything.
 - *IMPORTANT:* refactor job - always name `rfc` instead of `refactor`!

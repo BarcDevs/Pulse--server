@@ -17,6 +17,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 10/08/2026 | Delete temp/generated files immediately after they've served their purpose |
 | 10/08/2026 | `config/` (env system) vs. `src/config/` (app-level constants) are different things |
 | 10/08/2026 | Never run `prisma migrate reset` without explicit user confirmation |
+| 26/09/2026 | Every separate piece of work gets its own branch - check `git branch --show-current` first, create one before the first commit |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
