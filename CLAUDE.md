@@ -22,6 +22,10 @@ Architecture: MVC — Controller → Service → Model → Database.
 **Surgical:** Touch only what you must. Don't improve adjacent code. Match existing style. Mention unrelated dead code — don't delete it. Remove only imports/vars YOUR changes made unused.
 **Goal-driven:** Define success criteria before starting. For multi-step tasks, state a plan: `1. [step] → verify: [check]`. Loop until verified.
 
+## Shared Checkouts & Other Sessions
+Another Claude session may be working in this repo, on the same branch or in a sibling worktree. Check `ListAgents` for a busy session before touching git state.
+**Before any merge, rebase, checkout, reset, stash, or branch/worktree deletion in a checkout another session may be using, message that session first and wait for its reply.** Never leave the shared tree mid-operation (unresolved merge, mid-rebase). Path-scoped commits (`git commit -- <paths>`) of files you changed are fine without asking. The user naming a session to coordinate with is not the same as it owning the work: confirm who actually owns a worktree before merging or pruning it.
+
 ## Repo-Visible Decisions & Corrections Log
 Alongside auto-memory (cross-session, not repo-visible), this repo tracks two parallel trees any
 collaborator/agent can read, each shaped `index.md` + `<topic>.md` files + `archive/<topic>.md`:
