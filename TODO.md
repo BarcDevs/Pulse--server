@@ -29,26 +29,6 @@
 
 ## FEATURES
 
-- **Localize server error messages for client — last item before launch.**
-  Client currently only gets English error strings, no way to show the user's own language.
-  Decision (locked in 2026-09-15): error codes, not server-side translation. Server stays
-  language-agnostic — client owns the translation table.
-  - Add a stable `code` (e.g. `AUTH_INVALID_TOKEN`, `NOT_FOUND_POST`) to `CustomError` and
-    every subclass (`AuthError`, `ValidationError`, `NotFoundError`, `ConflictError`),
-    threaded through `serializeErrors()`, `ICustomError`, and `ResponseType`.
-  - All 4 factories (`AuthFactory`, `ValidationFactory`, `GenericFactory`, `ErrorFactory`)
-    need a code per method. ~35 call sites across controllers/services/models — most just
-    call factory methods unchanged, but several pass dynamic English text as the `message`
-    arg (e.g. `errorFactory.generic.notFound('Post')`, `('Milestone')`, `('Goal')` etc in
-    `recoveryGoalService.ts`/`forumService.ts`) which won't map to a fixed code without
-    either a distinct code per resource type or a `params`/interpolation approach — decide
-    that shape before touching call sites.
-  - `errorHandler.ts`'s unhandled-error fallback (`src/middlewares/errorHandler.ts:34-47`)
-    also needs a generic code (e.g. `INTERNAL_ERROR`) for consistency.
-  - Server keeps returning the English `message` as-is (for logs/Swagger/fallback display);
-    `code` is additive, not a breaking change to the response shape.
-  - Docs sync required after: server PRD, server README, client README (per this repo's
-    Docs Sync rule) — client needs the full code list to build its translation table.
 
 - **RAG-based semantic scoring for `/forum/recommendations`.**
   `computeSemanticSimilarity` (`src/lib/recommendations/scoring.ts:50-61`) is misnamed —
