@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -14,6 +14,7 @@
     "start": "node dist/src/app.js",
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
+    "dev": "tsx scripts/dev.ts",
     "release": "npx prisma migrate deploy --schema=prisma/schema.prisma",
     "test": "NODE_ENV=test jest --detectOpenHandles --coverage",
     "test:integration": "NODE_ENV=test jest --config jest.integration.config.ts --detectOpenHandles",
@@ -28,7 +29,8 @@
     "db:dev:reset": "npx prisma migrate reset",
     "db:dev:up": "docker-compose -f docker-compose.dev.yml up -d",
     "db:dev:down": "docker-compose -f docker-compose.dev.yml down",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:keepalive": "tsx scripts/db-keepalive.ts"
   },
   "keywords": [],
   "author": "",
