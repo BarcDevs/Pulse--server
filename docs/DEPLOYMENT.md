@@ -1,20 +1,24 @@
 # AWS Deployment
 
-Server runs on **EC2 + RDS** in `eu-central-1` (Frankfurt), replacing Render. Client
-(separate repo) is not yet deployed — planned as S3 + CloudFront.
+Server runs on **EC2 (behind an Auto Scaling Group) + RDS** in `eu-central-1` (Frankfurt),
+replacing Render. Client (separate repo) runs on its own EC2+Docker instance.
+
+Full history of the ASG/fixed-IP migration (why, and how each step was done/verified):
+`docs/ASG-MIGRATION.md`.
 
 ## Live infrastructure
 
 | Resource | Value |
 |---|---|
 | AWS account | `110015905368` (Bardevs) |
-| EC2 instance | `i-0df518d8572bfcfd6` — `t3.small`, `35.157.40.177`, Amazon Linux 2023, encrypted 30GB gp3 root volume |
+| Server ASG | `pulse-server-asg` (min=max=1, `subnet-0efbb5ecf1bd12185`), launch template `pulse-server-lt` (`lt-02283631f77464afa`), `t3.micro`. Replaces a standalone instance — the ASG re-launches automatically on failure. |
+| Server fixed private IP | `172.31.16.100` — a dedicated secondary ENI (`eni-0a923c09357bb745b`) the ASG instance attaches to itself at boot (`scripts/deploy/asg-boot.sh`), so this address survives instance replacement. The client's `/api` proxy is baked to this IP. |
 | RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t3.micro`, encrypted, deletion-protected, not publicly accessible |
-| Domain | `pulserehab.app` (Cloudflare DNS, proxied, SSL mode: Flexible) → client's EC2 public IP. Client is the public front door, proxying `/api/:path*` to this server's EC2 over the private VPC — this server's public IP is not the domain target anymore. |
-| EC2 security group | `sg-0c263224f1d77df26` — SSH (22) restricted to operator's IP only, HTTP/HTTPS (80/443) open |
+| Domain | `pulserehab.app` (Cloudflare DNS, proxied, SSL mode: Flexible) → client's Elastic IP `52.58.214.220` (`eipalloc-000be881665f41959`). Client is the public front door, proxying `/api/:path*` to the server's fixed private IP over the private VPC. |
+| EC2 security group (server) | `sg-0c263224f1d77df26` — SSH (22) restricted to operator's IP only, HTTP (80) open |
 | RDS security group | `sg-0d6e9cdd1a065d584` — Postgres (5432) restricted to the EC2 security group only, no public CIDR |
-| IAM role (EC2) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), and ECR pull scoped to `pulse-server-app` only |
-| IAM role (GitHub Actions) | `pulse-server-gh-deploy-role` — assumable only via OIDC by `repo:BarcDevs/HealEase--server:ref:refs/heads/main`; scoped to ECR push on `pulse-server-app` and `ssm:SendCommand`/status reads on the one EC2 instance. No static AWS keys in GitHub. |
+| IAM role (EC2, server) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), ECR pull scoped to `pulse-server-app`, and `pulse-eni-attach` (attach/detach on the fixed ENI only, for the ASG boot script) |
+| IAM role (GitHub Actions) | `pulse-server-gh-deploy-role` — assumable only via OIDC by `repo:BarcDevs/HealEase--server:ref:refs/heads/main`; scoped to ECR push on `pulse-server-app` and `ssm:SendCommand` on the `AWS-RunShellScript` document plus any instance tagged `Name=pulse-server` (so the ASG replacing the instance doesn't need a workflow change). No static AWS keys in GitHub. |
 | CloudTrail | `pulse-trail`, multi-region, logging to `pulse-cloudtrail-logs-110015905368` (log file validation on) |
 | ECR | `pulse-server-app` — image scanning on push, AES256 encryption |
 
@@ -82,10 +86,15 @@ hops — see `GIT_RULES.md`) and the redeploy happens automatically. Nothing to 
 
 ### Manual redeploy (fallback, e.g. CI/CD itself is broken)
 
-1. SSH in: `ssh -i ~/.ssh/pulse-ec2-key.pem ec2-user@35.157.40.177`
-2. Pull the latest pushed images and run the same script CI uses:
+The server sits behind an ASG now, so its instance id and public IP can change on replacement —
+look it up first: `aws ec2 describe-instances --filters Name=tag:Name,Values=pulse-server
+Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[InstanceId,PublicIpAddress]'`.
+
+1. SSH in: `ssh -i ~/.ssh/pulse-ec2-key.pem ec2-user@<public-ip-from-above>`
+2. Pull the latest pushed images and run the redeploy script (already baked into the AMI at
+   `/opt/pulse/redeploy.sh` — see `docs/ASG-MIGRATION.md`):
    ```bash
-   sudo bash /tmp/redeploy.sh <image-tag>   # or fetch scripts/deploy/ec2-redeploy.sh and run it directly
+   sudo bash /opt/pulse/redeploy.sh <image-tag>   # or fetch scripts/deploy/ec2-redeploy.sh and run it directly
    ```
    (Needs a tag that was already pushed to ECR — use `latest` if unsure, or build and
    push manually with `docker build --target runner|builder` + `docker push`.)
