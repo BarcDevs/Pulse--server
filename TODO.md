@@ -1,32 +1,5 @@
 # TODO
 
-## CRITICAL
-
-- **Single EC2 instance, no Auto Scaling Group — no automatic recovery if the instance dies.**
-  Deploy currently targets a fixed EC2 instance ID via SSM Run Command
-  (`scripts/deploy/ec2-redeploy.sh`, `docs/DEPLOYMENT.md`). If that instance fails outright
-  (not just the container — the VM itself), there's no automated replacement; recovery
-  depends on someone noticing and fixing it manually, which could take hours.
-  Fix: move to an Auto Scaling Group with `min=1/desired=1/max=2` — steady-state cost stays
-  the same as today (1 instance), the `max=2` only gives headroom for a brief overlap during
-  instance replacement, it doesn't double the baseline bill. Requires updating the deploy
-  script to target the ASG instead of a fixed instance ID, and handling the IP change on
-  instance replacement (Elastic IP re-association, or a health-check-based DNS update in
-  Cloudflare) since the current setup assumes a static IP. See `decisions/decisions.md`
-  (2026-08-13 entry) for the full reasoning.
-  Confirmed 2026-09-02: manually stop/resize/start of the pulse-server EC2 instance (no ASG
-  involved) changed its public IP (35.157.40.177 → 18.199.102.66) with no Elastic IP attached,
-  yet `pulserehab.app` resolved and served correctly right after — DNS is Cloudflare-proxied,
-  and origin already reflected the new IP. Cause of that (fast Cloudflare propagation vs. some
-  existing boot-time origin-update mechanism) is unconfirmed — verify before relying on it for
-  an ASG replacement event, since that's a more disruptive IP change than this manual resize.
-  RDS has its own separate HA mechanism (Multi-AZ), not ASG — out of scope for this item.
-  Decided 2026-09-02: fix for the IP-change problem is an Elastic IP (~$3.60/mo,
-  Feb 2024 flat $0.005/hr public-IPv4 rate), re-associated to whichever instance is
-  current via an ASG lifecycle hook — not Route53, which is redundant since Cloudflare
-  already handles DNS/proxy. Skip adding the EIP until ASG is actually implemented;
-  no cost/benefit to adding it while still on a single manually-managed instance.
-
 ## FEATURES
 
 - **Localize server error messages for client — last item before launch.**
@@ -58,6 +31,10 @@
   replace Jaccard in `scorePost`. pgvector confirmed viable on current RDS instance;
   embedding model and vector DB approach already picked. See `decisions/decisions.md`
   (2026-08-11 and 2026-08-12 entries) for full reasoning, scope, and model choice.
+  Also when implementing: (1) set a minimum-similarity threshold so fewer than 5 posts are
+  returned when fewer than 5 are truly relevant, instead of padding with weak matches;
+  (2) build a small fixed set of query -> expected-post pairs and compare retrieval quality
+  against the current Jaccard scoring, so "RAG is better" is measured, not assumed.
 
 ## BUGS
 
