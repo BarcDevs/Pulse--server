@@ -20,9 +20,9 @@ Goal: server instance auto-replaces on failure without breaking the site. Cost ~
 | 4 | Launch template: AMI from 3, `scripts/deploy/asg-boot.sh` as user data (ENI id substituted), same SG/role/type/IMDSv2 | no | **done** — `lt-02283631f77464afa` (`pulse-server-lt`, default v3 = LF-fixed AMI + `asg-boot.sh` as user data), t3.micro, key `pulse-ec2-key`, profile `pulse-ec2-instance-profile`. |
 | 5 | `deploy.yml` targets `Key=tag:Name,Values=pulse-server` and resolves the instance id from the command invocation. `pulse-server-gh-deploy-role` policy `pulse-server-deploy`: `SSMDeployCommand` split into `SSMDeployDocument` (the `AWS-RunShellScript` document) + `SSMDeployTaggedInstances` (`instance/*`, condition `aws:ResourceTag/Name = pulse-server`, strict `StringEquals`) | no | **done** — workflow edit uncommitted; not exercised until the next deploy |
 | 6 | Elastic IP on client `i-0d9e9912236e3851c`; Cloudflare apex A record → EIP | brief | **done 26/09/2026** — `eipalloc-000be881665f41959` / `52.58.214.220` (`eipassoc-023f07ed1bae737b6`); record edited by hand in the dashboard via Chrome (wrangler can't edit DNS); `/api/status` stayed 200 throughout. Old IP `63.186.185.244` released with the association |
-| 7 | Client rebuild with server IP `172.31.16.100` | yes | needs quiet window |
+| 7 | Client rebuild with server IP `172.31.16.100` | yes | **on hold** — retarget commit `d3a57dc` is on the client's `development`, not `main`. `development` is ~110 client commits ahead of `main` (client refactor still in progress), and a merge would ship all of it. Release when the client work is ready; client changes go through a worktree |
 | 8a | Create ASG `pulse-server-asg` (min=max=1, `subnet-0efbb5ecf1bd12185`, template default version, EC2 health check, 300s grace) | no (old instance still serves) | **done** — instance `i-041d14240fd696ed4`; fixed ENI attached at boot; `172.31.16.100/api/status` + `/api/ready` = 200 from the client box; verified from a cold launch of template v4 |
-| 8b | Retire old standalone instance `i-0df518d8572bfcfd6` | yes | pending — only after step 7 |
+| 8b | Retire old standalone instance `i-0df518d8572bfcfd6` | yes | pending — only after step 7 is live and verified; the old instance keeps serving until then |
 
 ## Notes
 
