@@ -359,6 +359,47 @@ graph TD
 
 All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_VERSION` env var, defaults to `v1`). Full interactive documentation is available at `/api-docs` in development.
 
+### Error Responses
+
+The server is language-agnostic — error `message` is always English (for logs/Swagger/dev
+display only). Every error response also carries a stable `code` for the client to drive its own
+translation table, plus optional `params` for interpolating dynamic values (e.g. a resource name).
+
+```jsonc
+{
+  "message": "Post not found! please check your inputs and try again!",
+  "error": [
+    {
+      "statusType": "Not Found",
+      "statusCode": 404,
+      "code": "NOT_FOUND",
+      "params": { "resource": "Post" },
+      "error": "Post not found! please check your inputs and try again!"
+    }
+  ]
+}
+```
+
+Codes are fixed per error-factory method, not per resource — `NOT_FOUND` covers every resource
+type via `params.resource`, so the client's translation table doesn't grow as new resources are
+added server-side. Full list (`src/constants/errorCodes.ts`):
+
+| Code | Meaning |
+|---|---|
+| `AUTH_GENERIC` | Generic auth failure |
+| `AUTH_CREDENTIALS` | Invalid login credentials |
+| `AUTH_UNAUTHORIZED` | Not authenticated |
+| `AUTH_FORBIDDEN` | Authenticated but not permitted |
+| `AUTH_RESET_PASSWORD` | Password reset failed |
+| `AUTH_CONFLICT` | Auth-related conflict (e.g. email/username already in use) |
+| `AUTH_OAUTH` | Google OAuth failure |
+| `NOT_FOUND` | Resource not found (`params.resource` names it) |
+| `CONFLICT` | Generic resource conflict |
+| `VALIDATION_GENERIC` | Generic input validation failure |
+| `VALIDATION_OTP` | Invalid OTP |
+| `VALIDATION_ZOD` | Schema validation failure (`params.property` names the field) |
+| `INTERNAL_ERROR` | Unhandled server error |
+
 ### Authentication
 
 **Postman Collection:** [`postman/Pulse-Auth.collection.json`](postman/Pulse-Auth.collection.json)

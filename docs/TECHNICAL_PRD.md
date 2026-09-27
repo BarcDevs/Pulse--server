@@ -381,10 +381,25 @@ API Prefix: /api/{version} (configurable via SERVER_API_VERSION env var, default
 **Error Response**:
 ```json
 {
-  "message": "User-friendly error message",
-  "error": "error_code_or_description"
+  "message": "Post not found! please check your inputs and try again!",
+  "error": [
+    {
+      "statusType": "Not Found",
+      "statusCode": 404,
+      "code": "NOT_FOUND",
+      "params": { "resource": "Post" },
+      "error": "Post not found! please check your inputs and try again!"
+    }
+  ]
 }
 ```
+
+Server stays language-agnostic — `message`/`error[].error` are always English (logs/Swagger/dev
+fallback only). `error[].code` is a stable, client-facing code the client uses to drive its own
+translation table; `params` carries interpolation values (e.g. which resource was missing). Codes
+are fixed per error-factory method, not per resource, so the client's translation table doesn't
+grow every time a new resource type is added server-side. Full code list and shape:
+[`README.md` → Error Responses](../README.md#error-responses).
 
 ### Auth Endpoints — /api/{version}/auth
 
