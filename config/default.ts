@@ -5,7 +5,7 @@ export default {
     },
     server: {
         port: 3000,
-        host: 'localhost',
+        host: '127.0.0.1',
         protocol: 'http',
         url: '{protocol}://{host}:{port}',
         origin: 'http://localhost:5173',
