@@ -35,6 +35,7 @@ Implementation habits corrected mid-session — reaching for an existing utility
 | Date | Entry |
 |---|---|
 | 10/08/2026 | Use existing time-constants (`*InMs`) instead of hardcoding ms math |
+| 27/09/2026 | Used a Python heredoc to edit a doc file right after logging the same mistake in a sibling repo |
 
 ## Claims & Verification — [[corrections/claims-and-verification]]
 A claim stated to the user (cost, status) without actually checking/verifying it first.
