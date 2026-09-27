@@ -5,7 +5,12 @@ export abstract class CustomError extends Error implements ICustomError {
 
     abstract statusType: string
 
-    protected constructor(message: string) {
+    abstract code: string
+
+    protected constructor(
+        message: string,
+        protected params?: Record<string, string>
+    ) {
         super(message)
 
         Object.setPrototypeOf(this, CustomError.prototype)
@@ -14,6 +19,8 @@ export abstract class CustomError extends Error implements ICustomError {
     abstract serializeErrors(): {
         statusType: string
         statusCode?: number
+        code: string
+        params?: Record<string, string>
         error: string
         field?: string
     }[]

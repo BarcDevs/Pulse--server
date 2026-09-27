@@ -1,5 +1,6 @@
 import * as googleAuthLib from 'google-auth-library'
 
+import { ErrorCodes } from '../../constants/errorCodes'
 import { AuthError } from '../../errors/AuthError'
 import { getTimezoneFromIp } from '../../lib/geoLocation'
 import * as authModel from '../../models/authModel'
@@ -199,7 +200,7 @@ describe('GoogleOAuthService', () => {
         })
 
         it('re-throws AuthError directly without wrapping', async () => {
-            const authErr = new AuthError('Email not provided by Google', undefined, 'OAuth Error', 401)
+            const authErr = new AuthError('Email not provided by Google', ErrorCodes.AUTH_OAUTH, undefined, 'OAuth Error', 401)
             mockVerifyIdToken.mockRejectedValue(authErr)
 
             await expect(fetchGoogleProfile('id-token')).rejects.toBe(authErr)

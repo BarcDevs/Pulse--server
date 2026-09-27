@@ -3,6 +3,7 @@ import supertest from 'supertest'
 
 import { serverConfig } from '../../../config'
 import App from '../../app'
+import { ErrorCodes } from '../../constants/errorCodes'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { AuthError } from '../../errors/AuthError'
 import * as googleOAuthService from '../../services/googleOAuthService'
@@ -772,6 +773,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Failed to authenticate with Google',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.UNAUTHORIZED
@@ -811,6 +813,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Failed to retrieve Google profile',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.UNAUTHORIZED
@@ -850,6 +853,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Email not provided by Google',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.UNAUTHORIZED
@@ -889,6 +893,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Email not verified by Google',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.UNAUTHORIZED
@@ -928,6 +933,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Failed to create user account',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.INTERNAL_SERVER_ERROR
@@ -1034,6 +1040,7 @@ describe('Google OAuth', () => {
                         .mockRejectedValue(
                             new AuthError(
                                 'Failed to authenticate with Google',
+                                ErrorCodes.AUTH_OAUTH,
                                 undefined,
                                 'OAuth Error',
                                 HttpStatusCodes.UNAUTHORIZED

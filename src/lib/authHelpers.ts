@@ -2,6 +2,7 @@ import type { CookieOptions } from 'express'
 import ms from 'ms'
 
 import { authConfig, isDev } from '../../config'
+import { ErrorCodes } from '../constants/errorCodes'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
@@ -63,6 +64,7 @@ export const updateUserData = async (
     if (!existingUser)
         throw new AuthError(
             'User not found!',
+            ErrorCodes.NOT_FOUND,
             'id',
             'Not Found',
             HttpStatusCodes.NOT_FOUND
@@ -77,6 +79,7 @@ export const updateUserData = async (
         if (emailExists)
             throw new AuthError(
                 'Email already in use!',
+                ErrorCodes.AUTH_CONFLICT,
                 'email',
                 'Conflict',
                 HttpStatusCodes.CONFLICT
@@ -93,6 +96,7 @@ export const updateUserData = async (
         if (usernameExists)
             throw new AuthError(
                 'Username already taken!',
+                ErrorCodes.AUTH_CONFLICT,
                 'username',
                 'Conflict',
                 HttpStatusCodes.CONFLICT
@@ -116,6 +120,7 @@ export const updateUserPassword = async (
     if (!user)
         throw new AuthError(
             'User not found!',
+            ErrorCodes.NOT_FOUND,
             'id',
             'Not Found',
             HttpStatusCodes.NOT_FOUND
@@ -129,6 +134,7 @@ export const updateUserPassword = async (
     if (!isValidPassword)
         throw new AuthError(
             'Invalid current password!',
+            ErrorCodes.AUTH_UNAUTHORIZED,
             'currentPassword',
             'Unauthorized',
             HttpStatusCodes.UNAUTHORIZED
