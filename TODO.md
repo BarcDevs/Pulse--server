@@ -1,66 +1,7 @@
 # TODO
 
-## CRITICAL
+## LOW PRIORITY (non-blocking)
 
-- **Single EC2 instance, no Auto Scaling Group — no automatic recovery if the instance dies.**
-  Deploy currently targets a fixed EC2 instance ID via SSM Run Command
-  (`scripts/deploy/ec2-redeploy.sh`, `docs/DEPLOYMENT.md`). If that instance fails outright
-  (not just the container — the VM itself), there's no automated replacement; recovery
-  depends on someone noticing and fixing it manually, which could take hours.
-  Fix: move to an Auto Scaling Group with `min=1/desired=1/max=2` — steady-state cost stays
-  the same as today (1 instance), the `max=2` only gives headroom for a brief overlap during
-  instance replacement, it doesn't double the baseline bill. Requires updating the deploy
-  script to target the ASG instead of a fixed instance ID, and handling the IP change on
-  instance replacement (Elastic IP re-association, or a health-check-based DNS update in
-  Cloudflare) since the current setup assumes a static IP. See `decisions/decisions.md`
-  (2026-08-13 entry) for the full reasoning.
-  Confirmed 2026-09-02: manually stop/resize/start of the pulse-server EC2 instance (no ASG
-  involved) changed its public IP (35.157.40.177 → 18.199.102.66) with no Elastic IP attached,
-  yet `pulserehab.app` resolved and served correctly right after — DNS is Cloudflare-proxied,
-  and origin already reflected the new IP. Cause of that (fast Cloudflare propagation vs. some
-  existing boot-time origin-update mechanism) is unconfirmed — verify before relying on it for
-  an ASG replacement event, since that's a more disruptive IP change than this manual resize.
-  RDS has its own separate HA mechanism (Multi-AZ), not ASG — out of scope for this item.
-  Decided 2026-09-02: fix for the IP-change problem is an Elastic IP (~$3.60/mo,
-  Feb 2024 flat $0.005/hr public-IPv4 rate), re-associated to whichever instance is
-  current via an ASG lifecycle hook — not Route53, which is redundant since Cloudflare
-  already handles DNS/proxy. Skip adding the EIP until ASG is actually implemented;
-  no cost/benefit to adding it while still on a single manually-managed instance.
-
-## FEATURES
-
-- **Localize server error messages for client — last item before launch.**
-  Client currently only gets English error strings, no way to show the user's own language.
-  Decision (locked in 2026-09-15): error codes, not server-side translation. Server stays
-  language-agnostic — client owns the translation table.
-  - Add a stable `code` (e.g. `AUTH_INVALID_TOKEN`, `NOT_FOUND_POST`) to `CustomError` and
-    every subclass (`AuthError`, `ValidationError`, `NotFoundError`, `ConflictError`),
-    threaded through `serializeErrors()`, `ICustomError`, and `ResponseType`.
-  - All 4 factories (`AuthFactory`, `ValidationFactory`, `GenericFactory`, `ErrorFactory`)
-    need a code per method. ~35 call sites across controllers/services/models — most just
-    call factory methods unchanged, but several pass dynamic English text as the `message`
-    arg (e.g. `errorFactory.generic.notFound('Post')`, `('Milestone')`, `('Goal')` etc in
-    `recoveryGoalService.ts`/`forumService.ts`) which won't map to a fixed code without
-    either a distinct code per resource type or a `params`/interpolation approach — decide
-    that shape before touching call sites.
-  - `errorHandler.ts`'s unhandled-error fallback (`src/middlewares/errorHandler.ts:34-47`)
-    also needs a generic code (e.g. `INTERNAL_ERROR`) for consistency.
-  - Server keeps returning the English `message` as-is (for logs/Swagger/fallback display);
-    `code` is additive, not a breaking change to the response shape.
-  - Docs sync required after: server PRD, server README, client README (per this repo's
-    Docs Sync rule) — client needs the full code list to build its translation table.
-
-- **RAG-based semantic scoring for `/forum/recommendations`.**
-  `computeSemanticSimilarity` (`src/lib/recommendations/scoring.ts:50-61`) is misnamed —
-  it's Jaccard token overlap, not real semantic matching, so it fails on paraphrases
-  (e.g. "can't sleep" vs. "insomnia" tag). Swap for embedding cosine similarity: embed
-  post title+body on create (backfill via batch/cron), embed `keyIssueTags` per request,
-  replace Jaccard in `scorePost`. pgvector confirmed viable on current RDS instance;
-  embedding model and vector DB approach already picked. See `decisions/decisions.md`
-  (2026-08-11 and 2026-08-12 entries) for full reasoning, scope, and model choice.
-
-## BUGS
-
-* create a monitor agent for production to catch any unexpected errors and fix them, 
-  then create a PR and notify dev, while also recording it in a doc, and checking - 
-  if it is a reoccurring issue, the fix should already be recorded then no need to invent a new one
+- **Monitor agent for production errors.**
+  Catch unexpected prod errors, create PR + notify dev, record in a doc, and check if
+  recurring — if so, reuse the recorded fix instead of inventing a new one.

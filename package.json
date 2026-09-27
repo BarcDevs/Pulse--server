@@ -25,6 +25,7 @@
     "prisma:migrate": "npx prisma migrate dev --name init",
     "prisma:deploy": "npx prisma migrate deploy",
     "prisma:studio": "npx prisma studio",
+    "db:seed:tags": "tsx prisma/scripts/seedTags.ts",
     "db:dev:migrate": "npx prisma migrate dev",
     "db:dev:reset": "npx prisma migrate reset",
     "db:dev:up": "docker-compose -f docker-compose.dev.yml up -d",
