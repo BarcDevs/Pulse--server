@@ -34,7 +34,7 @@ collaborator/agent can read, each shaped `index.md` + `<topic>.md` files + `arch
 - `corrections/` — corrections or confirmed preferences given to Claude during sessions (Claude's mistakes, user corrections to Claude's behavior/claims). Not app-generated user feedback.
 **Read both `index.md` files at the start of every new session** — load-bearing context, same tier as this file. Topic files are loaded on demand, not routinely.
 **Write immediately, same turn as the correction/decision** — don't wait to be asked, and commit the record right away as its own `docs` commit (records exception under Git & Commits).
-**Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place.
+**Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place. The archived entry keeps its original heading and full text verbatim, plus a one-line "archived <date> — why" tag; never replace the content with just a reason.
 
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
@@ -64,6 +64,9 @@ Two build-time gotchas specific to this stack, worth knowing before touching
   follow explicit `.ts`/`.js` specifiers the way tsc does.
 - RDS enforces SSL by default — `DATABASE_URL` needs `?uselibpqcompat=true&sslmode=require`
   appended, or connections fail with a misleading "denied access" error from Prisma.
+
+## Local Dev Database
+Local dev DB is Neon only (`DEV_DATABASE_URL` in `.env`). The local app and local scripts (seeds, etc.) never run against RDS — don't offer RDS as a local target, and keep `DATABASE_URL` (RDS) commented out in `.env`. RDS is deployed infra only.
 
 ## Project Roadmap
 [Pulse Roadmap](https://www.notion.so/Pulse-Development-Timeline-3129e15469d28100be18df6e1ce0a984?source=copy_link)
