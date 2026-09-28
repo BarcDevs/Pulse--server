@@ -22,7 +22,7 @@ export const sendEmail = async (
     replyTo?: string
 ): Promise<void> => {
     const mailOptions = {
-        from: emailConfig.emailUser!,
+        from: emailConfig.emailFrom || emailConfig.emailUser,
         to: email,
         subject,
         text,
@@ -54,5 +54,20 @@ export const sendEmail = async (
             'Failed to send email. Please try again later.',
             { cause: error }
         )
+    }
+}
+
+export const verifyEmailTransport = async (): Promise<void> => {
+    try {
+        await transporter.verify()
+        logger.info(`Email transport ready (${emailConfig.host}:${emailConfig.port})`)
+    } catch (error) {
+        logger.error('Email transport verification failed', {
+            smtpHost: emailConfig.host,
+            smtpPort: emailConfig.port,
+            error: error instanceof Error
+                ? error.message
+                : String(error)
+        })
     }
 }

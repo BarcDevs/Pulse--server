@@ -52,6 +52,7 @@ const emailConfig: EmailConfig = {
     secure: config.get<boolean>('email.secure'),
     emailUser: config.get<string>('email.emailUser'),
     emailPass: config.get<string>('email.emailPass'),
+    emailFrom: config.get<string>('email.emailFrom'),
     supportEmail: config.get<string>('email.supportEmail')
 }
 

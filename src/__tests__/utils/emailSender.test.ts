@@ -1,16 +1,21 @@
 // Unmock so we test the real implementation (jestSetup globally mocks it)
 import nodemailer from 'nodemailer'
 
-import type { sendEmail as SendEmailFn } from '../../utils/emailSender'
+import type {
+    sendEmail as SendEmailFn,
+    verifyEmailTransport as VerifyEmailTransportFn
+} from '../../utils/emailSender'
 import logger from '../../utils/logger'
 
 jest.unmock('../../utils/emailSender')
 
 jest.mock('nodemailer', () => {
     const sendMail = jest.fn()
+    const verify = jest.fn()
     return {
         __sendMail: sendMail,
-        createTransport: jest.fn(() => ({ sendMail }))
+        __verify: verify,
+        createTransport: jest.fn(() => ({ sendMail, verify }))
     }
 })
 
@@ -24,19 +29,24 @@ jest.mock('../../utils/logger', () => ({
 }))
 
 let sendEmail: typeof SendEmailFn
+let verifyEmailTransport: typeof VerifyEmailTransportFn
 let mockSendMail: jest.Mock
+let mockVerify: jest.Mock
 
 beforeAll(async () => {
     // isolateModules ensures the real emailSender loads with our nodemailer mock
     await jest.isolateModulesAsync(async () => {
         const mod = await import('../../utils/emailSender')
         sendEmail = mod.sendEmail
+        verifyEmailTransport = mod.verifyEmailTransport
     })
     mockSendMail = (nodemailer as unknown as { __sendMail: jest.Mock }).__sendMail
+    mockVerify = (nodemailer as unknown as { __verify: jest.Mock }).__verify
 })
 
 beforeEach(() => {
     mockSendMail.mockReset()
+    mockVerify.mockReset()
     jest.clearAllMocks()
 })
 
@@ -162,6 +172,30 @@ describe('emailSender', () => {
             }
 
             expect(caught?.cause).toBe(original)
+        })
+    })
+
+    describe('verifyEmailTransport', () => {
+        it('logs info when the SMTP connection verifies', async () => {
+            mockVerify.mockResolvedValue(true)
+
+            await verifyEmailTransport()
+
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.stringContaining('Email transport ready')
+            )
+            expect(logger.error).not.toHaveBeenCalled()
+        })
+
+        it('logs error without throwing when verification fails', async () => {
+            mockVerify.mockRejectedValue(new Error('Invalid login'))
+
+            await expect(verifyEmailTransport()).resolves.toBeUndefined()
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Email transport verification failed',
+                expect.objectContaining({ error: 'Invalid login' })
+            )
         })
     })
 })

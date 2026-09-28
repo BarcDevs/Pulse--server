@@ -64,6 +64,7 @@ GOOGLE_FREE_AI_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" 
 OPENAI_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/OPENAI_API_KEY --query SecretString --output text)
 GOOGLE_CLIENT_ID=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_ID --query SecretString --output text)
 GOOGLE_CLIENT_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_SECRET --query SecretString --output text)
+RESEND_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/RESEND_API_KEY --query SecretString --output text)
 
 # Expand/contract gate: destructive migrations (dropped/renamed columns or
 # tables) must ship in a separate release after the code that stops reading
@@ -101,6 +102,7 @@ RUN_ARGS=(
     -e OPENAI_API_KEY="$OPENAI_API_KEY"
     -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID"
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
+    -e EMAIL_PASSWORD="$RESEND_API_KEY"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 

@@ -34,6 +34,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | `pulse/app/OPENAI_API_KEY` | Raw key |
 | `pulse/app/GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `pulse/app/GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `pulse/app/RESEND_API_KEY` | Resend API key (sending access), passed as `EMAIL_PASSWORD`; SMTP host/user/from live in `config/production.ts` |
 
 `GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
 var in `ec2-redeploy.sh`'s `RUN_ARGS`, built from `API_VERSION` (defaults to
