@@ -11,7 +11,10 @@ import * as profileModel from '../models/profileModel'
 import type { ServerUserType } from '../types/data/UserType'
 import logger from '../utils/logger'
 
-import { applyDetectedTimezone } from './authService'
+import {
+    applyDetectedTimezone,
+    restoreIfPendingDeletion
+} from './authService'
 
 const oAuth2Client = new OAuth2Client(
     googleOAuthConfig.clientId,
@@ -194,11 +197,15 @@ export const findOrCreateUser = async (
     profile: GoogleProfile
 ): Promise<ServerUserType> => {
     const existingByGoogleId =
-        await authModel.getUserByGoogleId(profile.googleId)
-    if (existingByGoogleId) return existingByGoogleId
+        await authModel.getUserByGoogleIdAnyStatus(profile.googleId)
+    if (existingByGoogleId) {
+        await restoreIfPendingDeletion(existingByGoogleId)
+
+        return existingByGoogleId
+    }
 
     const existingByEmail =
-        await authModel.getUserByEmail(profile.email)
+        await authModel.getUserByEmailAnyStatus(profile.email)
     if (existingByEmail) {
         if (!existingByEmail.emailVerifiedAt)
             throw new AuthError(
@@ -208,6 +215,8 @@ export const findOrCreateUser = async (
                 'Account Exists',
                 HttpStatusCodes.CONFLICT
             )
+
+        await restoreIfPendingDeletion(existingByEmail)
 
         return authModel.linkGoogleAccount(
             existingByEmail.id,

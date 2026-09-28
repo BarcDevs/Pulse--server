@@ -477,6 +477,17 @@ Note: bio, location, image, timezone are Profile fields — use PATCH /profile i
 ```
 Request: { currentPassword, newPassword }
 Response 200: User
+Note: revokes every older session; this device gets a fresh accessToken cookie
+```
+
+**DELETE /me** — Delete account (auth + CSRF)
+```
+Response 200: null, clears auth cookies
+Note: deactivates now and sets deleted_at; a daily job hard-deletes after 30 days
+(cascades to profile, check-ins, insights, goals, posts, replies, likes). Logging back
+in (password or Google) within 30 days restores the account. The email and username
+stay taken until the purge. Replies and posts of a pending-deletion account are hidden.
+Immediate deletion: via support.
 ```
 
 ### Profile Endpoints — /api/{version}/profile

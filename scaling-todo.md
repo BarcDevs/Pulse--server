@@ -32,3 +32,9 @@ Post-launch / scale-up items, not launch blockers.
   Health/wellness data — need to audit and bring server up to HIPAA requirements
   (encryption at rest/transit, access logging/audit trails, BAAs w/ vendors incl.
   RDS/hosting, data retention/deletion policy, breach notification process).
+
+- **Account purge job needs a lock before scaling past one instance.**
+  `scheduleAccountPurge` (`src/services/accountDeletionService.ts`) is an in-process daily
+  `setInterval`. Fine while the ASG is min=max=1; with more instances every one runs it. The
+  delete is idempotent so duplicates are harmless, but move it to one scheduler (EventBridge ->
+  SSM, or a Postgres advisory lock) when scaling out.

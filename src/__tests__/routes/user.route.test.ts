@@ -533,7 +533,10 @@ describe('User Routes', () => {
             expect(prismaMock.user.update)
                 .toHaveBeenCalledWith({
                     where: { id: mockUser.id },
-                    data: { active: false }
+                    data: {
+                        active: false,
+                        deletedAt: expect.any(Date)
+                    }
                 })
 
             const cookies = response.headers['set-cookie'] as string[]

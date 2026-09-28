@@ -239,6 +239,35 @@ describe('Forum Routes — Integration', () => {
         })
     })
 
+    describe('replies of an account pending deletion', () => {
+        it('are hidden from reply lists, counts and the post', async () => {
+            const { token } = await setupUser()
+            const { token: otherToken, dbUser: other } =
+                await setupUser(otherUser)
+            const postId = (await createPost(token)).body.data.id
+
+            const { cookies, csrfToken } = buildCsrfHeaders(otherToken)
+            await supertest(App)
+                .post(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', cookies)
+                .set('x-csrf-token', csrfToken)
+                .send(validReply)
+            await Prisma.user.update({
+                where: { id: other.id },
+                data: { active: false, deletedAt: new Date() }
+            })
+
+            const repliesRes = await supertest(App)
+                .get(`${POSTS_URL}/${postId}/replies`)
+            const postRes = await supertest(App)
+                .get(`${POSTS_URL}/${postId}`)
+
+            expect(repliesRes.body.data.items).toHaveLength(0)
+            expect(repliesRes.body.data.pagination.total).toBe(0)
+            expect(postRes.body.data._count.replies).toBe(0)
+        })
+    })
+
     describe('POST /forum/posts/:postId/replies', () => {
         it('creates a reply on a post', async () => {
             const { token } = await setupUser()

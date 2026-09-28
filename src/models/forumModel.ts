@@ -17,6 +17,7 @@ import type { PostQuery } from '../types/query'
 import Prisma from '../utils/prismaClient'
 
 import {
+    activeAuthorWhere,
     anonymizeAuthor,
     authorSelect,
     connectTags,
@@ -206,7 +207,8 @@ export const getReply = async (
     const reply = await Prisma.reply.findUnique({
         where: {
             id: replyId,
-            postId
+            postId,
+            ...activeAuthorWhere
         },
         include: {
             author: {
@@ -230,7 +232,8 @@ export const getReplies = async (
 ): Promise<ReplyType[]> => {
     const replies = await Prisma.reply.findMany({
         where: {
-            postId
+            postId,
+            ...activeAuthorWhere
         },
         include: {
             author: {
@@ -262,7 +265,10 @@ export const getRepliesCount = async (
     postId: string
 ): Promise<{count: number}> => ({
     count: await Prisma.reply.count({
-        where: { postId }
+        where: {
+            postId,
+            ...activeAuthorWhere
+        }
     })
 })
 
@@ -584,7 +590,10 @@ export const getProfileInteractions = async (
             savedPostRows
         ] = await Promise.all([
             Prisma.postLike.findMany({
-                where: { profileId },
+                where: {
+                    profileId,
+                    post: activeAuthorWhere
+                },
                 orderBy: { likedAt: 'desc' },
                 include: {
                     post: {
@@ -593,7 +602,10 @@ export const getProfileInteractions = async (
                 }
             }),
             Prisma.replyLike.findMany({
-                where: { profileId },
+                where: {
+                    profileId,
+                    reply: activeAuthorWhere
+                },
                 orderBy: { likedAt: 'desc' },
                 include: {
                     reply: {
@@ -606,7 +618,10 @@ export const getProfileInteractions = async (
                 }
             }),
             Prisma.savedPost.findMany({
-                where: { profileId },
+                where: {
+                    profileId,
+                    post: activeAuthorWhere
+                },
                 orderBy: { savedAt: 'desc' },
                 include: {
                     post: {
