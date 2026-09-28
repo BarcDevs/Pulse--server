@@ -34,3 +34,11 @@ context in this topic — not routinely.
 A whole rfc series was done on whatever branch was checked out (an upgrade branch) without creating a branch for it; another session then merged unrelated work into that branch, mixing the two. User: "u shoul've done it by yourself. a separate branch for every separate work needed."
 
 **Lesson:** at the start of any new piece of work, check `git branch --show-current`; if it is not a branch for that work, create one (`rfc/<topic>`, `feat/<topic>`, `fix/<topic>` etc.) before the first commit, without waiting to be asked. Never pile unrelated work onto whatever branch happens to be checked out.
+
+---
+
+## 28/09/2026 - Merge and close worktrees when the work is done
+
+`feat/localise-error-messages` (error codes for client localization) sat finished in its own worktree for over a day, never pushed or merged, while `development`'s TODO already marked the item closed - so it looked shipped when it wasn't. User: "add a rule (sync in all places) to always merge and close WT when done working on it".
+
+**Lesson:** when work in a worktree is finished, merge its branch into the integration branch (per branch flow), `git worktree remove` it and `git branch -d` the branch in the same session. Verify "merged" with `git cherry <integration> <branch>` (no `+` lines), not by a TODO saying it's done. Rule lives in the "Shared Checkouts & Other Sessions" section of this repo's CLAUDE.md, pulse--client, pantry and both `.sources` CLAUDE skeletons.

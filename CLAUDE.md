@@ -25,6 +25,7 @@ Architecture: MVC — Controller → Service → Model → Database.
 ## Shared Checkouts & Other Sessions
 Another Claude session may be working in this repo, on the same branch or in a sibling worktree. Check `ListAgents` for a busy session before touching git state.
 **Before any merge, rebase, checkout, reset, stash, or branch/worktree deletion in a checkout another session may be using, message that session first and wait for its reply.** Never leave the shared tree mid-operation (unresolved merge, mid-rebase). Path-scoped commits (`git commit -- <paths>`) of files you changed are fine without asking. The user naming a session to coordinate with is not the same as it owning the work: confirm who actually owns a worktree before merging or pruning it.
+**Close out worktrees when done:** when the work in a worktree is finished, merge its branch into the integration branch per the project's branch flow (`development`, or `main` where there is none), then `git worktree remove` it and delete the merged branch (`git branch -d`) in the same session — never leave a finished worktree or an unmerged branch behind. Treat a branch as merged only when `git cherry <integration-branch> <branch>` shows no `+` lines.
 
 ## Repo-Visible Decisions & Corrections Log
 Alongside auto-memory (cross-session, not repo-visible), this repo tracks two parallel trees any
