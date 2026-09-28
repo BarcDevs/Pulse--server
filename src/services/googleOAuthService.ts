@@ -199,12 +199,22 @@ export const findOrCreateUser = async (
 
     const existingByEmail =
         await authModel.getUserByEmail(profile.email)
-    if (existingByEmail)
+    if (existingByEmail) {
+        if (!existingByEmail.emailVerifiedAt)
+            throw new AuthError(
+                'An account with this email already exists. Sign in with your password or reset it.',
+                ErrorCodes.AUTH_CONFLICT,
+                undefined,
+                'Account Exists',
+                HttpStatusCodes.CONFLICT
+            )
+
         return authModel.linkGoogleAccount(
             existingByEmail.id,
             profile.googleId,
             profile.picture
         )
+    }
 
     return createGoogleUser(profile)
 }
