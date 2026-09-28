@@ -71,6 +71,7 @@ export const login = async (
     const token = await authServices.login(
         email,
         password,
+        remember,
         req.ip
     )
     const {
@@ -95,11 +96,10 @@ export const login = async (
     )
 
     successResponse<{
-        token: string
         _csrf: string
     }>(
         res,
-        { token, _csrf },
+        { _csrf },
         'user logged in!'
     )
 }

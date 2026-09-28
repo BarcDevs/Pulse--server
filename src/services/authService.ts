@@ -1,13 +1,16 @@
 import { DUMMY_PASSWORD_HASH } from '../constants/auth/authRules'
+import { secondInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
     createToken,
-    hashPassword
+    hashPassword,
+    verifyToken
 } from '../lib/authCrypto'
 import { getTimezoneFromIp } from '../lib/geoLocation'
 import * as authModel from '../models/authModel'
 import * as profileModel from '../models/profileModel'
+import { getSessionState } from '../models/sessionModel'
 import type {
     NewUserType,
     ServerUserType
@@ -33,6 +36,34 @@ export const getUser = async (
     return user
 }
 
+// A session dies when the user is deactivated or the password changes after
+// the token was issued (iat is in whole seconds). DB errors propagate so an
+// outage is a 500, not a forced logout.
+export const getSessionUserId = async (
+    token?: string
+): Promise<string | null> => {
+    if (!token) return null
+
+    let payload: ReturnType<typeof verifyToken>
+    try {
+        payload = verifyToken(token)
+    } catch {
+        return null
+    }
+
+    const { id, iat } = payload
+    if (!id || !iat) return null
+
+    const session = await getSessionState(id)
+    if (!session?.active) return null
+
+    const passwordUpdatedAt = Math.floor(
+        session.passwordUpdatedAt.getTime() / secondInMs
+    )
+
+    return passwordUpdatedAt <= iat ? id : null
+}
+
 export const applyDetectedTimezone = async (
     userId: string,
     currentTimezone?: string,
@@ -56,6 +87,7 @@ export const applyDetectedTimezone = async (
 export const login = async (
     email: string,
     password: string,
+    remember: boolean,
     ip?: string
 ): Promise<string> => {
     const user: ServerUserType | null =
@@ -76,7 +108,7 @@ export const login = async (
         ip
     )
 
-    return createToken(user)
+    return createToken(user, remember)
 }
 
 export const signup = async (

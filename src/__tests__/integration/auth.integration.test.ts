@@ -71,7 +71,7 @@ describe('Auth Routes — Integration', () => {
                 })
 
             expect(res.status).toBe(HttpStatusCodes.OK)
-            expect(res.body.data).toHaveProperty('token')
+            expect(res.body.data).not.toHaveProperty('token')
             expect(res.body.data).toHaveProperty('_csrf')
             const cookies = ([] as string[]).concat(res.headers['set-cookie'] || []).join('; ')
             expect(cookies).toContain('accessToken')
@@ -119,6 +119,42 @@ describe('Auth Routes — Integration', () => {
 
         it('returns 401 with no token', async () => {
             const res = await supertest(App).get(ME_URL)
+            expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+
+        it('returns 401 for a token issued before a password change', async () => {
+            await signup()
+            const dbUser = await Prisma.user.findUnique({
+                where: { email: testUser.email }
+            })
+            const token = createToken(dbUser!)
+            await Prisma.user.update({
+                where: { id: dbUser!.id },
+                data: { passwordUpdatedAt: new Date(Date.now() + 5000) }
+            })
+
+            const res = await supertest(App)
+                .get(ME_URL)
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+
+        it('returns 401 for a token of a deactivated user', async () => {
+            await signup()
+            const dbUser = await Prisma.user.findUnique({
+                where: { email: testUser.email }
+            })
+            const token = createToken(dbUser!)
+            await Prisma.user.update({
+                where: { id: dbUser!.id },
+                data: { active: false }
+            })
+
+            const res = await supertest(App)
+                .get(ME_URL)
+                .set('Cookie', [`accessToken=${token}`])
+
             expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
         })
     })

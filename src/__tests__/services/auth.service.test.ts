@@ -362,7 +362,7 @@ describe('Auth Service', () => {
                 .mockRejectedValue(new Error('DB error'))
 
             await expect(
-                login('test@test.com', 'Password123!')
+                login('test@test.com', 'Password123!', false)
             ).rejects.toThrow('DB error')
         })
 
@@ -375,7 +375,8 @@ describe('Auth Service', () => {
 
                 const token = await login(
                     'test@test.com',
-                    'Password123!'
+                    'Password123!',
+                    false
                 )
 
                 expect(token).toBeDefined()
@@ -390,7 +391,7 @@ describe('Auth Service', () => {
                     .mockResolvedValue(null as never)
 
                 await expect(
-                    login('notfound@test.com', 'Password123!')
+                    login('notfound@test.com', 'Password123!', false)
                 )
                     .rejects
                     .toThrow('Invalid credentials! please try again!')
@@ -405,7 +406,7 @@ describe('Auth Service', () => {
                     .mockResolvedValue(mockUser as never)
 
                 await expect(
-                    login('test@test.com', 'WrongPassword')
+                    login('test@test.com', 'WrongPassword', false)
                 )
                     .rejects
                     .toThrow('Invalid credentials! please try again!')
@@ -422,7 +423,7 @@ describe('Auth Service', () => {
                 prismaMock.user.findUnique
                     .mockResolvedValue(mockUser as never)
 
-                await login('test@test.com', 'Password123!')
+                await login('test@test.com', 'Password123!', false)
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -440,7 +441,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue(null as never)
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -458,7 +459,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue('America/New_York')
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -478,7 +479,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue('America/New_York')
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .toHaveBeenCalledWith(

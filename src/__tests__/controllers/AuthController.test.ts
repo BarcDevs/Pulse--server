@@ -58,6 +58,7 @@ describe('AuthController', () => {
                 expect(mockLogin).toHaveBeenCalledWith(
                     'test@test.com',
                     'Password123!',
+                    false,
                     req.ip
                 )
                 expect(res.cookie).toHaveBeenCalledWith(
@@ -72,11 +73,17 @@ describe('AuthController', () => {
                 )
                 expect(res.status)
                     .toHaveBeenCalledWith(HttpStatusCodes.OK)
+                expect(res.json).not.toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: expect.objectContaining({
+                            token: expect.anything()
+                        })
+                    })
+                )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
                         message: 'user logged in!',
                         data: expect.objectContaining({
-                            token: mockToken,
                             _csrf: expect.any(String)
                         })
                     })
