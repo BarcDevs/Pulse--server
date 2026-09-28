@@ -25,6 +25,7 @@ export default {
         secure: false,
         emailUser: 'EMAIL_USER',
         emailPass: 'EMAIL_PASSWORD',
+        emailFrom: '',
         supportEmail: 'support@pulserehab.app'
     },
     googleOAuth: {

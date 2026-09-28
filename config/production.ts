@@ -12,8 +12,11 @@ export default {
         expiresIn: '7d'
     },
     email: {
-        port: 587,
-        secure: true
+        host: 'smtp.resend.com',
+        port: 465,
+        secure: true,
+        emailUser: 'resend',
+        emailFrom: 'Pulse <noreply@pulserehab.app>'
     },
     ai: {
         provider: 'anthropic',

@@ -12,6 +12,16 @@ export default {
         jwtSecret: 'JWT_SECRET'
     },
     email: {
+        host: 'EMAIL_HOST',
+        port: {
+            __name: 'EMAIL_PORT',
+            __format: 'number'
+        },
+        secure: {
+            __name: 'EMAIL_SECURE',
+            __format: 'boolean'
+        },
+        emailFrom: 'EMAIL_FROM',
         emailUser: 'EMAIL_USER',
         emailPass: 'EMAIL_PASSWORD',
         supportEmail: 'SUPPORT_EMAIL'
