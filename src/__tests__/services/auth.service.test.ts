@@ -230,6 +230,28 @@ describe('Auth Service', () => {
             }
         )
 
+        it(
+            'should remove email-change and internal account fields from user data',
+            () => {
+                const mockUser = createMockUser({
+                    pendingEmail: 'new@example.com',
+                    emailChangeOTP: 123456,
+                    emailChangeExpiration: new Date(),
+                    googleId: 'google-sub-id',
+                    active: true
+                })
+
+                const sanitized = sanitizeUserData(mockUser)
+
+                expect(sanitized).not.toHaveProperty('pendingEmail')
+                expect(sanitized).not.toHaveProperty('emailChangeOTP')
+                expect(sanitized)
+                    .not.toHaveProperty('emailChangeExpiration')
+                expect(sanitized).not.toHaveProperty('googleId')
+                expect(sanitized).not.toHaveProperty('active')
+            }
+        )
+
         it('should keep public fields', () => {
             const mockUser = createMockUser()
 
