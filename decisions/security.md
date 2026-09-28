@@ -34,3 +34,21 @@ Context: full read-only audit, findings + status tracked in `docs/SECURITY-AUDIT
 
 **How to apply:** check `docs/SECURITY-AUDIT.md` status table before starting any auth, forum-privacy,
 account-lifecycle or AI-prompt work; update the row's status when a finding is fixed.
+
+---
+
+## 28/09/2026 — Account deletion: 30-day countdown, support for immediate delete; OAuth link rule
+
+Supersedes the M2 bullet of the entry above ("owner to choose").
+
+- **M2 — decided:** one delete action, no second button. Deleting deactivates immediately, sets
+  `deletedAt`, and hard-deletes after **30 days** (existing `Profile` cascades) unless the user logs
+  back in. Immediate deletion stays available by contacting support. Current dialog copy
+  ("Your data is kept and the account can be restored by contacting support") must change to state
+  the 30-day permanent deletion. Why: two buttons judged overkill; a countdown gives a real deletion
+  path without support load, and keeps an undo window.
+- **H1 — OAuth link rule:** Google may auto-link only into a local account whose email is already
+  verified (`emailVerifiedAt` set). Unverified match → no link; user is told an account exists and
+  to sign in with its password or reset it (reset OTP proves the inbox and sets `emailVerifiedAt`).
+  Posting-gate on verification stays post-MVP.
+- **L1:** `QUERY` method investigation added to `scaling-todo.md`.
