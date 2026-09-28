@@ -1,6 +1,24 @@
 import type { Prisma as PrismaTypes } from '../../../prisma/generated/prisma/client'
 import { PostFilter, type PostQuery } from '../../types/query'
 
+export const authorSelect = {
+    id: true,
+    image: true,
+    user: {
+        select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+                select: {
+                    anonymousParticipation: true
+                }
+            }
+        }
+    }
+}
+
 export const postInclude = (
     type: 'single' | 'multiple',
     options?: { replies?: number }
@@ -22,40 +40,52 @@ export const postInclude = (
     },
 
     author: {
-        select: {
-            id: true,
-            image: true,
-            user: {
-                select: {
-                    id: true,
-                    username: true,
-                    firstName: true,
-                    lastName: true
-                }
-            }
-        }
+        select: authorSelect
     },
 
     replies: type === 'single' && {
         take: options?.replies,
         include: {
             author: {
-                select: {
-                    id: true,
-                    image: true,
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            firstName: true,
-                            lastName: true
-                        }
-                    }
-                }
+                select: authorSelect
             }
         }
     }
 })
+
+type RawAuthor = {
+    id: string
+    image: string | null
+    user: {
+        id: string
+        username: string
+        firstName: string
+        lastName: string
+        profile: { anonymousParticipation: boolean } | null
+    }
+} | null | undefined
+
+export const anonymizeAuthor = <T extends RawAuthor>(
+    author: T
+) => {
+    if (!author || !author.user) return author
+
+    const { profile, ...user } = author.user
+
+    if (!profile?.anonymousParticipation)
+        return { ...author, user }
+
+    return {
+        ...author,
+        user: {
+            ...user,
+            id: author.id,
+            username: `anonymous-${author.id.slice(0, 8)}`,
+            firstName: 'Anonymous',
+            lastName: ''
+        }
+    }
+}
 
 export const connectTags = (tags: string[]) => ({
     connect: tags.map((tag) => ({ name: tag }))
@@ -75,9 +105,14 @@ export const postQueryBuilder = (
                 { body: { contains: searchText, mode: 'insensitive' } },
                 { tags: { some: { name: { contains: searchText, mode: 'insensitive' } } } },
                 { category: { contains: searchText, mode: 'insensitive' } },
-                { author: { user: { username: { contains: searchText, mode: 'insensitive' } } } },
-                { author: { user: { firstName: { contains: searchText, mode: 'insensitive' } } } },
-                { author: { user: { lastName: { contains: searchText, mode: 'insensitive' } } } }
+                {
+                    author: {
+                        user: {
+                            username: { contains: searchText, mode: 'insensitive' },
+                            profile: { anonymousParticipation: false }
+                        }
+                    }
+                }
             ]
         }
         : {}

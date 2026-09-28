@@ -17,6 +17,8 @@ import type { PostQuery } from '../types/query'
 import Prisma from '../utils/prismaClient'
 
 import {
+    anonymizeAuthor,
+    authorSelect,
     connectTags,
     postInclude,
     postQueryBuilder
@@ -49,11 +51,26 @@ const mapTag = (raw: RawTag): TagType => ({
     ...(raw._count && { _count: raw._count })
 })
 
-const mapPostTags = <T extends {tags?: RawTag[]}>(
+const mapPostTags = <T extends {
+    tags?: RawTag[]
+    author?: unknown
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    replies?: any[]
+}>(
     post: T
 ): T => ({
     ...post,
-    tags: post.tags?.map(mapTag) ?? []
+    tags: post.tags?.map(mapTag) ?? [],
+    ...(post.author !== undefined
+        && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0]) }),
+    ...(post.replies !== undefined
+        && {
+            replies: post.replies.map((reply) => ({
+                ...reply,
+                ...(reply.author !== undefined
+                    && { author: anonymizeAuthor(reply.author as Parameters<typeof anonymizeAuthor>[0]) })
+            }))
+        })
 })
 
 export const getPosts = async (
@@ -185,71 +202,61 @@ export const incrementShareCount = async (
 export const getReply = async (
     postId: string,
     replyId: string
-): Promise<ReplyType | null> =>
-    (await Prisma.reply.findUnique({
+): Promise<ReplyType | null> => {
+    const reply = await Prisma.reply.findUnique({
         where: {
             id: replyId,
             postId
         },
         include: {
             author: {
-                select: {
-                    id: true,
-                    image: true,
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            firstName: true,
-                            lastName: true
-                        }
-                    }
-                }
+                select: authorSelect
             }
         }
-    })) as ReplyType | null
+    })
+
+    return reply
+        ? {
+            ...reply,
+            author: anonymizeAuthor(reply.author)
+        } as unknown as ReplyType
+        : null
+}
 
 export const getReplies = async (
     postId: string,
     limit?: number,
     page?: number
-): Promise<ReplyType[]> =>
-    (
-        await Prisma.reply.findMany({
-            where: {
-                postId
+): Promise<ReplyType[]> => {
+    const replies = await Prisma.reply.findMany({
+        where: {
+            postId
+        },
+        include: {
+            author: {
+                select: authorSelect
             },
-            include: {
-                author: {
-                    select: {
-                        id: true,
-                        image: true,
-                        user: {
-                            select: {
-                                id: true,
-                                username: true,
-                                firstName: true,
-                                lastName: true
-                            }
-                        }
-                    }
-                },
-                _count: {
-                    select: { likes: true }
-                }
-            },
-            orderBy: {
-                createdAt: 'desc'
-            },
-            ...(limit !== undefined
-                && { take: limit }),
-            ...(limit !== undefined
-                && page !== undefined
-                && {
-                    skip: (page - 1) * limit
-                })
-        })
-    ) as unknown as ReplyType[]
+            _count: {
+                select: { likes: true }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        },
+        ...(limit !== undefined
+            && { take: limit }),
+        ...(limit !== undefined
+            && page !== undefined
+            && {
+                skip: (page - 1) * limit
+            })
+    })
+
+    return replies.map((reply) => ({
+        ...reply,
+        author: anonymizeAuthor(reply.author)
+    })) as unknown as ReplyType[]
+}
 
 export const getRepliesCount = async (
     postId: string
@@ -592,18 +599,7 @@ export const getProfileInteractions = async (
                     reply: {
                         include: {
                             author: {
-                                select: {
-                                    id: true,
-                                    image: true,
-                                    user: {
-                                        select: {
-                                            id: true,
-                                            username: true,
-                                            firstName: true,
-                                            lastName: true
-                                        }
-                                    }
-                                }
+                                select: authorSelect
                             }
                         }
                     }
@@ -625,7 +621,10 @@ export const getProfileInteractions = async (
                 (r) => mapPostTags(r.post)
             ),
             likedReplies: likedReplyRows.map(
-                (r) => r.reply
+                (r) => ({
+                    ...r.reply,
+                    author: anonymizeAuthor(r.reply.author)
+                })
             ),
             savedPosts: savedPostRows.map(
                 (r) => mapPostTags(r.post)
