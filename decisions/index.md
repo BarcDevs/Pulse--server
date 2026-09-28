@@ -40,6 +40,14 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
 | 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
 
+## Security & Privacy — [[decisions/security]]
+Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.
+
+| Date | Entry |
+|---|---|
+| 28/09/2026 | Security audit follow-up: owner positions on H1 (no signup verification), M2 (deactivate-only), M4 (per-user limit), L1 (QUERY rejected), L7 (password policy) |
+| 28/09/2026 | Account deletion = 30-day countdown + support for immediate; Google links only into verified local accounts |
+
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.
 

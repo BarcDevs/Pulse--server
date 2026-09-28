@@ -20,6 +20,14 @@ Post-launch / scale-up items, not launch blockers.
   too. Also need small admin app for staff to view/respond to incoming support mails
   (separate from main client app).
 
+- **Investigate HTTP `QUERY` method for read-only endpoints.**
+  Node 24 (`http.METHODS`), Express 5 and axios all support it. `QUERY` = safe + idempotent
+  read with a body, so it only fits side-effect-free reads (never forgot-password / anything
+  that writes or sends mail). Find candidates where complex filters are squeezed into query
+  strings today (e.g. forum search `GET /forum/posts?search=&tag=&category=&filter=`), and
+  first confirm Cloudflare and the Next.js `/api` rewrite proxy pass `QUERY` through.
+  Context: `docs/SECURITY-AUDIT.md` L1.
+
 - **HIPAA compliance.**
   Health/wellness data — need to audit and bring server up to HIPAA requirements
   (encryption at rest/transit, access logging/audit trails, BAAs w/ vendors incl.
