@@ -7,9 +7,6 @@ Details, file:line refs and decisions per id in `docs/SECURITY-AUDIT.md`.
 - **Verify prod email works.** `ec2-redeploy.sh` never passes `EMAIL_*`, and
   `config/production.ts` sets port 587 + `secure: true` — reset/change-email mail may be
   broken. Check first: H1's recovery path depends on password reset.
-- **M1 — Session revocation.** `isAuthenticated` rejects inactive users and tokens issued
-  before `passwordUpdatedAt` (or a `tokenVersion`); JWT lifetime = cookie lifetime; stop
-  returning the token in the login body.
 - **H1 — Google links only into verified local accounts.** Add `emailVerifiedAt`; set it on
   Google login and on reset/change-email OTP success; unverified match → no link, tell user to
   sign in with password or reset it.
