@@ -77,6 +77,8 @@ export const removeConfirmEmailOTP = async (
             confirmEmailAttempts: 0
         }
     )
+
+    await authModel.markEmailVerified(userId)
 }
 
 export const recordFailedConfirmEmailAttempt = async (

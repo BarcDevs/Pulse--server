@@ -26,6 +26,7 @@ model User {
   resetPasswordAttempts   Int       @default(0)
   passwordUpdatedAt       DateTime  @default(now())
   deletedAt               DateTime?
+  emailVerifiedAt         DateTime?
 
   confirmEmailOTP        Int?
   confirmEmailExpiration DateTime?

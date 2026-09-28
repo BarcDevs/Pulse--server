@@ -219,8 +219,8 @@ describe('GoogleOAuthService', () => {
             expect(prismaMock.user.create).not.toHaveBeenCalled()
         })
 
-        it('links googleId to existing email user when no googleId match', async () => {
-            const emailUser = createMockUser({ id: 'email-user-id' })
+        it('links googleId to existing email user when no googleId match and email is verified', async () => {
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: new Date() })
             prismaMock.user.findUnique.mockResolvedValue(null as never)
             jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser as never)
             prismaMock.user.update.mockResolvedValue({ ...emailUser, googleId: mockGoogleProfile.googleId } as never)
@@ -231,6 +231,17 @@ describe('GoogleOAuthService', () => {
 
             expect(result.id).toBe('email-user-id')
             expect(prismaMock.user.update).toHaveBeenCalled()
+        })
+
+        it('refuses to link and throws AuthError when existing email user is unverified', async () => {
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: null })
+            prismaMock.user.findUnique.mockResolvedValue(null as never)
+            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser as never)
+
+            await expect(
+                findOrCreateUser(mockGoogleProfile)
+            ).rejects.toThrow(AuthError)
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
         })
 
         it('creates new user when no existing match found', async () => {
@@ -272,7 +283,7 @@ describe('GoogleOAuthService', () => {
         })
 
         it('propagates transaction error when linkGoogleId fails', async () => {
-            const emailUser = createMockUser({ id: 'email-user-id' })
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: new Date() })
             prismaMock.user.findUnique.mockResolvedValue(null as never)
             jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser as never)
             prismaMock.user.update.mockRejectedValue(new Error('DB error'))

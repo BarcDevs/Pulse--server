@@ -184,6 +184,19 @@ export const updatePassword = (
         }
     }) as Promise<ServerUserType>
 
+export const markEmailVerified = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            emailVerifiedAt: new Date(Date.now())
+        }
+    }) as Promise<ServerUserType>
+
 export const disableUser = (id: string): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
@@ -230,7 +243,8 @@ export const updateEmail = (
             email: newEmail,
             pendingEmail: null,
             emailChangeOTP: null,
-            emailChangeExpiration: null
+            emailChangeExpiration: null,
+            emailVerifiedAt: new Date(Date.now())
         }
     }) as Promise<ServerUserType>
 
@@ -276,7 +290,8 @@ export const createGoogleUser = async (
                     username: data.username,
                     email: data.email,
                     password: data.password,
-                    googleId: data.googleId
+                    googleId: data.googleId,
+                    emailVerifiedAt: new Date(Date.now())
                 }
             })
 
@@ -307,7 +322,8 @@ export const linkGoogleAccount = async (
                     active: true
                 },
                 data: {
-                    googleId
+                    googleId,
+                    emailVerifiedAt: new Date(Date.now())
                 }
             })
 

@@ -150,11 +150,14 @@ export const signup = async (
 export const resetPassword = async (
     userId: string,
     newPassword: string
-): Promise<ServerUserType> =>
-    authModel.updatePassword(
+): Promise<ServerUserType> => {
+    await authModel.updatePassword(
         userId,
         hashPassword(newPassword)
     )
+
+    return authModel.markEmailVerified(userId)
+}
 
 export const updateEmail = (
     userId: string,
