@@ -20,7 +20,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | H4 | High | Cloudflare SSL mode **Flexible** → Cloudflare→origin is plaintext HTTP | FIXED 28/09 — Cloudflare Tunnel, client SG has no public 80/443 (`decisions/deployment-and-infra.md`) |
 | H5 | High | Server SG port 80 "open" + public IP + `trust proxy 1` → direct API access, `X-Forwarded-For` spoofing bypasses login/OTP rate limits | FIXED — verified 28/09: server SG 80 allows only the client SG |
 | M1 | Med | No session revocation: logout/password change/reset/deactivation leave the 7d JWT valid; token also returned in login body | FIXED 28/09 — per-request check of `active` + `passwordUpdatedAt` vs `iat`; JWT lifetime follows remember-me; token cookie-only. Logout stays device-local |
-| M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | DECIDED (see below) |
+| M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | FIXED 29/09 — 30-day countdown + daily purge, login restores, replies hidden, email/username kept until purge |
 | M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | OPEN |
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | DECIDED (see below) |
 | M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
