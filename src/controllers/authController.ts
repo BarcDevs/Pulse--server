@@ -350,9 +350,7 @@ export const changeEmail = async (
     if (!comparePassword(password, user.password))
         throw errorFactory.auth.credentials()
 
-    const emailTaken =
-        await authServices.getUser('email', newEmail)
-    if (emailTaken)
+    if (await authServices.isEmailTaken(newEmail))
         throw errorFactory.auth.conflict(
             'Email already in use!'
         )

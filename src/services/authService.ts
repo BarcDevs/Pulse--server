@@ -64,6 +64,20 @@ export const getSessionUserId = async (
     return passwordUpdatedAt <= iat ? id : null
 }
 
+// Deactivated accounts keep their email until the purge
+export const isEmailTaken = async (
+    email: string
+): Promise<boolean> =>
+    !!await authModel.getUserByEmailAnyStatus(email)
+
+// Signing back in during the deletion grace period cancels the deletion
+export const restoreIfPendingDeletion = async (
+    user: ServerUserType
+): Promise<void> => {
+    if (!user.active)
+        await authModel.restoreUser(user.id)
+}
+
 export const applyDetectedTimezone = async (
     userId: string,
     currentTimezone?: string,
@@ -91,7 +105,7 @@ export const login = async (
     ip?: string
 ): Promise<string> => {
     const user: ServerUserType | null =
-        await getUser('email', email)
+        await authModel.getUserByEmailAnyStatus(email)
 
     const passwordMatches = comparePassword(
         password,
@@ -101,6 +115,8 @@ export const login = async (
     if (!user || !passwordMatches) {
         throw errorFactory.auth.credentials()
     }
+
+    await restoreIfPendingDeletion(user)
 
     await applyDetectedTimezone(
         user.id,
@@ -114,12 +130,7 @@ export const login = async (
 export const signup = async (
     newUser: NewUserType
 ): Promise<ServerUserType> => {
-    const userExists: ServerUserType | null =
-        await authModel.getUserByEmail(
-            newUser.email
-        )
-
-    if (userExists)
+    if (await isEmailTaken(newUser.email))
         throw errorFactory.auth.conflict(
             'User already exists!'
         )

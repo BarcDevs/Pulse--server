@@ -357,6 +357,48 @@ describe('Auth Service', () => {
 
     // ==================== login ====================
     describe('login', () => {
+        it('restores an account pending deletion', async () => {
+            const mockUser = createMockUser({
+                active: false,
+                deletedAt: new Date()
+            })
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+
+            await login('test@test.com', 'Password123!', false)
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith({
+                where: { id: mockUser.id },
+                data: {
+                    active: true,
+                    deletedAt: null,
+                    passwordUpdatedAt: expect.any(Date)
+                }
+            })
+        })
+
+        it('does not restore a pending-deletion account on a wrong password', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser({
+                    active: false,
+                    deletedAt: new Date()
+                }) as never)
+
+            await expect(
+                login('test@test.com', 'WrongPassword1', false)
+            ).rejects.toThrow()
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
+        it('does not touch an active account', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser() as never)
+
+            await login('test@test.com', 'Password123!', false)
+
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
         it('propagates DB error from getUserByEmail', async () => {
             prismaMock.user.findUnique
                 .mockRejectedValue(new Error('DB error'))
@@ -494,6 +536,23 @@ describe('Auth Service', () => {
 
     // ==================== signup ====================
     describe('signup', () => {
+        it('rejects an email held by an account pending deletion', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser({
+                    active: false,
+                    deletedAt: new Date()
+                }) as never)
+
+            await expect(signup({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'johndoe',
+                email: 'test@test.com',
+                password: 'Password123!'
+            })).rejects.toThrow('User already exists!')
+            expect(prismaMock.user.create).not.toHaveBeenCalled()
+        })
+
         it(
             'should create user with hashed password',
             async () => {

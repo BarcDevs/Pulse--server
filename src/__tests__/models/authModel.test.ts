@@ -133,7 +133,7 @@ describe('AuthModel', () => {
     })
 
     describe('disableUser', () => {
-        it('sets active to false without requiring active constraint', async () => {
+        it('deactivates and starts the deletion countdown without requiring active constraint', async () => {
             const user = createMockUser()
             prismaMock.user.update.mockResolvedValue({ ...user, active: false } as never)
 
@@ -142,7 +142,10 @@ describe('AuthModel', () => {
             expect(prismaMock.user.update).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: { id: user.id },
-                    data: { active: false }
+                    data: {
+                        active: false,
+                        deletedAt: expect.any(Date)
+                    }
                 })
             )
         })
@@ -223,13 +226,13 @@ describe('AuthModel', () => {
             expect(result).toEqual(user)
         })
 
-        it('returns null when user is inactive', async () => {
+        it('returns inactive users, whose usernames stay taken until the purge', async () => {
             const user = createMockUser({ active: false })
             prismaMock.user.findUnique.mockResolvedValue(user as never)
 
             const result = await authModel.getUserByUsername('testuser')
 
-            expect(result).toBeNull()
+            expect(result).toEqual(user)
         })
 
         it('returns null when user not found', async () => {

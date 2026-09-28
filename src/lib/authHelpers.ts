@@ -76,7 +76,7 @@ export const updateUserData = async (
         && updates.email !== existingUser.email
     ) {
         const emailExists = await authModel
-            .getUserByEmail(updates.email)
+            .getUserByEmailAnyStatus(updates.email)
         if (emailExists)
             throw new AuthError(
                 'Email already in use!',

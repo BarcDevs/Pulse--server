@@ -8,6 +8,8 @@ export const OTP_CONFIG = {
 
 export const SESSION_EXPIRES_IN = '1d'
 
+export const ACCOUNT_DELETION_GRACE_DAYS = 30
+
 export const MAX_RESET_PASSWORD_ATTEMPTS = 5
 
 export const MAX_CONFIRM_EMAIL_ATTEMPTS = 5

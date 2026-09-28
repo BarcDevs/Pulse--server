@@ -9,6 +9,7 @@ import {
 
 import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
+import { scheduleAccountPurge } from './services/accountDeletionService'
 import { verifyEmailTransport } from './utils/emailSender'
 import logger from './utils/logger'
 import prisma from './utils/prismaClient'
@@ -46,6 +47,7 @@ if (env !== 'test') {
         logger.info(message)
 
         verifyEmailTransport()
+        scheduleAccountPurge()
     })
 
     const shutdown = (signal: string) => {

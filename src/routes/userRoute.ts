@@ -158,7 +158,7 @@ router
  *         csrfToken: []
  *     responses:
  *       204:
- *         description: User account deactivated successfully
+ *         description: Account deactivated and scheduled for deletion in 30 days
  *       401:
  *         description: Not authenticated
  *         content:

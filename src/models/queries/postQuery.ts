@@ -1,6 +1,15 @@
 import type { Prisma as PrismaTypes } from '../../../prisma/generated/prisma/client'
 import { PostFilter, type PostQuery } from '../../types/query'
 
+// Content of deactivated (pending-deletion) accounts is hidden everywhere
+export const activeAuthorWhere = {
+    author: {
+        user: {
+            active: true
+        }
+    }
+}
+
 export const authorSelect = {
     id: true,
     image: true,
@@ -25,7 +34,9 @@ export const postInclude = (
 ) => ({
     _count: {
         select: {
-            replies: true,
+            replies: {
+                where: activeAuthorWhere
+            },
             likes: true
         }
     },
@@ -44,6 +55,7 @@ export const postInclude = (
     },
 
     replies: type === 'single' && {
+        where: activeAuthorWhere,
         take: options?.replies,
         include: {
             author: {
@@ -145,7 +157,7 @@ export const postQueryBuilder = (
             // filter by unanswered
             ...(query?.filter === PostFilter.UNANSWERED && {
                 replies: {
-                    none: {}
+                    none: activeAuthorWhere
                 }
             }),
 
