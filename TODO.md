@@ -7,9 +7,6 @@ Details, file:line refs and decisions per id in `docs/SECURITY-AUDIT.md`.
 - **Verify prod email works.** `ec2-redeploy.sh` never passes `EMAIL_*`, and
   `config/production.ts` sets port 587 + `secure: true` — reset/change-email mail may be
   broken. Check first: H1's recovery path depends on password reset.
-- **H4 — Cloudflare SSL Flexible → Full (strict).** Origin CA cert on the client box.
-- **H5 — Restrict server SG port 80 to the client SG.** Stops direct API access and
-  `X-Forwarded-For` rate-limit bypass; consider dropping the server's public IP.
 - **M1 — Session revocation.** `isAuthenticated` rejects inactive users and tokens issued
   before `passwordUpdatedAt` (or a `tokenVersion`); JWT lifetime = cookie lifetime; stop
   returning the token in the login body.
