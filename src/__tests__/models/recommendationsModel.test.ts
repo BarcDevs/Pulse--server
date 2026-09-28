@@ -2,7 +2,8 @@ import * as recommendationsModel from '../../models/recommendationsModel'
 import { prismaMock } from '../setup/jestSetup'
 
 jest.mock('../../models/queries/postQuery', () => ({
-    postInclude: jest.fn(() => ({}))
+    postInclude: jest.fn(() => ({})),
+    anonymizeAuthor: jest.fn((author) => author)
 }))
 
 const mockItems = [

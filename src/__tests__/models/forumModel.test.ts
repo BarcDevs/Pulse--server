@@ -4,6 +4,8 @@ import { prismaMock } from '../setup/jestSetup'
 jest.mock('../../models/queries/postQuery', () => ({
     postQueryBuilder: jest.fn(() => ({})),
     postInclude: jest.fn(() => ({})),
+    authorSelect: {},
+    anonymizeAuthor: jest.fn((author) => author),
     connectTags: jest.fn((tags: string[]) => ({ connect: tags.map((id: string) => ({ id })) }))
 }))
 

@@ -1,4 +1,4 @@
-import { postQueryBuilder } from '../../../models/queries/postQuery'
+import { anonymizeAuthor, postQueryBuilder } from '../../../models/queries/postQuery'
 
 describe('postQueryBuilder', () => {
     describe('search', () => {
@@ -15,7 +15,7 @@ describe('postQueryBuilder', () => {
         it('builds OR clause with all searchable fields', () => {
             const result = postQueryBuilder({ search: 'diabetes' })
             expect(result.where.OR).toBeDefined()
-            expect(result.where.OR).toHaveLength(7)
+            expect(result.where.OR).toHaveLength(5)
         })
 
         it('searches post title', () => {
@@ -46,25 +46,30 @@ describe('postQueryBuilder', () => {
             })
         })
 
-        it('searches author username', () => {
+        it('searches author username, excluding anonymous authors', () => {
             const result = postQueryBuilder({ search: 'john' })
             expect(result.where.OR).toContainEqual({
-                author: { user: { username: { contains: 'john', mode: 'insensitive' } } }
+                author: {
+                    user: {
+                        username: { contains: 'john', mode: 'insensitive' },
+                        profile: { anonymousParticipation: false }
+                    }
+                }
             })
         })
 
-        it('searches author firstName', () => {
+        it('does not search author firstName/lastName (identity leak)', () => {
             const result = postQueryBuilder({ search: 'john' })
-            expect(result.where.OR).toContainEqual({
-                author: { user: { firstName: { contains: 'john', mode: 'insensitive' } } }
-            })
-        })
-
-        it('searches author lastName', () => {
-            const result = postQueryBuilder({ search: 'doe' })
-            expect(result.where.OR).toContainEqual({
-                author: { user: { lastName: { contains: 'doe', mode: 'insensitive' } } }
-            })
+            expect(result.where.OR).not.toContainEqual(
+                expect.objectContaining({
+                    author: { user: expect.objectContaining({ firstName: expect.anything() }) }
+                })
+            )
+            expect(result.where.OR).not.toContainEqual(
+                expect.objectContaining({
+                    author: { user: expect.objectContaining({ lastName: expect.anything() }) }
+                })
+            )
         })
 
         it('trims search text before building query', () => {
@@ -87,5 +92,47 @@ describe('postQueryBuilder', () => {
             expect(result.where.OR).toBeDefined()
             expect(result.where.category).toBe('health')
         })
+    })
+})
+
+describe('anonymizeAuthor', () => {
+    const baseAuthor = {
+        id: 'profile-1',
+        image: 'pic.jpg',
+        user: {
+            id: 'user-1',
+            username: 'johndoe',
+            firstName: 'John',
+            lastName: 'Doe',
+            profile: { anonymousParticipation: false }
+        }
+    }
+
+    it('returns null/undefined author unchanged', () => {
+        expect(anonymizeAuthor(null)).toBeNull()
+        expect(anonymizeAuthor(undefined)).toBeUndefined()
+    })
+
+    it('strips the profile key and keeps real identity when not anonymous', () => {
+        const result = anonymizeAuthor(baseAuthor)
+        expect(result?.user).toEqual({
+            id: 'user-1',
+            username: 'johndoe',
+            firstName: 'John',
+            lastName: 'Doe'
+        })
+    })
+
+    it('masks id/username/firstName/lastName when anonymousParticipation is true', () => {
+        const anonAuthor = {
+            ...baseAuthor,
+            user: { ...baseAuthor.user, profile: { anonymousParticipation: true } }
+        }
+        const result = anonymizeAuthor(anonAuthor)
+        expect(result?.user.id).toBe('profile-1')
+        expect(result?.user.username).toBe('anonymous-profile-')
+        expect(result?.user.firstName).toBe('Anonymous')
+        expect(result?.user.lastName).toBe('')
+        expect(result?.user).not.toHaveProperty('profile')
     })
 })
