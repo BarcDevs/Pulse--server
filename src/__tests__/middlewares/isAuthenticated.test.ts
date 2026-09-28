@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken'
 import { authConfig } from '../../../config'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { isAuthenticated } from '../../middlewares/isAuthenticated'
+import { optionalAuthentication } from '../../middlewares/optionalAuthentication'
+import { getSessionState } from '../../models/sessionModel'
 import {
     createAuthToken,
     createMockNext,
@@ -28,19 +30,61 @@ jest.mock('../../errors/factory/ErrorFactory', () => ({
     }
 }))
 
+const mockSession = (
+    session: { active: boolean, passwordUpdatedAt: Date } | null
+) =>
+    jest.mocked(getSessionState)
+        .mockResolvedValue(session)
+
+const runWithToken = (accessToken?: string) => {
+    const req = createMockRequest({
+        cookies: accessToken === undefined
+            ? {}
+            : { accessToken }
+    }) as Request
+    const res = createMockResponse() as unknown as Response
+    const next = createMockNext()
+
+    return {
+        req,
+        res,
+        next,
+        run: () => isAuthenticated(req, res, next)
+    }
+}
+
+const signToken = (
+    secret: string,
+    expiresIn: jwt.SignOptions['expiresIn']
+) => {
+    const mockUser = createMockUser()
+
+    return jwt.sign(
+        {
+            id: mockUser.id,
+            email: mockUser.email
+        },
+        secret,
+        { expiresIn }
+    )
+}
+
 describe('isAuthenticated Middleware', () => {
+    beforeEach(() => {
+        mockSession({
+            active: true,
+            passwordUpdatedAt: new Date(0)
+        })
+    })
+
     it(
         'should set req.userId for valid token',
-        () => {
+        async () => {
             const mockUser = createMockUser()
-            const token = createAuthToken(mockUser)
-            const req = createMockRequest({
-                cookies: { accessToken: token }
-            }) as Request
-            const res = createMockResponse() as unknown as Response
-            const next = createMockNext()
+            const { req, res, next, run } =
+                runWithToken(createAuthToken(mockUser))
 
-            isAuthenticated(req, res, next)
+            await run()
 
             expect(req.userId).toBe(mockUser.id)
             expect(next).toHaveBeenCalled()
@@ -49,113 +93,132 @@ describe('isAuthenticated Middleware', () => {
         }
     )
 
-    it('should throw error for missing token', () => {
-        const req = createMockRequest({
-            cookies: {}
-        }) as Request
-        const res = createMockResponse() as unknown as Response
-        const next = createMockNext()
+    it.each([
+        ['missing', undefined],
+        ['empty', ''],
+        ['invalid', 'invalid-token'],
+        ['malformed', 'not.a.valid.jwt.token'],
+        ['expired', signToken(authConfig.jwtSecret!, '-1h')],
+        ['wrong-secret', signToken('wrong-secret', '1h')]
+    ])(
+        'should reject %s token and clear the cookie',
+        async (_label, token) => {
+            const { res, next, run } = runWithToken(token)
 
-        expect(() => isAuthenticated(req, res, next)).toThrow()
-        expect(res.clearCookie)
-            .toHaveBeenCalledWith('accessToken')
-    })
-
-    it('should throw error for empty token', () => {
-        const req = createMockRequest({
-            cookies: { accessToken: '' }
-        }) as Request
-        const res = createMockResponse() as unknown as Response
-        const next = createMockNext()
-
-        expect(() => isAuthenticated(req, res, next)).toThrow()
-        expect(res.clearCookie)
-            .toHaveBeenCalledWith('accessToken')
-    })
-
-    it('should throw error for invalid token', () => {
-        const req = createMockRequest({
-            cookies: { accessToken: 'invalid-token' }
-        }) as Request
-        const res = createMockResponse() as unknown as Response
-        const next = createMockNext()
-
-        expect(() => isAuthenticated(req, res, next)).toThrow()
-        expect(res.clearCookie)
-            .toHaveBeenCalledWith('accessToken')
-    })
-
-    it('should throw error for expired token', () => {
-        const mockUser = createMockUser()
-        const expiredToken = jwt.sign(
-            {
-                id: mockUser.id,
-                email: mockUser.email
-            },
-            authConfig.jwtSecret!,
-            { expiresIn: '-1h' }
-        )
-        const req = createMockRequest({
-            cookies: { accessToken: expiredToken }
-        }) as Request
-        const res = createMockResponse() as unknown as Response
-        const next = createMockNext()
-
-        expect(() => isAuthenticated(req, res, next)).toThrow()
-        expect(res.clearCookie)
-            .toHaveBeenCalledWith('accessToken')
-    })
-
-    it(
-        'should throw error for token with wrong secret',
-        () => {
-            const mockUser = createMockUser()
-            const wrongSecretToken = jwt.sign(
-                {
-                    id: mockUser.id,
-                    email: mockUser.email
-                },
-                'wrong-secret',
-                { expiresIn: '1h' }
-            )
-            const req = createMockRequest({
-                cookies: { accessToken: wrongSecretToken }
-            }) as Request
-            const res = createMockResponse() as unknown as Response
-            const next = createMockNext()
-
-            expect(() => isAuthenticated(req, res, next)).toThrow()
+            await expect(run()).rejects.toThrow()
+            expect(next).not.toHaveBeenCalled()
             expect(res.clearCookie)
                 .toHaveBeenCalledWith('accessToken')
         }
     )
 
-    it('should throw error for malformed token', () => {
-        const req = createMockRequest({
-            cookies: { accessToken: 'not.a.valid.jwt.token' }
-        }) as Request
-        const res = createMockResponse() as unknown as Response
-        const next = createMockNext()
+    it('should reject a token of a deactivated user', async () => {
+        mockSession({
+            active: false,
+            passwordUpdatedAt: new Date(0)
+        })
+        const { res, run } =
+            runWithToken(createAuthToken(createMockUser()))
 
-        expect(() => isAuthenticated(req, res, next)).toThrow()
+        await expect(run()).rejects.toThrow()
         expect(res.clearCookie)
             .toHaveBeenCalledWith('accessToken')
     })
 
-    it('should clear cookie on any error', () => {
+    it('should reject a token of a deleted user', async () => {
+        mockSession(null)
+        const { run } =
+            runWithToken(createAuthToken(createMockUser()))
+
+        await expect(run()).rejects.toThrow()
+    })
+
+    it(
+        'should reject a token issued before the last password change',
+        async () => {
+            const token = createAuthToken(createMockUser())
+            mockSession({
+                active: true,
+                passwordUpdatedAt: new Date(Date.now() + 5000)
+            })
+            const { run } = runWithToken(token)
+
+            await expect(run()).rejects.toThrow()
+        }
+    )
+
+    it(
+        'should accept a token issued in the same second as the password change',
+        async () => {
+            mockSession({
+                active: true,
+                passwordUpdatedAt: new Date()
+            })
+            const { next, run } =
+                runWithToken(createAuthToken(createMockUser()))
+
+            await run()
+
+            expect(next).toHaveBeenCalled()
+        }
+    )
+
+    it(
+        'should propagate DB errors without clearing the cookie',
+        async () => {
+            jest.mocked(getSessionState)
+                .mockRejectedValue(new Error('db down'))
+            const { res, run } =
+                runWithToken(createAuthToken(createMockUser()))
+
+            await expect(run()).rejects.toThrow('db down')
+            expect(res.clearCookie).not.toHaveBeenCalled()
+        }
+    )
+})
+
+describe('optionalAuthentication Middleware', () => {
+    const runOptional = async (accessToken?: string) => {
         const req = createMockRequest({
-            cookies: { accessToken: 'bad-token' }
+            cookies: accessToken === undefined
+                ? {}
+                : { accessToken }
         }) as Request
-        const res = createMockResponse() as unknown as Response
         const next = createMockNext()
 
-        try {
-            isAuthenticated(req, res, next)
-        } catch {
-            // Expected to throw
-        }
+        await optionalAuthentication(
+            req,
+            createMockResponse() as unknown as Response,
+            next
+        )
 
-        expect(res.clearCookie)
-            .toHaveBeenCalledWith('accessToken')
+        expect(next).toHaveBeenCalled()
+
+        return req.userId
+    }
+
+    it('should set req.userId for a live session', async () => {
+        mockSession({
+            active: true,
+            passwordUpdatedAt: new Date(0)
+        })
+        const mockUser = createMockUser()
+
+        expect(await runOptional(createAuthToken(mockUser)))
+            .toBe(mockUser.id)
+    })
+
+    it('should leave req.userId unset for a revoked session', async () => {
+        mockSession({
+            active: false,
+            passwordUpdatedAt: new Date(0)
+        })
+
+        expect(await runOptional(createAuthToken(createMockUser())))
+            .toBeUndefined()
+    })
+
+    it('should leave req.userId unset without a token', async () => {
+        expect(await runOptional()).toBeUndefined()
     })
 })

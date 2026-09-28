@@ -18,7 +18,7 @@ describe('Auth Routes', () => {
         const loginEndpoint = `/api/${serverConfig.apiVersion}/auth/login`
 
         it(
-            'should return 200 and token for valid credentials',
+            'should return 200 and set the session cookie for valid credentials',
             async () => {
                 const mockUser = createMockUser()
                 prismaMock.user.findUnique
@@ -35,7 +35,11 @@ describe('Auth Routes', () => {
                 expect(response.body.message)
                     .toBe('user logged in!')
                 expect(response.body.data)
-                    .toHaveProperty('token')
+                    .not.toHaveProperty('token')
+                expect(response.headers['set-cookie'])
+                    .toEqual(expect.arrayContaining([
+                        expect.stringMatching(/^accessToken=/)
+                    ]))
                 expect(response.body.data)
                     .toHaveProperty('_csrf')
                 expect(response.headers['set-cookie'])
@@ -62,7 +66,11 @@ describe('Auth Routes', () => {
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data)
-                    .toHaveProperty('token')
+                    .not.toHaveProperty('token')
+                expect(response.headers['set-cookie'])
+                    .toEqual(expect.arrayContaining([
+                        expect.stringMatching(/^accessToken=/)
+                    ]))
             }
         )
 

@@ -300,6 +300,11 @@ describe('User Routes', () => {
                     'Password updated successfully'
                 )
                 expect(response.body.data.user).toBeDefined()
+                // Old tokens are revoked, so this device gets a fresh one
+                expect(response.headers['set-cookie'])
+                    .toEqual(expect.arrayContaining([
+                        expect.stringMatching(/^accessToken=/)
+                    ]))
             }
         )
 

@@ -6,6 +6,8 @@ export const OTP_CONFIG = {
     RANGE_MAX: 900000
 }
 
+export const SESSION_EXPIRES_IN = '1d'
+
 export const MAX_RESET_PASSWORD_ATTEMPTS = 5
 
 export const MAX_CONFIRM_EMAIL_ATTEMPTS = 5

@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
 
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { createToken } from '../lib/authCrypto'
 import {
+    getCookiesOptions,
     sanitizeUserData,
     updateUserData,
     updateUserPassword
@@ -57,6 +59,13 @@ export const updatePassword = async (
         userId,
         validatedData.currentPassword,
         validatedData.newPassword
+    )
+
+    // The password change revokes every existing token, this one included
+    res.cookie(
+        'accessToken',
+        createToken(updatedUser),
+        getCookiesOptions(false)
     )
 
     successResponse<{user: UserType}>(

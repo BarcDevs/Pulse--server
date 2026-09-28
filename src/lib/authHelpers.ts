@@ -2,6 +2,7 @@ import type { CookieOptions } from 'express'
 import ms from 'ms'
 
 import { authConfig, isDev } from '../../config'
+import { SESSION_EXPIRES_IN } from '../constants/auth/authRules'
 import { ErrorCodes } from '../constants/errorCodes'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
@@ -25,7 +26,7 @@ export const getCookiesOptions = (
     secure: !isDev,
     maxAge: remember
         ? ms(authConfig.expiresIn)
-        : ms('1d')
+        : ms(SESSION_EXPIRES_IN)
 }) as CookieOptions
 
 export const generateRandomUsername = () => {

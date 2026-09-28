@@ -3,27 +3,17 @@ import type {
     Request,
     Response
 } from 'express'
-import jwt from 'jsonwebtoken'
 
-import { authConfig } from '../../config'
-import type { UserType } from '../types/data/UserType'
+import { getSessionUserId } from '../services/authService'
 
-export const optionalAuthentication = (
+export const optionalAuthentication = async (
     req: Request,
     _res: Response,
     next: NextFunction
 ) => {
-    try {
-        const { id } = jwt.verify(
-            req.cookies.accessToken,
-            authConfig.jwtSecret,
-            { algorithms: ['HS256'] }
-        ) as Partial<UserType>
-
-        req.userId = id
-    } catch {
-        req.userId = undefined
-    }
+    req.userId = await getSessionUserId(
+        req.cookies.accessToken
+    ) ?? undefined
 
     next()
 }

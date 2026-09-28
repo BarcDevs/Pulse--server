@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 import { authConfig } from '../../config'
+import { SESSION_EXPIRES_IN } from '../constants/auth/authRules'
 import type { ServerUserType } from '../types/data/UserType'
 
 export const hashPassword = (
@@ -19,15 +20,17 @@ export const comparePassword = (
     )
 
 export const createToken = (
-    user: ServerUserType
+    user: ServerUserType,
+    remember = false
 ): string => {
     const payload = {
         id: user.id,
         email: user.email
     }
     const options: jwt.SignOptions = {
-        expiresIn: authConfig
-            .expiresIn as
+        expiresIn: (remember
+            ? authConfig.expiresIn
+            : SESSION_EXPIRES_IN) as
             jwt.SignOptions['expiresIn']
     }
 
@@ -37,3 +40,12 @@ export const createToken = (
         options
     )
 }
+
+export const verifyToken = (
+    token: string
+): jwt.JwtPayload & { id?: string } =>
+    jwt.verify(
+        token,
+        authConfig.jwtSecret,
+        { algorithms: ['HS256'] }
+    ) as jwt.JwtPayload & { id?: string }
