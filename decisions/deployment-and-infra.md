@@ -139,3 +139,15 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Revised plan (not yet implemented):** Client — attach an Elastic IP (cost-neutral, replaces its auto IP), point Cloudflare's origin at it once. Server — pre-create a dedicated network interface with a fixed private IP in the server's subnet (free), attach it from the launch template's boot script, and rebuild the client once with that IP; ASG restricted to that subnet/AZ; retarget `deploy.yml` SSM commands by tag instead of instance ID; add `ec2:AttachNetworkInterface`/`DescribeNetworkInterfaces` to the instance role. Alternative considered: private Route53 hosted zone ($0.50/mo) so the client uses a hostname — more moving parts; public EIP on the server rejected (loses the private path, adds inter-instance data-transfer charges). Cost of the plan stays ~$0/mo apart from a small AMI snapshot.
 
 **Supersedes:** the premise of Decision 3 in the 02/09/2026 follow-up (EIP on the server). Per the supersession rule the old text moves to `archive/` once the user approves this plan; until then it stays with this entry as the correction of record.
+
+---
+
+## 28/09/2026 — H4: Cloudflare Tunnel instead of Origin CA cert + reverse proxy (user-approved)
+
+**Problem:** security audit H4. Cloudflare SSL mode is Flexible, so Cloudflare→origin is plain HTTP. Verified live 28/09/2026: `http://52.58.214.220/` returns 200 from the internet, nothing listens on 443, and the client SG (`sg-02ad243011d768866`) allows 80 and 443 from `0.0.0.0/0`. So anyone can also skip Cloudflare entirely.
+
+**Decision:** run `cloudflared` (pinned `cloudflare/cloudflared:2026.9.3`, `--network host`) on the client box. It opens an outbound-only, encrypted tunnel to Cloudflare, and the tunnel's public hostname `pulserehab.app` points to `http://localhost:80`. The app container binds to `127.0.0.1:80`, and the SG drops all public 80/443 ingress. `ec2-redeploy.sh` (client) starts the tunnel after a healthy deploy, reading the token from Secrets Manager `pulse/client/CLOUDFLARE_TUNNEL_TOKEN`. Doing so requires a `GetSecretValue` policy on `pulse-client-ec2-role`.
+
+**Why over Origin CA + Caddy/nginx on 443 with Full (strict):** that option still needs a public 443, plus a hand-maintained allow-list of Cloudflare IP ranges to stop direct-origin access, plus a cert and key to store and renew. The tunnel closes the origin entirely and has no cert to manage. Both are free.
+
+**How to apply:** rollout order matters. If the loopback-bound deploy goes out before the tunnel is live, the site goes down. The order is: create the tunnel, store the token and IAM → start `cloudflared` once via SSM → swap DNS (delete the apex A record, add the tunnel public hostname) → merge the client PR → remove SG 80/443 → set SSL mode to Full (strict) and Always Use HTTPS. The EIP stays attached for now (outbound, SSH) but is no longer on the request path.

@@ -36,6 +36,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 07/09/2026 | Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified) |
 | 13/09/2026 | Fixed EOL Docker base (bullseye→bookworm) + Node 20→24 bump; root-caused intermittent prod latency to a leftover, permission-denied ECS agent baked into the instance's AMI — disabled |
 | 16/09/2026 | GCP project consolidation verified + completed — old `healease`/`gen-lang-client-0064017105` projects deleted |
+| 28/09/2026 | H4: Cloudflare Tunnel on the client box replaces Flexible SSL + public origin (over Origin CA + reverse proxy) |
 | 26/09/2026 | Keep production on RDS, not Neon — private in-VPC DB; ~$15/mo saving not worth the architecture trade-off |
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
 | 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
