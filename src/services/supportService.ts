@@ -1,4 +1,5 @@
 import { emailConfig } from '../../config'
+import { ErrorCodes } from '../constants/errorCodes'
 import { ValidationError } from '../errors/ValidationError'
 import type { SupportContactType } from '../schemas/support/supportContactSchema'
 import { sendEmail } from '../utils/emailSender'
@@ -21,7 +22,7 @@ export const sendSupportMessage = async ({
     const senderEmail = user?.email ?? email
 
     if (!senderEmail)
-        throw new ValidationError('Email is required', 'email')
+        throw new ValidationError('Email is required', ErrorCodes.VALIDATION_GENERIC, 'email')
 
     const text = [
         `Topic: ${topic}`,
