@@ -17,6 +17,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 10/08/2026 | Delete temp/generated files immediately after they've served their purpose |
 | 10/08/2026 | `config/` (env system) vs. `src/config/` (app-level constants) are different things |
 | 10/08/2026 | Never run `prisma migrate reset` without explicit user confirmation |
+| 18/09/2026 | Don't push a branch or open a PR after a fix unless explicitly asked |
 | 26/09/2026 | Every separate piece of work gets its own branch - check `git branch --show-current` first, create one before the first commit |
 | 28/09/2026 | Merge and close worktrees when done - `git cherry` to verify merged, then `worktree remove` + `branch -d` |
 
@@ -45,6 +46,7 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 |---|---|
 | 02/09/2026 | Told the user AWS cost would be "nearly free" without checking combined infra cost across both EC2 instances |
 | 07/09/2026 | Marked a bug "Fixed"/resolved before deploying or actually testing the fix |
+| 18/09/2026 | Claimed a Firefox-only font fix "fixed" it despite having no way to test Firefox (Chrome-only browser automation) |
 | 24/09/2026 | Told the user to restore a form field to its old value without asking what it represented (marketing spend was the mistake, not the fix) |
 | 26/09/2026 | Called the VPC charge a "NAT Gateway" without checking usage types (it is public IPv4 addresses; no NAT exists) |
 | 26/09/2026 | Planned an Elastic IP on the server without reading the topology (domain → client public IP; client → server private IP baked at build) |
