@@ -72,3 +72,11 @@ During the security-audit follow-up I created a new worktree for every piece of 
 The user said "tell client to reverse it as well". The collaborator all session had been `server-security-audit-fixes`, which also did the client side of L1. I picked `pulse-client-95` from `ListAgents` because of its name, although it had been idle for 5 days and had never been part of the work. I then reported the hand-off as done, based only on a "queued" delivery result. User: "there's no session in this name, idk where you swithed from @server-security-audit-fixes to this but you should get it together".
 
 **Lesson:** hand work to the session already collaborating on it, not to the one whose name matches the repo. If the target is ambiguous, ask. A "queued" result is not a hand-off: say it's done only after the other session replies.
+
+---
+
+## 29/09/2026 — Model Selection section in CLAUDE.md still said Haiku for sub-agents
+
+`CLAUDE.md` Model Selection told sessions to use Haiku for sub-agents and lookups, a leftover from before the move to Sonnet. Noticed while checking which model the commit-skill agents run on. The real setup: Sonnet is the default for execution and every sub-agent, Opus via `/opusplan` for planning and hard reasoning.
+
+**Lesson:** when a `CLAUDE.md` line conflicts with the user's global rule (all sub-agents on Sonnet), the repo line is stale, not an override. Fixed in both pulse repos.

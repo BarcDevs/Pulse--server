@@ -4,8 +4,8 @@ Pulse Server — Node.js/Express TypeScript backend for a health/wellness forum 
 Architecture: MVC — Controller → Service → Model → Database.
 
 ## Model Selection
-- **Haiku**: sub-agents, file lookups, search queries, simple edits (<50 lines), code explanation, formatting fixes
-- **Sonnet/Opus**: complex debugging, architecture decisions, multi-file refactors, reasoning-heavy tasks, style enforcement
+- **Sonnet**: default for execution and all sub-agents: file lookups, search queries, edits, refactors, tests, style enforcement, code explanation
+- **Opus** (via `/opusplan`): planning, architecture decisions, complex debugging, reasoning-heavy tasks
 
 ## Token Efficiency
 - Grep/Glob over Bash find/ls/grep. Read with offset+limit when line known.
