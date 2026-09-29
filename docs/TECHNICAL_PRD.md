@@ -425,6 +425,8 @@ grow every time a new resource type is added server-side. Full code list and sha
 
 **POST /confirm-email-change** — Auth + CSRF — `{ OTP }` → 200, atomically updates email
 
+**POST /verify-reset-code** — `{ email, userOTP }` → 200 (checks the code without consuming it; wrong code counts toward the attempt limit; unknown email gets the same 400)
+
 **PUT /reset-password** — `{ email, newPassword, userOTP }` → 200 User
 
 ### Check-In Endpoints — /api/{version}/check-in

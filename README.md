@@ -413,6 +413,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
 | `POST` | `/api/{version}/auth/forgot-password` | — | 5/15min | Send password reset OTP to email |
 | `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
+| `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
 **Password Requirements:**

@@ -7,8 +7,10 @@ import {
     MAX_CONFIRM_EMAIL_ATTEMPTS,
     MAX_RESET_PASSWORD_ATTEMPTS
 } from '../constants/auth/authRules'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import { getMessages } from '../locales'
 import * as authModel from '../models/authModel'
+import type { ServerUserType } from '../types/data/UserType'
 import { sendEmail } from '../utils/emailSender'
 import {
     changeEmailTemplate,
@@ -64,6 +66,27 @@ export const recordFailedResetPasswordAttempt = async (
     }
 
     await authModel.incrementResetPasswordAttempts(userId)
+}
+
+// Shared by the verify-code step and the reset itself, so both count
+// failed attempts toward the same limit
+export const assertResetPasswordOTP = async (
+    user: ServerUserType,
+    userOTP: number
+): Promise<void> => {
+    if (
+        verifyOTP(
+            user.resetPasswordOTP!,
+            user.resetPasswordExpiration!,
+            userOTP
+        )
+    ) return
+
+    await recordFailedResetPasswordAttempt(
+        user.id,
+        user.resetPasswordAttempts
+    )
+    throw errorFactory.auth.resetPassword()
 }
 
 export const removeConfirmEmailOTP = async (

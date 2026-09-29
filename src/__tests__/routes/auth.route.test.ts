@@ -1128,6 +1128,76 @@ describe('Auth Routes', () => {
     })
 
     // ==================== RESET PASSWORD ====================
+    describe(`POST /api/${serverConfig.apiVersion}/auth/verify-reset-code`, () => {
+        const verifyResetCodeEndpoint = `/api/${serverConfig.apiVersion}/auth/verify-reset-code`
+        const OTP = 123456
+
+        const mockUserWithOTP = (expiresInMs: number, attempts = 0) => {
+            const mockUser = createMockUser()
+            prismaMock.user.findUnique.mockResolvedValue({
+                ...mockUser,
+                resetPasswordOTP: OTP,
+                resetPasswordExpiration: new Date(Date.now() + expiresInMs),
+                resetPasswordAttempts: attempts
+            } as never)
+            return mockUser
+        }
+
+        it('returns 200 for a valid code without consuming it', async () => {
+            const mockUser = mockUserWithOTP(10 * 60000)
+
+            const response = await supertest(App)
+                .post(verifyResetCodeEndpoint)
+                .send({ email: mockUser.email, userOTP: OTP })
+
+            expect(response.status).toBe(HttpStatusCodes.OK)
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
+        it('returns 400 and counts the attempt for a wrong code', async () => {
+            const mockUser = mockUserWithOTP(10 * 60000)
+
+            const response = await supertest(App)
+                .post(verifyResetCodeEndpoint)
+                .send({ email: mockUser.email, userOTP: 654321 })
+
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: { resetPasswordAttempts: { increment: 1 } }
+                })
+            )
+        })
+
+        it('returns 400 for an expired code', async () => {
+            const mockUser = mockUserWithOTP(-1000)
+
+            const response = await supertest(App)
+                .post(verifyResetCodeEndpoint)
+                .send({ email: mockUser.email, userOTP: OTP })
+
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        })
+
+        it('returns the same 400 for an unknown email', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null as never)
+
+            const response = await supertest(App)
+                .post(verifyResetCodeEndpoint)
+                .send({ email: 'nobody@test.com', userOTP: OTP })
+
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        })
+
+        it('returns 400 for a missing code', async () => {
+            const response = await supertest(App)
+                .post(verifyResetCodeEndpoint)
+                .send({ email: 'user@test.com' })
+
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        })
+    })
+
     describe(`PUT /api/${serverConfig.apiVersion}/auth/reset-password`, () => {
         const resetPasswordEndpoint = `/api/${serverConfig.apiVersion}/auth/reset-password`
 
