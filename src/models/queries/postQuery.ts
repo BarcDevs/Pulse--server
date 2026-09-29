@@ -89,6 +89,8 @@ export const anonymizeAuthor = <T extends RawAuthor>(
 
     return {
         ...author,
+        // A profile photo identifies the author as surely as a name
+        image: null,
         user: {
             ...user,
             id: author.id,

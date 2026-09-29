@@ -135,4 +135,13 @@ describe('anonymizeAuthor', () => {
         expect(result?.user.lastName).toBe('')
         expect(result?.user).not.toHaveProperty('profile')
     })
+
+    it('hides the profile image of anonymous authors only', () => {
+        const anonAuthor = {
+            ...baseAuthor,
+            user: { ...baseAuthor.user, profile: { anonymousParticipation: true } }
+        }
+        expect(anonymizeAuthor(anonAuthor)?.image).toBeNull()
+        expect(anonymizeAuthor(baseAuthor)?.image).toBe('pic.jpg')
+    })
 })
