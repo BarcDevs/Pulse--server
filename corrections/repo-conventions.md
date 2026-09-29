@@ -56,3 +56,11 @@ A whole rfc series was done on whatever branch was checked out (an upgrade branc
 Two `fix` branches were open off the same base (1.4.1); each commit's post-commit hook bumped to 1.4.2. The second one's `git tag v1.4.2` failed (hook exit 128) because the first branch already owned the tag, leaving an untagged commit that duplicated the version. User: "bump to v1.4.3 and assign the correct tag. do it whenever a collision like this happens".
 
 **Lesson:** after any commit where the post-commit hook fails with a tag collision (`git tag` exit 128 / `v<ver>` already exists), without asking: take the next free version above the highest existing `v*` tag, set it in `package.json` + `package-lock.json` (root and `packages[""]`), amend with `SKIP_VERSION_BUMP=1 git commit --amend` updating the `Version-Bump:` footer, then `git tag v<new>`. Only on unpushed commits. Expect a version-line conflict in `package.json`/lock when the second branch merges; resolve it to the higher version.
+
+---
+
+## 29/09/2026 — Worktrees only when another session is actively working in the repo
+
+During the security-audit follow-up I created a new worktree for every piece of work (M1, M2, email config, Hebrew email), each with a `node_modules` junction, `npx husky` and `prisma generate`, even after the only other session on the repo had gone idle. User: "why are you working on a WT when no other session active on codebase??????". The worktree overhead also caused misses: hooks didn't fire until `npx husky` was run, and the user tested an unmerged fix from the main checkout, which still had the old code.
+
+**Lesson:** default to a branch in the main checkout. Check `ListAgents` first. Use a worktree only when another session is **busy** in the same repo, not merely listed or idle. Work already started in a worktree is moved back to the main checkout once the other session is done.
