@@ -22,8 +22,8 @@ import {
     sanitizeUserData
 } from '../lib/authHelpers'
 import {
+    assertResetPasswordOTP,
     recordFailedConfirmEmailAttempt,
-    recordFailedResetPasswordAttempt,
     removeConfirmEmailOTP,
     removeResetPasswordOTP,
     sendEmailChangeOTP,
@@ -45,6 +45,8 @@ import type { ResetPasswordType } from '../schemas/auth/resetPasswordSchema'
 import { resetPasswordSchema } from '../schemas/auth/resetPasswordSchema'
 import type { SignupType } from '../schemas/auth/signupSchema'
 import { signupSchema } from '../schemas/auth/signupSchema'
+import type { VerifyResetCodeType } from '../schemas/auth/verifyResetCodeSchema'
+import { verifyResetCodeSchema } from '../schemas/auth/verifyResetCodeSchema'
 import * as authServices from '../services/authService'
 import * as googleOAuthService from '../services/googleOAuthService'
 import type {
@@ -262,6 +264,36 @@ export const confirmEmail = async (
     )
 }
 
+// Step 2 of the reset flow: checks the code without consuming it, so the
+// client can confirm it before asking for a new password
+export const verifyResetCode = async (
+    req: Request,
+    res: Response
+) => {
+    const { email, userOTP } = validateAndExtract<VerifyResetCodeType>(
+        verifyResetCodeSchema,
+        req.body
+    )
+
+    const user: ServerUserType | null =
+        await authServices.getUser(
+            'email',
+            email
+        )
+
+    // Same error as a wrong code, so this step can't probe for accounts
+    if (!user)
+        throw errorFactory.auth.resetPassword()
+
+    await assertResetPasswordOTP(user, userOTP)
+
+    successResponse(
+        res,
+        {},
+        'Code verified'
+    )
+}
+
 export const resetPassword = async (
     req: Request,
     res: Response
@@ -290,19 +322,7 @@ export const resetPassword = async (
         return
     }
 
-    if (
-        !verifyOTP(
-            user.resetPasswordOTP!,
-            user.resetPasswordExpiration!,
-            userOTP
-        )
-    ) {
-        await recordFailedResetPasswordAttempt(
-            user.id,
-            user.resetPasswordAttempts
-        )
-        throw errorFactory.auth.resetPassword()
-    }
+    await assertResetPasswordOTP(user, userOTP)
 
     const updatedUser =
         await authServices.resetPassword(
