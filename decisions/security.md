@@ -52,3 +52,13 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
   to sign in with its password or reset it (reset OTP proves the inbox and sets `emailVerifiedAt`).
   Posting-gate on verification stays post-MVP.
 - **L1:** `QUERY` method investigation added to `scaling-todo.md`.
+
+---
+
+## 29/09/2026 — Remaining audit findings: owner decisions for the overnight run
+
+- **M3 (raw check-in notes sent to AI providers):** add an opt-out. Notes are still sent by default, but a privacy setting ("use my notes for insights") turns it off, and the privacy page says so. Chosen over dropping notes entirely (insights lose nuance) and over keeping the current behavior with only a policy mention.
+- **L9 (external images leak viewer IPs):** allowlist image hosts. Only images from our own origin and a short allowlist render; any other image URL shows as a link. Chosen over stripping all external images, and over deferring until uploads/S3 exist.
+- **M6 (client security headers):** enforce the basics now: HSTS, frame-ancestors/X-Frame-Options, nosniff, referrer-policy. The CSP ships as Report-Only and gets tightened after reviewing reports, so Google login, Sentry and fonts can't break silently in prod.
+- **Unattended overnight authority:** commit each item after tests and a security scan, and merge it locally into `development`. No push, PR or deploy; the owner reviews everything in the morning. This is a one-time waiver of "ask before committing" for this run only.
+- **Defaults the owner accepted without override:** L2 makes confirm-email and reset replies identical for known and unknown emails, while signup keeps "email in use". L7 requires an uppercase letter and rejects runs of 4+ sequential or repeated characters, on signup, reset and change but never login. L8 reuses the post-body cap for replies. L6 (least-privilege DB user) is prepared as a script the owner runs, because secrets and IAM writes need them.
