@@ -574,8 +574,12 @@
         {
           "name": "Logout",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
               {
                 "key": "Cookie",
                 "value": "accessToken={{token}}"

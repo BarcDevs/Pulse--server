@@ -9,6 +9,7 @@ import {
     createAuthenticatedRequest,
     createAuthToken,
     createMockUser,
+    generateCsrfTokenPair,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -412,12 +413,21 @@ describe('Auth Routes', () => {
     })
 
     // ==================== LOGOUT ====================
-    describe(`GET /api/${serverConfig.apiVersion}/auth/logout`, () => {
+    describe(`POST /api/${serverConfig.apiVersion}/auth/logout`, () => {
+        const logoutEndpoint = `/api/${serverConfig.apiVersion}/auth/logout`
+
+        const postLogout = () => {
+            const { csrfSecret, csrfToken } = generateCsrfTokenPair()
+            return supertest(App)
+                .post(logoutEndpoint)
+                .set('Cookie', [`_csrf=${csrfSecret}`])
+                .set('x-csrf-token', csrfToken)
+        }
+
         it(
             'should return 200 and clear accessToken cookie',
             async () => {
-                const response = await supertest(App)
-                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
+                const response = await postLogout()
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.message)
@@ -428,8 +438,7 @@ describe('Auth Routes', () => {
         it(
             'should clear both accessToken and _csrf cookies',
             async () => {
-                const response = await supertest(App)
-                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
+                const response = await postLogout()
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
 
@@ -444,6 +453,27 @@ describe('Auth Routes', () => {
                     .toContain('accessToken')
                 expect(cookieHeaderText)
                     .toContain('_csrf')
+            }
+        )
+
+        it(
+            'should reject logout without a CSRF token',
+            async () => {
+                const response = await supertest(App)
+                    .post(logoutEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+                expect(response.headers['set-cookie']).toBeUndefined()
+            }
+        )
+
+        it(
+            'should no longer accept GET',
+            async () => {
+                const response = await supertest(App)
+                    .get(logoutEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
             }
         )
     })

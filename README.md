@@ -409,7 +409,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
 | `POST` | `/api/{version}/auth/signup` | — | — | Register new user |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
-| `GET` | `/api/{version}/auth/logout` | Cookie | — | Logout and clear session |
+| `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
 | `POST` | `/api/{version}/auth/forgot-password` | — | 5/15min | Send password reset OTP to email |
 | `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |

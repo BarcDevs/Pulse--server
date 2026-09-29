@@ -5,6 +5,7 @@ import App from '../../app'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { createToken } from '../../lib/authCrypto'
 import Prisma from '../../utils/prismaClient'
+import { generateCsrfTokenPair } from '../setup/testSetup'
 
 const SIGNUP_URL = `/api/${serverConfig.apiVersion}/auth/signup`
 const LOGIN_URL = `/api/${serverConfig.apiVersion}/auth/login`
@@ -159,9 +160,13 @@ describe('Auth Routes — Integration', () => {
         })
     })
 
-    describe('GET /auth/logout', () => {
+    describe('POST /auth/logout', () => {
         it('clears auth cookies and returns 200', async () => {
-            const res = await supertest(App).get(LOGOUT_URL)
+            const { csrfSecret, csrfToken } = generateCsrfTokenPair()
+            const res = await supertest(App)
+                .post(LOGOUT_URL)
+                .set('Cookie', [`_csrf=${csrfSecret}`])
+                .set('x-csrf-token', csrfToken)
 
             expect(res.status).toBe(HttpStatusCodes.OK)
             const cookies = ([] as string[]).concat(res.headers['set-cookie'] || []).join('; ')

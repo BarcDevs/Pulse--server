@@ -29,7 +29,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L2 | Low | Enumeration via signup / confirm-email / reset-password responses | FIXED |
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | FIXED |
 | L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | OPEN |
-| L5 | Low | Logout is `GET` without CSRF | OPEN |
+| L5 | Low | Logout is `GET` without CSRF | FIXED |
 | L6 | Low | App runs with RDS master credentials | OPEN |
 | L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | DECIDED (see below) |
 | L8 | Low | Reply body has no max length | FIXED |
