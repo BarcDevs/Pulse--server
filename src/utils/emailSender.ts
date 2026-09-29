@@ -22,7 +22,7 @@ export const sendEmail = async (
     replyTo?: string
 ): Promise<void> => {
     const mailOptions = {
-        from: emailConfig.emailFrom || emailConfig.emailUser,
+        from: emailConfig.emailFrom,
         to: email,
         subject,
         text,

@@ -11,13 +11,6 @@ export default {
     auth: {
         expiresIn: '7d'
     },
-    email: {
-        host: 'smtp.resend.com',
-        port: 465,
-        secure: true,
-        emailUser: 'resend',
-        emailFrom: 'Pulse <noreply@pulserehab.app>'
-    },
     ai: {
         provider: 'anthropic',
         fallbackOrder: 'anthropic,google-pro,openai'
