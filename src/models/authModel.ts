@@ -387,3 +387,17 @@ export const getUserLanguage = async (
     })
     return profile?.language ?? 'he'
 }
+
+export const getUserShareNotesWithAI = async (
+    userId: string
+): Promise<boolean> => {
+    const profile = await Prisma.profile.findUnique({
+        where: {
+            userId
+        },
+        select: {
+            shareNotesWithAI: true
+        }
+    })
+    return profile?.shareNotesWithAI ?? true
+}

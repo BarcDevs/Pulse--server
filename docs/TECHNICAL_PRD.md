@@ -202,6 +202,7 @@ Two distinct AI insight surfaces:
 - Insights are explicitly labeled as AI-assisted and supportive, not medical advice
 - Generated from aggregate patterns, not individual data points
 - AI generation falls back to static templates if Gemini API fails
+- Per-check-in insight prompts include the user's recent check-in notes by default. A privacy setting (`shareNotesWithAI` on the profile, "use my notes for insights") turns this off; the notes are then left out of the prompt, while local pattern analysis still uses them
 - Clearly distinguished from clinical guidance
 
 ### 5. Check-In History

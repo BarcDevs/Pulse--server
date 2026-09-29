@@ -51,6 +51,8 @@ model Profile {
   dateFormat String?  @default("dd/mm/yyyy")
 
   anonymousParticipation Boolean           @default(true)
+  // Opt-out for sending check-in notes to AI insight providers (M3)
+  shareNotesWithAI       Boolean           @default(true)
   communityAlerts        Boolean           @default(false)
   dailyReminder          Boolean           @default(true)
   language               String            @default("he-IL")

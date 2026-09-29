@@ -54,6 +54,7 @@ describe('InsightGenerationService', () => {
         jest.spyOn(checkInModel, 'getProfileIdForUser').mockResolvedValue(PROFILE_ID as never)
         jest.spyOn(authModel, 'getUserTimezone').mockResolvedValue('UTC')
         jest.spyOn(authModel, 'getUserLanguage').mockResolvedValue('en')
+        jest.spyOn(authModel, 'getUserShareNotesWithAI').mockResolvedValue(true)
         jest.spyOn(InsightDecision, 'decideInsightType').mockReturnValue(mockDecision as never)
         jest.spyOn(aiInsightModel, 'createInsight').mockResolvedValue(undefined as never)
         jest.spyOn(aiInsightModel, 'getInsightsByUserId').mockResolvedValue([])
@@ -62,6 +63,39 @@ describe('InsightGenerationService', () => {
     })
 
     describe('generateInsightForCheckIn', () => {
+        describe('shareNotesWithAI (M3)', () => {
+            const notedCheckIn = makeCheckIn({ notes: 'private note' })
+
+            beforeEach(() => {
+                jest.spyOn(checkInModel, 'getCheckIns')
+                    .mockResolvedValue([notedCheckIn] as never)
+                jest.spyOn(aiInsightGeneratorService, 'generateInsight')
+                    .mockResolvedValue({ title: 't', content: 'c' } as never)
+            })
+
+            it('sends notes to the AI generator by default', async () => {
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                const [{ checkIns }] = jest.mocked(
+                    aiInsightGeneratorService.generateInsight
+                ).mock.calls[0]
+                expect(checkIns[0].notes).toBe('private note')
+            })
+
+            it('strips notes from the AI prompt input when opted out', async () => {
+                jest.spyOn(authModel, 'getUserShareNotesWithAI')
+                    .mockResolvedValue(false)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                const [{ checkIns }] = jest.mocked(
+                    aiInsightGeneratorService.generateInsight
+                ).mock.calls[0]
+                expect(checkIns[0].notes).toBeNull()
+                expect(JSON.stringify(checkIns)).not.toContain('private note')
+            })
+        })
+
         it('returns early when no recent check-ins', async () => {
             jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([])
 

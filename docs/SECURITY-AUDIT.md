@@ -22,7 +22,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | H6 | High | 5 failed confirm-email codes marked the email verified, bypassing the H1 Google-link rule (found 30/09 by the client audit session) | FIXED 30/09 |
 | M1 | Med | No session revocation: logout/password change/reset/deactivation leave the 7d JWT valid; token also returned in login body | FIXED 28/09 — per-request check of `active` + `passwordUpdatedAt` vs `iat`; JWT lifetime follows remember-me; token cookie-only. Logout stays device-local |
 | M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | FIXED 29/09 — 30-day countdown + daily purge, login restores, replies hidden, email/username kept until purge |
-| M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | OPEN |
+| M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | FIXED |
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | FIXED 29/09 — `checkInMutationRateLimiter` (5/day per `userId`) on `POST`/`PATCH /check-in`; `AbortSignal.timeout` (15s, `aiGeneration.timeoutMs`) on all three provider fetches |
 | M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
 | M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | OPEN |

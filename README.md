@@ -222,6 +222,7 @@ graph TD
 | bio | String | Optional, max 500 chars |
 | location | String | Optional, broad/regional only |
 | timezone | String | IANA timezone, defaults to `Asia/Jerusalem` |
+| shareNotesWithAI | Boolean | Default `true`. When `false`, check-in notes are left out of AI insight prompts |
 | healthInterests | Relation | Many-to-many via ProfileHealthInterest |
 | activityPreferences | Relation | Many-to-many via ProfileActivityPreference |
 | createdAt | DateTime | Auto-created with User |
@@ -506,6 +507,9 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 ## AI Features
 
 Powered by **Google Gemini API** for personalized recovery insights.
+
+Per-check-in insight prompts include the user's recent check-in notes unless they turn off
+"use my notes for insights" in their privacy settings (`shareNotesWithAI` on the profile).
 
 ### Daily Observation (`GET /api/{version}/insight/observation`)
 
