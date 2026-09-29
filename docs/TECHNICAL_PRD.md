@@ -811,7 +811,7 @@ Fallback to deterministic template if AI fails
 - Render is preview/staging only now, not production — production moved fully to AWS
 
 ### Development Workflow
-- Branch per feature/fix → PR into `development` → PR from `development` into `main` (never feature branch straight to `main`)
+- Branch per feature/fix → local merge into `development` → PR from `development` into `main` (never feature branch straight to `main`)
 - Pull requests for code review
 - Automated tests run on PR (typecheck, lint, unit, integration)
 - Merge to `main` (through the CI-gated `development` → `main` hop) triggers automated production deploy via GitHub Actions OIDC + SSM — see `docs/DEPLOYMENT.md`

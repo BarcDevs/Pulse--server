@@ -93,7 +93,7 @@ Full rules there. Key constraint: never invoke `/commit` skill on small fixes, f
 **Exception - records (user decision 2026-09-21):** a record of a correction or decision (files under `corrections/` or `decisions/` and their `index.md` rows) is committed in the same turn as the correction, as its own `docs` commit, WITHOUT asking and without waiting for a "commit" instruction. Saying "I will commit those from now on" in chat is worthless - this rule is what makes it stick. It applies to every session and does not extend to any other change.
 
 **Branch flow: feature-branch → development → PR to main. NEVER skip `development`.**
-Every feature/fix branch merges into `development` first, via PR. Only `development` gets PR'd into `main`. Never open a PR straight from a feature branch to `main`, even if asked to "PR it to main" — branch off `development`, PR into `development`, and let `development`'s own PR carry it to `main`.
+Every feature/fix branch reaches `development` by a local merge (or fast-forward push) plus `--tags`, never a PR. The only PR is `development` → `main`, and only when asked. Never open a PR straight from a feature branch to `main`, even if asked to "PR it to main" — merge it into `development` and let `development`'s own PR carry it to `main`.
 
 ## graphify
 
