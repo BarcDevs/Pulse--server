@@ -82,3 +82,11 @@ The user said "tell client to reverse it as well". The collaborator all session 
 Pushed `feat/prod-error-monitor` and started opening a PR into `development`. User interrupted, angrily: "no, dev doesnt need a pr in the 100000000000000 time!!!!!!! only main". I'd misread the repo's "feature-branch → development → PR to main, never skip development" rule as meaning every hop needs a PR; it only means the `development` step can't be skipped when going to `main` — the feature→`development` step itself is a direct merge.
 
 **Lesson:** only `development` → `main` goes through a PR. Feature/fix branch → `development` is `git merge` (or fast-forward), no PR, no branch protection expected on that hop.
+
+---
+
+## 29/09/2026 — Attributed another session's commits without evidence, twice
+
+CI on `development` broke from the prod error monitor commits (`e3e764c`, `0f4e181`). I first reported it to `aws-monitor`, because an earlier @-mention had named it, and then to my peer `server-security-audit-fixes`. Neither owned the work; the commits carried a `Claude-Session` trailer that matched no session I could name. The user had to step in twice. User: "why aws monitor? he's not related to any of this" and "im tired of being your babysitter".
+
+**Lesson:** before reporting to an "owner", check it: match the commit's `Claude-Session` trailer, or ask one question. If no session can be shown to own it, apply the user's fallback rule (here: "if not, fix it") at once instead of routing it again. In any case, fix CI breaks that block everyone quickly, on a separate branch or worktree that leaves the other session's files alone.
