@@ -411,7 +411,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `GET` | `/api/{version}/auth/logout` | Cookie | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
-| `GET` | `/api/{version}/auth/forgot-password/:email` | — | 5/15min | Send password reset OTP to email |
+| `POST` | `/api/{version}/auth/forgot-password` | — | 5/15min | Send password reset OTP to email |
 | `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 

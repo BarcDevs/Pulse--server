@@ -346,7 +346,7 @@ describe('AuthController', () => {
                 .mockResolvedValue(123456)
 
             const req = createMockRequest({
-                params: {
+                body: {
                     email: 'test@test.com'
                 }
             }) as Request
@@ -371,7 +371,7 @@ describe('AuthController', () => {
             'should throw validation error for invalid email',
             async () => {
                 const req = createMockRequest({
-                    params: {
+                    body: {
                         email: 'invalid-email'
                     }
                 }) as Request

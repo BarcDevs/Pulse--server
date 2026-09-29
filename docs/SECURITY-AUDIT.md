@@ -25,7 +25,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | DECIDED (see below) |
 | M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
 | M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | OPEN |
-| L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | DECIDED (see below) |
+| L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | PARTIALLY FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body; client change pending |
 | L2 | Low | Enumeration via signup / confirm-email / reset-password responses | OPEN |
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | OPEN |
 | L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | OPEN |

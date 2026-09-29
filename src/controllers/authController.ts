@@ -204,7 +204,7 @@ export const forgotPassword = async (
 ) => {
     const { email } = validateAndExtract<ForgotPasswordType>(
         forgotPasswordSchema,
-        { email: req.params.email }
+        req.body
     )
 
     const otpCode = await sendForgotPasswordOTP(email)

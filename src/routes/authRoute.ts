@@ -327,18 +327,22 @@ router.route('/me').get(
 
 /**
  * @swagger
- * /auth/forgot-password/{email}:
- *   get:
+ * /auth/forgot-password:
+ *   post:
  *     summary: Request a password reset OTP via email
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *           format: email
- *         description: The account email address to send the OTP to
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The account email address to send the OTP to
  *     responses:
  *       200:
  *         description: OTP sent to email
@@ -365,9 +369,10 @@ router.route('/me').get(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // OTP-based endpoints don't require CSRF - stateless validation via OTP
+// POST (not GET/QUERY): sends an email + writes the DB, a side effect, so it must be non-idempotent-safe
 router
-    .route('/forgot-password/:email')
-    .get(
+    .route('/forgot-password')
+    .post(
         otpRateLimiter,
         forgotPassword
     )

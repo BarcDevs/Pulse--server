@@ -170,10 +170,13 @@ Clears the `accessToken` cookie.
 
 ---
 
-### `GET /forgot-password/:email`
+### `POST /forgot-password`
 > Rate limited: 5 requests per 15 minutes
 
-**Params:** `email` — the account email to send OTP to
+**Body:**
+```json
+{ "email": "user@example.com" }
+```
 
 **Response `200`**
 ```json

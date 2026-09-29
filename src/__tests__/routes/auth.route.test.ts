@@ -627,7 +627,7 @@ describe('Auth Routes', () => {
     })
 
     // ==================== FORGOT PASSWORD ====================
-    describe(`GET /api/${serverConfig.apiVersion}/auth/forgot-password/:email`, () => {
+    describe(`POST /api/${serverConfig.apiVersion}/auth/forgot-password`, () => {
         it(
             'should return 200 and send OTP for valid email',
             async () => {
@@ -638,9 +638,10 @@ describe('Auth Routes', () => {
                     .mockResolvedValue(mockUser as never)
 
                 const response = await supertest(App)
-                    .get(
-                        `/api/${serverConfig.apiVersion}/auth/forgot-password/test@test.com`
+                    .post(
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password`
                     )
+                    .send({ email: 'test@test.com' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
             }
@@ -653,9 +654,10 @@ describe('Auth Routes', () => {
                     .mockResolvedValue(null as never)
 
                 const response = await supertest(App)
-                    .get(
-                        `/api/${serverConfig.apiVersion}/auth/forgot-password/notfound@test.com`
+                    .post(
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password`
                     )
+                    .send({ email: 'notfound@test.com' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
             }
@@ -665,9 +667,10 @@ describe('Auth Routes', () => {
             'should return 400 for invalid email format',
             async () => {
                 const response = await supertest(App)
-                    .get(
-                        `/api/${serverConfig.apiVersion}/auth/forgot-password/invalid-email`
+                    .post(
+                        `/api/${serverConfig.apiVersion}/auth/forgot-password`
                     )
+                    .send({ email: 'invalid-email' })
 
                 expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
                 expect(response.body.error[0].statusType)
@@ -1325,7 +1328,7 @@ describe('Auth Routes', () => {
     // ==================== CASCADING SERVICE FAILURES ====================
     describe('Cascading service failure paths', () => {
         it(
-            'GET /forgot-password returns 500 when email send fails',
+            'POST /forgot-password returns 500 when email send fails',
             async () => {
                 const mockUser = createMockUser()
                 prismaMock.user.findUnique.mockResolvedValue(mockUser as never)
@@ -1333,7 +1336,8 @@ describe('Auth Routes', () => {
                 jest.mocked(sendEmail).mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
-                    .get(`/api/${serverConfig.apiVersion}/auth/forgot-password/test@test.com`)
+                    .post(`/api/${serverConfig.apiVersion}/auth/forgot-password`)
+                    .send({ email: 'test@test.com' })
 
                 expect(response.status).toBe(HttpStatusCodes.INTERNAL_SERVER_ERROR)
             }
