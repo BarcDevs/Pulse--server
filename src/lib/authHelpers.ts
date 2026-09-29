@@ -22,7 +22,8 @@ export const getCookiesOptions = (
     remember: boolean
 ) => ({
     httpOnly: true,
-    sameSite: !isDev ? 'none' : 'lax',
+    // The client proxies /api through its own origin, so cookies are first-party
+    sameSite: 'lax',
     secure: !isDev,
     maxAge: remember
         ? ms(authConfig.expiresIn)

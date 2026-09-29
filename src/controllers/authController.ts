@@ -464,7 +464,8 @@ export const googleSignIn = async (
 
     const oauthCookieOptions = {
         httpOnly: true,
-        sameSite: !isDev ? 'none' as const : 'lax' as const,
+        // Lax still sends these on Google's top-level redirect back
+        sameSite: 'lax' as const,
         secure: !isDev,
         maxAge: 10 * minuteInMs
     }

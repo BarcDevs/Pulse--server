@@ -28,14 +28,14 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body. No client change needed: `pulse--client`'s forgot-password/reset-password pages never called the real endpoint (mocked with `setTimeout`, confirmed across full git history) — separate product gap, not a security issue, tracked in client's own TODO |
 | L2 | Low | Enumeration via signup / confirm-email / reset-password responses | FIXED |
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | FIXED |
-| L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | OPEN |
+| L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | FIXED |
 | L5 | Low | Logout is `GET` without CSRF | FIXED |
 | L6 | Low | App runs with RDS master credentials | OPEN |
 | L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | DECIDED (see below) |
 | L8 | Low | Reply body has no max length | FIXED |
 | L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | OPEN |
 | L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | OPEN |
-| L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | OPEN |
+| L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | FIXED (client) |
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
 | L14 | Low | Prisma error messages (may include query args) go to server logs | FIXED |
