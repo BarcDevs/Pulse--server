@@ -25,7 +25,7 @@ jest.mock('../../lib/authOTP', () => ({
     sendConfirmEmailOTP: jest.fn(),
     removeResetPasswordOTP: jest.fn(),
     recordFailedResetPasswordAttempt: jest.fn(),
-    removeConfirmEmailOTP: jest.fn(),
+    completeEmailConfirmation: jest.fn(),
     recordFailedConfirmEmailAttempt: jest.fn()
 }))
 
