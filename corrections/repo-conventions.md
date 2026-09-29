@@ -64,3 +64,11 @@ Two `fix` branches were open off the same base (1.4.1); each commit's post-commi
 During the security-audit follow-up I created a new worktree for every piece of work (M1, M2, email config, Hebrew email), each with a `node_modules` junction, `npx husky` and `prisma generate`, even after the only other session on the repo had gone idle. User: "why are you working on a WT when no other session active on codebase??????". The worktree overhead also caused misses: hooks didn't fire until `npx husky` was run, and the user tested an unmerged fix from the main checkout, which still had the old code.
 
 **Lesson:** default to a branch in the main checkout. Check `ListAgents` first. Use a worktree only when another session is **busy** in the same repo, not merely listed or idle. Work already started in a worktree is moved back to the main checkout once the other session is done.
+
+---
+
+## 29/09/2026 — Routed a hand-off to a session picked by its name instead of the active collaborator
+
+The user said "tell client to reverse it as well". The collaborator all session had been `server-security-audit-fixes`, which also did the client side of L1. I picked `pulse-client-95` from `ListAgents` because of its name, although it had been idle for 5 days and had never been part of the work. I then reported the hand-off as done, based only on a "queued" delivery result. User: "there's no session in this name, idk where you swithed from @server-security-audit-fixes to this but you should get it together".
+
+**Lesson:** hand work to the session already collaborating on it, not to the one whose name matches the repo. If the target is ambiguous, ask. A "queued" result is not a hand-off: say it's done only after the other session replies.
