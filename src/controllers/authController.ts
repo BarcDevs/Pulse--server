@@ -23,8 +23,8 @@ import {
 } from '../lib/authHelpers'
 import {
     assertResetPasswordOTP,
+    completeEmailConfirmation,
     recordFailedConfirmEmailAttempt,
-    removeConfirmEmailOTP,
     removeResetPasswordOTP,
     sendEmailChangeOTP,
     sendForgotPasswordOTP,
@@ -254,7 +254,7 @@ export const confirmEmail = async (
         throw errorFactory.validation.otpError()
     }
 
-    await removeConfirmEmailOTP(user.id)
+    await completeEmailConfirmation(user.id)
 
     successResponse<{
         user: UserType

@@ -2,6 +2,7 @@ import supertest from 'supertest'
 
 import { serverConfig } from '../../../config'
 import App from '../../app'
+import { MAX_CONFIRM_EMAIL_ATTEMPTS } from '../../constants/auth/authRules'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { sendEmail } from '../../utils/emailSender'
 import { prismaMock } from '../setup/jestSetup'
@@ -827,6 +828,38 @@ describe('Auth Routes', () => {
                 expect(unknown.status).toBe(HttpStatusCodes.BAD_REQUEST)
                 expect(unknown.status).toBe(wrongCode.status)
                 expect(unknown.body).toEqual(wrongCode.body)
+            }
+        )
+
+        it(
+            'should not verify the email when the last allowed attempt fails',
+            async () => {
+                const mockUser = createMockUser({
+                    emailVerifiedAt: null,
+                    confirmEmailOTP: 123456,
+                    confirmEmailExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    confirmEmailAttempts: MAX_CONFIRM_EMAIL_ATTEMPTS - 1
+                })
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser as never)
+
+                const response = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        OTP: 999999
+                    })
+
+                expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                const updates = prismaMock.user.update.mock.calls
+                    .map(([args]) => args.data)
+                expect(updates).toContainEqual(
+                    expect.objectContaining({ confirmEmailOTP: null })
+                )
+                updates.forEach((data) =>
+                    expect(data).not.toHaveProperty('emailVerifiedAt'))
             }
         )
 

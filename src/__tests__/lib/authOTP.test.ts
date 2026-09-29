@@ -1,4 +1,5 @@
 import {
+    completeEmailConfirmation,
     generateOTP,
     recordFailedConfirmEmailAttempt,
     recordFailedResetPasswordAttempt,
@@ -34,6 +35,7 @@ const mockIncrementResetPasswordAttempts =
 const mockIncrementConfirmEmailAttempts =
     authModel.incrementConfirmEmailAttempts as jest.Mock
 const mockSendEmail = sendEmail as jest.Mock
+const mockMarkEmailVerified = authModel.markEmailVerified as jest.Mock
 
 beforeEach(() => {
     jest.clearAllMocks()
@@ -177,6 +179,29 @@ describe('authOTP', () => {
                 }
             )
         })
+
+        it('does not mark the email verified', async () => {
+            await removeConfirmEmailOTP('user-123')
+
+            expect(mockMarkEmailVerified).not.toHaveBeenCalled()
+        })
+    })
+
+    // ==================== completeEmailConfirmation ====================
+    describe('completeEmailConfirmation', () => {
+        it('clears the OTP and marks the email verified', async () => {
+            await completeEmailConfirmation('user-123')
+
+            expect(mockSetConfirmEmailOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    confirmEmailOTP: null,
+                    confirmEmailExpiration: null,
+                    confirmEmailAttempts: 0
+                }
+            )
+            expect(mockMarkEmailVerified).toHaveBeenCalledWith('user-123')
+        })
     })
 
     // ==================== recordFailedConfirmEmailAttempt ====================
@@ -201,6 +226,7 @@ describe('authOTP', () => {
                 }
             )
             expect(mockIncrementConfirmEmailAttempts).not.toHaveBeenCalled()
+            expect(mockMarkEmailVerified).not.toHaveBeenCalled()
         })
     })
 

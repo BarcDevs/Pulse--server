@@ -100,7 +100,14 @@ export const removeConfirmEmailOTP = async (
             confirmEmailAttempts: 0
         }
     )
+}
 
+// Only a correct code verifies the email. Clearing the OTP after too many
+// failures must not, or 5 junk codes would verify any address
+export const completeEmailConfirmation = async (
+    userId: string
+): Promise<void> => {
+    await removeConfirmEmailOTP(userId)
     await authModel.markEmailVerified(userId)
 }
 
