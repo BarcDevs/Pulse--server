@@ -1247,6 +1247,7 @@ Update user profile presentation and preferences.
 | `communityAlerts` | boolean | |
 | `profileVisibility` | string | `onlyMe` · `friends` · `public` |
 | `anonymousParticipation` | boolean | |
+| `shareNotesWithAI` | boolean | Default `true`. When `false`, check-in notes are left out of AI insight prompts |
 | `dateOfBirth` | string | ISO 8601 date string |
 | `recoveryType` | string | Free text — type of recovery (e.g. `addiction`, `injury`) |
 | `careProvider` | string | Free text — name of provider or facility |

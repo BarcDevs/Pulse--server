@@ -41,6 +41,7 @@ export const updateProfileSchema = z.object({
         'public'
     ]).optional(),
     anonymousParticipation: z.boolean().optional(),
+    shareNotesWithAI: z.boolean().optional(),
     dateOfBirth: z.string()
         .date('Invalid date. Use ISO 8601 format (YYYY-MM-DD)')
         .optional(),

@@ -16,6 +16,7 @@ type ProfileData = Partial<
         | 'communityAlerts'
         | 'profileVisibility'
         | 'anonymousParticipation'
+        | 'shareNotesWithAI'
         | 'dateOfBirth'
         | 'recoveryType'
         | 'careProvider'

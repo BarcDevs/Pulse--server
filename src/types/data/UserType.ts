@@ -19,6 +19,7 @@ export type ProfileType = {
     communityAlerts: boolean
     profileVisibility: ProfileVisibility
     anonymousParticipation: boolean
+    shareNotesWithAI: boolean
     lastCheckInAt?: Date | null
     dateOfBirth?: Date
     recoveryType?: string
