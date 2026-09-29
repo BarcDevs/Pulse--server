@@ -236,8 +236,9 @@ export const confirmEmail = async (
             email
         )
 
+    // Same error as a wrong code, so this step can't probe for accounts
     if (!user)
-        throw errorFactory.auth.unauthorized()
+        throw errorFactory.validation.otpError()
 
     if (
         !verifyOTP(
@@ -314,14 +315,9 @@ export const resetPassword = async (
             email
         )
 
-    if (!user) {
-        successResponse(
-            res,
-            {},
-            'If the email exists, password reset instructions have been sent.'
-        )
-        return
-    }
+    // Same error as a wrong code, so this step can't probe for accounts
+    if (!user)
+        throw errorFactory.auth.resetPassword()
 
     await assertResetPasswordOTP(user, userOTP)
 
