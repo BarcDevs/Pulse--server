@@ -225,8 +225,8 @@ const main = async () => {
 if (require.main === module) {
     main().catch(err => {
         console.error(err)
-        process.exit(1)
+        process.exitCode = 1
     })
 }
 
-export { normalizeSignature, is404 }
+export { is404,normalizeSignature }

@@ -3,10 +3,8 @@
 // Usage: tsx scripts/monitor/filterSince.ts <since-iso8601>
 
 const since = new Date(process.argv[2])
-if (Number.isNaN(since.getTime())) {
-    console.error('filterSince.ts: invalid since timestamp')
-    process.exit(1)
-}
+if (Number.isNaN(since.getTime()))
+    throw new Error('filterSince.ts: invalid since timestamp')
 
 let buffer = ''
 process.stdin.on(

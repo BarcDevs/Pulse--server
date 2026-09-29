@@ -55,7 +55,7 @@ const main = () => {
         setCheckpoint(arg)
     } else {
         console.error('Usage: checkpoint.ts get | set <ISO8601 timestamp>')
-        process.exit(1)
+        process.exitCode = 1
     }
 }
 
