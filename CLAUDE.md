@@ -95,6 +95,8 @@ Full rules there. Key constraint: never invoke `/commit` skill on small fixes, f
 **Branch flow: feature-branch → development → PR to main. NEVER skip `development`.**
 Every feature/fix branch reaches `development` by a local merge (or fast-forward push) plus `--tags`, never a PR. The only PR is `development` → `main`, and only when asked. Never open a PR straight from a feature branch to `main`, even if asked to "PR it to main" — merge it into `development` and let `development`'s own PR carry it to `main`.
 
+**Remote stays clean: only `main` and `development`.** Once a feature/fix branch is merged into `development`, delete it both locally (`git branch -d`) and on origin (`git push origin --delete <branch>`) in the same session — don't leave merged branches sitting on the remote. `git fetch --prune` before assuming the remote branch list is current.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
