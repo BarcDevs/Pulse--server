@@ -47,7 +47,10 @@ export class AnthropicProvider extends AIProvider {
                             content: input.prompt
                         }
                     ]
-                })
+                }),
+                signal: AbortSignal.timeout(
+                    aiGenerationConfig.timeoutMs
+                )
             }
         )
 

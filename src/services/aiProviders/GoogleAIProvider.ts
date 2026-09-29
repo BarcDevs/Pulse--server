@@ -56,7 +56,10 @@ export class GoogleAIProvider extends AIProvider {
                     temperature:
                     aiGenerationConfig.temperature
                 }
-            })
+            }),
+            signal: AbortSignal.timeout(
+                aiGenerationConfig.timeoutMs
+            )
         })
 
         if (!response.ok) {

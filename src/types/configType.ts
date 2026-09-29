@@ -56,6 +56,7 @@ type AIConfig = {
 type AIGenerationConfig = {
     maxOutputTokens: number
     temperature: number
+    timeoutMs: number
 }
 
 type LoggingConfig = {

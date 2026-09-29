@@ -2,7 +2,11 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import { hourInMs, minuteInMs } from '../constants/time'
+import {
+    dayInMs,
+    hourInMs,
+    minuteInMs
+} from '../constants/time'
 
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
@@ -51,6 +55,29 @@ export const supportRateLimiter = rateLimit({
                         statusType: 'Too Many Requests',
                         statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
                         error: supportRateLimitMessage
+                    }
+                ]
+            })
+    }
+})
+
+const checkInMutationRateLimitMessage =
+    'You have reached today\'s check-in update limit, please try again tomorrow'
+
+export const checkInMutationRateLimiter = rateLimit({
+    windowMs: dayInMs,
+    limit: isDev ? 100 : 5,
+    keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
+    handler: (_req, res) => {
+        res
+            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
+            .json({
+                message: checkInMutationRateLimitMessage,
+                error: [
+                    {
+                        statusType: 'Too Many Requests',
+                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
+                        error: checkInMutationRateLimitMessage
                     }
                 ]
             })

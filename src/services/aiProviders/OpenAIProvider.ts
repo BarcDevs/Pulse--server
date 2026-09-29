@@ -45,7 +45,10 @@ export class OpenAIProvider extends AIProvider {
                     ],
                     max_completion_tokens:
                         aiGenerationConfig.maxOutputTokens
-                })
+                }),
+                signal: AbortSignal.timeout(
+                    aiGenerationConfig.timeoutMs
+                )
             }
         )
 

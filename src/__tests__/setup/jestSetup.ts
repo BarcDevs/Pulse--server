@@ -35,7 +35,8 @@ jest.mock('../../middlewares/rateLimiting', () => ({
     otpRateLimiter: jest.fn((_req, _res, next) => next()),
     loginRateLimiter: jest.fn((_req, _res, next) => next()),
     sharePostRateLimiter: jest.fn((_req, _res, next) => next()),
-    supportRateLimiter: jest.fn((_req, _res, next) => next())
+    supportRateLimiter: jest.fn((_req, _res, next) => next()),
+    checkInMutationRateLimiter: jest.fn((_req, _res, next) => next())
 }))
 
 // Reset mocks before each test

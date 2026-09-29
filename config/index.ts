@@ -99,6 +99,9 @@ const aiGenerationConfig: AIGenerationConfig = {
     ),
     temperature: config.get<number>(
         'aiGeneration.temperature'
+    ),
+    timeoutMs: config.get<number>(
+        'aiGeneration.timeoutMs'
     )
 }
 
