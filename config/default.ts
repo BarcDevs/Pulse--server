@@ -19,13 +19,15 @@ export default {
     database: {
         url: 'DEV_DATABASE_URL'
     },
+    // Resend SMTP: user is always "resend", the password is the API key
+    // (EMAIL_PASSWORD, the only env-provided email value)
     email: {
-        host: 'sandbox.smtp.mailtrap.io',
-        port: 2525,
-        secure: false,
-        emailUser: 'EMAIL_USER',
+        host: 'smtp.resend.com',
+        port: 465,
+        secure: true,
+        emailUser: 'resend',
         emailPass: 'EMAIL_PASSWORD',
-        emailFrom: '',
+        emailFrom: 'Pulse <noreply@pulserehab.app>',
         supportEmail: 'support@pulserehab.app'
     },
     googleOAuth: {
