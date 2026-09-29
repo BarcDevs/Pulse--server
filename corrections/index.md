@@ -20,7 +20,6 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 18/09/2026 | Don't push a branch or open a PR after a fix unless explicitly asked |
 | 26/09/2026 | Every separate piece of work gets its own branch - check `git branch --show-current` first, create one before the first commit |
 | 28/09/2026 | Merge and close worktrees when done - `git cherry` to verify merged, then `worktree remove` + `branch -d` |
-| 28/09/2026 | Version-bump tag collision across parallel branches: re-bump to the next free version + tag it, without asking |
 | 29/09/2026 | Worktrees only when another session is busy in the same repo; otherwise a branch in the main checkout |
 | 29/09/2026 | Hand work to the active collaborator session, not one picked by name; a "queued" send is not a confirmed hand-off |
 | 29/09/2026 | Only `development` → `main` goes through a PR; feature branch → `development` is a direct merge, no PR |
