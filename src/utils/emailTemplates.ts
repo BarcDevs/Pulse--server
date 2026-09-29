@@ -1,5 +1,9 @@
+import ms, { type StringValue } from 'ms'
+
+import { authConfig } from '../../config'
 import { brandConfig } from '../config/app'
 import { EMAIL_LOGO_CID } from '../constants/emailLogo'
+import { minuteInMs } from '../constants/time'
 import { getMessages, resolveLanguage } from '../locales'
 
 const esc = (s: string): string =>
@@ -141,7 +145,14 @@ const buildStrings = (
         title: msgs.emails.shared.title.replaceAll('{{brandName}}', brandName),
         otpLabel: msgs.emails.shared.otpLabel,
         heading: msgs.emails.shared.heading,
-        expiry: msgs.emails.shared.expiry,
+        // From the real OTP TTL, so the email can't drift from config
+        expiry: msgs.emails.shared.expiry.replaceAll(
+            '{{minutes}}',
+            String(Math.round(
+                ms(authConfig.otp_expiration as unknown as StringValue)
+                / minuteInMs
+            ))
+        ),
         footer: msgs.emails.shared.footer.replaceAll('{{brandName}}', brandName),
         intro: msgs.emails[type].html.intro.replaceAll('{{brandName}}', brandName),
         disclaimer: msgs.emails[type].html.disclaimer

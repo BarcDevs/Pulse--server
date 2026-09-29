@@ -189,7 +189,7 @@
       "title": "Your {{brandName}} Verification Code",
       "otpLabel": "Verification Code",
       "heading": "Your verification code",
-      "expiry": "This code expires in 15 minutes. Please don't share it with anyone.",
+      "expiry": "This code expires in {{minutes}} minutes. Please don't share it with anyone.",
       "footer": "© 2026 {{brandName}} · This email was sent because your email address was used for a request on {{brandName}}."
     }
   },
