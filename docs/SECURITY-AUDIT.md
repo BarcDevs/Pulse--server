@@ -25,7 +25,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | FIXED 29/09 — `checkInMutationRateLimiter` (5/day per `userId`) on `POST`/`PATCH /check-in`; `AbortSignal.timeout` (15s, `aiGeneration.timeoutMs`) on all three provider fetches |
 | M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
 | M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | OPEN |
-| L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | PARTIALLY FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body; client change pending |
+| L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body. No client change needed: `pulse--client`'s forgot-password/reset-password pages never called the real endpoint (mocked with `setTimeout`, confirmed across full git history) — separate product gap, not a security issue, tracked in client's own TODO |
 | L2 | Low | Enumeration via signup / confirm-email / reset-password responses | OPEN |
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | OPEN |
 | L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | OPEN |
