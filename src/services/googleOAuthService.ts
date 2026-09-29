@@ -187,7 +187,7 @@ const createGoogleUser = async (
         lastName: profile.lastName || 'User',
         username,
         email: profile.email,
-        password: hashPassword(randomPassword),
+        password: await hashPassword(randomPassword),
         googleId: profile.googleId,
         picture: profile.picture
     })

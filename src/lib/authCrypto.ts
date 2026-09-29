@@ -7,14 +7,14 @@ import type { ServerUserType } from '../types/data/UserType'
 
 export const hashPassword = (
     password: string
-): string =>
-    bcrypt.hashSync(password, 12)
+): Promise<string> =>
+    bcrypt.hash(password, 12)
 
 export const comparePassword = (
     password: string,
     hashedPassword: string
-): boolean =>
-    bcrypt.compareSync(
+): Promise<boolean> =>
+    bcrypt.compare(
         password,
         hashedPassword
     )

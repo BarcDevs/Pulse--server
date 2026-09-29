@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt'
 import Csrf from 'csrf'
 import type { NextFunction } from 'express'
 
@@ -5,10 +6,7 @@ import {
     GoalStatus,
     MilestoneStatus
 } from '../../../prisma/generated/prisma/enums'
-import {
-    createToken,
-    hashPassword
-} from '../../lib/authCrypto'
+import { createToken } from '../../lib/authCrypto'
 import type { PostType } from '../../types/data/PostType'
 import type {
     MilestoneType,
@@ -53,6 +51,9 @@ export const generateCsrfTokenPair = (): {
 }
 
 // ==================== MOCK DATA FACTORIES ====================
+// Hashed once: createMockUser is sync and called in hundreds of tests
+const MOCK_PASSWORD_HASH = bcrypt.hashSync('Password123!', 12)
+
 export const createMockUser = (
     overrides?: Partial<ServerUserType>
 ): ServerUserType => ({
@@ -62,7 +63,7 @@ export const createMockUser = (
     username: 'testuser',
     email: 'test@test.com',
     role: 'USER',
-    password: hashPassword('Password123!'),
+    password: MOCK_PASSWORD_HASH,
     resetPasswordOTP: undefined,
     resetPasswordExpiration: undefined,
     resetPasswordAttempts: 0,
