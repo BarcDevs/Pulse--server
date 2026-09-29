@@ -185,10 +185,10 @@ describe('Auth Service', () => {
             }
         )
 
-        it('should include sameSite option', () => {
+        it('should use SameSite=Lax outside dev too', () => {
             const options = getCookiesOptions(false)
 
-            expect(options.sameSite).toBeDefined()
+            expect(options.sameSite).toBe('lax')
         })
     })
 
