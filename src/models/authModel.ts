@@ -222,13 +222,6 @@ export const restoreUser = (id: string): Promise<ServerUserType> =>
         }
     }) as Promise<ServerUserType>
 
-export const deleteUser = (id: string): Promise<ServerUserType> =>
-    Prisma.user.delete({
-        where: {
-            id
-        }
-    }) as Promise<ServerUserType>
-
 export const setEmailChangeOTP = (
     userId: string,
     data: {
