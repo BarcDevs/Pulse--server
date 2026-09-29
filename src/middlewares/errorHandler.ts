@@ -13,14 +13,16 @@ import logger from '../utils/logger'
 
 export const errorHandler = (
     err: Error,
-    _req: Request,
+    req: Request,
     res: Response,
     _next: NextFunction
 ) => {
     logger.error('Unhandled error caught', {
         message: err.message,
         stack: err.stack,
-        name: err.name
+        name: err.name,
+        method: req.method,
+        route: req.originalUrl
     })
 
     if (err instanceof CustomError) {
