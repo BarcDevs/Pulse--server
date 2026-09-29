@@ -21,7 +21,8 @@ export const errorHandler = (
     logger.error('Unhandled error caught', {
         ...toLoggableError(err),
         method: req.method,
-        route: req.originalUrl
+        // Path only: query strings can carry secrets (OAuth code/state)
+        route: req.path
     })
 
     if (err instanceof CustomError) {
