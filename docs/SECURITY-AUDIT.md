@@ -31,7 +31,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | FIXED |
 | L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | FIXED |
 | L5 | Low | Logout is `GET` without CSRF | FIXED |
-| L6 | Low | App runs with RDS master credentials | OPEN |
+| L6 | Low | App runs with RDS master credentials | SCRIPT READY 30/09 - owner runs `scripts/security/create-app-db-user.sh`, next deploy switches the app to `pulse_app` |
 | L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | FIXED |
 | L8 | Low | Reply body has no max length | FIXED |
 | L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | FIXED |

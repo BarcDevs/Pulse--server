@@ -55,7 +55,23 @@ docker pull "$ECR/$REPO:migrate-$IMAGE_TAG"
 DB_CREDS=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/rds/master-credentials --query SecretString --output text)
 DB_USER=$(echo "$DB_CREDS" | jq -r '.username | @uri')
 DB_PASS=$(echo "$DB_CREDS" | jq -r '.password | @uri')
-DATABASE_URL="postgresql://$DB_USER:$DB_PASS@pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432/pulse?uselibpqcompat=true&sslmode=require"
+DB_HOST_URL="pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432/pulse?uselibpqcompat=true&sslmode=require"
+# Master user: migrations only (they need DDL)
+DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$DB_HOST_URL"
+
+# The app itself runs as the least-privilege pulse_app user (L6) once
+# scripts/security/create-app-db-user.sh has created it; until then it falls
+# back to the master user so deploys keep working
+if APP_DB_CREDS=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/rds/app-credentials --query SecretString --output text 2>/dev/null) \
+    && [ "$(echo "$APP_DB_CREDS" | jq -r .password)" != "pending" ]; then
+    APP_DB_USER=$(echo "$APP_DB_CREDS" | jq -r '.username | @uri')
+    APP_DB_PASS=$(echo "$APP_DB_CREDS" | jq -r '.password | @uri')
+    APP_DATABASE_URL="postgresql://$APP_DB_USER:$APP_DB_PASS@$DB_HOST_URL"
+    echo "App will connect as the least-privilege database user"
+else
+    APP_DATABASE_URL="$DATABASE_URL"
+    echo "WARNING: pulse/rds/app-credentials not set up; app will connect as the master user" >&2
+fi
 
 JWT_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/jwt-secret --query SecretString --output text)
 ANTHROPIC_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/ANTHROPIC_API_KEY --query SecretString --output text)
@@ -94,7 +110,7 @@ RUN_ARGS=(
     -e NODE_ENV=production
     -e SERVER_API_VERSION="$API_VERSION"
     -e ORIGIN=https://pulserehab.app
-    -e DATABASE_URL="$DATABASE_URL"
+    -e DATABASE_URL="$APP_DATABASE_URL"
     -e JWT_SECRET="$JWT_SECRET"
     -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
     -e GOOGLE_AI_API_KEY="$GOOGLE_AI_API_KEY"

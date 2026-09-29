@@ -26,7 +26,8 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 
 | Secret name | Contents |
 |---|---|
-| `pulse/rds/master-credentials` | `{"username": "pulse_admin", "password": "..."}` |
+| `pulse/rds/master-credentials` | `{"username": "pulse_admin", "password": "..."}`. Migrations only |
+| `pulse/rds/app-credentials` | `{"username": "pulse_app", "password": "..."}`. Least-privilege user the app container connects as (data read/write, no DDL). Created by `scripts/security/create-app-db-user.sh`; until it exists, `ec2-redeploy.sh` falls back to the master user and logs a warning |
 | `pulse/app/jwt-secret` | Raw JWT signing secret |
 | `pulse/app/ANTHROPIC_API_KEY` | Raw key |
 | `pulse/app/GOOGLE_AI_API_KEY` | Raw key |
