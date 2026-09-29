@@ -38,7 +38,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | OPEN |
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
-| L14 | Low | Prisma error messages (may include query args) go to server logs | OPEN |
+| L14 | Low | Prisma error messages (may include query args) go to server logs | FIXED |
 
 Informational: prod CORS fallback origin `pulse-client.vercel.app`; swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query; free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2; prod email config (FIXED 29/09: Resend settings are config defaults, the key comes from Secrets Manager; verified in prod with a real password reset); dead code (`constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
 

@@ -54,6 +54,7 @@ import type {
     UserType
 } from '../types/data/UserType'
 import { validateAndExtract } from '../utils/controllerHelpers'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 // region Login and Signup
@@ -333,8 +334,8 @@ export const resetPassword = async (
     removeResetPasswordOTP(user.id).catch(
         (err) => {
             logger.error(
-                'Failed to clear OTP:',
-                err
+                'Failed to clear OTP',
+                toLoggableError(err)
             )
         }
     )

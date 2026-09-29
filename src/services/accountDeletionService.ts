@@ -1,6 +1,7 @@
 import { ACCOUNT_DELETION_GRACE_DAYS } from '../constants/auth/authRules'
 import { dayInMs } from '../constants/time'
 import { deleteAccountsDeletedBefore } from '../models/accountDeletionModel'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 export const purgeExpiredAccounts = async (): Promise<number> => {
@@ -21,7 +22,7 @@ export const purgeExpiredAccounts = async (): Promise<number> => {
 export const scheduleAccountPurge = () => {
     const run = () =>
         purgeExpiredAccounts().catch((error: unknown) =>
-            logger.error('Account purge failed', error)
+            logger.error('Account purge failed', toLoggableError(error))
         )
 
     void run()
