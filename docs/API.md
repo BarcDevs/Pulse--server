@@ -282,6 +282,26 @@ Confirms the email change with the OTP sent to the new address. Updates the acco
 
 ---
 
+### `POST /verify-reset-code`
+> Rate limited: 5 requests per 15 minutes
+
+Step 2 of the reset flow: checks the code without consuming it, so the client can confirm it before asking for a new password. A wrong code counts toward the same attempt limit as `PUT /reset-password`.
+
+**Body**
+| Field     | Type   | Required | Notes                            |
+|-----------|--------|----------|----------------------------------|
+| `email`   | string | yes      | Email the code was sent to       |
+| `userOTP` | number | yes      | 6-digit OTP from forgot-password |
+
+**Response `200`**
+```json
+{ "message": "Code verified", "data": {} }
+```
+
+**Errors:** `400` invalid/expired OTP, or unknown email (same error, so accounts can't be probed)
+
+---
+
 ### `PUT /reset-password`
 > Rate limited: 5 requests per 15 minutes
 
