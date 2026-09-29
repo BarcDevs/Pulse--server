@@ -269,7 +269,7 @@ describe('User Routes', () => {
         it('should update password with valid input',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -311,7 +311,7 @@ describe('User Routes', () => {
         it('should reject invalid current password',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -341,7 +341,7 @@ describe('User Routes', () => {
 
         it('should reject weak new password', async () => {
             const mockUser = createMockUser({
-                password: hashPassword('OldPassword123!')
+                password: await hashPassword('OldPassword123!')
             })
             const {
                 token,
@@ -369,7 +369,7 @@ describe('User Routes', () => {
         it('should reject password without letters',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -396,7 +396,7 @@ describe('User Routes', () => {
         it('should reject password without numbers',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,

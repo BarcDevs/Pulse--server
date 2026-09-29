@@ -107,7 +107,7 @@ export const login = async (
     const user: ServerUserType | null =
         await authModel.getUserByEmailAnyStatus(email)
 
-    const passwordMatches = comparePassword(
+    const passwordMatches = await comparePassword(
         password,
         user?.password ?? DUMMY_PASSWORD_HASH
     )
@@ -146,7 +146,7 @@ export const signup = async (
         )
 
     const passwordHash =
-        hashPassword(newUser.password)
+        await hashPassword(newUser.password)
 
     const userWithHashedPassword = {
         ...newUser,
@@ -164,7 +164,7 @@ export const resetPassword = async (
 ): Promise<ServerUserType> => {
     await authModel.updatePassword(
         userId,
-        hashPassword(newPassword)
+        await hashPassword(newPassword)
     )
 
     return authModel.markEmailVerified(userId)

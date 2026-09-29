@@ -368,7 +368,7 @@ export const changeEmail = async (
     if (!user)
         throw errorFactory.auth.unauthorized()
 
-    if (!comparePassword(password, user.password))
+    if (!await comparePassword(password, user.password))
         throw errorFactory.auth.credentials()
 
     if (await authServices.isEmailTaken(newEmail))

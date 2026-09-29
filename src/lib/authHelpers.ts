@@ -127,7 +127,7 @@ export const updateUserPassword = async (
             HttpStatusCodes.NOT_FOUND
         )
 
-    const isValidPassword = comparePassword(
+    const isValidPassword = await comparePassword(
         currentPassword,
         user.password
     )
@@ -143,6 +143,6 @@ export const updateUserPassword = async (
 
     return authModel.updatePassword(
         userId,
-        hashPassword(newPassword)
+        await hashPassword(newPassword)
     )
 }
