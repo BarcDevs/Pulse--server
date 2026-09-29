@@ -57,8 +57,9 @@ export const declareRoutes = (app: Express) => {
         )
     }
 
+    // Under /api so it's reachable through the client's /api proxy
     if (env !== 'production') {
-        app.use('/dev', devRoute)
+        app.use(baseRoute('dev'), devRoute)
     }
 
 

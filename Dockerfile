@@ -39,6 +39,8 @@ WORKDIR /app
 COPY --from=deps-prod --chown=node:node /app/node_modules ./node_modules
 # Compiled app + config + prisma generated
 COPY --from=builder --chown=node:node /app/dist ./dist
+# Static assets (email logo): compiled code under dist/src resolves ../../public
+COPY --from=builder --chown=node:node /app/public ./dist/public
 # Prisma schema + migrations for migrate deploy
 COPY --from=builder --chown=node:node /app/prisma/schema.prisma ./prisma/schema.prisma
 COPY --from=builder --chown=node:node /app/prisma/migrations ./prisma/migrations
