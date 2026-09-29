@@ -52,6 +52,27 @@ beforeEach(() => {
 
 describe('emailSender', () => {
     describe('sendEmail', () => {
+        it('attaches the logo inline when the html references it', async () => {
+            mockSendMail.mockResolvedValue({ response: '250 OK' })
+
+            await sendEmail('to@test.com', 'Subject', 'Text', '<img src="cid:pulse-logo">')
+
+            expect(mockSendMail.mock.calls[0][0].attachments).toEqual([
+                expect.objectContaining({
+                    cid: 'pulse-logo',
+                    path: expect.stringMatching(/PulseLogoNoCaption\.png$/)
+                })
+            ])
+        })
+
+        it('sends no attachment when the html has no logo', async () => {
+            mockSendMail.mockResolvedValue({ response: '250 OK' })
+
+            await sendEmail('to@test.com', 'Subject', 'Text', '<p>hi</p>')
+
+            expect(mockSendMail.mock.calls[0][0]).not.toHaveProperty('attachments')
+        })
+
         it('sends email with correct mail options', async () => {
             mockSendMail.mockResolvedValue({ response: '250 OK' })
 

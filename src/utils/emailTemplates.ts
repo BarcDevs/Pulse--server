@@ -1,18 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-
 import { brandConfig } from '../config/app'
+import { EMAIL_LOGO_CID } from '../constants/emailLogo'
 import { getMessages, resolveLanguage } from '../locales'
-
-let LOGO_URL = ''
-try {
-    const logoBase64 = fs.readFileSync(
-        path.join(__dirname, '../../public/logos/PulseLogoNoCaption.webp')
-    ).toString('base64')
-    LOGO_URL = `data:image/webp;base64,${logoBase64}`
-} catch {
-    // logo missing — img will render with alt text only
-}
 
 const esc = (s: string): string =>
     s
@@ -44,6 +32,7 @@ const buildDigitCells = (otp: number): string =>
 
 type TemplateStrings = {
     dir: 'ltr' | 'rtl'
+    align: 'left' | 'right'
     lang: string
     title: string
     otpLabel: string
@@ -63,11 +52,12 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
   <title>${esc(s.title)}</title>
   ${s.dir === 'rtl' ? '<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@800&display=swap" rel="stylesheet">' : ''}
 </head>
-<body style="margin:0;padding:0;background-color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F1F5F9;padding:40px 16px;">
+<!-- Mail clients (Gmail etc.) drop the html/body dir, so direction is repeated on the tables and text -->
+<body dir="${s.dir}" style="margin:0;padding:0;direction:${s.dir};background-color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table dir="${s.dir}" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F1F5F9;padding:40px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+        <table dir="${s.dir}" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;direction:${s.dir};">
 
           <!-- Blue header -->
           <tr>
@@ -77,7 +67,7 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="vertical-align:middle;padding-${s.dir === 'rtl' ? 'left' : 'right'}:10px;">
-                    <img src="${LOGO_URL}" alt="${esc(brandConfig.brandName)}" width="36" height="36"
+                    <img src="cid:${EMAIL_LOGO_CID}" alt="${esc(brandConfig.brandName)}" width="36" height="36"
                       style="display:block;border-radius:8px;width:36px;height:36px;">
                   </td>
                   <td style="vertical-align:middle;">
@@ -86,8 +76,8 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
                 </tr>
               </table>
 
-              <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#93B4F0;">${esc(s.otpLabel)}</p>
-              <h1 style="margin:0;font-size:28px;font-weight:800;color:#FFFFFF;letter-spacing:${s.dir === 'rtl' ? '0' : '-0.5px'};font-family:${s.headingFont};">${esc(s.heading)}</h1>
+              <p style="margin:0 0 6px;text-align:${s.align};font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#93B4F0;">${esc(s.otpLabel)}</p>
+              <h1 style="margin:0;text-align:${s.align};font-size:28px;font-weight:800;color:#FFFFFF;letter-spacing:${s.dir === 'rtl' ? '0' : '-0.5px'};font-family:${s.headingFont};">${esc(s.heading)}</h1>
             </td>
           </tr>
 
@@ -95,10 +85,10 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
           <tr>
             <td style="background-color:#FFFFFF;border-radius:0 0 12px 12px;padding:36px 36px 32px;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
 
-              <p style="margin:0 0 28px;font-size:15px;color:#475569;line-height:1.65;">${esc(s.intro)}</p>
+              <p style="margin:0 0 28px;text-align:${s.align};font-size:15px;color:#475569;line-height:1.65;">${esc(s.intro)}</p>
 
-              <!-- Digit boxes -->
-              <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <!-- Digit boxes: always LTR, or an RTL layout reverses the code -->
+              <table dir="ltr" align="${s.align}" cellpadding="0" cellspacing="0" style="margin-bottom:28px;direction:ltr;">
                 <tr>
                   ${buildDigitCells(otp)}
                 </tr>
@@ -108,14 +98,14 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="background-color:#FEF3C7;border-radius:8px;padding:14px 16px;">
-                    <p style="margin:0;font-size:13px;font-weight:600;color:#92400E;line-height:1.5;">
+                    <p style="margin:0;text-align:${s.align};font-size:13px;font-weight:600;color:#92400E;line-height:1.5;">
                       ${esc(s.expiry)}
                     </p>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0;font-size:13px;color:#94A3B8;line-height:1.6;">${esc(s.disclaimer)}</p>
+              <p style="margin:0;text-align:${s.align};font-size:13px;color:#94A3B8;line-height:1.6;">${esc(s.disclaimer)}</p>
             </td>
           </tr>
 
@@ -143,6 +133,7 @@ const buildStrings = (
     const brandName = brandConfig.brandName
     return {
         dir: isRtl ? 'rtl' : 'ltr',
+        align: isRtl ? 'right' : 'left',
         lang: resolved,
         headingFont: isRtl
             ? "Heebo, 'Arial Hebrew', Arial, sans-serif"

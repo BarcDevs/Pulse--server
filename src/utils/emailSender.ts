@@ -1,6 +1,10 @@
 import nodemailer from 'nodemailer'
 
 import { emailConfig } from '../../config'
+import {
+    EMAIL_LOGO_CID,
+    EMAIL_LOGO_PATH
+} from '../constants/emailLogo'
 
 import logger from './logger'
 
@@ -27,6 +31,13 @@ export const sendEmail = async (
         subject,
         text,
         ...(html && { html }),
+        ...(html?.includes(`cid:${EMAIL_LOGO_CID}`) && {
+            attachments: [{
+                filename: 'pulse-logo.png',
+                path: EMAIL_LOGO_PATH,
+                cid: EMAIL_LOGO_CID
+            }]
+        }),
         ...(replyTo && { replyTo })
     }
 
