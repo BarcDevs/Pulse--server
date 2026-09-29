@@ -80,3 +80,11 @@ The user said "tell client to reverse it as well". The collaborator all session 
 `CLAUDE.md` Model Selection told sessions to use Haiku for sub-agents and lookups, a leftover from before the move to Sonnet. Noticed while checking which model the commit-skill agents run on. The real setup: Sonnet is the default for execution and every sub-agent, Opus via `/opusplan` for planning and hard reasoning.
 
 **Lesson:** when a `CLAUDE.md` line conflicts with the user's global rule (all sub-agents on Sonnet), the repo line is stale, not an override. Fixed in both pulse repos.
+
+---
+
+## 29/09/2026 — Opened a PR from feature branch into `development` instead of merging directly
+
+Pushed `feat/prod-error-monitor` and started opening a PR into `development`. User interrupted, angrily: "no, dev doesnt need a pr in the 100000000000000 time!!!!!!! only main". I'd misread the repo's "feature-branch → development → PR to main, never skip development" rule as meaning every hop needs a PR; it only means the `development` step can't be skipped when going to `main` — the feature→`development` step itself is a direct merge.
+
+**Lesson:** only `development` → `main` goes through a PR. Feature/fix branch → `development` is `git merge` (or fast-forward), no PR, no branch protection expected on that hop.

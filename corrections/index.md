@@ -23,6 +23,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 28/09/2026 | Version-bump tag collision across parallel branches: re-bump to the next free version + tag it, without asking |
 | 29/09/2026 | Worktrees only when another session is busy in the same repo; otherwise a branch in the main checkout |
 | 29/09/2026 | Hand work to the active collaborator session, not one picked by name; a "queued" send is not a confirmed hand-off |
+| 29/09/2026 | Only `development` → `main` goes through a PR; feature branch → `development` is a direct merge, no PR |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
