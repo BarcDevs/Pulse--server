@@ -3,9 +3,8 @@ export default {
     server: {
         port: process.env.PORT || 8080,
         protocol: 'https',
-        origin:
-            process.env.ORIGIN
-            || 'https://pulse-client.vercel.app',
+        // origin comes from ORIGIN (custom-environment-variables); no
+        // hardcoded fallback, so prod never trusts a leftover Vercel origin
         host: '0.0.0.0'
     },
     auth: {
