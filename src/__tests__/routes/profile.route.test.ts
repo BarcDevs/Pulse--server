@@ -201,7 +201,7 @@ describe('Profile Routes', () => {
             'should update image URL',
             async () => {
                 const imageUrl =
-                    'https://example.com/image.jpg'
+                    'https://lh3.googleusercontent.com/a/image.jpg'
                 const updated = {
                     ...mockProfile,
                     image: imageUrl

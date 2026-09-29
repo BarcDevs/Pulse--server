@@ -271,10 +271,35 @@ describe('Sanitization Middleware', () => {
             expect(result).not.toContain('onclick')
         })
 
-        it('preserves img with safe attributes', () => {
-            const result = run('<img src="https://example.com/img.png" alt="photo" width="100" height="100">')
-            expect(result).toContain('src="https://example.com/img.png"')
+        it('preserves img from a trusted host with safe attributes', () => {
+            const result = run('<img src="https://lh3.googleusercontent.com/a/pic.png" alt="photo" width="100" height="100">')
+            expect(result).toContain('<img')
+            expect(result).toContain('src="https://lh3.googleusercontent.com/a/pic.png"')
             expect(result).toContain('alt="photo"')
+        })
+
+        it('keeps relative images from our own origin', () => {
+            const result = run('<img src="/logos/pic.png" alt="logo">')
+            expect(result).toContain('<img')
+        })
+
+        it('turns an untrusted https image into a link (L9)', () => {
+            const result = run('<img src="https://tracker.example/pixel.png" alt="photo">')
+            expect(result).not.toContain('<img')
+            expect(result).toContain('<a href="https://tracker.example/pixel.png"')
+            expect(result).toContain('>photo</a>')
+        })
+
+        it('does not let a protocol-relative image through', () => {
+            const result = run('<img src="//tracker.example/pixel.png">')
+            expect(result).not.toContain('<img')
+        })
+
+        it('drops a non-https image, keeping only its alt text', () => {
+            const result = run('<img src="http://tracker.example/pixel.png" alt="photo">')
+            expect(result).not.toContain('<img')
+            expect(result).not.toContain('tracker.example')
+            expect(result).toContain('photo')
         })
 
         it('strips img onerror', () => {

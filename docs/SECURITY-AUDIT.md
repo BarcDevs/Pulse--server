@@ -34,8 +34,8 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L6 | Low | App runs with RDS master credentials | OPEN |
 | L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | FIXED |
 | L8 | Low | Reply body has no max length | FIXED |
-| L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | OPEN |
-| L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | OPEN |
+| L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | FIXED |
+| L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | FIXED (client) |
 | L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | FIXED (client) |
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |

@@ -2,12 +2,17 @@ import { z } from 'zod'
 
 import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../../constants/activityPreferences'
 import { VALID_HEALTH_INTEREST_SLUGS } from '../../constants/healthInterests'
+import { isTrustedImageUrl } from '../../lib/trustedImages'
 import { caseInsensitiveEnum } from '../utils/caseInsensitiveEnum'
 
 export const updateProfileSchema = z.object({
     // TODO: update when image upload endpoint is implemented (multipart)
     image: z.string()
         .url('Invalid image URL')
+        .refine(
+            isTrustedImageUrl,
+            'Image must be hosted on Pulse or a trusted image host'
+        )
         .optional(),
     bio: z.string()
         .max(500, 'Bio must be 500 characters or fewer')

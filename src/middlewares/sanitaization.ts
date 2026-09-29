@@ -5,6 +5,8 @@ import type {
 } from 'express'
 import sanitizeHtml from 'sanitize-html'
 
+import { isTrustedImageUrl } from '../lib/trustedImages'
+
 const ALLOWED_TAGS = [
     'p',
     'br',
@@ -67,6 +69,31 @@ const ALLOWED_SCHEMES: AllowedSchemes = {
     a: ['https', 'mailto']
 }
 
+// An untrusted image host would see every reader's IP, so an https image
+// becomes a plain link and anything else keeps only its alt text
+const untrustedImage = (
+    attribs: sanitizeHtml.Attributes
+): sanitizeHtml.Tag => {
+    const src = attribs.src ?? ''
+
+    if (!/^https:\/\//i.test(src))
+        return {
+            tagName: 'span',
+            attribs: {},
+            text: attribs.alt ?? ''
+        }
+
+    return {
+        tagName: 'a',
+        attribs: {
+            href: src,
+            target: '_blank',
+            rel: 'noopener noreferrer'
+        },
+        text: attribs.alt || src
+    }
+}
+
 const sanitizeString = (str: string): string =>
     sanitizeHtml(str, {
         allowedTags: ALLOWED_TAGS,
@@ -82,7 +109,10 @@ const sanitizeString = (str: string): string =>
                         ? { rel: 'noopener noreferrer' }
                         : {})
                 }
-            })
+            }),
+            img: (tagName, attribs) => isTrustedImageUrl(attribs.src)
+                ? { tagName, attribs }
+                : untrustedImage(attribs)
         }
     })
 
