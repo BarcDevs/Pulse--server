@@ -91,7 +91,7 @@
               "script": {
                 "exec": [
                   "pm.environment.set('testEmail', 'alice@example.com')",
-                  "pm.environment.set('testPassword', 'password123')"
+                  "pm.environment.set('testPassword', 'Pulse2Recover!')"
                 ]
               }
             },

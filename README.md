@@ -416,11 +416,13 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
-**Password Requirements:**
+**Password Requirements** (signup, reset and change password):
 - Minimum 8 characters
-- Must contain at least one letter (a-z, A-Z)
-- Must contain at least one digit (0-9)
+- At least one uppercase letter, one lowercase letter and one digit
+- No 4 or more repeated or sequential characters in a row (like `1234`, `abcd`, `aaaa`)
 - Special characters allowed (!, @, #, $, etc.)
+
+Login keeps the older rule (8+ characters, a letter and a digit) so existing accounts can still sign in.
 
 ### Check-ins *(protected)*
 
