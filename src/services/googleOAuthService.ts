@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import { OAuth2Client } from 'google-auth-library'
 
 import { googleOAuthConfig } from '../../config'
+import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { AuthError } from '../errors/AuthError'
 import { hashPassword } from '../lib/authCrypto'
@@ -10,7 +11,10 @@ import * as profileModel from '../models/profileModel'
 import type { ServerUserType } from '../types/data/UserType'
 import logger from '../utils/logger'
 
-import { applyDetectedTimezone } from './authService'
+import {
+    applyDetectedTimezone,
+    restoreIfPendingDeletion
+} from './authService'
 
 const oAuth2Client = new OAuth2Client(
     googleOAuthConfig.clientId,
@@ -60,6 +64,7 @@ export const exchangeCodeForTokens = async (
         logger.error(`[GoogleOAuth] Token exchange failed: ${error}`)
         throw new AuthError(
             'Failed to authenticate with Google',
+            ErrorCodes.AUTH_OAUTH,
             undefined,
             'OAuth Error',
             HttpStatusCodes.UNAUTHORIZED
@@ -81,6 +86,7 @@ export const fetchGoogleProfile = async (
         if (!payload)
             throw new AuthError(
                 'Failed to retrieve Google profile',
+                ErrorCodes.AUTH_OAUTH,
                 undefined,
                 'OAuth Error',
                 HttpStatusCodes.UNAUTHORIZED
@@ -89,6 +95,7 @@ export const fetchGoogleProfile = async (
         if (!payload.email)
             throw new AuthError(
                 'Email not provided by Google',
+                ErrorCodes.AUTH_OAUTH,
                 undefined,
                 'OAuth Error',
                 HttpStatusCodes.UNAUTHORIZED
@@ -97,6 +104,7 @@ export const fetchGoogleProfile = async (
         if (!payload.email_verified)
             throw new AuthError(
                 'Email not verified by Google',
+                ErrorCodes.AUTH_OAUTH,
                 undefined,
                 'OAuth Error',
                 HttpStatusCodes.UNAUTHORIZED
@@ -115,6 +123,7 @@ export const fetchGoogleProfile = async (
         logger.error(`[GoogleOAuth] Profile fetch failed: ${error}`)
         throw new AuthError(
             'Failed to retrieve Google profile',
+            ErrorCodes.AUTH_OAUTH,
             undefined,
             'OAuth Error',
             HttpStatusCodes.UNAUTHORIZED
@@ -156,6 +165,7 @@ const generateUniqueUsername = async (
 
     throw new AuthError(
         'Failed to create user account',
+        ErrorCodes.AUTH_OAUTH,
         undefined,
         'OAuth Error',
         HttpStatusCodes.INTERNAL_SERVER_ERROR
@@ -187,17 +197,33 @@ export const findOrCreateUser = async (
     profile: GoogleProfile
 ): Promise<ServerUserType> => {
     const existingByGoogleId =
-        await authModel.getUserByGoogleId(profile.googleId)
-    if (existingByGoogleId) return existingByGoogleId
+        await authModel.getUserByGoogleIdAnyStatus(profile.googleId)
+    if (existingByGoogleId) {
+        await restoreIfPendingDeletion(existingByGoogleId)
+
+        return existingByGoogleId
+    }
 
     const existingByEmail =
-        await authModel.getUserByEmail(profile.email)
-    if (existingByEmail)
+        await authModel.getUserByEmailAnyStatus(profile.email)
+    if (existingByEmail) {
+        if (!existingByEmail.emailVerifiedAt)
+            throw new AuthError(
+                'An account with this email already exists. Sign in with your password or reset it.',
+                ErrorCodes.AUTH_CONFLICT,
+                undefined,
+                'Account Exists',
+                HttpStatusCodes.CONFLICT
+            )
+
+        await restoreIfPendingDeletion(existingByEmail)
+
         return authModel.linkGoogleAccount(
             existingByEmail.id,
             profile.googleId,
             profile.picture
         )
+    }
 
     return createGoogleUser(profile)
 }
@@ -212,6 +238,7 @@ export const handleCallback = async (
     if (!tokens.id_token)
         throw new AuthError(
             'Failed to authenticate with Google',
+            ErrorCodes.AUTH_OAUTH,
             undefined,
             'OAuth Error',
             HttpStatusCodes.UNAUTHORIZED

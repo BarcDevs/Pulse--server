@@ -5,12 +5,6 @@ context in this topic — not routinely.
 
 ---
 
-## 10/08/2026 — DB is RDS, not Neon
-
-Neon was fully replaced during the AWS migration — don't reference it as current infra.
-
----
-
 ## 10/08/2026 — CI/CD pushes images to ECR, not S3
 
 S3 was only ever the *planned* client hosting; it never shipped that way.
@@ -26,3 +20,9 @@ S3 was only ever the *planned* client hosting; it never shipped that way.
 ## 10/08/2026 — Domain DNS is Cloudflare, not Route53
 
 `pulserehab.app` is registered/managed in Cloudflare (proxied, SSL mode Flexible) pointing at EC2 public IP — no R53 involved.
+
+---
+
+## 18/09/2026 — Local dev DB is Neon only; local app never runs against RDS
+
+Local dev (and local seed scripts like `prisma/scripts/seedCheckIns.ts`) target Neon via `DEV_DATABASE_URL` only. RDS is deployed infra, never a local target — don't offer it as a local seed/dev option, and don't leave `DATABASE_URL` (RDS) uncommented in `.env`. Supersedes the archived 10/08 "DB is RDS, not Neon" entry (see [[corrections/archive/infra-facts]]).

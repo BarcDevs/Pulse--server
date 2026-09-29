@@ -486,10 +486,15 @@
         {
           "name": "1.2 - Forgot Password (Request OTP)",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/forgot-password/{{testEmail}}",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/forgot-password",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -497,9 +502,12 @@
                 "api",
                 "{{apiVersion}}",
                 "auth",
-                "forgot-password",
-                "{{testEmail}}"
+                "forgot-password"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{testEmail}}\"}"
             }
           },
           "event": [

@@ -12,6 +12,7 @@ import {
     extractCsrfToken
 } from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { checkInMutationRateLimiter } from '../middlewares/rateLimiting'
 
 const router = Router()
 
@@ -178,12 +179,14 @@ router
     )
     .post(
         isAuthenticated,
+        checkInMutationRateLimiter,
         extractCsrfToken,
         csrfMiddleware,
         createCheckIn
     )
     .patch(
         isAuthenticated,
+        checkInMutationRateLimiter,
         extractCsrfToken,
         csrfMiddleware,
         updateCheckIn

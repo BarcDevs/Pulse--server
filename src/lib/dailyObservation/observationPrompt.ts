@@ -68,7 +68,7 @@ Write a short observation card for the user.
 
 Tone:
 - Calm, observational, human
-- Like a thoughtful person noticed something — not a reporting system
+- Like a thoughtful person noticed something, not a reporting system
 - Emotionally supportive without being therapeutic or motivational
 
 FORBIDDEN in observation and supportiveDescription:
@@ -84,7 +84,7 @@ observation must:
 - Be one sentence, maximum 120 characters
 
 supportiveDescription must:
-- Provide gentle context for the observation — grounded in the detected pattern only
+- Provide gentle context for the observation, grounded in the detected pattern only
 - Do NOT introduce new conclusions not supported by the pattern
 - Do NOT use metaphors, poetic language, or emotional interpretation
 - Do NOT infer motivations, psychological states, or benefits ("you seem to find comfort", "this may help you feel grounded")

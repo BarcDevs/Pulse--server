@@ -47,7 +47,10 @@ export class AnthropicProvider extends AIProvider {
                             content: input.prompt
                         }
                     ]
-                })
+                }),
+                signal: AbortSignal.timeout(
+                    aiGenerationConfig.timeoutMs
+                )
             }
         )
 
@@ -60,7 +63,7 @@ export class AnthropicProvider extends AIProvider {
                 // Ignore JSON parse errors
             }
             logger.error(
-                `Anthropic API request failed: ${response.status} — ${errorMsg}`
+                `Anthropic API request failed: ${response.status} - ${errorMsg}`
             )
             throw new Error(
                 `Failed to generate content from Anthropic: ${response.status}`

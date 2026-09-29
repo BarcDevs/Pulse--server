@@ -7,11 +7,16 @@ export class ConflictError extends CustomError {
 
     statusType = 'Conflict'
 
+    code: string
+
     constructor(
         message: string,
-        private property?: string
+        code: string,
+        private property?: string,
+        params?: Record<string, string>
     ) {
-        super(message)
+        super(message, params)
+        this.code = code
 
         Object.setPrototypeOf(
             this,
@@ -24,6 +29,8 @@ export class ConflictError extends CustomError {
             {
                 statusType: this.statusType,
                 statusCode: this.statusCode,
+                code: this.code,
+                params: this.params,
                 error: this.message,
                 property: this.property
             }

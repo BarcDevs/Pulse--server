@@ -5,7 +5,7 @@ export default {
     },
     server: {
         port: 3000,
-        host: 'localhost',
+        host: '127.0.0.1',
         protocol: 'http',
         url: '{protocol}://{host}:{port}',
         origin: 'http://localhost:5173',
@@ -19,17 +19,21 @@ export default {
     database: {
         url: 'DEV_DATABASE_URL'
     },
+    // Resend SMTP: user is always "resend", the password is the API key
+    // (EMAIL_PASSWORD, the only env-provided email value)
     email: {
-        host: 'sandbox.smtp.mailtrap.io',
-        port: 2525,
-        secure: false,
-        emailUser: 'EMAIL_USER',
-        emailPass: 'EMAIL_PASSWORD'
+        host: 'smtp.resend.com',
+        port: 465,
+        secure: true,
+        emailUser: 'resend',
+        emailPass: 'EMAIL_PASSWORD',
+        emailFrom: 'Pulse <noreply@pulserehab.app>',
+        supportEmail: 'support@pulserehab.app'
     },
     googleOAuth: {
         clientId: '',
         clientSecret: '',
-        redirectUri: 'http://localhost:4001/api/v1/auth/google/callback',
+        redirectUri: '{protocol}://{host}:{port}/api/{apiVersion}/auth/google/callback',
         clientUrl: 'http://localhost:5173'
     },
     ai: {
@@ -46,7 +50,8 @@ export default {
     },
     aiGeneration: {
         maxOutputTokens: 1000,
-        temperature: 0.7
+        temperature: 0.7,
+        timeoutMs: 15000
     },
     logging: {
         dir: 'logs'

@@ -1,6 +1,10 @@
 import nodemailer from 'nodemailer'
 
 import { emailConfig } from '../../config'
+import {
+    EMAIL_LOGO_CID,
+    EMAIL_LOGO_PATH
+} from '../constants/emailLogo'
 
 import logger from './logger'
 
@@ -18,14 +22,23 @@ export const sendEmail = async (
     email: string,
     subject: string,
     text: string,
-    html?: string
+    html?: string,
+    replyTo?: string
 ): Promise<void> => {
     const mailOptions = {
-        from: emailConfig.emailUser!,
+        from: emailConfig.emailFrom,
         to: email,
         subject,
         text,
-        ...(html && { html })
+        ...(html && { html }),
+        ...(html?.includes(`cid:${EMAIL_LOGO_CID}`) && {
+            attachments: [{
+                filename: 'pulse-logo.png',
+                path: EMAIL_LOGO_PATH,
+                cid: EMAIL_LOGO_CID
+            }]
+        }),
+        ...(replyTo && { replyTo })
     }
 
     try {
@@ -52,5 +65,20 @@ export const sendEmail = async (
             'Failed to send email. Please try again later.',
             { cause: error }
         )
+    }
+}
+
+export const verifyEmailTransport = async (): Promise<void> => {
+    try {
+        await transporter.verify()
+        logger.info(`Email transport ready (${emailConfig.host}:${emailConfig.port})`)
+    } catch (error) {
+        logger.error('Email transport verification failed', {
+            smtpHost: emailConfig.host,
+            smtpPort: emailConfig.port,
+            error: error instanceof Error
+                ? error.message
+                : String(error)
+        })
     }
 }

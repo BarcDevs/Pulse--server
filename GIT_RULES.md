@@ -9,6 +9,7 @@
 
 ## Commit Rules
 - **ALWAYS ask before committing** — never auto-commit
+- **Exception - records (user decision 2026-09-21):** a commit that ONLY records a correction or decision (`corrections/`, `decisions/` and their `index.md` rows) is made in the same turn as the correction, as a `docs` commit, without asking and without waiting for a "commit" instruction. Every session, not just this one. It does not extend to any other change.
 - Don't run /commit skill on small fixes, formatting or docs changing
 - Always ask before invoking /commit
 - Never jump ahead to commit without being asked
@@ -17,10 +18,12 @@
 - **Never claim commit succeeded without running actual `git commit`** — /caveman-commit is drafting only
 - When committing after review fixes: include original work scope, not just the fix
 - Use branches for features/fixes
+- **Every separate piece of work gets its own branch.** At the start of any new piece of work, check `git branch --show-current`; if it is not a branch for that work, create one (`rfc/<topic>`, `feat/<topic>`, `fix/<topic>` etc.) before the first commit, without waiting to be asked. Never pile unrelated work onto whatever branch happens to be checked out.
 - Conventional commits: `feat`, `fix`, `docs`, `style`, `rfc`, `test`, `chore`. Breaking changes: `feat!:`
 - Think on what the current commit job is before deciding if it either `feat`, `rfc`, `fix`, etc and REPORT BACK your reasoning - Don't just mechanically label as `feat` for everything.
 - *IMPORTANT:* refactor job - always name `rfc` instead of `refactor`!
 - If you're not sure, read `"C:\Users\66bar\OneDrive\documents\Programming\conventional-commits-cheatsheet.md"` for more info
+- **Always push tags** — whenever pushing a branch, also push tags (`git push origin --tags`). The version-bump hook tags every bumped commit locally; unpushed tags leave the remote's versions stale.
 - Atomic commits — one change or fix per commit
 - Claude's plans must never be committed
 - Use /commit skill only when user explicitly invokes it — never on plain "commit"

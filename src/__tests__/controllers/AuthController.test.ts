@@ -58,6 +58,7 @@ describe('AuthController', () => {
                 expect(mockLogin).toHaveBeenCalledWith(
                     'test@test.com',
                     'Password123!',
+                    false,
                     req.ip
                 )
                 expect(res.cookie).toHaveBeenCalledWith(
@@ -72,11 +73,17 @@ describe('AuthController', () => {
                 )
                 expect(res.status)
                     .toHaveBeenCalledWith(HttpStatusCodes.OK)
+                expect(res.json).not.toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: expect.objectContaining({
+                            token: expect.anything()
+                        })
+                    })
+                )
                 expect(res.json).toHaveBeenCalledWith(
                     expect.objectContaining({
                         message: 'user logged in!',
                         data: expect.objectContaining({
-                            token: mockToken,
                             _csrf: expect.any(String)
                         })
                     })
@@ -339,7 +346,7 @@ describe('AuthController', () => {
                 .mockResolvedValue(123456)
 
             const req = createMockRequest({
-                params: {
+                body: {
                     email: 'test@test.com'
                 }
             }) as Request
@@ -364,7 +371,7 @@ describe('AuthController', () => {
             'should throw validation error for invalid email',
             async () => {
                 const req = createMockRequest({
-                    params: {
+                    body: {
                         email: 'invalid-email'
                     }
                 }) as Request

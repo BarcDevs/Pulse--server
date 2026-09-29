@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
 
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { createToken } from '../lib/authCrypto'
 import {
+    getCookiesOptions,
     sanitizeUserData,
     updateUserData,
     updateUserPassword
@@ -59,6 +61,13 @@ export const updatePassword = async (
         validatedData.newPassword
     )
 
+    // The password change revokes every existing token, this one included
+    res.cookie(
+        'accessToken',
+        createToken(updatedUser),
+        getCookiesOptions(false)
+    )
+
     successResponse<{user: UserType}>(
         res,
         { user: sanitizeUserData(updatedUser) },
@@ -80,7 +89,7 @@ export const deleteUser = async (
     successResponse(
         res,
         null,
-        'User account deactivated successfully',
+        'Account scheduled for deletion',
         HttpStatusCodes.OK
     )
 }

@@ -30,6 +30,32 @@ describe('Sanitization Middleware', () => {
             }
         )
 
+        it(
+            'should leave password fields untouched',
+            () => {
+                const password = `a<b>&"'c1<script>x</script>`
+                const req = createMockRequest({
+                    body: {
+                        password,
+                        currentPassword: password,
+                        newPassword: password,
+                        content: '<script>alert(1)</script>Hello'
+                    }
+                }) as Request
+
+                const res = createMockResponse() as unknown as Response
+                const next = createMockNext()
+
+                sanitizeData(req, res, next)
+
+                expect(req.body.password).toBe(password)
+                expect(req.body.currentPassword).toBe(password)
+                expect(req.body.newPassword).toBe(password)
+                expect(req.body.content).not.toContain('<script>')
+                expect(next).toHaveBeenCalled()
+            }
+        )
+
         it('should sanitize nested objects', () => {
             const req = createMockRequest({
                 body: {

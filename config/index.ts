@@ -38,7 +38,7 @@ const authConfig: AuthConfig = {
 
 if (authConfig.jwtSecret.length < 32) {
     throw new Error(
-        'JWT_SECRET is missing or too short (min 32 chars) — refusing to start'
+        'JWT_SECRET is missing or too short (min 32 chars), refusing to start'
     )
 }
 
@@ -51,7 +51,9 @@ const emailConfig: EmailConfig = {
     port: config.get<number>('email.port'),
     secure: config.get<boolean>('email.secure'),
     emailUser: config.get<string>('email.emailUser'),
-    emailPass: config.get<string>('email.emailPass')
+    emailPass: config.get<string>('email.emailPass'),
+    emailFrom: config.get<string>('email.emailFrom'),
+    supportEmail: config.get<string>('email.supportEmail')
 }
 
 const googleOAuthConfig: GoogleOAuthConfig = {
@@ -61,9 +63,11 @@ const googleOAuthConfig: GoogleOAuthConfig = {
     clientSecret: config.get<string>(
         'googleOAuth.clientSecret'
     ),
-    redirectUri: config.get<string>(
-        'googleOAuth.redirectUri'
-    ),
+    redirectUri: config.get<string>('googleOAuth.redirectUri')
+        .replace(/\{protocol}/g, serverConfig.protocol)
+        .replace(/\{host}/g, serverConfig.host)
+        .replace(/\{port}/g, serverConfig.port.toString())
+        .replace(/\{apiVersion}/g, serverConfig.apiVersion),
     clientUrl: config.get<string>(
         'googleOAuth.clientUrl'
     )
@@ -95,6 +99,9 @@ const aiGenerationConfig: AIGenerationConfig = {
     ),
     temperature: config.get<number>(
         'aiGeneration.temperature'
+    ),
+    timeoutMs: config.get<number>(
+        'aiGeneration.timeoutMs'
     )
 }
 

@@ -230,6 +230,28 @@ describe('Auth Service', () => {
             }
         )
 
+        it(
+            'should remove email-change and internal account fields from user data',
+            () => {
+                const mockUser = createMockUser({
+                    pendingEmail: 'new@example.com',
+                    emailChangeOTP: 123456,
+                    emailChangeExpiration: new Date(),
+                    googleId: 'google-sub-id',
+                    active: true
+                })
+
+                const sanitized = sanitizeUserData(mockUser)
+
+                expect(sanitized).not.toHaveProperty('pendingEmail')
+                expect(sanitized).not.toHaveProperty('emailChangeOTP')
+                expect(sanitized)
+                    .not.toHaveProperty('emailChangeExpiration')
+                expect(sanitized).not.toHaveProperty('googleId')
+                expect(sanitized).not.toHaveProperty('active')
+            }
+        )
+
         it('should keep public fields', () => {
             const mockUser = createMockUser()
 
@@ -335,12 +357,54 @@ describe('Auth Service', () => {
 
     // ==================== login ====================
     describe('login', () => {
+        it('restores an account pending deletion', async () => {
+            const mockUser = createMockUser({
+                active: false,
+                deletedAt: new Date()
+            })
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+
+            await login('test@test.com', 'Password123!', false)
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith({
+                where: { id: mockUser.id },
+                data: {
+                    active: true,
+                    deletedAt: null,
+                    passwordUpdatedAt: expect.any(Date)
+                }
+            })
+        })
+
+        it('does not restore a pending-deletion account on a wrong password', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser({
+                    active: false,
+                    deletedAt: new Date()
+                }) as never)
+
+            await expect(
+                login('test@test.com', 'WrongPassword1', false)
+            ).rejects.toThrow()
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
+        it('does not touch an active account', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser() as never)
+
+            await login('test@test.com', 'Password123!', false)
+
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
         it('propagates DB error from getUserByEmail', async () => {
             prismaMock.user.findUnique
                 .mockRejectedValue(new Error('DB error'))
 
             await expect(
-                login('test@test.com', 'Password123!')
+                login('test@test.com', 'Password123!', false)
             ).rejects.toThrow('DB error')
         })
 
@@ -353,7 +417,8 @@ describe('Auth Service', () => {
 
                 const token = await login(
                     'test@test.com',
-                    'Password123!'
+                    'Password123!',
+                    false
                 )
 
                 expect(token).toBeDefined()
@@ -368,7 +433,7 @@ describe('Auth Service', () => {
                     .mockResolvedValue(null as never)
 
                 await expect(
-                    login('notfound@test.com', 'Password123!')
+                    login('notfound@test.com', 'Password123!', false)
                 )
                     .rejects
                     .toThrow('Invalid credentials! please try again!')
@@ -383,7 +448,7 @@ describe('Auth Service', () => {
                     .mockResolvedValue(mockUser as never)
 
                 await expect(
-                    login('test@test.com', 'WrongPassword')
+                    login('test@test.com', 'WrongPassword', false)
                 )
                     .rejects
                     .toThrow('Invalid credentials! please try again!')
@@ -400,7 +465,7 @@ describe('Auth Service', () => {
                 prismaMock.user.findUnique
                     .mockResolvedValue(mockUser as never)
 
-                await login('test@test.com', 'Password123!')
+                await login('test@test.com', 'Password123!', false)
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -418,7 +483,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue(null as never)
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -436,7 +501,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue('America/New_York')
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .not.toHaveBeenCalled()
@@ -456,7 +521,7 @@ describe('Auth Service', () => {
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue('America/New_York')
 
-                await login('test@test.com', 'Password123!', '1.2.3.4')
+                await login('test@test.com', 'Password123!', false, '1.2.3.4')
 
                 expect(prismaMock.profile.update)
                     .toHaveBeenCalledWith(
@@ -471,6 +536,23 @@ describe('Auth Service', () => {
 
     // ==================== signup ====================
     describe('signup', () => {
+        it('rejects an email held by an account pending deletion', async () => {
+            prismaMock.user.findUnique
+                .mockResolvedValue(createMockUser({
+                    active: false,
+                    deletedAt: new Date()
+                }) as never)
+
+            await expect(signup({
+                firstName: 'John',
+                lastName: 'Doe',
+                username: 'johndoe',
+                email: 'test@test.com',
+                password: 'Password123!'
+            })).rejects.toThrow('User already exists!')
+            expect(prismaMock.user.create).not.toHaveBeenCalled()
+        })
+
         it(
             'should create user with hashed password',
             async () => {

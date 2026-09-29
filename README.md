@@ -7,7 +7,7 @@ Recovery tracking API with AI-powered behavioral insights and community features
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
 
-[🌐 Live API](https://pulse-rehab.vercel.app) · [📱 Frontend Repo](https://github.com/BarcDevs/Pulse--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
+[🌐 Live API](https://pulserehab.app/api/status) · [📱 Frontend Repo](https://github.com/BarcDevs/Pulse--client) · [📋 Technical PRD](docs/TECHNICAL_PRD.md)
 
 ---
 
@@ -211,7 +211,7 @@ graph TD
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
 | active | Boolean | Account status |
-| deleted_at | DateTime | Optional, soft delete |
+| deleted_at | DateTime | Set on account deletion; hard-deleted 30 days later unless the user logs back in |
 
 ### Profile
 | Field | Type | Notes |
@@ -359,6 +359,47 @@ graph TD
 
 All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_VERSION` env var, defaults to `v1`). Full interactive documentation is available at `/api-docs` in development.
 
+### Error Responses
+
+The server is language-agnostic — error `message` is always English (for logs/Swagger/dev
+display only). Every error response also carries a stable `code` for the client to drive its own
+translation table, plus optional `params` for interpolating dynamic values (e.g. a resource name).
+
+```jsonc
+{
+  "message": "Post not found! please check your inputs and try again!",
+  "error": [
+    {
+      "statusType": "Not Found",
+      "statusCode": 404,
+      "code": "NOT_FOUND",
+      "params": { "resource": "Post" },
+      "error": "Post not found! please check your inputs and try again!"
+    }
+  ]
+}
+```
+
+Codes are fixed per error-factory method, not per resource — `NOT_FOUND` covers every resource
+type via `params.resource`, so the client's translation table doesn't grow as new resources are
+added server-side. Full list (`src/constants/errorCodes.ts`):
+
+| Code | Meaning |
+|---|---|
+| `AUTH_GENERIC` | Generic auth failure |
+| `AUTH_CREDENTIALS` | Invalid login credentials |
+| `AUTH_UNAUTHORIZED` | Not authenticated |
+| `AUTH_FORBIDDEN` | Authenticated but not permitted |
+| `AUTH_RESET_PASSWORD` | Password reset failed |
+| `AUTH_CONFLICT` | Auth-related conflict (e.g. email/username already in use) |
+| `AUTH_OAUTH` | Google OAuth failure |
+| `NOT_FOUND` | Resource not found (`params.resource` names it) |
+| `CONFLICT` | Generic resource conflict |
+| `VALIDATION_GENERIC` | Generic input validation failure |
+| `VALIDATION_OTP` | Invalid OTP |
+| `VALIDATION_ZOD` | Schema validation failure (`params.property` names the field) |
+| `INTERNAL_ERROR` | Unhandled server error |
+
 ### Authentication
 
 **Postman Collection:** [`postman/Pulse-Auth.collection.json`](postman/Pulse-Auth.collection.json)
@@ -370,8 +411,9 @@ All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_V
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `GET` | `/api/{version}/auth/logout` | Cookie | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
-| `GET` | `/api/{version}/auth/forgot-password/:email` | — | 5/15min | Send password reset OTP to email |
+| `POST` | `/api/{version}/auth/forgot-password` | — | 5/15min | Send password reset OTP to email |
 | `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
+| `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
 **Password Requirements:**
@@ -425,6 +467,14 @@ All endpoints are prefixed with `/api/{version}` (configurable via `SERVER_API_V
 | `DELETE` | `/api/{version}/profile/activities/:slug` | Cookie + CSRF | Remove activity preference |
 | `GET` | `/api/{version}/profile/list/health-interests` | — | List all available health interests |
 | `GET` | `/api/{version}/profile/list/activities` | — | List all available activity preferences |
+
+### Support
+
+**Postman Collection:** [`postman/Pulse-Support.collection.json`](postman/Pulse-Support.collection.json)
+
+| Method | Endpoint | Auth | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Email a message to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required |
 
 ### Recovery Goals *(protected)*
 
@@ -545,6 +595,8 @@ this stack: see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 The client (separate EC2+Docker instance) is the public front door at
 [pulserehab.app](https://pulserehab.app), proxying `/api/:path*` to this server over
 the private VPC — this server is no longer hit directly on the root path.
+The client also serves the legal pages (`/privacy`, `/terms`) and their downloadable PDFs as
+static files; the server has no endpoints for them.
 
 ### Required Environment Variables
 
@@ -569,7 +621,7 @@ Every push to `development` auto-deploys `Pulse--server-staging`, isolated from 
 
 | Property | Value |
 |---|---|
-| URL | https://pulse-server-staging-thrx.onrender.com |
+| URL | https://pulse-server-staging-thrx.onrender.com, https://pulse-owgg.onrender.com |
 | Branch | `development` |
 | Render project/env | Project **Pulse** → Environment **Staging** (prod lives in **Production**) |
 | Database | Neon branch `staging` (copy-on-write snapshot of `main` taken at branch creation — does not live-sync, drifts independently) |

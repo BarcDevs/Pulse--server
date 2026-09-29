@@ -31,6 +31,22 @@ health_check() {
     return 1
 }
 
+# Gate helpers, kept as functions so src/__tests__/scripts/ec2-redeploy.test.ts
+# can source this file (REDEPLOY_SOURCE_ONLY=1) and exercise them without AWS/docker.
+# Extracts pending migration names from `prisma migrate status` output on stdin.
+pending_migration_names() {
+    sed -n '/have not yet been applied/,/^$/p' | grep -oE '^[0-9]{8,}_?[A-Za-z0-9_]*$' || true
+}
+
+# Exit 0 if the migration SQL on stdin drops or renames a column/table.
+is_destructive_sql() {
+    grep -qiE 'DROP (COLUMN|TABLE)|RENAME (COLUMN|TABLE)'
+}
+
+if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
+    return 0
+fi
+
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR"
 
 docker pull "$ECR/$REPO:runner-$IMAGE_TAG"
@@ -48,6 +64,7 @@ GOOGLE_FREE_AI_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" 
 OPENAI_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/OPENAI_API_KEY --query SecretString --output text)
 GOOGLE_CLIENT_ID=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_ID --query SecretString --output text)
 GOOGLE_CLIENT_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_SECRET --query SecretString --output text)
+RESEND_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/RESEND_API_KEY --query SecretString --output text)
 
 # Expand/contract gate: destructive migrations (dropped/renamed columns or
 # tables) must ship in a separate release after the code that stops reading
@@ -60,11 +77,11 @@ GOOGLE_CLIENT_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --
 MIGRATE_STATUS=$(docker run --rm -e DATABASE_URL="$DATABASE_URL" "$ECR/$REPO:migrate-$IMAGE_TAG" \
     npx prisma migrate status --schema=prisma/schema.prisma 2>&1 || true)
 echo "$MIGRATE_STATUS"
-PENDING_NAMES=$(echo "$MIGRATE_STATUS" | sed -n '/have not yet been applied/,/^$/p' | grep -oE '^[0-9]{8,}_?[A-Za-z0-9_]*$' || true)
+PENDING_NAMES=$(echo "$MIGRATE_STATUS" | pending_migration_names)
 
 for name in $PENDING_NAMES; do
     SQL=$(docker run --rm "$ECR/$REPO:migrate-$IMAGE_TAG" sh -c "cat prisma/migrations/$name/migration.sql 2>/dev/null" || true)
-    if echo "$SQL" | grep -qiE 'DROP (COLUMN|TABLE)|RENAME (COLUMN|TABLE)'; then
+    if echo "$SQL" | is_destructive_sql; then
         echo "Destructive migration ($name) detected — refusing automated deploy. Apply manually under a maintenance window." >&2
         exit 1
     fi
@@ -85,6 +102,7 @@ RUN_ARGS=(
     -e OPENAI_API_KEY="$OPENAI_API_KEY"
     -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID"
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
+    -e EMAIL_PASSWORD="$RESEND_API_KEY"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 

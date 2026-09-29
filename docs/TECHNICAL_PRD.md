@@ -381,10 +381,25 @@ API Prefix: /api/{version} (configurable via SERVER_API_VERSION env var, default
 **Error Response**:
 ```json
 {
-  "message": "User-friendly error message",
-  "error": "error_code_or_description"
+  "message": "Post not found! please check your inputs and try again!",
+  "error": [
+    {
+      "statusType": "Not Found",
+      "statusCode": 404,
+      "code": "NOT_FOUND",
+      "params": { "resource": "Post" },
+      "error": "Post not found! please check your inputs and try again!"
+    }
+  ]
 }
 ```
+
+Server stays language-agnostic — `message`/`error[].error` are always English (logs/Swagger/dev
+fallback only). `error[].code` is a stable, client-facing code the client uses to drive its own
+translation table; `params` carries interpolation values (e.g. which resource was missing). Codes
+are fixed per error-factory method, not per resource, so the client's translation table doesn't
+grow every time a new resource type is added server-side. Full code list and shape:
+[`README.md` → Error Responses](../README.md#error-responses).
 
 ### Auth Endpoints — /api/{version}/auth
 
@@ -409,6 +424,8 @@ API Prefix: /api/{version} (configurable via SERVER_API_VERSION env var, default
 **POST /change-email** — Auth + CSRF — `{ newEmail, password }` → 200, sends OTP to new address
 
 **POST /confirm-email-change** — Auth + CSRF — `{ OTP }` → 200, atomically updates email
+
+**POST /verify-reset-code** — `{ email, userOTP }` → 200 (checks the code without consuming it; wrong code counts toward the attempt limit; unknown email gets the same 400)
 
 **PUT /reset-password** — `{ email, newPassword, userOTP }` → 200 User
 
@@ -445,6 +462,10 @@ Response 200: { summary, trend (improving|declining|stable|mixed), highlights, p
 Cached 10 minutes per time window. Falls back to static template if AI fails.
 ```
 
+### Support Endpoints — /api/{version}/support
+
+**POST /contact** — Public (optional auth, no CSRF), 5 req/15min/IP — `{ topic, message, email? }` → 200 `{ message: 'Support message sent' }`. `topic` is one of account/billing/technical/privacy/careTeam/feedback/other; `message` 1-2000 chars; `email` required when logged out (a signed-in user's account email is used instead). Delivered via `sendEmail` to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
+
 ### Users Endpoints — /api/{version}/users
 
 **PATCH /me** — Update identity fields (auth + CSRF)
@@ -458,6 +479,17 @@ Note: bio, location, image, timezone are Profile fields — use PATCH /profile i
 ```
 Request: { currentPassword, newPassword }
 Response 200: User
+Note: revokes every older session; this device gets a fresh accessToken cookie
+```
+
+**DELETE /me** — Delete account (auth + CSRF)
+```
+Response 200: null, clears auth cookies
+Note: deactivates now and sets deleted_at; a daily job hard-deletes after 30 days
+(cascades to profile, check-ins, insights, goals, posts, replies, likes). Logging back
+in (password or Google) within 30 days restores the account. The email and username
+stay taken until the purge. Replies and posts of a pending-deletion account are hidden.
+Immediate deletion: via support.
 ```
 
 ### Profile Endpoints — /api/{version}/profile
@@ -730,6 +762,7 @@ Fallback to deterministic template if AI fails
 
 2. **Data Privacy**: Health data requires strict security and compliance
    - Mitigation: Encryption at rest/transit, clear privacy policy, HIPAA-readiness roadmap
+   - Client-side: the privacy policy and terms are static client pages with pre-generated downloadable PDFs (`public/legal/` in the client repo); no server endpoint is involved
 
 3. **AI Accuracy**: Insights must be meaningful and non-harmful
    - Mitigation: Extensive testing, explicit "supportive not medical" framing, human review
@@ -780,7 +813,7 @@ Fallback to deterministic template if AI fails
 - Render is preview/staging only now, not production — production moved fully to AWS
 
 ### Development Workflow
-- Branch per feature/fix → PR into `development` → PR from `development` into `main` (never feature branch straight to `main`)
+- Branch per feature/fix → local merge into `development` → PR from `development` into `main` (never feature branch straight to `main`)
 - Pull requests for code review
 - Automated tests run on PR (typecheck, lint, unit, integration)
 - Merge to `main` (through the CI-gated `development` → `main` hop) triggers automated production deploy via GitHub Actions OIDC + SSM — see `docs/DEPLOYMENT.md`

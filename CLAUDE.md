@@ -4,8 +4,8 @@ Pulse Server — Node.js/Express TypeScript backend for a health/wellness forum 
 Architecture: MVC — Controller → Service → Model → Database.
 
 ## Model Selection
-- **Haiku**: sub-agents, file lookups, search queries, simple edits (<50 lines), code explanation, formatting fixes, style enforcement
-- **Sonnet/Opus**: complex debugging, architecture decisions, multi-file refactors, reasoning-heavy tasks
+- **Sonnet**: default for execution and all sub-agents: file lookups, search queries, edits, refactors, tests, style enforcement, code explanation
+- **Opus** (via `/opusplan`): planning, architecture decisions, complex debugging, reasoning-heavy tasks
 
 ## Token Efficiency
 - Grep/Glob over Bash find/ls/grep. Read with offset+limit when line known.
@@ -20,8 +20,12 @@ Architecture: MVC — Controller → Service → Model → Database.
 **Before coding:** State assumptions. Ask when uncertain — don't implement until 95% confident. Surface tradeoffs. If multiple interpretations exist, present them — don't pick silently.
 **Simplicity:** Minimum code that solves the problem. No extra features, abstractions, flexibility, or impossible-scenario handling. 200 lines that could be 50 → rewrite.
 **Surgical:** Touch only what you must. Don't improve adjacent code. Match existing style. Mention unrelated dead code — don't delete it. Remove only imports/vars YOUR changes made unused.
-**Learn from mistakes:** Save feedback memory on any correction or confirmed non-obvious choice. User should never repeat the same correction. Check memory before similar work.
 **Goal-driven:** Define success criteria before starting. For multi-step tasks, state a plan: `1. [step] → verify: [check]`. Loop until verified.
+
+## Shared Checkouts & Other Sessions
+Another Claude session may be working in this repo, on the same branch or in a sibling worktree. Check `ListAgents` for a busy session before touching git state.
+**Before any merge, rebase, checkout, reset, stash, or branch/worktree deletion in a checkout another session may be using, message that session first and wait for its reply.** Never leave the shared tree mid-operation (unresolved merge, mid-rebase). Path-scoped commits (`git commit -- <paths>`) of files you changed are fine without asking. The user naming a session to coordinate with is not the same as it owning the work: confirm who actually owns a worktree before merging or pruning it.
+**Close out worktrees when done:** when the work in a worktree is finished, merge its branch into the integration branch per the project's branch flow (`development`, or `main` where there is none), then `git worktree remove` it and delete the merged branch (`git branch -d`) in the same session — never leave a finished worktree or an unmerged branch behind. Treat a branch as merged only when `git cherry <integration-branch> <branch>` shows no `+` lines.
 
 ## Repo-Visible Decisions & Corrections Log
 Alongside auto-memory (cross-session, not repo-visible), this repo tracks two parallel trees any
@@ -29,8 +33,8 @@ collaborator/agent can read, each shaped `index.md` + `<topic>.md` files + `arch
 - `decisions/` — architecture/technical decisions made during sessions, with reasoning (problem, decision, why over alternatives, how to apply).
 - `corrections/` — corrections or confirmed preferences given to Claude during sessions (Claude's mistakes, user corrections to Claude's behavior/claims). Not app-generated user feedback.
 **Read both `index.md` files at the start of every new session** — load-bearing context, same tier as this file. Topic files are loaded on demand, not routinely.
-**Write immediately, same turn as the correction/decision.** Don't wait for the user to ask "did you save that." Missing one is a bug.
-**Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place.
+**Write immediately, same turn as the correction/decision** — don't wait to be asked, and commit the record right away as its own `docs` commit (records exception under Git & Commits).
+**Supersession = move, not append-in-place** — moved to `archive/<topic>.md`, not edited in place. The archived entry keeps its original heading and full text verbatim, plus a one-line "archived <date> — why" tag; never replace the content with just a reason.
 
 ## File Structure
 See `docs/STRUCTURE.md` for the full directory layout and subdirectory rules.
@@ -61,6 +65,9 @@ Two build-time gotchas specific to this stack, worth knowing before touching
 - RDS enforces SSL by default — `DATABASE_URL` needs `?uselibpqcompat=true&sslmode=require`
   appended, or connections fail with a misleading "denied access" error from Prisma.
 
+## Local Dev Database
+Local dev DB is Neon only (`DEV_DATABASE_URL` in `.env`). The local app and local scripts (seeds, etc.) never run against RDS — don't offer RDS as a local target, and keep `DATABASE_URL` (RDS) commented out in `.env`. RDS is deployed infra only.
+
 ## Project Roadmap
 [Pulse Roadmap](https://www.notion.so/Pulse-Development-Timeline-3129e15469d28100be18df6e1ce0a984?source=copy_link)
 
@@ -83,8 +90,10 @@ Integration tests (`npm run test:integration`) need Postgres on `localhost:5433`
 **Read `GIT_RULES.md` before committing or when instructed to commit.** Do not skip it.
 Full rules there. Key constraint: never invoke `/commit` skill on small fixes, formatting, or docs changes — use plain `git commit` for those.
 
+**Exception - records (user decision 2026-09-21):** a record of a correction or decision (files under `corrections/` or `decisions/` and their `index.md` rows) is committed in the same turn as the correction, as its own `docs` commit, WITHOUT asking and without waiting for a "commit" instruction. Saying "I will commit those from now on" in chat is worthless - this rule is what makes it stick. It applies to every session and does not extend to any other change.
+
 **Branch flow: feature-branch → development → PR to main. NEVER skip `development`.**
-Every feature/fix branch merges into `development` first, via PR. Only `development` gets PR'd into `main`. Never open a PR straight from a feature branch to `main`, even if asked to "PR it to main" — branch off `development`, PR into `development`, and let `development`'s own PR carry it to `main`.
+Every feature/fix branch reaches `development` by a local merge (or fast-forward push) plus `--tags`, never a PR. The only PR is `development` → `main`, and only when asked. Never open a PR straight from a feature branch to `main`, even if asked to "PR it to main" — merge it into `development` and let `development`'s own PR carry it to `main`.
 
 ## graphify
 

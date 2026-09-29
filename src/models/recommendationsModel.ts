@@ -8,7 +8,7 @@ import type {
 } from '../types/data/RecommendationType'
 import Prisma from '../utils/prismaClient'
 
-import { postInclude } from './queries/postQuery'
+import { anonymizeAuthor, postInclude } from './queries/postQuery'
 
 export const saveSnapshot = async (
     userId: string,
@@ -149,17 +149,20 @@ export const getCandidatePosts = async (
         whereConditions.push(searchCondition)
     }
 
-    return (
-        await Prisma.post.findMany({
-            where: {
-                author: { user: { active: true } },
-                ...(whereConditions.length > 0 && {
-                    OR: whereConditions
-                })
-            },
-            take: limit,
-            orderBy: { createdAt: 'desc' },
-            include: postInclude('multiple')
-        })
-    ) as unknown as PostType[]
+    const posts = await Prisma.post.findMany({
+        where: {
+            author: { user: { active: true } },
+            ...(whereConditions.length > 0 && {
+                OR: whereConditions
+            })
+        },
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: postInclude('multiple')
+    })
+
+    return posts.map((post) => ({
+        ...post,
+        author: anonymizeAuthor(post.author)
+    })) as unknown as PostType[]
 }

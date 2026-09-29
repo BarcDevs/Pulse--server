@@ -12,7 +12,8 @@ import {
     logout,
     me,
     resetPassword,
-    signup
+    signup,
+    verifyResetCode
 } from '../controllers/authController'
 import {
     csrfMiddleware,
@@ -327,18 +328,22 @@ router.route('/me').get(
 
 /**
  * @swagger
- * /auth/forgot-password/{email}:
- *   get:
+ * /auth/forgot-password:
+ *   post:
  *     summary: Request a password reset OTP via email
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *           format: email
- *         description: The account email address to send the OTP to
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The account email address to send the OTP to
  *     responses:
  *       200:
  *         description: OTP sent to email
@@ -365,11 +370,50 @@ router.route('/me').get(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // OTP-based endpoints don't require CSRF - stateless validation via OTP
+// POST (not GET/QUERY): sends an email + writes the DB, a side effect, so it must be non-idempotent-safe
 router
-    .route('/forgot-password/:email')
-    .get(
+    .route('/forgot-password')
+    .post(
         otpRateLimiter,
         forgotPassword
+    )
+
+/**
+ * @swagger
+ * /auth/verify-reset-code:
+ *   post:
+ *     summary: Check a password-reset OTP without consuming it
+ *     description: Step 2 of the reset flow. A wrong code counts toward the same attempt limit as the reset; an unknown email gets the same error as a wrong code.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, userOTP]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               userOTP:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Code is valid
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+// OTP-based endpoints don't require CSRF - stateless validation via OTP
+router
+    .route('/verify-reset-code')
+    .post(
+        otpRateLimiter,
+        verifyResetCode
     )
 
 /**

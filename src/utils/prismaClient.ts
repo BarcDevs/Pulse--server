@@ -5,7 +5,6 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { databaseConfig, isDev } from '../../config'
 import { PrismaClient } from '../../prisma/generated/prisma/client'
 
-import withNeonRetry from './devPrismaClient'
 import logger from './logger'
 
 let client: PrismaClient
@@ -42,8 +41,7 @@ export const getPrismaClient = (): PrismaClient => {
                     : undefined
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        client = isDev ? withNeonRetry(baseClient) as any : baseClient
+        client = baseClient
 
         logger.info(
             `Prisma client initialized. Database connected to ${isDev ? 'dev' : 'prod'} database`

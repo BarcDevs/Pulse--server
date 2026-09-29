@@ -1,5 +1,6 @@
 import * as googleAuthLib from 'google-auth-library'
 
+import { ErrorCodes } from '../../constants/errorCodes'
 import { AuthError } from '../../errors/AuthError'
 import { getTimezoneFromIp } from '../../lib/geoLocation'
 import * as authModel from '../../models/authModel'
@@ -46,7 +47,7 @@ jest.mock('../../../config', () => ({
 
 jest.mock('../../models/authModel', () => ({
     ...jest.requireActual('../../models/authModel'),
-    getUserByEmail: jest.fn(),
+    getUserByEmailAnyStatus: jest.fn(),
     getUserByUsername: jest.fn()
 }))
 jest.mock('../../utils/logger', () => ({
@@ -199,7 +200,7 @@ describe('GoogleOAuthService', () => {
         })
 
         it('re-throws AuthError directly without wrapping', async () => {
-            const authErr = new AuthError('Email not provided by Google', undefined, 'OAuth Error', 401)
+            const authErr = new AuthError('Email not provided by Google', ErrorCodes.AUTH_OAUTH, undefined, 'OAuth Error', 401)
             mockVerifyIdToken.mockRejectedValue(authErr)
 
             await expect(fetchGoogleProfile('id-token')).rejects.toBe(authErr)
@@ -208,6 +209,27 @@ describe('GoogleOAuthService', () => {
 
     // ==================== findOrCreateUser ====================
     describe('findOrCreateUser', () => {
+        it('restores an account pending deletion when found by googleId', async () => {
+            const existingUser = createMockUser({
+                id: 'google-user-id',
+                active: false,
+                deletedAt: new Date()
+            })
+            prismaMock.user.findUnique.mockResolvedValue(existingUser as never)
+
+            await findOrCreateUser(mockGoogleProfile)
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: 'google-user-id' },
+                    data: expect.objectContaining({
+                        active: true,
+                        deletedAt: null
+                    })
+                })
+            )
+        })
+
         it('returns user when found by googleId', async () => {
             const existingUser = createMockUser({ id: 'google-user-id' })
             prismaMock.user.findUnique.mockResolvedValue(existingUser as never)
@@ -218,10 +240,10 @@ describe('GoogleOAuthService', () => {
             expect(prismaMock.user.create).not.toHaveBeenCalled()
         })
 
-        it('links googleId to existing email user when no googleId match', async () => {
-            const emailUser = createMockUser({ id: 'email-user-id' })
+        it('links googleId to existing email user when no googleId match and email is verified', async () => {
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: new Date() })
             prismaMock.user.findUnique.mockResolvedValue(null as never)
-            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(emailUser as never)
             prismaMock.user.update.mockResolvedValue({ ...emailUser, googleId: mockGoogleProfile.googleId } as never)
             prismaMock.profile.findUnique.mockResolvedValue({ image: null } as never)
             prismaMock.profile.update.mockResolvedValue({} as never)
@@ -232,10 +254,21 @@ describe('GoogleOAuthService', () => {
             expect(prismaMock.user.update).toHaveBeenCalled()
         })
 
+        it('refuses to link and throws AuthError when existing email user is unverified', async () => {
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: null })
+            prismaMock.user.findUnique.mockResolvedValue(null as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(emailUser as never)
+
+            await expect(
+                findOrCreateUser(mockGoogleProfile)
+            ).rejects.toThrow(AuthError)
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
         it('creates new user when no existing match found', async () => {
             const newUser = createMockUser({ id: 'new-user-id' })
             prismaMock.user.findUnique.mockResolvedValue(null as never)
-            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(null as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(null as never)
             jest.spyOn(authModel, 'getUserByUsername').mockResolvedValue(null as never)
             prismaMock.user.create.mockResolvedValue(newUser as never)
             prismaMock.profile.create.mockResolvedValue({} as never)
@@ -249,7 +282,7 @@ describe('GoogleOAuthService', () => {
         it('throws AuthError when all username generation attempts are exhausted', async () => {
             const existingUser = createMockUser()
             prismaMock.user.findUnique.mockResolvedValue(null as never)
-            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(null as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(null as never)
             // All attempts (base + 10 retries) return a taken username
             jest.spyOn(authModel, 'getUserByUsername')
                 .mockResolvedValue(existingUser as never)
@@ -261,7 +294,7 @@ describe('GoogleOAuthService', () => {
 
         it('propagates transaction error when createGoogleUser fails', async () => {
             prismaMock.user.findUnique.mockResolvedValue(null as never)
-            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(null as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(null as never)
             jest.spyOn(authModel, 'getUserByUsername').mockResolvedValue(null as never)
             prismaMock.user.create.mockRejectedValue(new Error('DB error'))
 
@@ -271,9 +304,9 @@ describe('GoogleOAuthService', () => {
         })
 
         it('propagates transaction error when linkGoogleId fails', async () => {
-            const emailUser = createMockUser({ id: 'email-user-id' })
+            const emailUser = createMockUser({ id: 'email-user-id', emailVerifiedAt: new Date() })
             prismaMock.user.findUnique.mockResolvedValue(null as never)
-            jest.spyOn(authModel, 'getUserByEmail').mockResolvedValue(emailUser as never)
+            jest.spyOn(authModel, 'getUserByEmailAnyStatus').mockResolvedValue(emailUser as never)
             prismaMock.user.update.mockRejectedValue(new Error('DB error'))
 
             await expect(

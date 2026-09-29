@@ -23,6 +23,8 @@ type EmailConfig = {
     secure: boolean
     emailUser: string
     emailPass: string
+    emailFrom: string
+    supportEmail: string
 }
 
 type AuthConfig = {
@@ -54,6 +56,7 @@ type AIConfig = {
 type AIGenerationConfig = {
     maxOutputTokens: number
     temperature: number
+    timeoutMs: number
 }
 
 type LoggingConfig = {

@@ -17,6 +17,7 @@ jest.mock('../../routes/forumRoute', () => 'forumRoute')
 jest.mock('../../routes/insightRoute', () => 'insightRoute')
 jest.mock('../../routes/profileRoute', () => 'profileRoute')
 jest.mock('../../routes/recoveryGoalRoute', () => 'recoveryGoalRoute')
+jest.mock('../../routes/supportRoute', () => 'supportRoute')
 jest.mock('../../routes/userRoute', () => 'userRoute')
 
 describe('/dev route gating', () => {
@@ -41,20 +42,20 @@ describe('/dev route gating', () => {
         return mockApp
     }
 
-    it('mounts /dev in non-production environments', () => {
+    it('mounts /api/{version}/dev in non-production environments', () => {
         const app = mountRoutes('development')
 
         expect(app.use).toHaveBeenCalledWith(
-            '/dev',
+            '/api/v1/dev',
             'devRoute'
         )
     })
 
-    it('does not mount /dev in production', () => {
+    it('does not mount /api/{version}/dev in production', () => {
         const app = mountRoutes('production')
 
         expect(app.use).not.toHaveBeenCalledWith(
-            '/dev',
+            '/api/v1/dev',
             expect.anything()
         )
     })

@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "pulse - Support",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4001" },
+    { "key": "apiVersion", "value": "v1" }
+  ],
+  "item": [
+    {
+      "name": "Happy Path",
+      "item": [
+        {
+          "name": "Contact Support (logged out)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200))",
+                  "pm.test('message', () => pm.expect(pm.response.json().message).to.eql('Support message sent'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "contact"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"topic\": \"technical\", \"message\": \"The dashboard will not load\", \"email\": \"visitor@example.com\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Missing Email (logged out)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', () => pm.response.to.have.status(400))"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "contact"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"topic\": \"other\", \"message\": \"hello\"}"
+            }
+          }
+        },
+        {
+          "name": "Invalid Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', () => pm.response.to.have.status(400))"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "contact"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"topic\": \"nope\", \"message\": \"hello\", \"email\": \"visitor@example.com\"}"
+            }
+          }
+        },
+        {
+          "name": "Empty Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', () => pm.response.to.have.status(400))"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "contact"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"topic\": \"other\", \"message\": \"   \", \"email\": \"visitor@example.com\"}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

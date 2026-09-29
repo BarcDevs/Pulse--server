@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import { ErrorCodes } from '../../constants/errorCodes'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { AuthError } from '../../errors/AuthError'
 import { NotFoundError } from '../../errors/NotFoundError'
@@ -16,7 +17,10 @@ describe('errorHandler Middleware', () => {
         it(
             'should return serialized AuthError with correct status code',
             () => {
-                const error = new AuthError('Unauthorized access!')
+                const error = new AuthError(
+                    'Unauthorized access!',
+                    ErrorCodes.AUTH_UNAUTHORIZED
+                )
                 const req = createMockRequest() as Request
                 const res = createMockResponse() as unknown as Response
                 const next = createMockNext()
@@ -45,6 +49,7 @@ describe('errorHandler Middleware', () => {
             () => {
                 const error = new ValidationError(
                     'Invalid email format',
+                    ErrorCodes.VALIDATION_GENERIC,
                     'email'
                 )
                 const req = createMockRequest() as Request
@@ -76,6 +81,7 @@ describe('errorHandler Middleware', () => {
             () => {
                 const error = new NotFoundError(
                     'Post not found!',
+                    ErrorCodes.NOT_FOUND,
                     undefined,
                     'Not Found',
                     HttpStatusCodes.NOT_FOUND
@@ -102,6 +108,7 @@ describe('errorHandler Middleware', () => {
             () => {
                 const error = new AuthError(
                     'Unauthorized!',
+                    ErrorCodes.AUTH_UNAUTHORIZED,
                     undefined,
                     'Unauthorized',
                     HttpStatusCodes.UNAUTHORIZED
@@ -123,6 +130,7 @@ describe('errorHandler Middleware', () => {
             () => {
                 const error = new AuthError(
                     'User already exists!',
+                    ErrorCodes.AUTH_CONFLICT,
                     'email',
                     'Conflict',
                     HttpStatusCodes.CONFLICT

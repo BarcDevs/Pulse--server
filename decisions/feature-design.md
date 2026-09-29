@@ -23,6 +23,32 @@ context in this topic — not routinely.
 
 ---
 
+## 27/09/2026 — Error-code granularity: per-factory-method, not per-resource
+
+**Problem:** Implementing the locked 2026-09-15 error-code decision (server stays language-agnostic,
+client owns translation table) required picking a code shape for ~75 `errorFactory.*` call sites,
+notably `errorFactory.generic.notFound('Post'|'Milestone'|'Goal'|'User'|...)` — 15+ open-ended
+resource names passed as dynamic English text.
+
+**Decision:** One fixed `code` per factory method (e.g. `NOT_FOUND`, `AUTH_UNAUTHORIZED`,
+`VALIDATION_GENERIC`) — ~13 codes total — rather than a distinct code per resource
+(`NOT_FOUND_POST`, `NOT_FOUND_MILESTONE`, ...). The resource/property name moves to a
+`params: Record<string, string>` field on the error (e.g. `params: { resource: 'Post' }`) for
+client-side interpolation, alongside the existing English `message` (kept as-is, diagnostics only).
+
+**Why over per-resource codes:** per-resource codes would mean a new client translation entry
+every time a new resource type is added server-side — open-ended and easy to silently miss. Fixed
+codes + `params` keep the client's translation table bounded and resource-agnostic.
+
+**How to apply:** `src/constants/errorCodes.ts` is the single source of truth for the code set —
+add a new code only when a genuinely new *category* of error is introduced (new factory method),
+never per resource/entity. `CustomError` and all four subclasses take `code` as their 2nd
+constructor arg and an optional `params` as their last; `serializeErrors()` includes both. Code:
+`src/errors/`, `src/errors/factory/`, `src/middlewares/errorHandler.ts` (fallback uses
+`INTERNAL_ERROR`). Docs: `README.md#error-responses`, `docs/TECHNICAL_PRD.md`, client `README.md`.
+
+---
+
 ## 13/04/2026 — Goals/Milestones stats endpoint: streak definition and schema
 
 **Streak definition (chosen):** consecutive calendar days with >=1 completion event (goal OR milestone combined) — not "consecutive completions in sequence," which is meaningless once a user has multiple goals running at once. Aligns with habit-formation psychology and stays stable for coaching logic across multiple goals. Code: `src/lib/checkInStats.ts`, `src/controllers/recoveryGoalController.ts`.

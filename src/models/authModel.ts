@@ -29,10 +29,12 @@ export const getUserById = async (id: string):
     return user as ServerUserType
 }
 
-export const getUserByEmail = async (
+// Includes deactivated (pending-deletion) accounts: login restores them and
+// the email stays taken until the purge
+export const getUserByEmailAnyStatus = async (
     email: string
-): Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findUnique({
+): Promise<ServerUserType | null> =>
+    await Prisma.user.findUnique({
         where: {
             email
         },
@@ -48,27 +50,25 @@ export const getUserByEmail = async (
                 }
             }
         }
-    })
+    }) as ServerUserType | null
 
-    if (!user || !user.active) return null
+export const getUserByEmail = async (
+    email: string
+): Promise<ServerUserType | null> => {
+    const user = await getUserByEmailAnyStatus(email)
 
-    return user as ServerUserType
+    return user?.active ? user : null
 }
 
+// Availability check only, so deactivated accounts still hold their username
 export const getUserByUsername = async (
     username: string
-): Promise<ServerUserType | null> => {
-    const user =
-        await Prisma.user.findUnique({
-            where: {
-                username
-            }
-        })
-
-    if (!user || !user.active) return null
-
-    return user as ServerUserType
-}
+): Promise<ServerUserType | null> =>
+    await Prisma.user.findUnique({
+        where: {
+            username
+        }
+    }) as ServerUserType | null
 
 export const createUser = async (
     newUser: NewUserType
@@ -184,13 +184,41 @@ export const updatePassword = (
         }
     }) as Promise<ServerUserType>
 
+export const markEmailVerified = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            emailVerifiedAt: new Date(Date.now())
+        }
+    }) as Promise<ServerUserType>
+
 export const disableUser = (id: string): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
             id
         },
         data: {
-            active: false
+            active: false,
+            deletedAt: new Date(Date.now())
+        }
+    }) as Promise<ServerUserType>
+
+// Cancels a pending deletion. Bumping passwordUpdatedAt keeps tokens issued
+// before the deletion revoked (see getSessionUserId).
+export const restoreUser = (id: string): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            active: true,
+            deletedAt: null,
+            passwordUpdatedAt: new Date(Date.now())
         }
     }) as Promise<ServerUserType>
 
@@ -230,7 +258,8 @@ export const updateEmail = (
             email: newEmail,
             pendingEmail: null,
             emailChangeOTP: null,
-            emailChangeExpiration: null
+            emailChangeExpiration: null,
+            emailVerifiedAt: new Date(Date.now())
         }
     }) as Promise<ServerUserType>
 
@@ -248,18 +277,14 @@ export const linkGoogleId = (
         }
     }) as Promise<ServerUserType>
 
-export const getUserByGoogleId = async (
+export const getUserByGoogleIdAnyStatus = async (
     googleId: string
-): Promise<ServerUserType | null> => {
-    const user = await Prisma.user.findUnique({
+): Promise<ServerUserType | null> =>
+    await Prisma.user.findUnique({
         where: {
-            googleId,
-            active: true
+            googleId
         }
-    })
-
-    return user as ServerUserType | null
-}
+    }) as ServerUserType | null
 
 export const createGoogleUser = async (
     data: NewUserType & {
@@ -276,7 +301,8 @@ export const createGoogleUser = async (
                     username: data.username,
                     email: data.email,
                     password: data.password,
-                    googleId: data.googleId
+                    googleId: data.googleId,
+                    emailVerifiedAt: new Date(Date.now())
                 }
             })
 
@@ -307,7 +333,8 @@ export const linkGoogleAccount = async (
                     active: true
                 },
                 data: {
-                    googleId
+                    googleId,
+                    emailVerifiedAt: new Date(Date.now())
                 }
             })
 

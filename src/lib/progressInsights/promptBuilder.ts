@@ -36,7 +36,9 @@ export const buildProgressInsightPrompt = (
     const constraintText = `Generate a concise progress summary in 2 to 4 sentences
     that describes the week's overall trend direction and key changes.
     Reference the provided metrics. Do not provide medical advice.
-    Do not invent data. Tone should be neutral and supportive.`
+    Do not invent data. Tone should be neutral and supportive.
+    Do not show your reasoning, drafts, alternatives, or revisions.
+    Output ONLY the final message text, with nothing before or after it.`
 
     return `${constraintText}\n\n${metricsText}\n\n${improvementsText}\n${regressionsText}`
 }

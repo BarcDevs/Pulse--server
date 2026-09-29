@@ -1,5 +1,6 @@
 import type { ZodError } from 'zod'
 
+import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 
 import { CustomError } from './CustomError'
@@ -9,11 +10,16 @@ export class ValidationError extends CustomError {
 
     statusType = 'Validation Error'
 
+    code: string
+
     constructor(
         message: string,
-        private property?: string
+        code: string,
+        private property?: string,
+        params?: Record<string, string>
     ) {
-        super(message)
+        super(message, params)
+        this.code = code
 
         Object.setPrototypeOf(this, ValidationError.prototype)
     }
@@ -31,7 +37,9 @@ export class ValidationError extends CustomError {
 
         throw new ValidationError(
             issue.message,
-            errorProperty
+            ErrorCodes.VALIDATION_ZOD,
+            errorProperty,
+            { property: errorProperty }
         )
     }
 
@@ -40,6 +48,8 @@ export class ValidationError extends CustomError {
             {
                 statusType: this.statusType,
                 statusCode: this.statusCode,
+                code: this.code,
+                params: this.params,
                 error: this.message,
                 property: this.property
             }

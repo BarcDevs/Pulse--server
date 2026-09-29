@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 
 import { serverConfig } from '../../../config'
 import {
+    checkInMutationRateLimiter,
     loginRateLimiter,
     rateLimiter,
     sharePostRateLimiter
@@ -73,6 +74,77 @@ describe('Rate Limiting Middleware', () => {
             await sharePostRateLimiter(req, res, next)
 
             expect(next).toHaveBeenCalled()
+        })
+    })
+
+    describe('checkInMutationRateLimiter', () => {
+        it('should be defined', () => {
+            expect(checkInMutationRateLimiter).toBeDefined()
+        })
+
+        it('should be a function (middleware)', () => {
+            expect(typeof checkInMutationRateLimiter).toBe('function')
+        })
+
+        it('should call next for the first check-in mutation', async () => {
+            const req = createMockRequest({
+                ip: '127.0.0.1',
+                userId: 'check-in-rate-limit-user',
+                method: 'POST',
+                originalUrl: `/api/${serverConfig.apiVersion}/check-in`
+            }) as Request
+
+            const res = createMockResponse() as unknown as Response
+            res.setHeader = jest.fn()
+            const next = createMockNext()
+
+            await checkInMutationRateLimiter(req, res, next)
+
+            expect(next).toHaveBeenCalled()
+        })
+    })
+
+    describe('checkInMutationRateLimiter behavior (real implementation)', () => {
+        const { checkInMutationRateLimiter: realCheckInMutationRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            const res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            }
+            return res as unknown as unknown as Response
+        }
+
+        it('should rate limit independently per user for the same IP', async () => {
+            const ip = '10.0.0.5'
+
+            await realCheckInMutationRateLimiter(
+                createMockRequest({ ip, userId: 'check-in-user-a' }) as Request,
+                createRateLimitMockResponse(),
+                createMockNext()
+            )
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realCheckInMutationRateLimiter(
+                createMockRequest({ ip, userId: 'check-in-user-b' }) as Request,
+                res,
+                next
+            )
+
+            expect(next).toHaveBeenCalled()
+            expect(res.status).not.toHaveBeenCalled()
         })
     })
 

@@ -223,10 +223,15 @@
             }
           ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/forgot-password/{{email}}",
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/forgot-password",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -234,9 +239,12 @@
                 "api",
                 "{{apiVersion}}",
                 "auth",
-                "forgot-password",
-                "{{email}}"
+                "forgot-password"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{email}}\"}"
             }
           },
           "response": []

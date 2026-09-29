@@ -76,7 +76,7 @@ jobs:
             > /tmp/ssm-params.json
 
           CMD_ID=$(aws ssm send-command \
-            --instance-ids i-0df518d8572bfcfd6 \
+            --targets Key=tag:Name,Values=pulse-server \
             --document-name AWS-RunShellScript \
             --parameters file:///tmp/ssm-params.json \
             --timeout-seconds 900 \
@@ -88,10 +88,25 @@ jobs:
         run: |
           # Budget: image pulls + migration + blue/green health checks (up to ~2 min
           # of curl polling alone) can comfortably exceed 5 minutes on a cold cache.
+          # Targeted by tag (the ASG replaces the instance), so resolve which instance
+          # actually received the command.
+          INSTANCE_ID=None
+          for i in $(seq 1 12); do
+            INSTANCE_ID=$(aws ssm list-command-invocations \
+              --command-id "${{ steps.deploy.outputs.command_id }}" \
+              --region eu-central-1 \
+              --query "CommandInvocations[0].InstanceId" --output text)
+            [ "$INSTANCE_ID" != "None" ] && break
+            sleep 5
+          done
+          if [ "$INSTANCE_ID" = "None" ]; then
+            echo "No instance matched the pulse-server tag."
+            exit 1
+          fi
           for i in $(seq 1 90); do
             STATUS=$(aws ssm get-command-invocation \
               --command-id "${{ steps.deploy.outputs.command_id }}" \
-              --instance-id i-0df518d8572bfcfd6 \
+              --instance-id "$INSTANCE_ID" \
               --region eu-central-1 \
               --query "Status" --output text 2>/dev/null || echo "Pending")
             echo "status: $STATUS"
@@ -100,13 +115,13 @@ jobs:
               echo "--- stdout ---"
               aws ssm get-command-invocation \
                 --command-id "${{ steps.deploy.outputs.command_id }}" \
-                --instance-id i-0df518d8572bfcfd6 \
+                --instance-id "$INSTANCE_ID" \
                 --region eu-central-1 \
                 --query "StandardOutputContent" --output text
               echo "--- stderr ---"
               aws ssm get-command-invocation \
                 --command-id "${{ steps.deploy.outputs.command_id }}" \
-                --instance-id i-0df518d8572bfcfd6 \
+                --instance-id "$INSTANCE_ID" \
                 --region eu-central-1 \
                 --query "StandardErrorContent" --output text
               exit 1

@@ -300,6 +300,11 @@ describe('User Routes', () => {
                     'Password updated successfully'
                 )
                 expect(response.body.data.user).toBeDefined()
+                // Old tokens are revoked, so this device gets a fresh one
+                expect(response.headers['set-cookie'])
+                    .toEqual(expect.arrayContaining([
+                        expect.stringMatching(/^accessToken=/)
+                    ]))
             }
         )
 
@@ -528,7 +533,10 @@ describe('User Routes', () => {
             expect(prismaMock.user.update)
                 .toHaveBeenCalledWith({
                     where: { id: mockUser.id },
-                    data: { active: false }
+                    data: {
+                        active: false,
+                        deletedAt: expect.any(Date)
+                    }
                 })
 
             const cookies = response.headers['set-cookie'] as string[]

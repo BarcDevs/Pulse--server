@@ -62,6 +62,29 @@ else if ('$bumpType' === 'patch') { p++ }
 console.log(\`\${m}.\${n}.\${p}\`)
 " 2>/dev/null)
 
+# Tag collision: a parallel branch already bumped to the same version and took
+# its tag. Re-apply the bump on top of the highest existing v* tag instead, so
+# every bumped commit gets a unique version + tag.
+if [ -n "$newVer" ] && git rev-parse -q --verify "refs/tags/v$newVer" > /dev/null; then
+    takenVer="$newVer"
+    newVer=$(TAGS="$(git tag -l 'v*')" node -e "
+const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]
+const top = process.env.TAGS.split('\n')
+    .map((t) => t.trim().replace(/^v/, '').split('.').map(Number))
+    .filter((v) => v.length === 3 && v.every(Number.isInteger))
+    .sort(cmp)
+    .pop()
+let [m, n, p] = top
+
+if ('$bumpType' === 'major') { m++; n = 0; p = 0 }
+else if ('$bumpType' === 'minor') { n++; p = 0 }
+else if ('$bumpType' === 'patch') { p++ }
+
+console.log(\`\${m}.\${n}.\${p}\`)
+" 2>/dev/null)
+    echo "post-commit: v$takenVer already tagged (parallel branch), using $newVer"
+fi
+
 if [ -z "$newVer" ]; then
     exit 1
 fi

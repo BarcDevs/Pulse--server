@@ -16,6 +16,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 10/04/2026 | Reflective Feedback / Bad Day Support intervention system: known design tradeoffs |
 | 13/04/2026 | Goals/Milestones stats endpoint: streak definition and schema |
 | 10/08/2026 | Check-in gap detection for intervention feedback |
+| 27/09/2026 | Error-code granularity: per-factory-method, not per-resource |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -33,6 +34,20 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 |---|---|
 | 13/08/2026 | Single EC2 instance has no automated recovery (flagged as CRITICAL TODO), with 02/09/2026 capacity/rightsizing/IP-stability follow-up |
 | 07/09/2026 | Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified) |
+| 13/09/2026 | Fixed EOL Docker base (bullseye→bookworm) + Node 20→24 bump; root-caused intermittent prod latency to a leftover, permission-denied ECS agent baked into the instance's AMI — disabled |
+| 16/09/2026 | GCP project consolidation verified + completed — old `healease`/`gen-lang-client-0064017105` projects deleted |
+| 28/09/2026 | H4: Cloudflare Tunnel on the client box replaces Flexible SSL + public origin (over Origin CA + reverse proxy) |
+| 26/09/2026 | Keep production on RDS, not Neon — private in-VPC DB; ~$15/mo saving not worth the architecture trade-off |
+| 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
+| 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
+
+## Security & Privacy — [[decisions/security]]
+Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.
+
+| Date | Entry |
+|---|---|
+| 28/09/2026 | Security audit follow-up: owner positions on H1 (no signup verification), M2 (deactivate-only), M4 (per-user limit), L1 (QUERY rejected), L7 (password policy) |
+| 28/09/2026 | Account deletion = 30-day countdown + support for immediate; Google links only into verified local accounts |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

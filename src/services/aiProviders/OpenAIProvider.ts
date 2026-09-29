@@ -45,7 +45,10 @@ export class OpenAIProvider extends AIProvider {
                     ],
                     max_completion_tokens:
                         aiGenerationConfig.maxOutputTokens
-                })
+                }),
+                signal: AbortSignal.timeout(
+                    aiGenerationConfig.timeoutMs
+                )
             }
         )
 
@@ -58,7 +61,7 @@ export class OpenAIProvider extends AIProvider {
                 // Intentionally suppress JSON parse errors
             }
             logger.error(
-                `OpenAI API request failed: ${response.status} — ${errorMsg}`
+                `OpenAI API request failed: ${response.status} - ${errorMsg}`
             )
             throw new Error(
                 `Failed to generate content from OpenAI: ${response.status}`
