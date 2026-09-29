@@ -18,7 +18,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | H2 | High | `/auth/me` returned `emailChangeOTP` → email-change ownership bypass | FIXED (branch `security/audit-followup`) |
 | H3 | High | `anonymousParticipation` (default true, UI: "Hide your identity") never enforced; public forum returns real first/last name + `user.id`; search by author name | FIXED 28/09 — `anonymizeAuthor` masks identity on every post/reply read path; name-based search removed |
 | H4 | High | Cloudflare SSL mode **Flexible** → Cloudflare→origin is plaintext HTTP | FIXED 28/09 — Cloudflare Tunnel, client SG has no public 80/443 (`decisions/deployment-and-infra.md`) |
-| H5 | High | Server SG port 80 "open" + public IP + `trust proxy 1` → direct API access, `X-Forwarded-For` spoofing bypasses login/OTP rate limits | FIXED — verified 28/09: server SG 80 allows only the client SG |
+| H5 | High | Server SG port 80 "open" + public IP + `trust proxy 1` → direct API access, `X-Forwarded-For` spoofing bypasses login/OTP rate limits | FIXED — verified 28/09: server SG 80 allows only the client SG |
 | H6 | High | 5 failed confirm-email codes marked the email verified, bypassing the H1 Google-link rule (found 30/09 by the client audit session) | FIXED 30/09 |
 | M1 | Med | No session revocation: logout/password change/reset/deactivation leave the 7d JWT valid; token also returned in login body | FIXED 28/09 — per-request check of `active` + `passwordUpdatedAt` vs `iat`; JWT lifetime follows remember-me; token cookie-only. Logout stays device-local |
 | M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | FIXED 29/09 — 30-day countdown + daily purge, login restores, replies hidden, email/username kept until purge |
@@ -32,7 +32,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | FIXED |
 | L5 | Low | Logout is `GET` without CSRF | FIXED |
 | L6 | Low | App runs with RDS master credentials | OPEN |
-| L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | DECIDED (see below) |
+| L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | FIXED |
 | L8 | Low | Reply body has no max length | FIXED |
 | L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | OPEN |
 | L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | OPEN |
