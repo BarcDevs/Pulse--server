@@ -32,7 +32,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L5 | Low | Logout is `GET` without CSRF | OPEN |
 | L6 | Low | App runs with RDS master credentials | OPEN |
 | L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | DECIDED (see below) |
-| L8 | Low | Reply body has no max length | OPEN |
+| L8 | Low | Reply body has no max length | FIXED |
 | L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | OPEN |
 | L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | OPEN |
 | L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | OPEN |
