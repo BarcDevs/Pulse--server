@@ -4,9 +4,9 @@
 
 Details, file:line refs and decisions per id in `docs/SECURITY-AUDIT.md`.
 
-- **Verify prod email works.** `ec2-redeploy.sh` never passes `EMAIL_*`, and
-  `config/production.ts` sets port 587 + `secure: true` — reset/change-email mail may be
-  broken. Check first: H1's recovery path depends on password reset.
+All cleared 29/09/2026 (server `b308d17`, client `b62caa9` in production). Last item, prod
+email, verified: startup log shows `Email transport ready (smtp.resend.com:465)` and a real
+password reset (email -> code -> new password) worked end to end.
 
 ## LOW PRIORITY (non-blocking)
 

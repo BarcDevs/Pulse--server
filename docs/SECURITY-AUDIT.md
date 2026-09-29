@@ -40,7 +40,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
 | L14 | Low | Prisma error messages (may include query args) go to server logs | OPEN |
 
-Informational: prod CORS fallback origin `pulse-client.vercel.app`; swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query; free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2; **prod email config (`EMAIL_*`) not passed by `ec2-redeploy.sh` and `production.ts` sets port 587 + `secure: true` — reset/change-email mail may be broken in prod**; dead code (`constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
+Informational: prod CORS fallback origin `pulse-client.vercel.app`; swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query; free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2; prod email config (FIXED 29/09: Resend settings are config defaults, the key comes from Secrets Manager; verified in prod with a real password reset); dead code (`constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
 
 Full evidence, file:line refs, positives and data-flow map: see the audit report in session
 `https://claude.ai/code/session_01Df9dZW4kdBjucJjvRtbqaY`. Key refs are repeated per finding below
