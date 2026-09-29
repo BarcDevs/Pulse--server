@@ -134,8 +134,13 @@
             "disableBodyPruning": true
           },
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "",

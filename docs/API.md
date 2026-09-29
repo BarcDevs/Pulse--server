@@ -160,7 +160,8 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
 
 ---
 
-### `GET /logout`
+### `POST /logout`
+> CSRF required (`x-csrf-token` header), so another site can't log the user out
 
 **Response `200`**
 ```json
