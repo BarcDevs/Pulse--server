@@ -1,3 +1,4 @@
+import { POST_LIMITS } from '../../constants/forum/postLimits'
 import { newPostSchema } from '../../schemas/forum/newPostSchema'
 import { newReplySchema } from '../../schemas/forum/newReplySchema'
 import { postQuerySchema } from '../../schemas/forum/postQuerySchema'
@@ -177,6 +178,14 @@ describe('Forum Schemas', () => {
 
             expect(result.error).toBeDefined()
         })
+
+        it('should reject body over the post body cap', () => {
+            const result = newReplySchema.safeParse({
+                body: 'a'.repeat(POST_LIMITS.MAX_BODY_LENGTH + 1)
+            })
+
+            expect(result.error).toBeDefined()
+        })
     })
 
     // ==================== UPDATE REPLY SCHEMA ====================
@@ -193,6 +202,14 @@ describe('Forum Schemas', () => {
             const result = updateReplySchema.safeParse({})
 
             expect(result.error).toBeUndefined()
+        })
+
+        it('should reject body over the post body cap', () => {
+            const result = updateReplySchema.safeParse({
+                body: 'a'.repeat(POST_LIMITS.MAX_BODY_LENGTH + 1)
+            })
+
+            expect(result.error).toBeDefined()
         })
     })
 
