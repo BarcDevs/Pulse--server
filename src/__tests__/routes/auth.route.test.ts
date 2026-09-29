@@ -768,20 +768,35 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 401 for non-existent user',
+            'should answer a non-existent user exactly like a wrong OTP',
             async () => {
-                prismaMock.user.findUnique.mockResolvedValue(
-                    null
-                )
+                const mockUser = createMockUser()
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce({
+                        ...mockUser,
+                        confirmEmailOTP: 123456,
+                        confirmEmailExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    } as never)
 
-                const response = await supertest(App)
+                const unknown = await supertest(App)
                     .post(confirmEmailEndpoint)
                     .send({
                         email: 'nonexistent@test.com',
-                        OTP: 123456
+                        OTP: 999999
+                    })
+                const wrongCode = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        OTP: 999999
                     })
 
-                expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+                expect(unknown.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(unknown.status).toBe(wrongCode.status)
+                expect(unknown.body).toEqual(wrongCode.body)
             }
         )
 
@@ -1306,21 +1321,37 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 200 for non-existent email (user enumeration safety)',
+            'should answer a non-existent email exactly like a wrong code (user enumeration safety)',
             async () => {
-                prismaMock.user.findUnique.mockResolvedValue(
-                    null
-                )
+                const mockUser = createMockUser()
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce({
+                        ...mockUser,
+                        resetPasswordOTP: 123456,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    } as never)
 
-                const response = await supertest(App)
+                const unknown = await supertest(App)
                     .put(resetPasswordEndpoint)
                     .send({
                         email: 'nonexistent@test.com',
                         newPassword: 'NewPassword456!',
-                        userOTP: 123456
+                        userOTP: 999999
+                    })
+                const wrongCode = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        newPassword: 'NewPassword456!',
+                        userOTP: 999999
                     })
 
-                expect(response.status).toBe(HttpStatusCodes.OK)
+                expect(unknown.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(unknown.status).toBe(wrongCode.status)
+                expect(unknown.body).toEqual(wrongCode.body)
             }
         )
 

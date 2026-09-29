@@ -220,7 +220,7 @@ Clears the `accessToken` cookie.
 }
 ```
 
-**Errors:** `400` invalid or expired OTP
+**Errors:** `400` invalid or expired OTP, or unknown email (same response, to prevent user enumeration)
 
 **Security Note:** CSRF not required (stateless OTP validation)
 
@@ -331,7 +331,7 @@ Step 2 of the reset flow: checks the code without consuming it, so the client ca
 
 **Errors:** `400` invalid or expired OTP
 
-**Security Note:** CSRF not required (stateless OTP validation) · Returns 200 for both existent and non-existent emails to prevent user enumeration
+**Security Note:** CSRF not required (stateless OTP validation) · A non-existent email gets the same `400` as a wrong code, to prevent user enumeration
 
 ---
 
