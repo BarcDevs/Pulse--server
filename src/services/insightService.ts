@@ -1,3 +1,4 @@
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 import { generateInsightForCheckIn } from './insightGenerationService'
@@ -17,9 +18,7 @@ export const generateInsightSafely = async (
             {
                 userId,
                 checkInId,
-                error: err instanceof Error
-                    ? err.message
-                    : 'Unknown error'
+                error: toLoggableError(err)
             }
         )
     }

@@ -9,6 +9,7 @@ import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { CustomError } from '../errors/CustomError'
 import type { ResponseType } from '../types/responseType'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 export const errorHandler = (
@@ -18,9 +19,7 @@ export const errorHandler = (
     _next: NextFunction
 ) => {
     logger.error('Unhandled error caught', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name,
+        ...toLoggableError(err),
         method: req.method,
         route: req.originalUrl
     })
