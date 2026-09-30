@@ -47,7 +47,7 @@ describe('AuthModel', () => {
     describe('getUserByEmail', () => {
         it('returns user when found and active', async () => {
             const user = createMockUser()
-            prismaMock.user.findUnique.mockResolvedValue(user as never)
+            prismaMock.user.findFirst.mockResolvedValue(user as never)
 
             const result = await authModel.getUserByEmail(user.email)
 
@@ -56,21 +56,26 @@ describe('AuthModel', () => {
 
         it('returns null when user is inactive', async () => {
             const user = createMockUser({ active: false })
-            prismaMock.user.findUnique.mockResolvedValue(user as never)
+            prismaMock.user.findFirst.mockResolvedValue(user as never)
 
             const result = await authModel.getUserByEmail(user.email)
 
             expect(result).toBeNull()
         })
 
-        it('queries by email', async () => {
-            prismaMock.user.findUnique.mockResolvedValue(createMockUser() as never)
+        it('queries by email case-insensitively', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(createMockUser() as never)
 
             await authModel.getUserByEmail('someone@test.com')
 
-            expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+            expect(prismaMock.user.findFirst).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { email: 'someone@test.com' }
+                    where: {
+                        email: {
+                            equals: 'someone@test.com',
+                            mode: 'insensitive'
+                        }
+                    }
                 })
             )
         })

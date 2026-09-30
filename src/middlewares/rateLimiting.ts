@@ -62,7 +62,7 @@ export const loginRateLimiter = rateLimit({
         'Too many login attempts, please try again after 15 minutes',
     keyGenerator: (req) => {
         const ip = ipKeyGenerator(req.ip ?? '')
-        const email = req.body?.email ?? ''
+        const email = String(req.body?.email ?? '').toLowerCase()
         return `${ip}:${email}`
     }
 })

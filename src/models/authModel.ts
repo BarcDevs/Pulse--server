@@ -30,13 +30,18 @@ export const getUserById = async (id: string):
 }
 
 // Includes deactivated (pending-deletion) accounts: login restores them and
-// the email stays taken until the purge
+// the email stays taken until the purge. Case-insensitive, so accounts saved
+// before emails were lowercased still match and a case variant can't take an
+// existing address
 export const getUserByEmailAnyStatus = async (
     email: string
 ): Promise<ServerUserType | null> =>
-    await Prisma.user.findUnique({
+    await Prisma.user.findFirst({
         where: {
-            email
+            email: {
+                equals: email,
+                mode: 'insensitive'
+            }
         },
         include: {
             profile: {

@@ -12,7 +12,7 @@ export const signupSchema = z.object({
         .max(30, 'Username must be 30 characters or fewer')
         .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
         .optional(),
-    email: z.email('Email is required'),
+    email: z.email('Email is required').toLowerCase(),
     password: newPasswordField('Password is required')
 })
 
