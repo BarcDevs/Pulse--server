@@ -24,6 +24,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 29/09/2026 | Hand work to the active collaborator session, not one picked by name; a "queued" send is not a confirmed hand-off |
 | 29/09/2026 | Verify who owns commits (Claude-Session trailer) before routing a report; if no owner is provable, apply the fallback and fix it |
 | 29/09/2026 | Only `development` → `main` goes through a PR; feature branch → `development` is a direct merge, no PR |
+| 30/09/2026 | A new migration isn't done until it's applied to the Neon dev DB (`prisma migrate deploy`, then `migrate status` clean) |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
