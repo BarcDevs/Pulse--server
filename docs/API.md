@@ -438,6 +438,43 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 
 ---
 
+### `POST /me/delete-code`
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes per user
+
+Emails a 6-digit code to the account's address. Deleting the account requires it, so a stolen
+session alone can't delete the account; it also works for Google-only users, who have no known
+password.
+
+**Response `200`**
+```json
+{ "message": "Verification code sent to your email address!", "data": { "OTP": null } }
+```
+`OTP` is only filled in development.
+
+**Errors:** `401` not authenticated · `429` too many codes requested
+
+---
+
+### `DELETE /me`
+> Auth + CSRF required
+
+Deactivates the account now; it's permanently deleted after 30 days unless the user logs back in.
+
+**Body**
+| Field | Type   | Required | Description                        |
+|-------|--------|----------|------------------------------------|
+| `OTP` | number | yes      | Code from `POST /me/delete-code`   |
+
+**Response `200`**
+```json
+{ "message": "Account scheduled for deletion", "data": null }
+```
+Clears the auth cookies.
+
+**Errors:** `400` missing, wrong or expired code (5 wrong codes void it) · `401` not authenticated
+
+---
+
 ## Forum — `/api/{version}/forum`
 
 ---

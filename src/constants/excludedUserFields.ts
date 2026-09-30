@@ -14,6 +14,9 @@ export const excludedUserFields: (keyof ServerUserType)[] = [
     'emailChangeOTP',
     'emailChangeExpiration',
     'emailChangeAttempts',
+    'deleteAccountOTP',
+    'deleteAccountExpiration',
+    'deleteAccountAttempts',
     'googleId',
     'active'
 ]

@@ -149,7 +149,10 @@ describe('AuthModel', () => {
                     where: { id: user.id },
                     data: {
                         active: false,
-                        deletedAt: expect.any(Date)
+                        deletedAt: expect.any(Date),
+                        deleteAccountOTP: null,
+                        deleteAccountExpiration: null,
+                        deleteAccountAttempts: 0
                     }
                 })
             )

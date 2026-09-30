@@ -59,6 +59,9 @@ export type ServerUserType = Prettify<
         emailChangeOTP?: number | null
         emailChangeExpiration?: Date | null
         emailChangeAttempts: number
+        deleteAccountOTP?: number | null
+        deleteAccountExpiration?: Date | null
+        deleteAccountAttempts: number
     }
 >
 

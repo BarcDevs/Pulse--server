@@ -209,7 +209,10 @@ export const disableUser = (id: string): Promise<ServerUserType> =>
         },
         data: {
             active: false,
-            deletedAt: new Date(Date.now())
+            deletedAt: new Date(Date.now()),
+            deleteAccountOTP: null,
+            deleteAccountExpiration: null,
+            deleteAccountAttempts: 0
         }
     }) as Promise<ServerUserType>
 
@@ -275,6 +278,37 @@ export const updateEmail = (
             emailChangeExpiration: null,
             emailChangeAttempts: 0,
             emailVerifiedAt: new Date(Date.now())
+        }
+    }) as Promise<ServerUserType>
+
+export const setDeleteAccountOTP = (
+    userId: string,
+    data: {
+        deleteAccountOTP: number | null
+        deleteAccountExpiration: Date | null
+        deleteAccountAttempts: number
+    }
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data
+    }) as Promise<ServerUserType>
+
+export const incrementDeleteAccountAttempts = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            deleteAccountAttempts: {
+                increment: 1
+            }
         }
     }) as Promise<ServerUserType>
 
