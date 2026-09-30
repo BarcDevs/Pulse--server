@@ -272,6 +272,52 @@ describe('Rate Limiting Middleware', () => {
         })
     })
 
+    describe('passwordChangeRateLimiter behavior (real implementation) (L18)', () => {
+        const { passwordChangeRateLimiter: realPasswordChangeRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        it('blocks the 6th attempt by one user even across IPs', async () => {
+            const userId = 'password-change-user'
+            for (let i = 0; i < 5; i++) {
+                const next = createMockNext()
+                await realPasswordChangeRateLimiter(
+                    createMockRequest({ ip: `10.0.18.${i}`, userId }) as Request,
+                    createRateLimitMockResponse(),
+                    next
+                )
+                expect(next).toHaveBeenCalled()
+            }
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realPasswordChangeRateLimiter(
+                createMockRequest({ ip: '10.0.18.99', userId }) as Request,
+                res,
+                next
+            )
+
+            expect(next).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
+        })
+    })
+
     describe('sharePostRateLimiter behavior (real implementation)', () => {
         const { sharePostRateLimiter: realSharePostRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')

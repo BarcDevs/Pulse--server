@@ -35,6 +35,16 @@ export const signupRateLimiter = rateLimit({
         'Too many sign-up attempts from this IP, please try again in an hour'
 })
 
+// Keyed by user so a stolen session can't brute-force the current password
+// from rotating IPs. Runs after isAuthenticated, which sets req.userId
+export const passwordChangeRateLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: isDev ? 100 : 5,
+    keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
+    message:
+        'Too many password change attempts, please try again after 15 minutes'
+})
+
 export const loginRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 10,
