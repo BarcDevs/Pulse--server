@@ -3,6 +3,7 @@ import { writeFileSync } from 'fs'
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
+    deleteAccountTemplate,
     resetPasswordTemplate
 } from '../src/utils/emailTemplates'
 
@@ -13,7 +14,11 @@ const html = [
     divider,
     confirmEmailTemplate(654321),
     divider,
-    changeEmailTemplate(789012)
+    changeEmailTemplate(789012),
+    divider,
+    deleteAccountTemplate(345678),
+    divider,
+    deleteAccountTemplate(345678, 'en')
 ].join('\n')
 
 writeFileSync('email-preview.html', html)
