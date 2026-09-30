@@ -27,6 +27,14 @@ export const otpRateLimiter = rateLimit({
         'Too many OTP requests from this IP, please try again after 15 minutes'
 })
 
+// Stops mass account creation / email squatting from one IP
+export const signupRateLimiter = rateLimit({
+    windowMs: hourInMs,
+    limit: isDev ? 100 : 5,
+    message:
+        'Too many sign-up attempts from this IP, please try again in an hour'
+})
+
 export const loginRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 10,

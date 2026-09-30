@@ -22,7 +22,8 @@ import {
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 import {
     loginRateLimiter,
-    otpRateLimiter
+    otpRateLimiter,
+    signupRateLimiter
 } from '../middlewares/rateLimiting'
 
 const router = Router()
@@ -135,7 +136,10 @@ router.route('/login').post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/signup').post(signup)
+router.route('/signup').post(
+    signupRateLimiter,
+    signup
+)
 
 /**
  * @swagger

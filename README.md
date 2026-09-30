@@ -408,7 +408,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
-| `POST` | `/api/{version}/auth/signup` | — | — | Register new user |
+| `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
