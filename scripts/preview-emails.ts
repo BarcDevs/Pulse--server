@@ -1,5 +1,6 @@
 import { writeFileSync } from 'fs'
 
+import { inlineEmailLogo } from '../src/utils/emailPreview'
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
@@ -21,5 +22,5 @@ const html = [
     deleteAccountTemplate(345678, 'en')
 ].join('\n')
 
-writeFileSync('email-preview.html', html)
+writeFileSync('email-preview.html', inlineEmailLogo(html))
 console.info('email-preview.html generated')
