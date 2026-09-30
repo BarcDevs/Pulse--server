@@ -13,6 +13,7 @@ export abstract class CustomError extends Error implements ICustomError {
     ) {
         super(message)
 
+        this.name = new.target.name
         Object.setPrototypeOf(this, CustomError.prototype)
     }
 
