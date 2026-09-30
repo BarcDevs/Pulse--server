@@ -35,9 +35,11 @@ redeploys) are reused instead — never added to a cloud environment. Working di
    c. **Fix.** Branch off `development` as `fix/monitor-<short-slug>`. Make the minimal
       fix. Run `npm test` and `npm run typecheck` — do not proceed if either fails; fall
       back to notify-only instead. Commit per this repo's `GIT_RULES.md`.
-   c2. **Full review before merge.** Invoke the `/code-review` skill on the branch's diff
-      (code-reviewer, architecture-auditor, duplication-eliminator, security-scanner, then
-      style-enforcer — same as it runs for a human-authored change). Any HIGH/CRITICAL
+   c2. **Full review before merge.** Invoke the local `code-review` skill (via the Skill tool)
+      on the branch's diff — the one that runs code-reviewer, architecture-auditor,
+      duplication-eliminator and security-scanner in parallel, then style-enforcer, i.e.
+      `/commit`'s review without the typecheck/lint/commit steps. NOT the cloud multi-agent
+      `/code-review ultra` (`/ultrareview`): never pass `ultra`, it is user-triggered and billed. Any HIGH/CRITICAL
       finding, or an ESCALATE line → do NOT merge; fall back to notify-only with the
       review findings included, and leave the branch unmerged for manual review instead
       of deleting it. Only a clean review (or one where the review's own auto-fixes were
