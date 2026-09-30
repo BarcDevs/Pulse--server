@@ -8,7 +8,7 @@ set -euo pipefail
 # pulse_app once the secret exists.
 #
 # Run once from a machine with admin AWS credentials:
-#     bash scripts/security/create-app-db-user.sh
+#     bash scripts/security/create-app-db-user.sh   (needs the aws CLI and node; jq only on the box)
 # Safe to re-run: it rotates the pulse_app password and re-applies grants.
 #
 # The password is generated and used inside AWS only: the secret is created
@@ -88,7 +88,7 @@ COMMAND_ID=$(aws ssm send-command \
     --region "$REGION" \
     --instance-ids "$INSTANCE_ID" \
     --document-name AWS-RunShellScript \
-    --parameters "$(jq -n --arg s "$REMOTE_SCRIPT" '{commands: [$s]}')" \
+    --parameters "$(node -e 'process.stdout.write(JSON.stringify({ commands: [process.argv[1]] }))' "$REMOTE_SCRIPT")" \
     --query 'Command.CommandId' --output text)
 
 aws ssm wait command-executed --region "$REGION" --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" || true
