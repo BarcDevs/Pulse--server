@@ -23,9 +23,10 @@ export const createToken = (
     user: ServerUserType,
     remember = false
 ): string => {
+    // Id only: the payload is readable by anyone holding the token, and
+    // nothing reads the email from it
     const payload = {
-        id: user.id,
-        email: user.email
+        id: user.id
     }
     const options: jwt.SignOptions = {
         expiresIn: (remember
