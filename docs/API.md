@@ -53,6 +53,7 @@ Sets `accessToken` and `_csrf` cookies.
 ---
 
 ### `POST /signup`
+> Rate limited: 5 requests per hour per IP
 
 **Body**
 | Field       | Type   | Required | Notes                       |
