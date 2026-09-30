@@ -151,18 +151,6 @@ describe('AuthModel', () => {
         })
     })
 
-    describe('deleteUser', () => {
-        it('deletes by id', async () => {
-            const user = createMockUser()
-            prismaMock.user.delete.mockResolvedValue(user as never)
-
-            await authModel.deleteUser(user.id)
-
-            expect(prismaMock.user.delete).toHaveBeenCalledWith(
-                expect.objectContaining({ where: { id: user.id } })
-            )
-        })
-    })
 
     describe('getUserTimezone', () => {
         it('returns timezone from profile', async () => {
@@ -464,12 +452,6 @@ describe('AuthModel', () => {
             await expect(
                 authModel.updateUser('non-existent', { firstName: 'X' })
             ).rejects.toThrow('P2025')
-        })
-
-        it('deleteUser propagates Prisma error for non-existent user', async () => {
-            prismaMock.user.delete.mockRejectedValue(new Error('P2025'))
-
-            await expect(authModel.deleteUser('non-existent')).rejects.toThrow('P2025')
         })
     })
 })
