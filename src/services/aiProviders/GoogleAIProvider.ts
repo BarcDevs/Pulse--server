@@ -35,12 +35,14 @@ export class GoogleAIProvider extends AIProvider {
 
         const baseUrl = 'https://generativelanguage.googleapis.com'
         const url = `${baseUrl}/v1beta/models/${this.modelId}:generateContent`
-        const urlWithKey = `${url}?key=${this.apiKey}`
 
-        const response = await fetch(urlWithKey, {
+        // Key in a header, not the URL, so it can't end up in proxy or
+        // access logs that record query strings
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-goog-api-key': this.apiKey
             },
             body: JSON.stringify({
                 contents: [

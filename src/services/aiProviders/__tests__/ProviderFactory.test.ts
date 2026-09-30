@@ -80,10 +80,10 @@ describe('createProviderByType', () => {
             await liteProvider.generateContent({ prompt: 'hi' })
             await proProvider.generateContent({ prompt: 'hi' })
 
-            expect(fetchMock.mock.calls[0][0])
-                .toContain('key=test-google-key')
-            expect(fetchMock.mock.calls[1][0])
-                .toContain('key=test-google-key')
+            expect(fetchMock.mock.calls[0][1].headers['x-goog-api-key'])
+                .toBe('test-google-key')
+            expect(fetchMock.mock.calls[1][1].headers['x-goog-api-key'])
+                .toBe('test-google-key')
         }
     )
 
