@@ -10,10 +10,25 @@ set -euo pipefail
 # Usage: pull-prod-logs.sh <since-iso8601>
 # Prints matching error.log lines (JSON, one per line — prod logger uses
 # winston JSON format) with a timestamp >= <since-iso8601> to stdout.
+#
+# Instance id is always resolved live by tag (Name=pulse-server), never
+# hardcoded/env-pinned — the server sits behind an ASG, so the instance can
+# be replaced at any time (same lookup docs/DEPLOYMENT.md uses for manual
+# redeploys).
 
 REGION="eu-central-1"
-INSTANCE_ID="${PULSE_EC2_INSTANCE_ID:?PULSE_EC2_INSTANCE_ID env var required}"
 SINCE="${1:?since ISO8601 timestamp required}"
+
+INSTANCE_ID=$(aws ec2 describe-instances \
+    --region "$REGION" \
+    --filters Name=tag:Name,Values=pulse-server Name=instance-state-name,Values=running \
+    --query 'Reservations[0].Instances[0].InstanceId' \
+    --output text)
+
+if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+    echo "No running instance tagged Name=pulse-server found" >&2
+    exit 1
+fi
 
 REMOTE_CMD="docker exec pulse-app sh -c 'cat logs/error.log 2>/dev/null || true'"
 
