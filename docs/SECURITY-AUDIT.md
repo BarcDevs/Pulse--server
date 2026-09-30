@@ -14,7 +14,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 
 | ID | Sev | Finding | Status |
 |---|---|---|---|
-| H1 | High | No email verification + Google OAuth auto-links by email → pre-account takeover | DECIDED (see below) |
+| H1 | High | No email verification + Google OAuth auto-links by email → pre-account takeover | FIXED 28/09 — Google links only into verified accounts (`emailVerifiedAt`); see also H6 |
 | H2 | High | `/auth/me` returned `emailChangeOTP` → email-change ownership bypass | FIXED (branch `security/audit-followup`) |
 | H3 | High | `anonymousParticipation` (default true, UI: "Hide your identity") never enforced; public forum returns real first/last name + `user.id`; search by author name | FIXED 28/09 — `anonymizeAuthor` masks identity on every post/reply read path; name-based search removed |
 | H4 | High | Cloudflare SSL mode **Flexible** → Cloudflare→origin is plaintext HTTP | FIXED 28/09 — Cloudflare Tunnel, client SG has no public 80/443 (`decisions/deployment-and-infra.md`) |
@@ -24,8 +24,9 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | FIXED 29/09 — 30-day countdown + daily purge, login restores, replies hidden, email/username kept until purge |
 | M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | FIXED |
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | FIXED 29/09 — `checkInMutationRateLimiter` (5/day per `userId`) on `POST`/`PATCH /check-in`; `AbortSignal.timeout` (15s, `aiGeneration.timeoutMs`) on all three provider fetches |
-| M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
-| M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | OPEN |
+| M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | PROBABLY NOT AN ISSUE (30/09, client audit session): Next's rewrite adds no XFF hop, so `trust proxy 1` yields the real IP. Verify: compare `RateLimit-Remaining` on `/api/status` from two networks |
+| M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | FIXED 30/09 (client) — HSTS, frame-ancestors + X-Frame-Options, nosniff, Referrer-Policy enforced on pages; CSP Report-Only (no report endpoint yet) |
+| M7 | Med | Anonymous authors' profile image still returned (found 30/09 by the client audit session) | FIXED 30/09 |
 | L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body. No client change needed: `pulse--client`'s forgot-password/reset-password pages never called the real endpoint (mocked with `setTimeout`, confirmed across full git history) — separate product gap, not a security issue, tracked in client's own TODO |
 | L2 | Low | Enumeration via signup / confirm-email / reset-password responses | FIXED |
 | L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | FIXED |
@@ -40,8 +41,12 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
 | L14 | Low | Prisma error messages (may include query args) go to server logs | FIXED |
+| L15 | Low | `config/default.ts` defaults env to `development`, which returns OTPs in response bodies; prod safe only because `NODE_ENV=production` is set (found 30/09) | OPEN — needs owner decision (fail closed) |
+| L16 | Low | Error handler logged `req.originalUrl`, so failed Google callbacks logged the OAuth code/state (found 30/09) | FIXED 30/09 |
+| L17 | Low | `/auth/signup` has only the global rate limit: mass account creation / email squatting (found 30/09) | OPEN — needs owner decision |
+| L18 | Low | `PATCH /users/password` has no per-user throttle; `confirm-email-change` has no attempts counter; one `otpRateLimiter` bucket is shared by six OTP routes (found 30/09) | OPEN — needs owner decision |
 
-Informational: prod CORS fallback origin `pulse-client.vercel.app`; swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query; free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2; prod email config (FIXED 29/09: Resend settings are config defaults, the key comes from Secrets Manager; verified in prod with a real password reset); dead code (`constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
+Informational: prod CORS fallback origin `pulse-client.vercel.app` (REMOVED 30/09); swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query (FIXED 30/09: `x-goog-api-key` header); free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2 (posts to Vercel hosts off-Vercel; will show as CSP violations); prod email config (FIXED 29/09: Resend settings are config defaults, the key comes from Secrets Manager; verified in prod with a real password reset); dead code (REMOVED 30/09: `constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
 
 Full evidence, file:line refs, positives and data-flow map: see the audit report in session
 `https://claude.ai/code/session_01Df9dZW4kdBjucJjvRtbqaY`. Key refs are repeated per finding below
