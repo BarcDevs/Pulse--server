@@ -90,3 +90,11 @@ Pushed `feat/prod-error-monitor` and started opening a PR into `development`. Us
 CI on `development` broke from the prod error monitor commits (`e3e764c`, `0f4e181`). I first reported it to `aws-monitor`, because an earlier @-mention had named it, and then to my peer `server-security-audit-fixes`. Neither owned the work; the commits carried a `Claude-Session` trailer that matched no session I could name. The user had to step in twice. User: "why aws monitor? he's not related to any of this" and "im tired of being your babysitter".
 
 **Lesson:** before reporting to an "owner", check it: match the commit's `Claude-Session` trailer, or ask one question. If no session can be shown to own it, apply the user's fallback rule (here: "if not, fix it") at once instead of routing it again. In any case, fix CI breaks that block everyone quickly, on a separate branch or worktree that leaves the other session's files alone.
+
+---
+
+## 30/09/2026 — Added migrations without applying them to the dev DB
+
+The H1 fix (28/09) added `20260928191230_add_email_verified_at` and the overnight M3 fix added `20260930020000_add_share_notes_with_ai`. Tests passed because the jest integration setup runs `migrate deploy` on its own Postgres, but the Neon dev DB was never migrated. The user's dev server then failed with "The column `User.emailVerifiedAt` does not exist in the current database." User: "also you forgot to migrate the db".
+
+**Lesson:** a change that adds a migration isn't done until `npx prisma migrate status` against the dev DB (Neon, `DEV_DATABASE_URL`) is clean. Apply it with `npx prisma migrate deploy` in the same step. It only applies additive, pending migrations and never resets. Prod gets it from `ec2-redeploy.sh`; the dev DB gets nothing automatically.
