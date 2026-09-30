@@ -47,6 +47,14 @@ export type AppMessages = {
                 disclaimer: string
             }
         }
+        deleteAccount: {
+            subject: string
+            body: string
+            html: {
+                intro: string
+                disclaimer: string
+            }
+        }
     }
     insights: {
         titles: Record<InsightType, string>

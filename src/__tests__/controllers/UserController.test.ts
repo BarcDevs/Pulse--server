@@ -14,6 +14,13 @@ jest.mock('../../lib/authHelpers')
 jest.mock('../../services/authService')
 
 const USER_ID = 'user-id-123'
+const DELETE_OTP = 123456
+
+const mockUserWithDeleteCode = () => createMockUser({
+    id: USER_ID,
+    deleteAccountOTP: DELETE_OTP,
+    deleteAccountExpiration: new Date(Date.now() + 10 * 60000)
+})
 
 describe('UserController', () => {
     let res: Response
@@ -45,8 +52,12 @@ describe('UserController', () => {
         })
 
         it('deleteUser propagates service error', async () => {
+            jest.spyOn(authService, 'getUser').mockResolvedValue(mockUserWithDeleteCode())
             jest.spyOn(authService, 'deactivateUser').mockRejectedValue(new Error('DB error'))
-            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { OTP: DELETE_OTP }
+            }) as unknown as Request
             await expect(userController.deleteUser(req, res)).rejects.toThrow('DB error')
         })
     })
@@ -130,10 +141,14 @@ describe('UserController', () => {
             ).rejects.toThrow()
         })
 
-        it('calls deactivateUser, clears cookies, returns 204', async () => {
+        it('calls deactivateUser, clears cookies, returns 200 for the right code', async () => {
+            jest.spyOn(authService, 'getUser').mockResolvedValue(mockUserWithDeleteCode())
             jest.spyOn(authService, 'deactivateUser').mockResolvedValue(undefined)
 
-            const req = createMockRequest({ userId: USER_ID }) as unknown as Request
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { OTP: DELETE_OTP }
+            }) as unknown as Request
 
             await userController.deleteUser(req, res)
 
@@ -141,6 +156,34 @@ describe('UserController', () => {
             expect(res.clearCookie).toHaveBeenCalledWith('accessToken')
             expect(res.clearCookie).toHaveBeenCalledWith('_csrf')
             expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.OK)
+        })
+
+        it('does not deactivate on a wrong code', async () => {
+            jest.spyOn(authService, 'getUser').mockResolvedValue(mockUserWithDeleteCode())
+
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { OTP: 999999 }
+            }) as unknown as Request
+
+            await expect(
+                userController.deleteUser(req, res)
+            ).rejects.toThrow()
+            expect(authService.deactivateUser).not.toHaveBeenCalled()
+        })
+
+        it('does not deactivate when no code was requested', async () => {
+            jest.spyOn(authService, 'getUser').mockResolvedValue(createMockUser({ id: USER_ID }))
+
+            const req = createMockRequest({
+                userId: USER_ID,
+                body: { OTP: DELETE_OTP }
+            }) as unknown as Request
+
+            await expect(
+                userController.deleteUser(req, res)
+            ).rejects.toThrow()
+            expect(authService.deactivateUser).not.toHaveBeenCalled()
         })
     })
 })

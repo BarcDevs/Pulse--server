@@ -483,9 +483,17 @@ Response 200: User
 Note: revokes every older session; this device gets a fresh accessToken cookie
 ```
 
+**POST /me/delete-code** — Email a code that confirms account deletion (auth + CSRF, 5/15min per user)
+```
+Response 200: { OTP: null } (the code itself only in development)
+```
+
 **DELETE /me** — Delete account (auth + CSRF)
 ```
+Request: { OTP }
 Response 200: null, clears auth cookies
+Note: the code from /me/delete-code is required, for password and Google-only users alike,
+so a stolen session alone can't delete the account. 5 wrong codes void it.
 Note: deactivates now and sets deleted_at; a daily job hard-deletes after 30 days
 (cascades to profile, check-ins, insights, goals, posts, replies, likes). Logging back
 in (password or Google) within 30 days restores the account. The email and username

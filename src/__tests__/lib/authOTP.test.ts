@@ -2,6 +2,7 @@ import {
     completeEmailConfirmation,
     generateOTP,
     recordFailedConfirmEmailAttempt,
+    recordFailedDeleteAccountAttempt,
     recordFailedEmailChangeAttempt,
     recordFailedResetPasswordAttempt,
     removeConfirmEmailOTP,
@@ -37,6 +38,10 @@ const mockIncrementConfirmEmailAttempts =
     authModel.incrementConfirmEmailAttempts as jest.Mock
 const mockIncrementEmailChangeAttempts =
     authModel.incrementEmailChangeAttempts as jest.Mock
+const mockSetDeleteAccountOTP =
+    authModel.setDeleteAccountOTP as jest.Mock
+const mockIncrementDeleteAccountAttempts =
+    authModel.incrementDeleteAccountAttempts as jest.Mock
 const mockSendEmail = sendEmail as jest.Mock
 const mockMarkEmailVerified = authModel.markEmailVerified as jest.Mock
 
@@ -230,6 +235,31 @@ describe('authOTP', () => {
             )
             expect(mockIncrementConfirmEmailAttempts).not.toHaveBeenCalled()
             expect(mockMarkEmailVerified).not.toHaveBeenCalled()
+        })
+    })
+
+    // ==================== recordFailedDeleteAccountAttempt ====================
+    describe('recordFailedDeleteAccountAttempt', () => {
+        it('increments the attempt counter when below the max', async () => {
+            await recordFailedDeleteAccountAttempt('user-123', 2)
+
+            expect(mockIncrementDeleteAccountAttempts)
+                .toHaveBeenCalledWith('user-123')
+            expect(mockSetDeleteAccountOTP).not.toHaveBeenCalled()
+        })
+
+        it('invalidates the code once the max attempts is reached', async () => {
+            await recordFailedDeleteAccountAttempt('user-123', 4)
+
+            expect(mockSetDeleteAccountOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    deleteAccountOTP: null,
+                    deleteAccountExpiration: null,
+                    deleteAccountAttempts: 0
+                }
+            )
+            expect(mockIncrementDeleteAccountAttempts).not.toHaveBeenCalled()
         })
     })
 

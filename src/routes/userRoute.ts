@@ -2,6 +2,7 @@ import { Router } from 'express'
 
 import {
     deleteUser,
+    requestDeleteAccountCode,
     updatePassword,
     updateUser
 } from '../controllers/userController'
@@ -10,7 +11,10 @@ import {
     extractCsrfToken
 } from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
-import { passwordChangeRateLimiter } from '../middlewares/rateLimiting'
+import {
+    deleteAccountCodeRateLimiter,
+    passwordChangeRateLimiter
+} from '../middlewares/rateLimiting'
 
 const router = Router()
 
@@ -151,16 +155,63 @@ router
 
 /**
  * @swagger
- * /users/me:
- *   delete:
- *     summary: Deactivate user account
+ * /users/me/delete-code:
+ *   post:
+ *     summary: Email a code that confirms account deletion
  *     tags: [Users]
  *     security:
  *       - cookieAuth: []
  *         csrfToken: []
  *     responses:
- *       204:
+ *       200:
+ *         description: Code sent to the account's email
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Too many codes requested
+ */
+router
+    .route('/me/delete-code')
+    .post(
+        isAuthenticated,
+        extractCsrfToken,
+        csrfMiddleware,
+        deleteAccountCodeRateLimiter,
+        requestDeleteAccountCode
+    )
+
+/**
+ * @swagger
+ * /users/me:
+ *   delete:
+ *     summary: Deactivate user account (confirmed with the emailed code)
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *         csrfToken: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [OTP]
+ *             properties:
+ *               OTP:
+ *                 type: number
+ *     responses:
+ *       200:
  *         description: Account deactivated and scheduled for deletion in 30 days
+ *       400:
+ *         description: Missing, wrong or expired code
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Not authenticated
  *         content:

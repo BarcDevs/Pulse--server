@@ -55,6 +55,15 @@ export const passwordChangeRateLimiter = rateLimit({
         'Too many password change attempts, please try again after 15 minutes'
 })
 
+// Each request emails a code, so cap it per user
+export const deleteAccountCodeRateLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: isDev ? 100 : 5,
+    keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
+    message:
+        'Too many account deletion codes requested, please try again after 15 minutes'
+})
+
 export const loginRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 10,

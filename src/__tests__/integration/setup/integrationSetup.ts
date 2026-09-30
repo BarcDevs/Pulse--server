@@ -16,6 +16,7 @@ jest.mock('../../../middlewares/rateLimiting', () => ({
     loginRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     signupRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     passwordChangeRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
+    deleteAccountCodeRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     sharePostRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     supportRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     checkInMutationRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next())

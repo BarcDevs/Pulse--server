@@ -75,6 +75,7 @@ export const createMockUser = (
     confirmEmailExpiration: undefined,
     confirmEmailAttempts: 0,
     emailChangeAttempts: 0,
+    deleteAccountAttempts: 0,
     ...overrides
 })
 

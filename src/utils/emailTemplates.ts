@@ -129,7 +129,7 @@ const baseTemplate = (s: TemplateStrings, otp: number): string => `<!DOCTYPE htm
 
 const buildStrings = (
     lang: string | null | undefined,
-    type: 'resetPassword' | 'confirmEmail' | 'changeEmail'
+    type: 'resetPassword' | 'confirmEmail' | 'changeEmail' | 'deleteAccount'
 ): TemplateStrings => {
     const resolved = resolveLanguage(lang)
     const msgs = getMessages(resolved)
@@ -173,3 +173,8 @@ export const changeEmailTemplate = (
     otp: number,
     lang?: string | null
 ): string => baseTemplate(buildStrings(lang, 'changeEmail'), otp)
+
+export const deleteAccountTemplate = (
+    otp: number,
+    lang?: string | null
+): string => baseTemplate(buildStrings(lang, 'deleteAccount'), otp)

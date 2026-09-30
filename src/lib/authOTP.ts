@@ -5,6 +5,7 @@ import { authConfig } from '../../config'
 import { brandConfig } from '../config/app'
 import {
     MAX_CONFIRM_EMAIL_ATTEMPTS,
+    MAX_DELETE_ACCOUNT_ATTEMPTS,
     MAX_EMAIL_CHANGE_ATTEMPTS,
     MAX_RESET_PASSWORD_ATTEMPTS
 } from '../constants/auth/authRules'
@@ -16,6 +17,7 @@ import { sendEmail } from '../utils/emailSender'
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
+    deleteAccountTemplate,
     resetPasswordTemplate
 } from '../utils/emailTemplates'
 import { t } from '../utils/i18n'
@@ -152,6 +154,31 @@ export const recordFailedEmailChangeAttempt = async (
     await authModel.incrementEmailChangeAttempts(userId)
 }
 
+export const removeDeleteAccountOTP = async (
+    userId: string
+): Promise<void> => {
+    await authModel.setDeleteAccountOTP(
+        userId,
+        {
+            deleteAccountOTP: null,
+            deleteAccountExpiration: null,
+            deleteAccountAttempts: 0
+        }
+    )
+}
+
+export const recordFailedDeleteAccountAttempt = async (
+    userId: string,
+    currentAttempts: number
+): Promise<void> => {
+    if (currentAttempts + 1 >= MAX_DELETE_ACCOUNT_ATTEMPTS) {
+        await removeDeleteAccountOTP(userId)
+        return
+    }
+
+    await authModel.incrementDeleteAccountAttempts(userId)
+}
+
 export const sendForgotPasswordOTP = async (
     email: string
 ): Promise<boolean | number> => {
@@ -234,6 +261,32 @@ export const sendEmailChangeOTP = async (
         t(messages.subject, { brandName: brandConfig.brandName }),
         t(messages.body, { otp, brandName: brandConfig.brandName }),
         changeEmailTemplate(otp, language)
+    )
+
+    return otp
+}
+
+// Proves control of the account's inbox, so a stolen session alone can't
+// delete the account. Works for Google-only users, who never saw their
+// generated password
+export const sendDeleteAccountOTP = async (
+    user: ServerUserType
+): Promise<number> => {
+    const { otp, expiration } = generateOTP()
+
+    await authModel.setDeleteAccountOTP(user.id, {
+        deleteAccountOTP: otp,
+        deleteAccountExpiration: expiration,
+        deleteAccountAttempts: 0
+    })
+
+    const lang = user.profile?.language
+    const messages = getMessages(lang).emails.deleteAccount
+    await sendEmail(
+        user.email,
+        t(messages.subject, { brandName: brandConfig.brandName }),
+        t(messages.body, { otp, brandName: brandConfig.brandName }),
+        deleteAccountTemplate(otp, lang)
     )
 
     return otp

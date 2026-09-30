@@ -211,7 +211,7 @@ graph TD
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
 | active | Boolean | Account status |
-| deleted_at | DateTime | Set on account deletion; hard-deleted 30 days later unless the user logs back in |
+| deleted_at | DateTime | Set on account deletion (confirmed with a code emailed to the account); hard-deleted 30 days later unless the user logs back in |
 
 ### Profile
 | Field | Type | Notes |

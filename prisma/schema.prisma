@@ -37,6 +37,10 @@ model User {
   emailChangeExpiration DateTime?
   emailChangeAttempts   Int       @default(0)
 
+  deleteAccountOTP        Int?
+  deleteAccountExpiration DateTime?
+  deleteAccountAttempts   Int       @default(0)
+
   profile Profile?
 }
 
