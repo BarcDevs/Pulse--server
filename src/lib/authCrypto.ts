@@ -7,14 +7,14 @@ import type { ServerUserType } from '../types/data/UserType'
 
 export const hashPassword = (
     password: string
-): string =>
-    bcrypt.hashSync(password, 12)
+): Promise<string> =>
+    bcrypt.hash(password, 12)
 
 export const comparePassword = (
     password: string,
     hashedPassword: string
-): boolean =>
-    bcrypt.compareSync(
+): Promise<boolean> =>
+    bcrypt.compare(
         password,
         hashedPassword
     )
@@ -23,9 +23,10 @@ export const createToken = (
     user: ServerUserType,
     remember = false
 ): string => {
+    // Id only: the payload is readable by anyone holding the token, and
+    // nothing reads the email from it
     const payload = {
-        id: user.id,
-        email: user.email
+        id: user.id
     }
     const options: jwt.SignOptions = {
         expiresIn: (remember

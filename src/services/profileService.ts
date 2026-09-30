@@ -17,6 +17,7 @@ type UpdateProfileData = {
     communityAlerts?: boolean
     profileVisibility?: ProfileVisibility
     anonymousParticipation?: boolean
+    shareNotesWithAI?: boolean
     dateOfBirth?: string
     recoveryType?: string
     careProvider?: string

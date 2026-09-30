@@ -30,13 +30,18 @@ export const getUserById = async (id: string):
 }
 
 // Includes deactivated (pending-deletion) accounts: login restores them and
-// the email stays taken until the purge
+// the email stays taken until the purge. Case-insensitive, so accounts saved
+// before emails were lowercased still match and a case variant can't take an
+// existing address
 export const getUserByEmailAnyStatus = async (
     email: string
 ): Promise<ServerUserType | null> =>
-    await Prisma.user.findUnique({
+    await Prisma.user.findFirst({
         where: {
-            email
+            email: {
+                equals: email,
+                mode: 'insensitive'
+            }
         },
         include: {
             profile: {
@@ -204,7 +209,10 @@ export const disableUser = (id: string): Promise<ServerUserType> =>
         },
         data: {
             active: false,
-            deletedAt: new Date(Date.now())
+            deletedAt: new Date(Date.now()),
+            deleteAccountOTP: null,
+            deleteAccountExpiration: null,
+            deleteAccountAttempts: 0
         }
     }) as Promise<ServerUserType>
 
@@ -222,19 +230,13 @@ export const restoreUser = (id: string): Promise<ServerUserType> =>
         }
     }) as Promise<ServerUserType>
 
-export const deleteUser = (id: string): Promise<ServerUserType> =>
-    Prisma.user.delete({
-        where: {
-            id
-        }
-    }) as Promise<ServerUserType>
-
 export const setEmailChangeOTP = (
     userId: string,
     data: {
         pendingEmail: string | null
         emailChangeOTP: number | null
         emailChangeExpiration: Date | null
+        emailChangeAttempts: number
     }
 ): Promise<ServerUserType> =>
     Prisma.user.update({
@@ -243,6 +245,21 @@ export const setEmailChangeOTP = (
             active: true
         },
         data
+    }) as Promise<ServerUserType>
+
+export const incrementEmailChangeAttempts = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            emailChangeAttempts: {
+                increment: 1
+            }
+        }
     }) as Promise<ServerUserType>
 
 export const updateEmail = (
@@ -259,7 +276,39 @@ export const updateEmail = (
             pendingEmail: null,
             emailChangeOTP: null,
             emailChangeExpiration: null,
+            emailChangeAttempts: 0,
             emailVerifiedAt: new Date(Date.now())
+        }
+    }) as Promise<ServerUserType>
+
+export const setDeleteAccountOTP = (
+    userId: string,
+    data: {
+        deleteAccountOTP: number | null
+        deleteAccountExpiration: Date | null
+        deleteAccountAttempts: number
+    }
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data
+    }) as Promise<ServerUserType>
+
+export const incrementDeleteAccountAttempts = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            deleteAccountAttempts: {
+                increment: 1
+            }
         }
     }) as Promise<ServerUserType>
 
@@ -386,4 +435,18 @@ export const getUserLanguage = async (
         }
     })
     return profile?.language ?? 'he'
+}
+
+export const getUserShareNotesWithAI = async (
+    userId: string
+): Promise<boolean> => {
+    const profile = await Prisma.profile.findUnique({
+        where: {
+            userId
+        },
+        select: {
+            shareNotesWithAI: true
+        }
+    })
+    return profile?.shareNotesWithAI ?? true
 }

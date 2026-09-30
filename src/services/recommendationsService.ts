@@ -25,6 +25,7 @@ import type {
     RecommendationSnapshot
 } from '../types/data/RecommendationType'
 import { PostFilter } from '../types/query'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 const generateAction = (
@@ -269,7 +270,7 @@ export const generateRecommendations = async (
         logger.error('Failed to generate recommendations', {
             userId,
             checkInId,
-            error: err instanceof Error ? err.message : 'Unknown error'
+            error: toLoggableError(err)
         })
 
         await recommendationsModel.setPendingGeneration(userId, checkInId)
@@ -290,9 +291,7 @@ export const generateRecommendationsSafely = async (
             {
                 userId,
                 checkInId,
-                error: err instanceof Error
-                    ? err.message
-                    : 'Unknown error'
+                error: toLoggableError(err)
             }
         )
     }
@@ -440,9 +439,7 @@ export const getRecommendations = async (
     } catch (err) {
         logger.error('Failed to fetch recommendations', {
             userId,
-            error: err instanceof Error
-                ? err.message
-                : 'Unknown error'
+            error: toLoggableError(err)
         })
 
         try {
@@ -454,9 +451,7 @@ export const getRecommendations = async (
         } catch (fallbackErr) {
             logger.error('Failed to fetch fallback recommendations', {
                 userId,
-                error: fallbackErr instanceof Error
-                    ? fallbackErr.message
-                    : 'Unknown error'
+                error: toLoggableError(fallbackErr)
             })
             return {
                 status: 'processing',

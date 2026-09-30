@@ -91,7 +91,7 @@
               "script": {
                 "exec": [
                   "pm.environment.set('testEmail', 'alice@example.com')",
-                  "pm.environment.set('testPassword', 'password123')"
+                  "pm.environment.set('testPassword', 'Pulse2Recover!')"
                 ]
               }
             },
@@ -399,8 +399,12 @@
         {
           "name": "Logout",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
               {
                 "key": "Cookie",
                 "value": "accessToken={{token}}"
@@ -765,7 +769,7 @@
           ]
         },
         {
-          "name": "2.4 - Non-existent Email (User Enumeration Safe)",
+          "name": "2.4 - Non-existent Email (Same As Wrong Code)",
           "request": {
             "method": "PUT",
             "header": [
@@ -796,15 +800,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200 (returns same response for non-existent users)', () => {",
-                  "  pm.response.to.have.status(200)",
-                  "})",
-                  "const data = pm.response.json()",
-                  "pm.test('Generic message (no email enumeration)', () => {",
-                  "  pm.expect(data.message).to.include('If the email exists')",
-                  "})",
-                  "pm.test('No user data leaked', () => {",
-                  "  pm.expect(data.data).to.deep.equal({})",
+                  "pm.test('Status code is 400 (same as a wrong code, no email enumeration)', () => {",
+                  "  pm.response.to.have.status(400)",
                   "})"
                 ]
               }

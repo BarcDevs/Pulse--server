@@ -15,8 +15,6 @@ jest.mock(
         __esModule: true,
         buildAuthUrl: jest.fn(),
         handleCallback: jest.fn(),
-        generateState: jest.fn(),
-        validateState: jest.fn(),
         exchangeCodeForTokens: jest.fn(),
         fetchGoogleProfile: jest.fn(),
         findOrCreateUser: jest.fn()

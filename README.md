@@ -211,7 +211,7 @@ graph TD
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
 | active | Boolean | Account status |
-| deleted_at | DateTime | Set on account deletion; hard-deleted 30 days later unless the user logs back in |
+| deleted_at | DateTime | Set on account deletion (confirmed with a code emailed to the account); hard-deleted 30 days later unless the user logs back in |
 
 ### Profile
 | Field | Type | Notes |
@@ -222,6 +222,7 @@ graph TD
 | bio | String | Optional, max 500 chars |
 | location | String | Optional, broad/regional only |
 | timezone | String | IANA timezone, defaults to `Asia/Jerusalem` |
+| shareNotesWithAI | Boolean | Default `true`. When `false`, check-in notes are left out of AI insight prompts |
 | healthInterests | Relation | Many-to-many via ProfileHealthInterest |
 | activityPreferences | Relation | Many-to-many via ProfileActivityPreference |
 | createdAt | DateTime | Auto-created with User |
@@ -407,20 +408,22 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
-| `POST` | `/api/{version}/auth/signup` | — | — | Register new user |
+| `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
-| `GET` | `/api/{version}/auth/logout` | Cookie | — | Logout and clear session |
+| `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
 | `POST` | `/api/{version}/auth/forgot-password` | — | 5/15min | Send password reset OTP to email |
 | `POST` | `/api/{version}/auth/confirm-email` | — | 5/15min | Confirm email address with OTP |
 | `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
-**Password Requirements:**
+**Password Requirements** (signup, reset and change password):
 - Minimum 8 characters
-- Must contain at least one letter (a-z, A-Z)
-- Must contain at least one digit (0-9)
+- At least one uppercase letter, one lowercase letter and one digit
+- No 4 or more repeated or sequential characters in a row (like `1234`, `abcd`, `aaaa`)
 - Special characters allowed (!, @, #, $, etc.)
+
+Login keeps the older rule (8+ characters, a letter and a digit) so existing accounts can still sign in.
 
 ### Check-ins *(protected)*
 
@@ -447,7 +450,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `GET` | `/api/{version}/forum/posts/:postId` | Cookie | Get single post |
 | `PUT` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Update post |
 | `DELETE` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Delete post |
-| `POST` | `/api/{version}/forum/posts/:postId/share` | — | Increment post share count |
+| `POST` | `/api/{version}/forum/posts/:postId/share` | Cookie | Increment post share count |
 | `GET` | `/api/{version}/forum/replies` | Cookie | List replies |
 | `POST` | `/api/{version}/forum/replies` | Cookie + CSRF | Add reply to a post |
 | `PUT` | `/api/{version}/forum/replies/:replyId` | Cookie + CSRF | Update reply |
@@ -504,6 +507,9 @@ Structured goal tracking with milestones and progress calculation. Complete refe
 ## AI Features
 
 Powered by **Google Gemini API** for personalized recovery insights.
+
+Per-check-in insight prompts include the user's recent check-in notes unless they turn off
+"use my notes for insights" in their privacy settings (`shareNotesWithAI` on the profile).
 
 ### Daily Observation (`GET /api/{version}/insight/observation`)
 

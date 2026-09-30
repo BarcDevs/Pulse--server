@@ -22,7 +22,8 @@ export const getCookiesOptions = (
     remember: boolean
 ) => ({
     httpOnly: true,
-    sameSite: !isDev ? 'none' : 'lax',
+    // The client proxies /api through its own origin, so cookies are first-party
+    sameSite: 'lax',
     secure: !isDev,
     maxAge: remember
         ? ms(authConfig.expiresIn)
@@ -127,7 +128,7 @@ export const updateUserPassword = async (
             HttpStatusCodes.NOT_FOUND
         )
 
-    const isValidPassword = comparePassword(
+    const isValidPassword = await comparePassword(
         currentPassword,
         user.password
     )
@@ -143,6 +144,6 @@ export const updateUserPassword = async (
 
     return authModel.updatePassword(
         userId,
-        hashPassword(newPassword)
+        await hashPassword(newPassword)
     )
 }

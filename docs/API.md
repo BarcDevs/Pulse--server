@@ -53,6 +53,7 @@ Sets `accessToken` and `_csrf` cookies.
 ---
 
 ### `POST /signup`
+> Rate limited: 5 requests per hour per IP
 
 **Body**
 | Field       | Type   | Required | Notes                       |
@@ -160,7 +161,8 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
 
 ---
 
-### `GET /logout`
+### `POST /logout`
+> CSRF required (`x-csrf-token` header), so another site can't log the user out
 
 **Response `200`**
 ```json
@@ -220,7 +222,7 @@ Clears the `accessToken` cookie.
 }
 ```
 
-**Errors:** `400` invalid or expired OTP
+**Errors:** `400` invalid or expired OTP, or unknown email (same response, to prevent user enumeration)
 
 **Security Note:** CSRF not required (stateless OTP validation)
 
@@ -331,7 +333,7 @@ Step 2 of the reset flow: checks the code without consuming it, so the client ca
 
 **Errors:** `400` invalid or expired OTP
 
-**Security Note:** CSRF not required (stateless OTP validation) · Returns 200 for both existent and non-existent emails to prevent user enumeration
+**Security Note:** CSRF not required (stateless OTP validation) · A non-existent email gets the same `400` as a wrong code, to prevent user enumeration
 
 ---
 
@@ -407,7 +409,7 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 ---
 
 ### `PATCH /password`
-> Auth + CSRF required
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes per user
 
 **Body**
 | Field             | Type   | Required | Notes                        |
@@ -436,11 +438,51 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 
 ---
 
+### `POST /me/delete-code`
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes per user
+
+Emails a 6-digit code to the account's address. Deleting the account requires it, so a stolen
+session alone can't delete the account; it also works for Google-only users, who have no known
+password.
+
+**Response `200`**
+```json
+{ "message": "Verification code sent to your email address!", "data": { "OTP": null } }
+```
+`OTP` is only filled in development.
+
+**Errors:** `401` not authenticated · `429` too many codes requested
+
+---
+
+### `DELETE /me`
+> Auth + CSRF required
+
+Deactivates the account now; it's permanently deleted after 30 days unless the user logs back in.
+
+**Body**
+| Field | Type   | Required | Description                        |
+|-------|--------|----------|------------------------------------|
+| `OTP` | number | yes      | Code from `POST /me/delete-code`   |
+
+**Response `200`**
+```json
+{ "message": "Account scheduled for deletion", "data": null }
+```
+Clears the auth cookies.
+
+**Errors:** `400` missing, wrong or expired code (5 wrong codes void it) · `401` not authenticated
+
+---
+
 ## Forum — `/api/{version}/forum`
+
+The forum is for signed-in users only: every endpoint, reads included, needs a session.
 
 ---
 
 ### `GET /posts`
+> Auth required
 
 **Query**
 | Param      | Type   | Notes                                       |
@@ -477,6 +519,7 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 ---
 
 ### `GET /posts/categories`
+> Auth required
 
 **Response `200`**
 ```json
@@ -527,6 +570,7 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 ---
 
 ### `GET /posts/:postId`
+> Auth required
 
 **Query**
 | Param   | Type   | Notes                                                |
@@ -601,6 +645,7 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 ---
 
 ### `POST /posts/:postId/share`
+> Auth required
 
 Increments a post's share count. Rate limited to 1 request per IP per post per hour.
 
@@ -674,6 +719,7 @@ Returns the current user's saved posts. Supports the same pagination query param
 ---
 
 ### `GET /posts/:postId/replies`
+> Auth required
 
 **Query**
 | Param   | Type   | Notes                                 |
@@ -783,6 +829,7 @@ Toggles like on a reply.
 ---
 
 ### `GET /tags`
+> Auth required
 
 **Query**
 | Param    | Type   | Notes          |
@@ -814,6 +861,7 @@ Toggles like on a reply.
 ---
 
 ### `GET /tags/:tagId`
+> Auth required
 
 **Response `200`**
 ```json
@@ -1246,6 +1294,7 @@ Update user profile presentation and preferences.
 | `communityAlerts` | boolean | |
 | `profileVisibility` | string | `onlyMe` · `friends` · `public` |
 | `anonymousParticipation` | boolean | |
+| `shareNotesWithAI` | boolean | Default `true`. When `false`, check-in notes are left out of AI insight prompts |
 | `dateOfBirth` | string | ISO 8601 date string |
 | `recoveryType` | string | Free text — type of recovery (e.g. `addiction`, `injury`) |
 | `careProvider` | string | Free text — name of provider or facility |

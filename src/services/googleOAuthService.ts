@@ -30,17 +30,6 @@ export type GoogleProfile = {
     picture: string | null
 }
 
-export const generateState = (): string =>
-    crypto.randomBytes(32).toString('hex')
-
-export const validateState = (
-    cookieState: string | undefined,
-    queryState: string | undefined
-): boolean =>
-    !!cookieState
-    && !!queryState
-    && cookieState === queryState
-
 export const buildAuthUrl = (state: string): string =>
     oAuth2Client.generateAuthUrl({
         access_type: 'offline',
@@ -187,7 +176,7 @@ const createGoogleUser = async (
         lastName: profile.lastName || 'User',
         username,
         email: profile.email,
-        password: hashPassword(randomPassword),
+        password: await hashPassword(randomPassword),
         googleId: profile.googleId,
         picture: profile.picture
     })

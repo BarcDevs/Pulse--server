@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 
 import { serverConfig } from '../../../config'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import {
     checkInMutationRateLimiter,
     loginRateLimiter,
@@ -222,6 +223,144 @@ describe('Rate Limiting Middleware', () => {
 
             expect(next).toHaveBeenCalled()
             expect(res.status).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('signupRateLimiter behavior (real implementation) (L17)', () => {
+        const { signupRateLimiter: realSignupRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        it('blocks the 6th sign-up from one IP within the hour', async () => {
+            const ip = '10.0.0.17'
+            for (let i = 0; i < 5; i++) {
+                const next = createMockNext()
+                await realSignupRateLimiter(
+                    createMockRequest({ ip }) as Request,
+                    createRateLimitMockResponse(),
+                    next
+                )
+                expect(next).toHaveBeenCalled()
+            }
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realSignupRateLimiter(
+                createMockRequest({ ip }) as Request,
+                res,
+                next
+            )
+
+            expect(next).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
+        })
+    })
+
+    describe('OTP rate limiters (real implementation) (L18)', () => {
+        const {
+            forgotPasswordRateLimiter: realForgotPasswordRateLimiter,
+            verifyResetCodeRateLimiter: realVerifyResetCodeRateLimiter
+        } = jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        it('keeps a separate bucket per OTP route', async () => {
+            const ip = '10.0.18.200'
+            for (let i = 0; i < 6; i++) {
+                await realForgotPasswordRateLimiter(
+                    createMockRequest({ ip }) as Request,
+                    createRateLimitMockResponse(),
+                    createMockNext()
+                )
+            }
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realVerifyResetCodeRateLimiter(
+                createMockRequest({ ip }) as Request,
+                res,
+                next
+            )
+
+            expect(next).toHaveBeenCalled()
+            expect(res.status).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('passwordChangeRateLimiter behavior (real implementation) (L18)', () => {
+        const { passwordChangeRateLimiter: realPasswordChangeRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        it('blocks the 6th attempt by one user even across IPs', async () => {
+            const userId = 'password-change-user'
+            for (let i = 0; i < 5; i++) {
+                const next = createMockNext()
+                await realPasswordChangeRateLimiter(
+                    createMockRequest({ ip: `10.0.18.${i}`, userId }) as Request,
+                    createRateLimitMockResponse(),
+                    next
+                )
+                expect(next).toHaveBeenCalled()
+            }
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realPasswordChangeRateLimiter(
+                createMockRequest({ ip: '10.0.18.99', userId }) as Request,
+                res,
+                next
+            )
+
+            expect(next).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
         })
     })
 

@@ -25,7 +25,7 @@ jest.mock('../../lib/authOTP', () => ({
     sendConfirmEmailOTP: jest.fn(),
     removeResetPasswordOTP: jest.fn(),
     recordFailedResetPasswordAttempt: jest.fn(),
-    removeConfirmEmailOTP: jest.fn(),
+    completeEmailConfirmation: jest.fn(),
     recordFailedConfirmEmailAttempt: jest.fn()
 }))
 
@@ -550,7 +550,7 @@ describe('AuthController', () => {
         })
 
         it(
-            'should return generic message for non-existent user',
+            'should reject a non-existent user like a wrong code',
             async () => {
                 ;(authServices.getUser as jest.Mock)
                     .mockResolvedValue(null)
@@ -565,15 +565,10 @@ describe('AuthController', () => {
 
                 const res = createMockResponse() as unknown as Response
 
-                await authController.resetPassword(req, res)
-
-                expect(res.status)
-                    .toHaveBeenCalledWith(HttpStatusCodes.OK)
-                expect(res.json).toHaveBeenCalledWith(
-                    expect.objectContaining({
-                        message: expect.stringContaining('If the email exists')
-                    })
-                )
+                await expect(
+                    authController.resetPassword(req, res)
+                ).rejects.toThrow()
+                expect(res.status).not.toHaveBeenCalled()
             }
         )
     })

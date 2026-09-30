@@ -6,6 +6,7 @@ import { AuthError } from '../../errors/AuthError'
 import { NotFoundError } from '../../errors/NotFoundError'
 import { ValidationError } from '../../errors/ValidationError'
 import { errorHandler } from '../../middlewares/errorHandler'
+import logger from '../../utils/logger'
 import {
     createMockNext,
     createMockRequest,
@@ -13,6 +14,28 @@ import {
 } from '../setup/testSetup'
 
 describe('errorHandler Middleware', () => {
+    it(
+        'logs the path without the query string, which can hold OAuth codes',
+        () => {
+            const logSpy = jest.spyOn(logger, 'error')
+                .mockImplementation(() => logger)
+            const req = {
+                ...createMockRequest(),
+                method: 'GET',
+                path: '/api/v2/auth/google/callback',
+                originalUrl: '/api/v2/auth/google/callback?code=secret-code&state=s'
+            } as unknown as Request
+            const res = createMockResponse() as unknown as Response
+
+            errorHandler(new Error('boom'), req, res, createMockNext())
+
+            const logged = JSON.stringify(logSpy.mock.calls)
+            expect(logged).toContain('/api/v2/auth/google/callback')
+            expect(logged).not.toContain('secret-code')
+            logSpy.mockRestore()
+        }
+    )
+
     describe('CustomError handling', () => {
         it(
             'should return serialized AuthError with correct status code',

@@ -23,8 +23,9 @@ import {
 } from '../lib/authHelpers'
 import {
     assertResetPasswordOTP,
+    completeEmailConfirmation,
     recordFailedConfirmEmailAttempt,
-    removeConfirmEmailOTP,
+    recordFailedEmailChangeAttempt,
     removeResetPasswordOTP,
     sendEmailChangeOTP,
     sendForgotPasswordOTP,
@@ -54,6 +55,7 @@ import type {
     UserType
 } from '../types/data/UserType'
 import { validateAndExtract } from '../utils/controllerHelpers'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 // region Login and Signup
@@ -235,8 +237,9 @@ export const confirmEmail = async (
             email
         )
 
+    // Same error as a wrong code, so this step can't probe for accounts
     if (!user)
-        throw errorFactory.auth.unauthorized()
+        throw errorFactory.validation.otpError()
 
     if (
         !verifyOTP(
@@ -252,7 +255,7 @@ export const confirmEmail = async (
         throw errorFactory.validation.otpError()
     }
 
-    await removeConfirmEmailOTP(user.id)
+    await completeEmailConfirmation(user.id)
 
     successResponse<{
         user: UserType
@@ -313,14 +316,9 @@ export const resetPassword = async (
             email
         )
 
-    if (!user) {
-        successResponse(
-            res,
-            {},
-            'If the email exists, password reset instructions have been sent.'
-        )
-        return
-    }
+    // Same error as a wrong code, so this step can't probe for accounts
+    if (!user)
+        throw errorFactory.auth.resetPassword()
 
     await assertResetPasswordOTP(user, userOTP)
 
@@ -333,8 +331,8 @@ export const resetPassword = async (
     removeResetPasswordOTP(user.id).catch(
         (err) => {
             logger.error(
-                'Failed to clear OTP:',
-                err
+                'Failed to clear OTP',
+                toLoggableError(err)
             )
         }
     )
@@ -367,7 +365,7 @@ export const changeEmail = async (
     if (!user)
         throw errorFactory.auth.unauthorized()
 
-    if (!comparePassword(password, user.password))
+    if (!await comparePassword(password, user.password))
         throw errorFactory.auth.credentials()
 
     if (await authServices.isEmailTaken(newEmail))
@@ -419,8 +417,13 @@ export const confirmEmailChange = async (
             user.emailChangeExpiration,
             OTP
         )
-    )
+    ) {
+        await recordFailedEmailChangeAttempt(
+            user.id,
+            user.emailChangeAttempts
+        )
         throw errorFactory.validation.otpError()
+    }
 
     let updatedUser: ServerUserType
     try {
@@ -467,7 +470,8 @@ export const googleSignIn = async (
 
     const oauthCookieOptions = {
         httpOnly: true,
-        sameSite: !isDev ? 'none' as const : 'lax' as const,
+        // Lax still sends these on Google's top-level redirect back
+        sameSite: 'lax' as const,
         secure: !isDev,
         maxAge: 10 * minuteInMs
     }

@@ -3,7 +3,11 @@ import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import { getFallbackContent } from '../lib/aiInsight/validation/aiInsightValidator'
 import { getMessages } from '../locales'
 import * as aiInsightModel from '../models/aiInsightModel'
-import { getUserLanguage, getUserTimezone } from '../models/authModel'
+import {
+    getUserLanguage,
+    getUserShareNotesWithAI,
+    getUserTimezone
+} from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
 import type { CheckInType } from '../types/data/CheckInType'
 import logger from '../utils/logger'
@@ -150,15 +154,22 @@ export const generateInsightForCheckIn = async (
         return
     }
 
-    const [userTimezone, userLanguage] = await Promise.all([
+    const [userTimezone, userLanguage, shareNotesWithAI] = await Promise.all([
         getUserTimezone(userId),
-        getUserLanguage(userId)
+        getUserLanguage(userId),
+        getUserShareNotesWithAI(userId)
     ])
+
+    // Opted-out users' notes never reach an AI path; local analysis
+    // elsewhere still uses them
+    const checkInsForAI = shareNotesWithAI
+        ? recentCheckIns
+        : recentCheckIns.map((checkIn) => ({ ...checkIn, notes: null }))
 
     await generateBaselineInsight(
         userId,
         checkInId,
-        recentCheckIns,
+        checkInsForAI,
         userTimezone,
         userLanguage
     )
@@ -167,7 +178,7 @@ export const generateInsightForCheckIn = async (
         await generateInterventionInsightInternal(
             userId,
             checkInId,
-            recentCheckIns,
+            checkInsForAI,
             userTimezone,
             userLanguage
         )

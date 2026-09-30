@@ -189,11 +189,21 @@ describe('Schema Adversarial Inputs', () => {
             expect(result.success).toBe(false)
         })
 
-        it('accepts valid HTTPS image URL', () => {
+        it('accepts an HTTPS image URL on a trusted host', () => {
             const result = updateProfileSchema.safeParse({
-                image: 'https://example.com/avatar.jpg'
+                image: 'https://lh3.googleusercontent.com/a/avatar.jpg'
             })
             expect(result.success).toBe(true)
+        })
+
+        it.each([
+            'https://example.com/avatar.jpg',
+            'http://lh3.googleusercontent.com/a/avatar.jpg',
+            'javascript:alert(1)',
+            'data:image/png;base64,AAAA'
+        ])('rejects image URL %s (L9)', (image) => {
+            expect(updateProfileSchema.safeParse({ image }).success)
+                .toBe(false)
         })
 
         it('rejects invalid timezone format', () => {

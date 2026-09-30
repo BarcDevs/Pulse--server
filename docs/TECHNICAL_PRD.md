@@ -202,6 +202,7 @@ Two distinct AI insight surfaces:
 - Insights are explicitly labeled as AI-assisted and supportive, not medical advice
 - Generated from aggregate patterns, not individual data points
 - AI generation falls back to static templates if Gemini API fails
+- Per-check-in insight prompts include the user's recent check-in notes by default. A privacy setting (`shareNotesWithAI` on the profile, "use my notes for insights") turns this off; the notes are then left out of the prompt, while local pattern analysis still uses them
 - Clearly distinguished from clinical guidance
 
 ### 5. Check-In History
@@ -232,6 +233,7 @@ Profile is a separate entity from User — auto-created on signup. Identity fiel
 - User profiles visible on posts
 - Tag-based filtering
 - Post/reply editing and deletion (by author or admin)
+- Signed-in users only: every forum endpoint, reads included, requires a session
 
 ---
 
@@ -482,9 +484,17 @@ Response 200: User
 Note: revokes every older session; this device gets a fresh accessToken cookie
 ```
 
+**POST /me/delete-code** — Email a code that confirms account deletion (auth + CSRF, 5/15min per user)
+```
+Response 200: { OTP: null } (the code itself only in development)
+```
+
 **DELETE /me** — Delete account (auth + CSRF)
 ```
+Request: { OTP }
 Response 200: null, clears auth cookies
+Note: the code from /me/delete-code is required, for password and Google-only users alike,
+so a stolen session alone can't delete the account. 5 wrong codes void it.
 Note: deactivates now and sets deleted_at; a daily job hard-deletes after 30 days
 (cascades to profile, check-ins, insights, goals, posts, replies, likes). Logging back
 in (password or Google) within 30 days restores the account. The email and username
@@ -573,15 +583,15 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 ### Forum Endpoints — /api/{version}/forum
 
-**GET /posts** — `?limit&page&filter&search&tag&category` → 200 Post[]
+**GET /posts** — Auth — `?limit&page&filter&search&tag&category` → 200 Post[]
 
 **POST /posts** — Auth + CSRF — `{ title, body, category, tags }` → 200 Post
 
-**GET /posts/categories** — Distinct categories with post counts → 200
+**GET /posts/categories** — Auth — Distinct categories with post counts → 200
 
 **GET /posts/saved** — Auth — Current user's saved posts → 200 Post[]
 
-**GET /posts/:postId** → 200 Post with replies
+**GET /posts/:postId** — Auth → 200 Post with replies
 
 **PUT /posts/:postId** — Auth + CSRF, owner only — `{ title?, body?, category?, tags? }` → 200
 
@@ -591,7 +601,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **POST /posts/:postId/save** — Auth + CSRF — Toggle save/unsave → 200 `{ saved }`
 
-**GET /posts/:postId/replies** → 200 Reply[]
+**GET /posts/:postId/replies** — Auth → 200 Reply[]
 
 **POST /posts/:postId/replies** — Auth + CSRF — `{ body }` → 200 Reply
 
@@ -601,9 +611,9 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **POST /posts/:postId/replies/:replyId/like** — Auth + CSRF — Toggle like → 200 `{ liked, likes }`
 
-**GET /tags** — `?limit&page&filter&search` → 200 Tag[]
+**GET /tags** — Auth — `?limit&page&filter&search` → 200 Tag[]
 
-**GET /tags/:tagId** → 200 Tag
+**GET /tags/:tagId** — Auth → 200 Tag
 
 **POST /tags/unknown** — Auth + CSRF — Report unknown tag name (upserts attempt count) → 200
 

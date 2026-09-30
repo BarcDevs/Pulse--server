@@ -62,7 +62,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\"email\": \"recoverygoals_test_{{$timestamp}}@test.com\", \"password\": \"Test@123456\", \"username\": \"testuser_{{$timestamp}}\"}"
+              "raw": "{\"email\": \"recoverygoals_test_{{$timestamp}}@test.com\", \"password\": \"Pulse2Recover!\", \"username\": \"testuser_{{$timestamp}}\"}"
             }
           },
           "event": [
@@ -73,7 +73,7 @@
                   "pm.test('Status 201', () => pm.response.to.have.status(201))",
                   "const data = pm.response.json().data",
                   "pm.environment.set('testEmail', data.email)",
-                  "pm.environment.set('testPassword', 'Test@123456')"
+                  "pm.environment.set('testPassword', 'Pulse2Recover!')"
                 ],
                 "type": "text/javascript"
               }
@@ -820,7 +820,7 @@
               "script": {
                 "exec": [
                   "pm.environment.set('testEmail', 'alice@example.com');",
-                  "pm.environment.set('testPassword', 'password123');"
+                  "pm.environment.set('testPassword', 'Pulse2Recover!');"
                 ],
                 "type": "text/javascript"
               }

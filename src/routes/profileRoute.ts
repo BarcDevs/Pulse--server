@@ -65,6 +65,9 @@ const router = Router()
  *                 enum: [onlyMe, friends, public]
  *               anonymousParticipation:
  *                 type: boolean
+ *               shareNotesWithAI:
+ *                 type: boolean
+ *                 description: When false, check-in notes are left out of AI insight prompts
  *     responses:
  *       200:
  *         description: Profile updated

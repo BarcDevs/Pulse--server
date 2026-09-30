@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express'
 
+import { isDev } from '../../config'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { errorFactory } from '../errors/factory/ErrorFactory'
 import { createToken } from '../lib/authCrypto'
 import {
     getCookiesOptions,
@@ -8,12 +10,22 @@ import {
     updateUserData,
     updateUserPassword
 } from '../lib/authHelpers'
+import {
+    recordFailedDeleteAccountAttempt,
+    sendDeleteAccountOTP,
+    verifyOTP
+} from '../lib/authOTP'
 import { successResponse } from '../responses/success'
+import type { DeleteAccountType } from '../schemas/user/deleteAccountSchema'
+import { deleteAccountSchema } from '../schemas/user/deleteAccountSchema'
 import type { UpdatePasswordType } from '../schemas/user/updatePasswordSchema'
 import { updatePasswordSchema } from '../schemas/user/updatePasswordSchema'
 import type { UpdateUserType } from '../schemas/user/updateUserSchema'
 import { updateUserSchema } from '../schemas/user/updateUserSchema'
-import { deactivateUser } from '../services/authService'
+import {
+    deactivateUser,
+    getUser
+} from '../services/authService'
 import type { UserType } from '../types/data/UserType'
 import {
     extractUserId,
@@ -75,13 +87,60 @@ export const updatePassword = async (
     )
 }
 
+export const requestDeleteAccountCode = async (
+    req: Request,
+    res: Response
+) => {
+    const user = await getUser('id', extractUserId(req))
+    if (!user)
+        throw errorFactory.auth.unauthorized()
+
+    const otpCode = await sendDeleteAccountOTP(user)
+
+    const OTP = isDev ? otpCode : null
+
+    successResponse(
+        res,
+        { OTP },
+        'Verification code sent to your email address!'
+    )
+}
+
 export const deleteUser = async (
     req: Request,
     res: Response
 ) => {
-    const userId = extractUserId(req)
+    const { OTP } = validateAndExtract<DeleteAccountType>(
+        deleteAccountSchema,
+        req.body
+    )
 
-    await deactivateUser(userId)
+    const user = await getUser('id', extractUserId(req))
+    if (!user)
+        throw errorFactory.auth.unauthorized()
+
+    if (
+        !user.deleteAccountOTP
+        || !user.deleteAccountExpiration
+    )
+        throw errorFactory.validation.otpError()
+
+    if (
+        !verifyOTP(
+            user.deleteAccountOTP,
+            user.deleteAccountExpiration,
+            OTP
+        )
+    ) {
+        await recordFailedDeleteAccountAttempt(
+            user.id,
+            user.deleteAccountAttempts
+        )
+        throw errorFactory.validation.otpError()
+    }
+
+    // disableUser also clears the code
+    await deactivateUser(user.id)
 
     res.clearCookie('accessToken')
     res.clearCookie('_csrf')

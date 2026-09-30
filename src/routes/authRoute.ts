@@ -21,8 +21,14 @@ import {
 } from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 import {
+    changeEmailRateLimiter,
+    confirmEmailChangeRateLimiter,
+    confirmEmailRateLimiter,
+    forgotPasswordRateLimiter,
     loginRateLimiter,
-    otpRateLimiter
+    resetPasswordRateLimiter,
+    signupRateLimiter,
+    verifyResetCodeRateLimiter
 } from '../middlewares/rateLimiting'
 
 const router = Router()
@@ -135,7 +141,10 @@ router.route('/login').post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/signup').post(signup)
+router.route('/signup').post(
+    signupRateLimiter,
+    signup
+)
 
 /**
  * @swagger
@@ -229,7 +238,7 @@ router
 router
     .route('/confirm-email')
     .post(
-        otpRateLimiter,
+        confirmEmailRateLimiter,
         confirmEmail
     )
 
@@ -272,9 +281,9 @@ router.route('/refresh').get(
 /**
  * @swagger
  * /auth/logout:
- *   get:
+ *   post:
  *     summary: Logout and clear authentication cookies
- *     description: Clears both the accessToken and _csrf cookies
+ *     description: Clears both the accessToken and _csrf cookies. Requires the x-csrf-token header, so another site can't log the user out.
  *     tags: [Auth]
  *     responses:
  *       200:
@@ -289,7 +298,11 @@ router.route('/refresh').get(
  *                 data:
  *                   type: object
  */
-router.route('/logout').get(logout)
+router.route('/logout').post(
+    extractCsrfToken,
+    csrfMiddleware,
+    logout
+)
 
 /**
  * @swagger
@@ -374,7 +387,7 @@ router.route('/me').get(
 router
     .route('/forgot-password')
     .post(
-        otpRateLimiter,
+        forgotPasswordRateLimiter,
         forgotPassword
     )
 
@@ -412,7 +425,7 @@ router
 router
     .route('/verify-reset-code')
     .post(
-        otpRateLimiter,
+        verifyResetCodeRateLimiter,
         verifyResetCode
     )
 
@@ -465,7 +478,7 @@ router
 router
     .route('/reset-password')
     .put(
-        otpRateLimiter,
+        resetPasswordRateLimiter,
         resetPassword
     )
 
@@ -529,7 +542,7 @@ router
         isAuthenticated,
         extractCsrfToken,
         csrfMiddleware,
-        otpRateLimiter,
+        changeEmailRateLimiter,
         changeEmail
     )
 
@@ -587,7 +600,7 @@ router
         isAuthenticated,
         extractCsrfToken,
         csrfMiddleware,
-        otpRateLimiter,
+        confirmEmailChangeRateLimiter,
         confirmEmailChange
     )
 

@@ -19,6 +19,7 @@ export type ProfileType = {
     communityAlerts: boolean
     profileVisibility: ProfileVisibility
     anonymousParticipation: boolean
+    shareNotesWithAI: boolean
     lastCheckInAt?: Date | null
     dateOfBirth?: Date
     recoveryType?: string
@@ -57,6 +58,10 @@ export type ServerUserType = Prettify<
         pendingEmail?: string | null
         emailChangeOTP?: number | null
         emailChangeExpiration?: Date | null
+        emailChangeAttempts: number
+        deleteAccountOTP?: number | null
+        deleteAccountExpiration?: Date | null
+        deleteAccountAttempts: number
     }
 >
 

@@ -14,6 +14,7 @@ describe('accountDeletionService', () => {
             const before = Date.now()
 
             const count = await purgeExpiredAccounts()
+            const after = Date.now()
 
             expect(count).toBe(2)
             const { where } = prismaMock.user.deleteMany
@@ -23,8 +24,11 @@ describe('accountDeletionService', () => {
                 deletedAt: { lte: expect.any(Date) }
             })
             const cutoff = (where!.deletedAt as { lte: Date }).lte
-            expect(before - cutoff.getTime())
-                .toBeGreaterThanOrEqual(ACCOUNT_DELETION_GRACE_DAYS * dayInMs)
+            const grace = ACCOUNT_DELETION_GRACE_DAYS * dayInMs
+            expect(cutoff.getTime())
+                .toBeGreaterThanOrEqual(before - grace)
+            expect(cutoff.getTime())
+                .toBeLessThanOrEqual(after - grace)
         })
     })
 

@@ -269,7 +269,7 @@ describe('User Routes', () => {
         it('should update password with valid input',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -311,7 +311,7 @@ describe('User Routes', () => {
         it('should reject invalid current password',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -341,7 +341,7 @@ describe('User Routes', () => {
 
         it('should reject weak new password', async () => {
             const mockUser = createMockUser({
-                password: hashPassword('OldPassword123!')
+                password: await hashPassword('OldPassword123!')
             })
             const {
                 token,
@@ -369,7 +369,7 @@ describe('User Routes', () => {
         it('should reject password without letters',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -396,7 +396,7 @@ describe('User Routes', () => {
         it('should reject password without numbers',
             async () => {
                 const mockUser = createMockUser({
-                    password: hashPassword('OldPassword123!')
+                    password: await hashPassword('OldPassword123!')
                 })
                 const {
                     token,
@@ -487,11 +487,58 @@ describe('User Routes', () => {
     })
 
     // ==================== DELETE /users/me ====================
+    describe(`POST /api/${serverConfig.apiVersion}/users/me/delete-code`, () => {
+        const deleteCodeEndpoint = `/api/${serverConfig.apiVersion}/users/me/delete-code`
+
+        it('stores a new code and emails it', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+            prismaMock.user.update
+                .mockResolvedValue(mockUser as never)
+
+            const response = await withCsrfAuth(
+                supertest(App).post(deleteCodeEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            )
+
+            expect(response.status).toBe(HttpStatusCodes.OK)
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: mockUser.id, active: true },
+                    data: {
+                        deleteAccountOTP: expect.any(Number),
+                        deleteAccountExpiration: expect.any(Date),
+                        deleteAccountAttempts: 0
+                    }
+                })
+            )
+        })
+
+        it('should return 401 for unauthenticated request', async () => {
+            const response = await supertest(App)
+                .post(deleteCodeEndpoint)
+
+            expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+    })
+
     describe(`DELETE /api/${serverConfig.apiVersion}/users/me`, () => {
         const deleteUserEndpoint = `/api/${serverConfig.apiVersion}/users/me`
 
-        it('should deactivate user account', async () => {
-            const mockUser = createMockUser()
+        it('should deactivate user account with the emailed code', async () => {
+            const mockUser = createMockUser({
+                deleteAccountOTP: 123456,
+                deleteAccountExpiration: new Date(Date.now() + 10 * 60000)
+            })
             const {
                 token,
                 csrfSecret,
@@ -511,7 +558,7 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
-            )
+            ).send({ OTP: 123456 })
 
             expect(response.status).toBe(HttpStatusCodes.OK)
             expect(prismaMock.user.findUnique)
@@ -535,7 +582,10 @@ describe('User Routes', () => {
                     where: { id: mockUser.id },
                     data: {
                         active: false,
-                        deletedAt: expect.any(Date)
+                        deletedAt: expect.any(Date),
+                        deleteAccountOTP: null,
+                        deleteAccountExpiration: null,
+                        deleteAccountAttempts: 0
                     }
                 })
 
@@ -561,11 +611,63 @@ describe('User Routes', () => {
                 token,
                 csrfSecret,
                 csrfToken
+            ).send({ OTP: 123456 })
+
+            expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+
+        it('should return 400 without a code', async () => {
+            const mockUser = createMockUser()
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+
+            const response = await withCsrfAuth(
+                supertest(App).delete(deleteUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
             )
 
-            expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
-            expect(response.body.error[0].error).toContain(
-                'not found'
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
+        })
+
+        it('should return 400 and count the attempt for a wrong code', async () => {
+            const mockUser = createMockUser({
+                deleteAccountOTP: 123456,
+                deleteAccountExpiration: new Date(Date.now() + 10 * 60000)
+            })
+            const {
+                token,
+                csrfSecret,
+                csrfToken
+            } = createAuthenticatedRequest(mockUser)
+
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+
+            const response = await withCsrfAuth(
+                supertest(App).delete(deleteUserEndpoint),
+                token,
+                csrfSecret,
+                csrfToken
+            ).send({ OTP: 999999 })
+
+            expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: {
+                        deleteAccountAttempts: {
+                            increment: 1
+                        }
+                    }
+                })
             )
         })
 

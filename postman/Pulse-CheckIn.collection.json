@@ -74,7 +74,7 @@
               "script": {
                 "exec": [
                   "pm.environment.set('testEmail', 'alice@example.com')",
-                  "pm.environment.set('testPassword', 'password123')"
+                  "pm.environment.set('testPassword', 'Pulse2Recover!')"
                 ]
               }
             },
@@ -574,8 +574,12 @@
         {
           "name": "Logout",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              },
               {
                 "key": "Cookie",
                 "value": "accessToken={{token}}"

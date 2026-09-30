@@ -47,7 +47,7 @@ describe('AuthModel', () => {
     describe('getUserByEmail', () => {
         it('returns user when found and active', async () => {
             const user = createMockUser()
-            prismaMock.user.findUnique.mockResolvedValue(user as never)
+            prismaMock.user.findFirst.mockResolvedValue(user as never)
 
             const result = await authModel.getUserByEmail(user.email)
 
@@ -56,21 +56,26 @@ describe('AuthModel', () => {
 
         it('returns null when user is inactive', async () => {
             const user = createMockUser({ active: false })
-            prismaMock.user.findUnique.mockResolvedValue(user as never)
+            prismaMock.user.findFirst.mockResolvedValue(user as never)
 
             const result = await authModel.getUserByEmail(user.email)
 
             expect(result).toBeNull()
         })
 
-        it('queries by email', async () => {
-            prismaMock.user.findUnique.mockResolvedValue(createMockUser() as never)
+        it('queries by email case-insensitively', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(createMockUser() as never)
 
             await authModel.getUserByEmail('someone@test.com')
 
-            expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+            expect(prismaMock.user.findFirst).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { email: 'someone@test.com' }
+                    where: {
+                        email: {
+                            equals: 'someone@test.com',
+                            mode: 'insensitive'
+                        }
+                    }
                 })
             )
         })
@@ -144,25 +149,16 @@ describe('AuthModel', () => {
                     where: { id: user.id },
                     data: {
                         active: false,
-                        deletedAt: expect.any(Date)
+                        deletedAt: expect.any(Date),
+                        deleteAccountOTP: null,
+                        deleteAccountExpiration: null,
+                        deleteAccountAttempts: 0
                     }
                 })
             )
         })
     })
 
-    describe('deleteUser', () => {
-        it('deletes by id', async () => {
-            const user = createMockUser()
-            prismaMock.user.delete.mockResolvedValue(user as never)
-
-            await authModel.deleteUser(user.id)
-
-            expect(prismaMock.user.delete).toHaveBeenCalledWith(
-                expect.objectContaining({ where: { id: user.id } })
-            )
-        })
-    })
 
     describe('getUserTimezone', () => {
         it('returns timezone from profile', async () => {
@@ -362,7 +358,8 @@ describe('AuthModel', () => {
             await authModel.setEmailChangeOTP(user.id, {
                 pendingEmail: 'new@test.com',
                 emailChangeOTP: 654321,
-                emailChangeExpiration: expiration
+                emailChangeExpiration: expiration,
+                emailChangeAttempts: 0
             })
 
             expect(prismaMock.user.update).toHaveBeenCalledWith(
@@ -384,7 +381,8 @@ describe('AuthModel', () => {
             await authModel.setEmailChangeOTP(user.id, {
                 pendingEmail: null,
                 emailChangeOTP: null,
-                emailChangeExpiration: null
+                emailChangeExpiration: null,
+                emailChangeAttempts: 0
             })
 
             expect(prismaMock.user.update).toHaveBeenCalledWith(
@@ -464,12 +462,6 @@ describe('AuthModel', () => {
             await expect(
                 authModel.updateUser('non-existent', { firstName: 'X' })
             ).rejects.toThrow('P2025')
-        })
-
-        it('deleteUser propagates Prisma error for non-existent user', async () => {
-            prismaMock.user.delete.mockRejectedValue(new Error('P2025'))
-
-            await expect(authModel.deleteUser('non-existent')).rejects.toThrow('P2025')
         })
     })
 })

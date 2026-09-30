@@ -9,9 +9,7 @@ import {
     exchangeCodeForTokens,
     fetchGoogleProfile,
     findOrCreateUser,
-    generateState,
-    handleCallback,
-    validateState
+    handleCallback
 } from '../../services/googleOAuthService'
 import { prismaMock } from '../setup/jestSetup'
 import { createMockUser } from '../setup/testSetup'
@@ -65,48 +63,6 @@ const mockGoogleProfile = {
 
 describe('GoogleOAuthService', () => {
     beforeEach(() => jest.clearAllMocks())
-
-    // ==================== generateState ====================
-    describe('generateState', () => {
-        it('returns a 64-character hex string', () => {
-            const state = generateState()
-
-            expect(state).toHaveLength(64)
-            expect(state).toMatch(/^[a-f0-9]{64}$/)
-        })
-
-        it('generates unique states on each call', () => {
-            const state1 = generateState()
-            const state2 = generateState()
-
-            expect(state1).not.toBe(state2)
-        })
-    })
-
-    // ==================== validateState ====================
-    describe('validateState', () => {
-        it('returns true when cookie and query state match', () => {
-            const state = 'a'.repeat(64)
-
-            expect(validateState(state, state)).toBe(true)
-        })
-
-        it('returns false when states do not match', () => {
-            expect(validateState('a'.repeat(64), 'b'.repeat(64))).toBe(false)
-        })
-
-        it('returns false when cookieState is undefined', () => {
-            expect(validateState(undefined, 'somestate')).toBe(false)
-        })
-
-        it('returns false when queryState is undefined', () => {
-            expect(validateState('somestate', undefined)).toBe(false)
-        })
-
-        it('returns false when both are undefined', () => {
-            expect(validateState(undefined, undefined)).toBe(false)
-        })
-    })
 
     // ==================== buildAuthUrl ====================
     describe('buildAuthUrl', () => {

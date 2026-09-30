@@ -4,7 +4,6 @@
 .pnp.js
 
 # generated
-email-preview.html
 prisma/generated
 prisma/*.db
 prisma/*.db-journal
@@ -43,7 +42,11 @@ next-env.d.ts
 .qodo
 
 # Claude code
-.claude
+.claude/*
+!.claude/routines
+!.claude/routines/**
+!.claude/milestones
+!.claude/milestones/**
 docs/plans
 *GUIDE.md
 review

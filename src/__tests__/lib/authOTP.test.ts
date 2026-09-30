@@ -1,6 +1,9 @@
 import {
+    completeEmailConfirmation,
     generateOTP,
     recordFailedConfirmEmailAttempt,
+    recordFailedDeleteAccountAttempt,
+    recordFailedEmailChangeAttempt,
     recordFailedResetPasswordAttempt,
     removeConfirmEmailOTP,
     removeEmailChangeOTP,
@@ -33,7 +36,14 @@ const mockIncrementResetPasswordAttempts =
     authModel.incrementResetPasswordAttempts as jest.Mock
 const mockIncrementConfirmEmailAttempts =
     authModel.incrementConfirmEmailAttempts as jest.Mock
+const mockIncrementEmailChangeAttempts =
+    authModel.incrementEmailChangeAttempts as jest.Mock
+const mockSetDeleteAccountOTP =
+    authModel.setDeleteAccountOTP as jest.Mock
+const mockIncrementDeleteAccountAttempts =
+    authModel.incrementDeleteAccountAttempts as jest.Mock
 const mockSendEmail = sendEmail as jest.Mock
+const mockMarkEmailVerified = authModel.markEmailVerified as jest.Mock
 
 beforeEach(() => {
     jest.clearAllMocks()
@@ -177,6 +187,29 @@ describe('authOTP', () => {
                 }
             )
         })
+
+        it('does not mark the email verified', async () => {
+            await removeConfirmEmailOTP('user-123')
+
+            expect(mockMarkEmailVerified).not.toHaveBeenCalled()
+        })
+    })
+
+    // ==================== completeEmailConfirmation ====================
+    describe('completeEmailConfirmation', () => {
+        it('clears the OTP and marks the email verified', async () => {
+            await completeEmailConfirmation('user-123')
+
+            expect(mockSetConfirmEmailOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    confirmEmailOTP: null,
+                    confirmEmailExpiration: null,
+                    confirmEmailAttempts: 0
+                }
+            )
+            expect(mockMarkEmailVerified).toHaveBeenCalledWith('user-123')
+        })
     })
 
     // ==================== recordFailedConfirmEmailAttempt ====================
@@ -201,6 +234,58 @@ describe('authOTP', () => {
                 }
             )
             expect(mockIncrementConfirmEmailAttempts).not.toHaveBeenCalled()
+            expect(mockMarkEmailVerified).not.toHaveBeenCalled()
+        })
+    })
+
+    // ==================== recordFailedDeleteAccountAttempt ====================
+    describe('recordFailedDeleteAccountAttempt', () => {
+        it('increments the attempt counter when below the max', async () => {
+            await recordFailedDeleteAccountAttempt('user-123', 2)
+
+            expect(mockIncrementDeleteAccountAttempts)
+                .toHaveBeenCalledWith('user-123')
+            expect(mockSetDeleteAccountOTP).not.toHaveBeenCalled()
+        })
+
+        it('invalidates the code once the max attempts is reached', async () => {
+            await recordFailedDeleteAccountAttempt('user-123', 4)
+
+            expect(mockSetDeleteAccountOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    deleteAccountOTP: null,
+                    deleteAccountExpiration: null,
+                    deleteAccountAttempts: 0
+                }
+            )
+            expect(mockIncrementDeleteAccountAttempts).not.toHaveBeenCalled()
+        })
+    })
+
+    // ==================== recordFailedEmailChangeAttempt ====================
+    describe('recordFailedEmailChangeAttempt', () => {
+        it('increments the attempt counter when below the max', async () => {
+            await recordFailedEmailChangeAttempt('user-123', 2)
+
+            expect(mockIncrementEmailChangeAttempts)
+                .toHaveBeenCalledWith('user-123')
+            expect(mockSetEmailChangeOTP).not.toHaveBeenCalled()
+        })
+
+        it('cancels the pending change once the max attempts is reached', async () => {
+            await recordFailedEmailChangeAttempt('user-123', 4)
+
+            expect(mockSetEmailChangeOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    pendingEmail: null,
+                    emailChangeOTP: null,
+                    emailChangeExpiration: null,
+                    emailChangeAttempts: 0
+                }
+            )
+            expect(mockIncrementEmailChangeAttempts).not.toHaveBeenCalled()
         })
     })
 
@@ -216,7 +301,8 @@ describe('authOTP', () => {
                     {
                         pendingEmail: null,
                         emailChangeOTP: null,
-                        emailChangeExpiration: null
+                        emailChangeExpiration: null,
+                        emailChangeAttempts: 0
                     }
                 )
             }

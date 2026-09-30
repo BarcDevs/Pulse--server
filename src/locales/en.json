@@ -191,6 +191,14 @@
       "heading": "Your verification code",
       "expiry": "This code expires in {{minutes}} minutes. Please don't share it with anyone.",
       "footer": "© 2026 {{brandName}} · This email was sent because your email address was used for a request on {{brandName}}."
+    },
+    "deleteAccount": {
+      "subject": "Confirm Account Deletion",
+      "body": "Use this code to confirm deleting your account: {{otp}}",
+      "html": {
+        "intro": "Use the code below to confirm deleting your {{brandName}} account. The account is deactivated right away and permanently deleted after 30 days.",
+        "disclaimer": "If you didn't ask to delete your account, don't share this code and change your password."
+      }
     }
   },
   "insights": {

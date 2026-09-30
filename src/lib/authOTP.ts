@@ -5,6 +5,8 @@ import { authConfig } from '../../config'
 import { brandConfig } from '../config/app'
 import {
     MAX_CONFIRM_EMAIL_ATTEMPTS,
+    MAX_DELETE_ACCOUNT_ATTEMPTS,
+    MAX_EMAIL_CHANGE_ATTEMPTS,
     MAX_RESET_PASSWORD_ATTEMPTS
 } from '../constants/auth/authRules'
 import { errorFactory } from '../errors/factory/ErrorFactory'
@@ -15,6 +17,7 @@ import { sendEmail } from '../utils/emailSender'
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
+    deleteAccountTemplate,
     resetPasswordTemplate
 } from '../utils/emailTemplates'
 import { t } from '../utils/i18n'
@@ -100,7 +103,14 @@ export const removeConfirmEmailOTP = async (
             confirmEmailAttempts: 0
         }
     )
+}
 
+// Only a correct code verifies the email. Clearing the OTP after too many
+// failures must not, or 5 junk codes would verify any address
+export const completeEmailConfirmation = async (
+    userId: string
+): Promise<void> => {
+    await removeConfirmEmailOTP(userId)
     await authModel.markEmailVerified(userId)
 }
 
@@ -124,9 +134,49 @@ export const removeEmailChangeOTP = async (
         {
             pendingEmail: null,
             emailChangeOTP: null,
-            emailChangeExpiration: null
+            emailChangeExpiration: null,
+            emailChangeAttempts: 0
         }
     )
+}
+
+// Clears the pending change after too many wrong codes, so the 6-digit
+// code can't be brute-forced by spreading guesses over time
+export const recordFailedEmailChangeAttempt = async (
+    userId: string,
+    currentAttempts: number
+): Promise<void> => {
+    if (currentAttempts + 1 >= MAX_EMAIL_CHANGE_ATTEMPTS) {
+        await removeEmailChangeOTP(userId)
+        return
+    }
+
+    await authModel.incrementEmailChangeAttempts(userId)
+}
+
+export const removeDeleteAccountOTP = async (
+    userId: string
+): Promise<void> => {
+    await authModel.setDeleteAccountOTP(
+        userId,
+        {
+            deleteAccountOTP: null,
+            deleteAccountExpiration: null,
+            deleteAccountAttempts: 0
+        }
+    )
+}
+
+export const recordFailedDeleteAccountAttempt = async (
+    userId: string,
+    currentAttempts: number
+): Promise<void> => {
+    if (currentAttempts + 1 >= MAX_DELETE_ACCOUNT_ATTEMPTS) {
+        await removeDeleteAccountOTP(userId)
+        return
+    }
+
+    await authModel.incrementDeleteAccountAttempts(userId)
 }
 
 export const sendForgotPasswordOTP = async (
@@ -201,7 +251,8 @@ export const sendEmailChangeOTP = async (
     await authModel.setEmailChangeOTP(userId, {
         pendingEmail: newEmail,
         emailChangeOTP: otp,
-        emailChangeExpiration: expiration
+        emailChangeExpiration: expiration,
+        emailChangeAttempts: 0
     })
 
     const messages = getMessages(language).emails.changeEmail
@@ -210,6 +261,32 @@ export const sendEmailChangeOTP = async (
         t(messages.subject, { brandName: brandConfig.brandName }),
         t(messages.body, { otp, brandName: brandConfig.brandName }),
         changeEmailTemplate(otp, language)
+    )
+
+    return otp
+}
+
+// Proves control of the account's inbox, so a stolen session alone can't
+// delete the account. Works for Google-only users, who never saw their
+// generated password
+export const sendDeleteAccountOTP = async (
+    user: ServerUserType
+): Promise<number> => {
+    const { otp, expiration } = generateOTP()
+
+    await authModel.setDeleteAccountOTP(user.id, {
+        deleteAccountOTP: otp,
+        deleteAccountExpiration: expiration,
+        deleteAccountAttempts: 0
+    })
+
+    const lang = user.profile?.language
+    const messages = getMessages(lang).emails.deleteAccount
+    await sendEmail(
+        user.email,
+        t(messages.subject, { brandName: brandConfig.brandName }),
+        t(messages.body, { otp, brandName: brandConfig.brandName }),
+        deleteAccountTemplate(otp, lang)
     )
 
     return otp

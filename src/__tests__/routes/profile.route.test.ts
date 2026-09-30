@@ -198,10 +198,40 @@ describe('Profile Routes', () => {
         )
 
         it(
+            'should update the AI notes opt-out (M3)',
+            async () => {
+                prismaMock.profile.update.mockResolvedValue({
+                    ...mockProfile,
+                    shareNotesWithAI: false
+                } as never)
+
+                const {
+                    token,
+                    csrfSecret,
+                    csrfToken
+                } = createAuthenticatedRequest(mockUser)
+
+                const res = await withCsrfAuth(
+                    request(App).patch(endpoint),
+                    token,
+                    csrfSecret,
+                    csrfToken
+                ).send({ shareNotesWithAI: false })
+
+                expect(res.status).toBe(HttpStatusCodes.OK)
+                expect(prismaMock.profile.update).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: expect.objectContaining({ shareNotesWithAI: false })
+                    })
+                )
+            }
+        )
+
+        it(
             'should update image URL',
             async () => {
                 const imageUrl =
-                    'https://example.com/image.jpg'
+                    'https://lh3.googleusercontent.com/a/image.jpg'
                 const updated = {
                     ...mockProfile,
                     image: imageUrl

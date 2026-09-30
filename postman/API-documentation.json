@@ -134,8 +134,13 @@
             "disableBodyPruning": true
           },
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "{{_csrf}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -277,7 +282,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"test2@example.com\",\r\n    \"newPassword\": \"fakepassword123\",\r\n    \"userOTP\": 878085\r\n}",
+              "raw": "{\r\n    \"email\": \"test2@example.com\",\r\n    \"newPassword\": \"FakePassword7!\",\r\n    \"userOTP\": 878085\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1945,7 +1950,7 @@
     },
     {
       "key": "testPassword",
-      "value": "password123"
+      "value": "Pulse2Recover!"
     },
     {
       "key": "csrfToken",

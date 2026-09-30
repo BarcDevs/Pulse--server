@@ -51,12 +51,6 @@ A whole rfc series was done on whatever branch was checked out (an upgrade branc
 
 **Lesson:** when work in a worktree is finished, merge its branch into the integration branch (per branch flow), `git worktree remove` it and `git branch -d` the branch in the same session. Verify "merged" with `git cherry <integration> <branch>` (no `+` lines), not by a TODO saying it's done. Rule lives in the "Shared Checkouts & Other Sessions" section of this repo's CLAUDE.md, pulse--client, pantry and both `.sources` CLAUDE skeletons.
 
-## 28/09/2026 - Version-bump tag collision across parallel branches: bump to the next free version
-
-Two `fix` branches were open off the same base (1.4.1); each commit's post-commit hook bumped to 1.4.2. The second one's `git tag v1.4.2` failed (hook exit 128) because the first branch already owned the tag, leaving an untagged commit that duplicated the version. User: "bump to v1.4.3 and assign the correct tag. do it whenever a collision like this happens".
-
-**Lesson:** after any commit where the post-commit hook fails with a tag collision (`git tag` exit 128 / `v<ver>` already exists), without asking: take the next free version above the highest existing `v*` tag, set it in `package.json` + `package-lock.json` (root and `packages[""]`), amend with `SKIP_VERSION_BUMP=1 git commit --amend` updating the `Version-Bump:` footer, then `git tag v<new>`. Only on unpushed commits. Expect a version-line conflict in `package.json`/lock when the second branch merges; resolve it to the higher version.
-
 ---
 
 ## 29/09/2026 — Worktrees only when another session is actively working in the repo
@@ -80,3 +74,27 @@ The user said "tell client to reverse it as well". The collaborator all session 
 `CLAUDE.md` Model Selection told sessions to use Haiku for sub-agents and lookups, a leftover from before the move to Sonnet. Noticed while checking which model the commit-skill agents run on. The real setup: Sonnet is the default for execution and every sub-agent, Opus via `/opusplan` for planning and hard reasoning.
 
 **Lesson:** when a `CLAUDE.md` line conflicts with the user's global rule (all sub-agents on Sonnet), the repo line is stale, not an override. Fixed in both pulse repos.
+
+---
+
+## 29/09/2026 — Opened a PR from feature branch into `development` instead of merging directly
+
+Pushed `feat/prod-error-monitor` and started opening a PR into `development`. User interrupted, angrily: "no, dev doesnt need a pr in the 100000000000000 time!!!!!!! only main". I'd misread the repo's "feature-branch → development → PR to main, never skip development" rule as meaning every hop needs a PR; it only means the `development` step can't be skipped when going to `main` — the feature→`development` step itself is a direct merge.
+
+**Lesson:** only `development` → `main` goes through a PR. Feature/fix branch → `development` is `git merge` (or fast-forward), no PR, no branch protection expected on that hop.
+
+---
+
+## 29/09/2026 — Attributed another session's commits without evidence, twice
+
+CI on `development` broke from the prod error monitor commits (`e3e764c`, `0f4e181`). I first reported it to `aws-monitor`, because an earlier @-mention had named it, and then to my peer `server-security-audit-fixes`. Neither owned the work; the commits carried a `Claude-Session` trailer that matched no session I could name. The user had to step in twice. User: "why aws monitor? he's not related to any of this" and "im tired of being your babysitter".
+
+**Lesson:** before reporting to an "owner", check it: match the commit's `Claude-Session` trailer, or ask one question. If no session can be shown to own it, apply the user's fallback rule (here: "if not, fix it") at once instead of routing it again. In any case, fix CI breaks that block everyone quickly, on a separate branch or worktree that leaves the other session's files alone.
+
+---
+
+## 30/09/2026 — Added migrations without applying them to the dev DB
+
+The H1 fix (28/09) added `20260928191230_add_email_verified_at` and the overnight M3 fix added `20260930020000_add_share_notes_with_ai`. Tests passed because the jest integration setup runs `migrate deploy` on its own Postgres, but the Neon dev DB was never migrated. The user's dev server then failed with "The column `User.emailVerifiedAt` does not exist in the current database." User: "also you forgot to migrate the db".
+
+**Lesson:** a change that adds a migration isn't done until `npx prisma migrate status` against the dev DB (Neon, `DEV_DATABASE_URL`) is clean. Apply it with `npx prisma migrate deploy` in the same step. It only applies additive, pending migrations and never resets. Prod gets it from `ec2-redeploy.sh`; the dev DB gets nothing automatically.

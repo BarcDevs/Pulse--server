@@ -48,6 +48,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 |---|---|
 | 28/09/2026 | Security audit follow-up: owner positions on H1 (no signup verification), M2 (deactivate-only), M4 (per-user limit), L1 (QUERY rejected), L7 (password policy) |
 | 28/09/2026 | Account deletion = 30-day countdown + support for immediate; Google links only into verified local accounts |
+| 29/09/2026 | Remaining audit findings: M3 opt-out toggle, L9 image host allowlist, M6 basic headers + CSP report-only, overnight commit+merge-local authority |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.
@@ -55,3 +56,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | Date | Entry |
 |---|---|
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
+| 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |

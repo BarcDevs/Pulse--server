@@ -2,6 +2,7 @@ import supertest from 'supertest'
 
 import { serverConfig } from '../../../config'
 import App from '../../app'
+import { MAX_CONFIRM_EMAIL_ATTEMPTS } from '../../constants/auth/authRules'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { sendEmail } from '../../utils/emailSender'
 import { prismaMock } from '../setup/jestSetup'
@@ -9,6 +10,7 @@ import {
     createAuthenticatedRequest,
     createAuthToken,
     createMockUser,
+    generateCsrfTokenPair,
     withCsrfAuth
 } from '../setup/testSetup'
 
@@ -21,7 +23,7 @@ describe('Auth Routes', () => {
             'should return 200 and set the session cookie for valid credentials',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 const response = await supertest(App)
@@ -53,7 +55,7 @@ describe('Auth Routes', () => {
             'should return 200 with remember option',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 const response = await supertest(App)
@@ -151,7 +153,7 @@ describe('Auth Routes', () => {
         it(
             'should return 401 for user not found',
             async () => {
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(null as never)
 
                 const response = await supertest(App)
@@ -173,7 +175,7 @@ describe('Auth Routes', () => {
             'should return 401 for invalid password',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 const response = await supertest(App)
@@ -361,7 +363,7 @@ describe('Auth Routes', () => {
         it(
             'should return 409 for existing user',
             async () => {
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(createMockUser() as never as never)
 
                 const response = await supertest(App)
@@ -385,7 +387,6 @@ describe('Auth Routes', () => {
             'should return 409 for existing username',
             async () => {
                 prismaMock.user.findUnique
-                    .mockResolvedValueOnce(null as never)
                     .mockResolvedValueOnce(
                         createMockUser(
                             { username: 'existinguser' }
@@ -412,12 +413,21 @@ describe('Auth Routes', () => {
     })
 
     // ==================== LOGOUT ====================
-    describe(`GET /api/${serverConfig.apiVersion}/auth/logout`, () => {
+    describe(`POST /api/${serverConfig.apiVersion}/auth/logout`, () => {
+        const logoutEndpoint = `/api/${serverConfig.apiVersion}/auth/logout`
+
+        const postLogout = () => {
+            const { csrfSecret, csrfToken } = generateCsrfTokenPair()
+            return supertest(App)
+                .post(logoutEndpoint)
+                .set('Cookie', [`_csrf=${csrfSecret}`])
+                .set('x-csrf-token', csrfToken)
+        }
+
         it(
             'should return 200 and clear accessToken cookie',
             async () => {
-                const response = await supertest(App)
-                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
+                const response = await postLogout()
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.message)
@@ -428,8 +438,7 @@ describe('Auth Routes', () => {
         it(
             'should clear both accessToken and _csrf cookies',
             async () => {
-                const response = await supertest(App)
-                    .get(`/api/${serverConfig.apiVersion}/auth/logout`)
+                const response = await postLogout()
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
 
@@ -444,6 +453,27 @@ describe('Auth Routes', () => {
                     .toContain('accessToken')
                 expect(cookieHeaderText)
                     .toContain('_csrf')
+            }
+        )
+
+        it(
+            'should reject logout without a CSRF token',
+            async () => {
+                const response = await supertest(App)
+                    .post(logoutEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+                expect(response.headers['set-cookie']).toBeUndefined()
+            }
+        )
+
+        it(
+            'should no longer accept GET',
+            async () => {
+                const response = await supertest(App)
+                    .get(logoutEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
             }
         )
     })
@@ -632,7 +662,7 @@ describe('Auth Routes', () => {
             'should return 200 and send OTP for valid email',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
                 prismaMock.user.update
                     .mockResolvedValue(mockUser as never)
@@ -650,7 +680,7 @@ describe('Auth Routes', () => {
         it(
             'should return 200 even when email is not registered',
             async () => {
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(null as never)
 
                 const response = await supertest(App)
@@ -689,7 +719,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         confirmEmailOTP: OTP,
@@ -719,7 +749,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         confirmEmailOTP: OTP,
@@ -746,7 +776,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         confirmEmailOTP: OTP,
@@ -768,20 +798,67 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 401 for non-existent user',
+            'should answer a non-existent user exactly like a wrong OTP',
             async () => {
-                prismaMock.user.findUnique.mockResolvedValue(
-                    null
-                )
+                const mockUser = createMockUser()
+                prismaMock.user.findFirst
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce({
+                        ...mockUser,
+                        confirmEmailOTP: 123456,
+                        confirmEmailExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    } as never)
+
+                const unknown = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: 'nonexistent@test.com',
+                        OTP: 999999
+                    })
+                const wrongCode = await supertest(App)
+                    .post(confirmEmailEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        OTP: 999999
+                    })
+
+                expect(unknown.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(unknown.status).toBe(wrongCode.status)
+                expect(unknown.body).toEqual(wrongCode.body)
+            }
+        )
+
+        it(
+            'should not verify the email when the last allowed attempt fails',
+            async () => {
+                const mockUser = createMockUser({
+                    emailVerifiedAt: null,
+                    confirmEmailOTP: 123456,
+                    confirmEmailExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    confirmEmailAttempts: MAX_CONFIRM_EMAIL_ATTEMPTS - 1
+                })
+                prismaMock.user.findFirst
+                    .mockResolvedValue(mockUser as never)
 
                 const response = await supertest(App)
                     .post(confirmEmailEndpoint)
                     .send({
-                        email: 'nonexistent@test.com',
-                        OTP: 123456
+                        email: mockUser.email,
+                        OTP: 999999
                     })
 
-                expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+                expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                const updates = prismaMock.user.update.mock.calls
+                    .map(([args]) => args.data)
+                expect(updates).toContainEqual(
+                    expect.objectContaining({ confirmEmailOTP: null })
+                )
+                updates.forEach((data) =>
+                    expect(data).not.toHaveProperty('emailVerifiedAt'))
             }
         )
 
@@ -968,7 +1045,8 @@ describe('Auth Routes', () => {
 
                 prismaMock.user.findUnique
                     .mockResolvedValueOnce(mockUser as never)          // getUser by id
-                    .mockResolvedValueOnce(createMockUser() as never as never)  // email taken
+                prismaMock.user.findFirst
+                    .mockResolvedValue(createMockUser() as never)      // email taken
 
                 const response = await withCsrfAuth(
                     supertest(App).post(endpoint),
@@ -1080,6 +1158,42 @@ describe('Auth Routes', () => {
         )
 
         it(
+            'cancels the pending change on the 5th wrong OTP (L18)',
+            async () => {
+                const mockUser = createMockUser({
+                    emailChangeOTP: 123456,
+                    emailChangeExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    pendingEmail: 'new@test.com',
+                    emailChangeAttempts: 4
+                })
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser as never)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP: 999999 })
+
+                expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(prismaMock.user.update).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: {
+                            pendingEmail: null,
+                            emailChangeOTP: null,
+                            emailChangeExpiration: null,
+                            emailChangeAttempts: 0
+                        }
+                    })
+                )
+            }
+        )
+
+        it(
             'should return 400 for expired OTP',
             async () => {
                 const OTP = 123456
@@ -1134,7 +1248,7 @@ describe('Auth Routes', () => {
 
         const mockUserWithOTP = (expiresInMs: number, attempts = 0) => {
             const mockUser = createMockUser()
-            prismaMock.user.findUnique.mockResolvedValue({
+            prismaMock.user.findFirst.mockResolvedValue({
                 ...mockUser,
                 resetPasswordOTP: OTP,
                 resetPasswordExpiration: new Date(Date.now() + expiresInMs),
@@ -1208,7 +1322,7 @@ describe('Auth Routes', () => {
                 const OTP = 123456
                 const newPassword = 'NewPassword456!'
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         resetPasswordOTP: OTP,
@@ -1255,7 +1369,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         resetPasswordOTP: OTP,
@@ -1283,7 +1397,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         resetPasswordOTP: OTP,
@@ -1306,21 +1420,37 @@ describe('Auth Routes', () => {
         )
 
         it(
-            'should return 200 for non-existent email (user enumeration safety)',
+            'should answer a non-existent email exactly like a wrong code (user enumeration safety)',
             async () => {
-                prismaMock.user.findUnique.mockResolvedValue(
-                    null
-                )
+                const mockUser = createMockUser()
+                prismaMock.user.findFirst
+                    .mockResolvedValueOnce(null)
+                    .mockResolvedValueOnce({
+                        ...mockUser,
+                        resetPasswordOTP: 123456,
+                        resetPasswordExpiration: new Date(
+                            Date.now() + 10 * 60000
+                        )
+                    } as never)
 
-                const response = await supertest(App)
+                const unknown = await supertest(App)
                     .put(resetPasswordEndpoint)
                     .send({
                         email: 'nonexistent@test.com',
                         newPassword: 'NewPassword456!',
-                        userOTP: 123456
+                        userOTP: 999999
+                    })
+                const wrongCode = await supertest(App)
+                    .put(resetPasswordEndpoint)
+                    .send({
+                        email: mockUser.email,
+                        newPassword: 'NewPassword456!',
+                        userOTP: 999999
                     })
 
-                expect(response.status).toBe(HttpStatusCodes.OK)
+                expect(unknown.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(unknown.status).toBe(wrongCode.status)
+                expect(unknown.body).toEqual(wrongCode.body)
             }
         )
 
@@ -1330,7 +1460,7 @@ describe('Auth Routes', () => {
                 const mockUser = createMockUser()
                 const OTP = 123456
 
-                prismaMock.user.findUnique.mockResolvedValue(
+                prismaMock.user.findFirst.mockResolvedValue(
                     {
                         ...mockUser,
                         resetPasswordOTP: OTP,
@@ -1401,7 +1531,7 @@ describe('Auth Routes', () => {
             'POST /forgot-password returns 500 when email send fails',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique.mockResolvedValue(mockUser as never)
+                prismaMock.user.findFirst.mockResolvedValue(mockUser as never)
                 prismaMock.user.update.mockResolvedValue(mockUser as never)
                 jest.mocked(sendEmail).mockRejectedValue(new Error('ECONNREFUSED'))
 
@@ -1435,7 +1565,7 @@ describe('Auth Routes', () => {
         it(
             'POST /login returns 500 when Prisma throws connection error',
             async () => {
-                prismaMock.user.findUnique.mockRejectedValue(new Error('ECONNREFUSED'))
+                prismaMock.user.findFirst.mockRejectedValue(new Error('ECONNREFUSED'))
 
                 const response = await supertest(App)
                     .post(`/api/${serverConfig.apiVersion}/auth/login`)

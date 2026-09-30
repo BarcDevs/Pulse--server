@@ -1,11 +1,3 @@
-export const PASSWORD_HASH_ROUNDS = 10
-
-export const OTP_CONFIG = {
-    LENGTH: 6,
-    RANGE_MIN: 100000,
-    RANGE_MAX: 900000
-}
-
 export const SESSION_EXPIRES_IN = '1d'
 
 export const ACCOUNT_DELETION_GRACE_DAYS = 30
@@ -13,6 +5,10 @@ export const ACCOUNT_DELETION_GRACE_DAYS = 30
 export const MAX_RESET_PASSWORD_ATTEMPTS = 5
 
 export const MAX_CONFIRM_EMAIL_ATTEMPTS = 5
+
+export const MAX_EMAIL_CHANGE_ATTEMPTS = 5
+
+export const MAX_DELETE_ACCOUNT_ATTEMPTS = 5
 
 export const DUMMY_PASSWORD_HASH =
     '$2b$12$97sk6HyELQeZ4TF0J9siruAQTp2HXBTjFVZrSd1zhjy0C50KfpSxu'

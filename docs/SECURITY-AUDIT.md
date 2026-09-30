@@ -14,33 +14,43 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 
 | ID | Sev | Finding | Status |
 |---|---|---|---|
-| H1 | High | No email verification + Google OAuth auto-links by email → pre-account takeover | DECIDED (see below) |
+| H1 | High | No email verification + Google OAuth auto-links by email → pre-account takeover | FIXED 28/09 — Google links only into verified accounts (`emailVerifiedAt`); see also H6 |
 | H2 | High | `/auth/me` returned `emailChangeOTP` → email-change ownership bypass | FIXED (branch `security/audit-followup`) |
 | H3 | High | `anonymousParticipation` (default true, UI: "Hide your identity") never enforced; public forum returns real first/last name + `user.id`; search by author name | FIXED 28/09 — `anonymizeAuthor` masks identity on every post/reply read path; name-based search removed |
 | H4 | High | Cloudflare SSL mode **Flexible** → Cloudflare→origin is plaintext HTTP | FIXED 28/09 — Cloudflare Tunnel, client SG has no public 80/443 (`decisions/deployment-and-infra.md`) |
 | H5 | High | Server SG port 80 "open" + public IP + `trust proxy 1` → direct API access, `X-Forwarded-For` spoofing bypasses login/OTP rate limits | FIXED — verified 28/09: server SG 80 allows only the client SG |
+| H6 | High | 5 failed confirm-email codes marked the email verified, bypassing the H1 Google-link rule (found 30/09 by the client audit session) | FIXED 30/09 |
 | M1 | Med | No session revocation: logout/password change/reset/deactivation leave the 7d JWT valid; token also returned in login body | FIXED 28/09 — per-request check of `active` + `passwordUpdatedAt` vs `iat`; JWT lifetime follows remember-me; token cookie-only. Logout stays device-local |
 | M2 | Med | Account delete = deactivate only; health data kept forever; deactivated users' replies still public with name; re-signup → 500 | FIXED 29/09 — 30-day countdown + daily purge, login restores, replies hidden, email/username kept until purge |
-| M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | OPEN |
+| M3 | Med | Raw check-in notes (last 5) sent to AI providers, up to 3 via fallback chain; no opt-out | FIXED |
 | M4 | Med | Every check-in create/PATCH triggers synchronous AI calls, no per-user limit, no fetch timeouts | FIXED 29/09 — `checkInMutationRateLimiter` (5/day per `userId`) on `POST`/`PATCH /check-in`; `AbortSignal.timeout` (15s, `aiGeneration.timeoutMs`) on all three provider fetches |
-| M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | OPEN (verify) |
-| M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | OPEN |
+| M5 | Med | `req.ip` likely = Cloudflare edge IP behind CF→Next rewrite → shared rate-limit buckets, wrong geo timezone | PROBABLY NOT AN ISSUE (30/09, client audit session): Next's rewrite adds no XFF hop, so `trust proxy 1` yields the real IP. Verify: compare `RateLimit-Remaining` on `/api/status` from two networks |
+| M6 | Med | Client sends no CSP / frame-ancestors / HSTS headers | FIXED 30/09 (client) — HSTS, frame-ancestors + X-Frame-Options, nosniff, Referrer-Policy enforced on pages; CSP Report-Only (no report endpoint yet) |
+| M7 | Med | Anonymous authors' profile image still returned (found 30/09 by the client audit session) | FIXED 30/09 |
 | L1 | Low | `GET /auth/forgot-password/:email` → email in URL/logs/Sentry breadcrumbs | FIXED 29/09 — server: `POST /auth/forgot-password` with `{ email }` in body. No client change needed: `pulse--client`'s forgot-password/reset-password pages never called the real endpoint (mocked with `setTimeout`, confirmed across full git history) — separate product gap, not a security issue, tracked in client's own TODO |
-| L2 | Low | Enumeration via signup / confirm-email / reset-password responses | OPEN |
-| L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | OPEN |
-| L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | OPEN |
-| L5 | Low | Logout is `GET` without CSRF | OPEN |
-| L6 | Low | App runs with RDS master credentials | OPEN |
-| L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | DECIDED (see below) |
-| L8 | Low | Reply body has no max length | OPEN |
-| L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | OPEN |
-| L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | OPEN |
-| L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | OPEN |
+| L2 | Low | Enumeration via signup / confirm-email / reset-password responses | FIXED |
+| L3 | Low | `bcrypt.hashSync`/`compareSync` (cost 12) block the event loop | FIXED |
+| L4 | Low | Session cookies `SameSite=None` in prod though prod is same-origin | FIXED |
+| L5 | Low | Logout is `GET` without CSRF | FIXED |
+| L6 | Low | App runs with RDS master credentials | SCRIPT READY 30/09 - owner runs `scripts/security/create-app-db-user.sh`, next deploy switches the app to `pulse_app` |
+| L7 | Low | Weak password rule (8 chars, letter+digit); stale error text claims upper/special | FIXED |
+| L8 | Low | Reply body has no max length | FIXED |
+| L9 | Low | Arbitrary https `<img>` in posts / profile image → reader IP leak | FIXED |
+| L10 | Low | Client localStorage drafts hold DOB/recovery type/care provider; community drafts not per-user; not cleared on logout | FIXED (client) |
+| L11 | Low | Client `getSafeRedirectUrl` accepts `/\evil.com` (possible open redirect) | FIXED (client) |
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
-| L14 | Low | Prisma error messages (may include query args) go to server logs | OPEN |
+| L14 | Low | Prisma error messages (may include query args) go to server logs | FIXED |
+| L15 | Low | `config/default.ts` defaults env to `development`, which returns OTPs in response bodies; prod safe only because `NODE_ENV=production` is set (found 30/09) | FIXED 30/09 — `default.ts` env is `production`; only `development.ts` opts into dev mode |
+| L16 | Low | Error handler logged `req.originalUrl`, so failed Google callbacks logged the OAuth code/state (found 30/09) | FIXED 30/09 |
+| L17 | Low | `/auth/signup` has only the global rate limit: mass account creation / email squatting (found 30/09) | FIXED 30/09 — `signupRateLimiter`, 5 per hour per IP |
+| L18 | Low | `PATCH /users/password` has no per-user throttle; `confirm-email-change` has no attempts counter; one `otpRateLimiter` bucket is shared by six OTP routes (found 30/09) | FIXED — password change limited to 5/15min per user; each OTP route has its own bucket; 5 wrong `confirm-email-change` codes cancel the pending change (30/09) |
+| L19 | Low | JWT payload carried the user's email (readable by anyone holding the token; nothing read it) (found 30/09 by the client audit session) | FIXED 30/09 — payload is `{ id }` only |
+| L20 | Low | Emails were case-sensitive: `Victim@x.com` could sign up next to `victim@x.com` (a way around the H1 Google-link rule) and users had to match casing to log in (found 30/09 by the client audit session) | FIXED 30/09 — auth schemas lowercase emails; lookups are case-insensitive so older mixed-case accounts still match. Owner: check prod for existing case duplicates with `SELECT lower(email), count(*) FROM "User" GROUP BY 1 HAVING count(*) > 1;` |
+| L21 | Low | `DELETE /users/me` needed only a session: a stolen cookie could delete the account (found 30/09 by the client audit session) | FIXED 30/09 — deletion needs a 6-digit code emailed to the account (`POST /users/me/delete-code`, 5/15min per user; 5 wrong codes void it). Code rather than password so Google-only users, who never saw their generated password, can confirm too |
+| L22 | Low | Forum reads (posts, replies, search, tags, categories, author fields) were public: anyone could read what users posted without an account (user complaint, 30/09) | FIXED 30/09 — every forum endpoint needs a session; the client gates /community too. Owner decision: forum readable by signed-in users only |
 
-Informational: prod CORS fallback origin `pulse-client.vercel.app`; swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query; free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2; **prod email config (`EMAIL_*`) not passed by `ec2-redeploy.sh` and `production.ts` sets port 587 + `secure: true` — reset/change-email mail may be broken in prod**; dead code (`constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
+Informational: prod CORS fallback origin `pulse-client.vercel.app` (REMOVED 30/09); swagger + `/dev` exposed on any non-`production` env (e.g. `APP_ENV=staging`); Google AI key in URL query (FIXED 30/09: `x-goog-api-key` header); free Gemini tier in non-prod (keep real data out); unused Vercel Analytics on EC2 (posts to Vercel hosts off-Vercel; will show as CSP violations); prod email config (FIXED 29/09: Resend settings are config defaults, the key comes from Secrets Manager; verified in prod with a real password reset); dead code (REMOVED 30/09: `constants/cookies/authCookies.ts`, `PASSWORD_HASH_ROUNDS`, `OTP_CONFIG`, `authModel.deleteUser`, `googleOAuthService.generateState/validateState`); client `ignoreBuildErrors: true`.
 
 Full evidence, file:line refs, positives and data-flow map: see the audit report in session
 `https://claude.ai/code/session_01Df9dZW4kdBjucJjvRtbqaY`. Key refs are repeated per finding below

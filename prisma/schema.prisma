@@ -35,6 +35,11 @@ model User {
   pendingEmail          String?
   emailChangeOTP        Int?
   emailChangeExpiration DateTime?
+  emailChangeAttempts   Int       @default(0)
+
+  deleteAccountOTP        Int?
+  deleteAccountExpiration DateTime?
+  deleteAccountAttempts   Int       @default(0)
 
   profile Profile?
 }
@@ -51,6 +56,8 @@ model Profile {
   dateFormat String?  @default("dd/mm/yyyy")
 
   anonymousParticipation Boolean           @default(true)
+  // Opt-out for sending check-in notes to AI insight providers (M3)
+  shareNotesWithAI       Boolean           @default(true)
   communityAlerts        Boolean           @default(false)
   dailyReminder          Boolean           @default(true)
   language               String            @default("he-IL")

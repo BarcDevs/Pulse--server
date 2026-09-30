@@ -39,6 +39,8 @@ const router = Router()
  *   get:
  *     summary: Get a paginated list of posts
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -73,6 +75,8 @@ const router = Router()
  *           type: string
  *         description: Filter by category
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: List of posts
  *         content:
@@ -141,7 +145,11 @@ const router = Router()
  *   get:
  *     summary: Get post count grouped by category
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: Category appearance counts
  *         content:
@@ -163,7 +171,7 @@ const router = Router()
  */
 router
     .route('/posts/categories')
-    .get(getCategoryStats)
+    .get(isAuthenticated, getCategoryStats)
 
 /**
  * @swagger
@@ -205,7 +213,7 @@ router
 
 router
     .route('/posts')
-    .get(getPosts)
+    .get(isAuthenticated, getPosts)
     .post(
         isAuthenticated,
         extractCsrfToken,
@@ -219,6 +227,8 @@ router
  *   get:
  *     summary: Get a single post by ID
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: postId
@@ -231,6 +241,8 @@ router
  *           type: integer
  *         description: Max number of replies to include inline. Defaults to 10
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: Post found
  *         content:
@@ -349,7 +361,7 @@ router
  */
 router
     .route('/posts/:postId')
-    .get(getPost)
+    .get(isAuthenticated, getPost)
     .put(
         isAuthenticated,
         extractCsrfToken,
@@ -456,6 +468,8 @@ router.route('/posts/:postId/save').post(
  *     summary: Increment a post's share count
  *     description: Rate limited to 1 request per IP per post per hour.
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: postId
@@ -463,6 +477,8 @@ router.route('/posts/:postId/save').post(
  *         schema:
  *           type: string
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: Share count incremented
  *         content:
@@ -492,7 +508,11 @@ router.route('/posts/:postId/save').post(
  */
 router
     .route('/posts/:postId/share')
-    .post(sharePostRateLimiter, sharePost)
+    .post(
+        isAuthenticated,
+        sharePostRateLimiter,
+        sharePost
+    )
 
 /**
  * @swagger
@@ -500,6 +520,8 @@ router
  *   get:
  *     summary: Get replies for a post with pagination
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: postId
@@ -517,6 +539,8 @@ router
  *           type: integer
  *         description: Page number (requires limit)
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: List of replies
  *         content:
@@ -579,7 +603,7 @@ router
  */
 router
     .route('/posts/:postId/replies')
-    .get(getReplies)
+    .get(isAuthenticated, getReplies)
     .post(
         isAuthenticated,
         extractCsrfToken,
@@ -761,6 +785,8 @@ router.route('/posts/:postId/replies/:replyId/like').post(
  *   get:
  *     summary: Get a list of tags
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -781,6 +807,8 @@ router.route('/posts/:postId/replies/:replyId/like').post(
  *         schema:
  *           type: string
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: List of tags
  *         content:
@@ -801,7 +829,7 @@ router.route('/posts/:postId/replies/:replyId/like').post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/tags').get(getTags)
+router.route('/tags').get(isAuthenticated, getTags)
 
 /**
  * @swagger
@@ -888,6 +916,8 @@ router
  *   get:
  *     summary: Get a single tag by ID
  *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: tagId
@@ -895,6 +925,8 @@ router
  *         schema:
  *           type: string
  *     responses:
+ *       401:
+ *         description: Not authenticated
  *       200:
  *         description: Tag found
  *         content:
@@ -913,7 +945,7 @@ router
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.route('/tags/:tagId').get(getTag)
+router.route('/tags/:tagId').get(isAuthenticated, getTag)
 
 router.use('/recommendations', recommendationsRoute)
 

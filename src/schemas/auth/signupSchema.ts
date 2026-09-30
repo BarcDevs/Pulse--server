@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { PASSWORD_FORMAT } from './passwordFormat'
+import { newPasswordField } from './passwordFormat'
 
 export const signupSchema = z.object({
     firstName: z.string('First name is required')
@@ -12,13 +12,8 @@ export const signupSchema = z.object({
         .max(30, 'Username must be 30 characters or fewer')
         .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
         .optional(),
-    email: z.email('Email is required'),
-    password: z.string('Password is required')
-        .min(8, 'Password must be at least 8 characters')
-        .regex(
-            PASSWORD_FORMAT,
-            'Must contain uppercase, lowercase, number, and special character'
-        )
+    email: z.email('Email is required').toLowerCase(),
+    password: newPasswordField('Password is required')
 })
 
 export type SignupType = z.infer<typeof signupSchema>

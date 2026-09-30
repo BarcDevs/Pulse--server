@@ -8,6 +8,7 @@ import {
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
+    deleteAccountTemplate,
     resetPasswordTemplate
 } from '../utils/emailTemplates'
 
@@ -21,7 +22,8 @@ type TemplateMap = Record<
 const templates: TemplateMap = {
     'reset-password': resetPasswordTemplate,
     'confirm-email': confirmEmailTemplate,
-    'change-email': changeEmailTemplate
+    'change-email': changeEmailTemplate,
+    'delete-account': deleteAccountTemplate
 }
 
 router.get('/email-preview', (req, res) => {

@@ -9,18 +9,20 @@ import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { CustomError } from '../errors/CustomError'
 import type { ResponseType } from '../types/responseType'
+import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
 export const errorHandler = (
     err: Error,
-    _req: Request,
+    req: Request,
     res: Response,
     _next: NextFunction
 ) => {
     logger.error('Unhandled error caught', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name
+        ...toLoggableError(err),
+        method: req.method,
+        // Path only: query strings can carry secrets (OAuth code/state)
+        route: req.path
     })
 
     if (err instanceof CustomError) {

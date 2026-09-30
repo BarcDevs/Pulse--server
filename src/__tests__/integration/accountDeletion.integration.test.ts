@@ -52,14 +52,27 @@ const markDeleted = (id: string, daysAgo: number) =>
     })
 
 describe('Account deletion — Integration', () => {
-    it('DELETE /users/me deactivates and starts the countdown', async () => {
+    // The code is stored directly: sending it goes through the email
+    // provider, which the unit/route tests cover
+    const storeDeleteCode = (userId: string, code: number) =>
+        Prisma.user.update({
+            where: { id: userId },
+            data: {
+                deleteAccountOTP: code,
+                deleteAccountExpiration: new Date(Date.now() + 10 * minuteInMs)
+            }
+        })
+
+    it('DELETE /users/me with the emailed code deactivates and starts the countdown', async () => {
         const { dbUser, token } = await setupUser('countdown')
+        await storeDeleteCode(dbUser.id, 123456)
         const csrfSecret = csrfLib.secretSync()
 
         const res = await supertest(App)
             .delete(DELETE_URL)
             .set('Cookie', [`accessToken=${token}`, `_csrf=${csrfSecret}`])
             .set('x-csrf-token', csrfLib.create(csrfSecret))
+            .send({ OTP: 123456 })
 
         expect(res.status).toBe(HttpStatusCodes.OK)
         const after = await Prisma.user.findUnique({
@@ -67,6 +80,26 @@ describe('Account deletion — Integration', () => {
         })
         expect(after!.active).toBe(false)
         expect(after!.deletedAt).toBeInstanceOf(Date)
+        expect(after!.deleteAccountOTP).toBeNull()
+    })
+
+    it('DELETE /users/me with a wrong code keeps the account active', async () => {
+        const { dbUser, token } = await setupUser('wrong-code')
+        await storeDeleteCode(dbUser.id, 123456)
+        const csrfSecret = csrfLib.secretSync()
+
+        const res = await supertest(App)
+            .delete(DELETE_URL)
+            .set('Cookie', [`accessToken=${token}`, `_csrf=${csrfSecret}`])
+            .set('x-csrf-token', csrfLib.create(csrfSecret))
+            .send({ OTP: 999999 })
+
+        expect(res.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        const after = await Prisma.user.findUnique({
+            where: { id: dbUser.id }
+        })
+        expect(after!.active).toBe(true)
+        expect(after!.deleteAccountAttempts).toBe(1)
     })
 
     it('logging back in cancels the deletion and keeps old tokens revoked', async () => {
