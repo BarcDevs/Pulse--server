@@ -15,7 +15,6 @@
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
     "dev": "tsx scripts/dev.ts",
-    "preview:emails": "tsx --env-file=.env scripts/preview-emails.ts",
     "release": "npx prisma migrate deploy --schema=prisma/schema.prisma",
     "test": "NODE_ENV=test jest --detectOpenHandles --coverage",
     "test:integration": "NODE_ENV=test jest --config jest.integration.config.ts --detectOpenHandles",

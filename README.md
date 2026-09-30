@@ -557,7 +557,6 @@ npm run build    # Compile TypeScript
 npm start        # Run compiled code
 npm run migrate  # Run Prisma migrations
 npm run seed     # Seed database with test data
-npm run preview:emails  # Render every OTP email (he + en) to email-preview.html
 ```
 
 ---
