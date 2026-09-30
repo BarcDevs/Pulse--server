@@ -56,3 +56,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | Date | Entry |
 |---|---|
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
+| 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |
