@@ -362,7 +362,7 @@ describe('Auth Service', () => {
                 active: false,
                 deletedAt: new Date()
             })
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockResolvedValue(mockUser as never)
 
             await login('test@test.com', 'Password123!', false)
@@ -378,7 +378,7 @@ describe('Auth Service', () => {
         })
 
         it('does not restore a pending-deletion account on a wrong password', async () => {
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockResolvedValue(createMockUser({
                     active: false,
                     deletedAt: new Date()
@@ -391,7 +391,7 @@ describe('Auth Service', () => {
         })
 
         it('does not touch an active account', async () => {
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockResolvedValue(createMockUser() as never)
 
             await login('test@test.com', 'Password123!', false)
@@ -400,7 +400,7 @@ describe('Auth Service', () => {
         })
 
         it('propagates DB error from getUserByEmail', async () => {
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockRejectedValue(new Error('DB error'))
 
             await expect(
@@ -412,7 +412,7 @@ describe('Auth Service', () => {
             'should return token for valid credentials',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 const token = await login(
@@ -429,7 +429,7 @@ describe('Auth Service', () => {
         it(
             'should throw AuthError for non-existent user',
             async () => {
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(null as never)
 
                 await expect(
@@ -444,7 +444,7 @@ describe('Auth Service', () => {
             'should throw AuthError for wrong password',
             async () => {
                 const mockUser = createMockUser()
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 await expect(
@@ -462,7 +462,7 @@ describe('Auth Service', () => {
                 const mockUser = createMockUser({
                     profile: { timezone: 'Asia/Jerusalem' }
                 })
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
 
                 await login('test@test.com', 'Password123!', false)
@@ -478,7 +478,7 @@ describe('Auth Service', () => {
                 const mockUser = createMockUser({
                     profile: { timezone: 'Asia/Jerusalem' }
                 })
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue(null as never)
@@ -496,7 +496,7 @@ describe('Auth Service', () => {
                 const mockUser = createMockUser({
                     profile: { timezone: 'America/New_York' }
                 })
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
                 jest.mocked(getTimezoneFromIp)
                     .mockReturnValue('America/New_York')
@@ -514,7 +514,7 @@ describe('Auth Service', () => {
                 const mockUser = createMockUser({
                     profile: { timezone: 'Asia/Jerusalem' }
                 })
-                prismaMock.user.findUnique
+                prismaMock.user.findFirst
                     .mockResolvedValue(mockUser as never)
                 prismaMock.profile.update
                     .mockResolvedValue({} as never)
@@ -537,7 +537,7 @@ describe('Auth Service', () => {
     // ==================== signup ====================
     describe('signup', () => {
         it('rejects an email held by an account pending deletion', async () => {
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockResolvedValue(createMockUser({
                     active: false,
                     deletedAt: new Date()
@@ -578,7 +578,7 @@ describe('Auth Service', () => {
         )
 
         it('should throw error for existing email', async () => {
-            prismaMock.user.findUnique
+            prismaMock.user.findFirst
                 .mockResolvedValue(createMockUser() as never)
 
             const newUser = {
@@ -596,7 +596,6 @@ describe('Auth Service', () => {
 
         it('should throw error for taken username', async () => {
             prismaMock.user.findUnique
-                .mockResolvedValueOnce(null as never)
                 .mockResolvedValue(createMockUser() as never)
 
             const newUser = {
@@ -633,7 +632,7 @@ describe('Auth Service', () => {
     describe('getUser', () => {
         it('returns user when found by email', async () => {
             const user = createMockUser()
-            prismaMock.user.findUnique.mockResolvedValue(user as never)
+            prismaMock.user.findFirst.mockResolvedValue(user as never)
 
             const result = await getUser('email', user.email)
 
@@ -650,7 +649,7 @@ describe('Auth Service', () => {
         })
 
         it('returns null when user not found', async () => {
-            prismaMock.user.findUnique.mockResolvedValue(null as never)
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
 
             const result = await getUser('email', 'nobody@test.com')
 

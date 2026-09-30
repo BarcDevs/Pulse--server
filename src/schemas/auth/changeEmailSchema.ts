@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { PASSWORD_FORMAT } from './passwordFormat'
 
 export const changeEmailSchema = z.object({
-    newEmail: z.email('New email is required'),
+    newEmail: z.email('New email is required').toLowerCase(),
     password: z
         .string('Password is required')
         .regex(

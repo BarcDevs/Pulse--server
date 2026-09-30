@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const verifyResetCodeSchema = z.object({
-    email: z.email('Email is required'),
+    email: z.email('Email is required').toLowerCase(),
     userOTP: z.number('OTP is required')
 })
 

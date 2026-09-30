@@ -7,6 +7,15 @@ import { signupSchema } from '../../schemas/auth/signupSchema'
 describe('Auth Schemas', () => {
     // ==================== LOGIN SCHEMA ====================
     describe('loginSchema', () => {
+        it('lowercases the email so lookups and new accounts match any casing', () => {
+            const result = loginSchema.safeParse({
+                email: 'Test@Test.COM',
+                password: 'Password123!'
+            })
+
+            expect(result.data?.email).toBe('test@test.com')
+        })
+
         it('should validate correct login data', () => {
             const result = loginSchema.safeParse({
                 email: 'test@test.com',
