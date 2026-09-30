@@ -107,18 +107,18 @@ describe('Auth Service', () => {
         })
 
         it(
-            'should include user id and email in token payload',
+            'should include only the user id in token payload',
             () => {
                 const mockUser = createMockUser()
 
                 const token = createToken(mockUser)
                 const decoded = jwt.decode(token) as {
                     id: string
-                    email: string
+                    email?: string
                 }
 
                 expect(decoded.id).toBe(mockUser.id)
-                expect(decoded.email).toBe(mockUser.email)
+                expect(decoded.email).toBeUndefined()
             }
         )
 
