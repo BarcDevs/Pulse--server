@@ -18,14 +18,18 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ) => {
-    logger.error('Unhandled error caught', {
+    const logMeta = {
         ...toLoggableError(err),
         method: req.method,
         // Path only: query strings can carry secrets (OAuth code/state)
         route: req.path
-    })
+    }
 
     if (err instanceof CustomError) {
+        logger.warn(
+            'App error',
+            logMeta
+        )
         const errorType = err.serializeErrors()
         const response: ResponseType<typeof errorType> = {
             message: err.message,
@@ -33,6 +37,11 @@ export const errorHandler = (
         }
         return res.status(err.statusCode).json(response)
     }
+
+    logger.error(
+        'Unhandled error caught',
+        logMeta
+    )
 
     const response: ResponseType<{
         statusType: string
