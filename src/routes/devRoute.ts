@@ -1,13 +1,10 @@
 import { Router } from 'express'
-import fs from 'fs'
 
-import {
-    EMAIL_LOGO_CID,
-    EMAIL_LOGO_PATH
-} from '../constants/emailLogo'
+import { inlineEmailLogo } from '../utils/emailPreview'
 import {
     changeEmailTemplate,
     confirmEmailTemplate,
+    deleteAccountTemplate,
     resetPasswordTemplate
 } from '../utils/emailTemplates'
 
@@ -21,7 +18,8 @@ type TemplateMap = Record<
 const templates: TemplateMap = {
     'reset-password': resetPasswordTemplate,
     'confirm-email': confirmEmailTemplate,
-    'change-email': changeEmailTemplate
+    'change-email': changeEmailTemplate,
+    'delete-account': deleteAccountTemplate
 }
 
 router.get('/email-preview', (req, res) => {
@@ -45,13 +43,8 @@ router.get('/email-preview', (req, res) => {
     )
     const render = templates[type]
         ?? resetPasswordTemplate
-    // Browsers can't resolve cid: (a mail attachment), so inline the logo
-    const logo = fs.readFileSync(EMAIL_LOGO_PATH).toString('base64')
     res.setHeader('Content-Type', 'text/html')
-    res.send(render(otp, lang).replaceAll(
-        `cid:${EMAIL_LOGO_CID}`,
-        `data:image/png;base64,${logo}`
-    ))
+    res.send(inlineEmailLogo(render(otp, lang)))
 })
 
 export default router
