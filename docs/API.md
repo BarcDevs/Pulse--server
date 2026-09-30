@@ -477,9 +477,12 @@ Clears the auth cookies.
 
 ## Forum — `/api/{version}/forum`
 
+The forum is for signed-in users only: every endpoint, reads included, needs a session.
+
 ---
 
 ### `GET /posts`
+> Auth required
 
 **Query**
 | Param      | Type   | Notes                                       |
@@ -516,6 +519,7 @@ Clears the auth cookies.
 ---
 
 ### `GET /posts/categories`
+> Auth required
 
 **Response `200`**
 ```json
@@ -566,6 +570,7 @@ Clears the auth cookies.
 ---
 
 ### `GET /posts/:postId`
+> Auth required
 
 **Query**
 | Param   | Type   | Notes                                                |
@@ -640,6 +645,7 @@ Clears the auth cookies.
 ---
 
 ### `POST /posts/:postId/share`
+> Auth required
 
 Increments a post's share count. Rate limited to 1 request per IP per post per hour.
 
@@ -713,6 +719,7 @@ Returns the current user's saved posts. Supports the same pagination query param
 ---
 
 ### `GET /posts/:postId/replies`
+> Auth required
 
 **Query**
 | Param   | Type   | Notes                                 |
@@ -822,6 +829,7 @@ Toggles like on a reply.
 ---
 
 ### `GET /tags`
+> Auth required
 
 **Query**
 | Param    | Type   | Notes          |
@@ -853,6 +861,7 @@ Toggles like on a reply.
 ---
 
 ### `GET /tags/:tagId`
+> Auth required
 
 **Response `200`**
 ```json

@@ -233,6 +233,7 @@ Profile is a separate entity from User — auto-created on signup. Identity fiel
 - User profiles visible on posts
 - Tag-based filtering
 - Post/reply editing and deletion (by author or admin)
+- Signed-in users only: every forum endpoint, reads included, requires a session
 
 ---
 
@@ -582,15 +583,15 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 ### Forum Endpoints — /api/{version}/forum
 
-**GET /posts** — `?limit&page&filter&search&tag&category` → 200 Post[]
+**GET /posts** — Auth — `?limit&page&filter&search&tag&category` → 200 Post[]
 
 **POST /posts** — Auth + CSRF — `{ title, body, category, tags }` → 200 Post
 
-**GET /posts/categories** — Distinct categories with post counts → 200
+**GET /posts/categories** — Auth — Distinct categories with post counts → 200
 
 **GET /posts/saved** — Auth — Current user's saved posts → 200 Post[]
 
-**GET /posts/:postId** → 200 Post with replies
+**GET /posts/:postId** — Auth → 200 Post with replies
 
 **PUT /posts/:postId** — Auth + CSRF, owner only — `{ title?, body?, category?, tags? }` → 200
 
@@ -600,7 +601,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **POST /posts/:postId/save** — Auth + CSRF — Toggle save/unsave → 200 `{ saved }`
 
-**GET /posts/:postId/replies** → 200 Reply[]
+**GET /posts/:postId/replies** — Auth → 200 Reply[]
 
 **POST /posts/:postId/replies** — Auth + CSRF — `{ body }` → 200 Reply
 
@@ -610,9 +611,9 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **POST /posts/:postId/replies/:replyId/like** — Auth + CSRF — Toggle like → 200 `{ liked, likes }`
 
-**GET /tags** — `?limit&page&filter&search` → 200 Tag[]
+**GET /tags** — Auth — `?limit&page&filter&search` → 200 Tag[]
 
-**GET /tags/:tagId** → 200 Tag
+**GET /tags/:tagId** — Auth → 200 Tag
 
 **POST /tags/unknown** — Auth + CSRF — Report unknown tag name (upserts attempt count) → 200
 

@@ -16,10 +16,19 @@ import {
     withCsrfAuth
 } from '../setup/testSetup'
 
+// Forum reads need a session: community is for signed-in users only
+const readerCookie = [`accessToken=${createAuthToken(createMockUser())}`]
+
 describe('Forum Routes', () => {
     // ==================== GET POSTS ====================
     describe(`GET /api/${serverConfig.apiVersion}/forum/posts`, () => {
         const postsEndpoint = `/api/${serverConfig.apiVersion}/forum/posts`
+
+        it('should return 401 for unauthenticated request', async () => {
+            const response = await supertest(App).get(postsEndpoint)
+
+            expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
 
         it(
             'should return 200 and posts array',
@@ -38,6 +47,7 @@ describe('Forum Routes', () => {
                 const response =
                     await supertest(App)
                         .get(postsEndpoint)
+                        .set('Cookie', readerCookie)
 
                 expect(response.status)
                     .toBe(HttpStatusCodes.OK)
@@ -57,6 +67,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({
                         limit: 5,
                         page: 1
@@ -81,6 +92,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ tag: 'test-tag' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -98,6 +110,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ category: 'health' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -115,6 +128,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ search: 'Search' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -130,6 +144,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ filter: 'newest' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -147,6 +162,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ filter: 'popular' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -162,6 +178,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ filter: 'hot' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -181,6 +198,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ filter: 'unanswered' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -195,6 +213,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
                 expect(response.body.error[0].statusType)
@@ -207,6 +226,7 @@ describe('Forum Routes', () => {
             async () => {
                 const response = await supertest(App)
                     .get(postsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ limit: 200 })
 
                 expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
@@ -425,6 +445,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .get(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
+                .set('Cookie', readerCookie)
 
             expect(response.status).toBe(HttpStatusCodes.OK)
             expect(response.body.data.id)
@@ -439,6 +460,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(`/api/${serverConfig.apiVersion}/forum/posts/non-existent-id`)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
                 expect(response.body.error[0].statusType)
@@ -466,6 +488,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123`)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data.author.image).toBeNull()
@@ -704,6 +727,7 @@ describe('Forum Routes', () => {
                 .get(
                     `/api/${serverConfig.apiVersion}/forum/posts/test-post-id-123/replies`
                 )
+                .set('Cookie', readerCookie)
 
             expect(response.status).toBe(HttpStatusCodes.OK)
             expect(response.body.data.items)
@@ -727,6 +751,7 @@ describe('Forum Routes', () => {
                     .get(
                         `/api/${serverConfig.apiVersion}/forum/posts/non-existent/replies`
                     )
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
             }
@@ -1260,6 +1285,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .post(shareEndpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data.shareCount).toBe(1)
@@ -1280,6 +1306,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .post(`/api/${serverConfig.apiVersion}/forum/posts/test-post-id-404/share`)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
                 expect(response.body.error[0].statusType)
@@ -1650,6 +1677,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .get(tagsEndpoint)
+                .set('Cookie', readerCookie)
 
             expect(response.status).toBe(HttpStatusCodes.OK)
             expect(response.body.data)
@@ -1664,6 +1692,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ search: 'java' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -1678,6 +1707,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({ filter: 'popular' })
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -1692,6 +1722,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
+                    .set('Cookie', readerCookie)
                     .query({
                         limit: 5,
                         page: 1
@@ -1709,6 +1740,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(tagsEndpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
             }
@@ -1723,6 +1755,7 @@ describe('Forum Routes', () => {
 
             const response = await supertest(App)
                 .get(`/api/${serverConfig.apiVersion}/forum/tags/test-tag-id-123`)
+                .set('Cookie', readerCookie)
 
             expect(response.status).toBe(HttpStatusCodes.OK)
             expect(response.body.data.id)
@@ -1737,6 +1770,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(`/api/${serverConfig.apiVersion}/forum/tags/non-existent-id`)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
                 expect(response.body.error[0].statusType)
@@ -1867,6 +1901,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data)
@@ -1887,6 +1922,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data[0].category).toBe('all')
@@ -1904,6 +1940,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data[1])
@@ -1923,6 +1960,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
                 expect(response.body.data).toEqual([
@@ -1968,6 +2006,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
                     .set('Cookie', [`accessToken=${token}`])
 
                 expect(response.status).toBe(HttpStatusCodes.OK)
@@ -2003,6 +2042,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(endpoint)
+                    .set('Cookie', readerCookie)
                     .set('Cookie', [`accessToken=${token}`])
 
                 expect(response.status).toBe(HttpStatusCodes.FORBIDDEN)
@@ -2047,6 +2087,7 @@ describe('Forum Routes', () => {
 
                 const response = await supertest(App)
                     .get(`/api/${serverConfig.apiVersion}/forum/posts`)
+                    .set('Cookie', readerCookie)
 
                 expect(response.status).toBe(HttpStatusCodes.INTERNAL_SERVER_ERROR)
             }

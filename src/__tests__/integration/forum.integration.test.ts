@@ -98,11 +98,19 @@ describe('Forum Routes — Integration', () => {
     })
 
     describe('GET /forum/posts', () => {
+        it('returns 401 without a session', async () => {
+            const res = await supertest(App).get(POSTS_URL)
+
+            expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+
         it('returns list of posts', async () => {
             const { token } = await setupUser()
             await createPost(token)
 
-            const res = await supertest(App).get(POSTS_URL)
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .set('Cookie', [`accessToken=${token}`])
 
             expect(res.status).toBe(HttpStatusCodes.OK)
             expect(Array.isArray(res.body.data.items)).toBe(true)
@@ -115,15 +123,19 @@ describe('Forum Routes — Integration', () => {
             const createRes = await createPost(token)
             const postId = createRes.body.data.id
 
-            const res = await supertest(App).get(`${POSTS_URL}/${postId}`)
+            const res = await supertest(App)
+                .get(`${POSTS_URL}/${postId}`)
+                .set('Cookie', [`accessToken=${token}`])
 
             expect(res.status).toBe(HttpStatusCodes.OK)
             expect(res.body.data.id).toBe(postId)
         })
 
         it('returns 404 for missing post', async () => {
+            const { token } = await setupUser()
             const res = await supertest(App)
                 .get(`${POSTS_URL}/non-existent-id`)
+                .set('Cookie', [`accessToken=${token}`])
 
             expect(res.status).toBe(HttpStatusCodes.NOT_FOUND)
         })
@@ -190,7 +202,9 @@ describe('Forum Routes — Integration', () => {
 
             expect(res.status).toBe(HttpStatusCodes.OK)
 
-            const getRes = await supertest(App).get(`${POSTS_URL}/${postId}`)
+            const getRes = await supertest(App)
+                .get(`${POSTS_URL}/${postId}`)
+                .set('Cookie', [`accessToken=${token}`])
             expect(getRes.status).toBe(HttpStatusCodes.NOT_FOUND)
         })
 
@@ -259,8 +273,10 @@ describe('Forum Routes — Integration', () => {
 
             const repliesRes = await supertest(App)
                 .get(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', [`accessToken=${token}`])
             const postRes = await supertest(App)
                 .get(`${POSTS_URL}/${postId}`)
+                .set('Cookie', [`accessToken=${token}`])
 
             expect(repliesRes.body.data.items).toHaveLength(0)
             expect(repliesRes.body.data.pagination.total).toBe(0)
