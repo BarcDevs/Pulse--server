@@ -2,6 +2,7 @@ import {
     completeEmailConfirmation,
     generateOTP,
     recordFailedConfirmEmailAttempt,
+    recordFailedEmailChangeAttempt,
     recordFailedResetPasswordAttempt,
     removeConfirmEmailOTP,
     removeEmailChangeOTP,
@@ -34,6 +35,8 @@ const mockIncrementResetPasswordAttempts =
     authModel.incrementResetPasswordAttempts as jest.Mock
 const mockIncrementConfirmEmailAttempts =
     authModel.incrementConfirmEmailAttempts as jest.Mock
+const mockIncrementEmailChangeAttempts =
+    authModel.incrementEmailChangeAttempts as jest.Mock
 const mockSendEmail = sendEmail as jest.Mock
 const mockMarkEmailVerified = authModel.markEmailVerified as jest.Mock
 
@@ -230,6 +233,32 @@ describe('authOTP', () => {
         })
     })
 
+    // ==================== recordFailedEmailChangeAttempt ====================
+    describe('recordFailedEmailChangeAttempt', () => {
+        it('increments the attempt counter when below the max', async () => {
+            await recordFailedEmailChangeAttempt('user-123', 2)
+
+            expect(mockIncrementEmailChangeAttempts)
+                .toHaveBeenCalledWith('user-123')
+            expect(mockSetEmailChangeOTP).not.toHaveBeenCalled()
+        })
+
+        it('cancels the pending change once the max attempts is reached', async () => {
+            await recordFailedEmailChangeAttempt('user-123', 4)
+
+            expect(mockSetEmailChangeOTP).toHaveBeenCalledWith(
+                'user-123',
+                {
+                    pendingEmail: null,
+                    emailChangeOTP: null,
+                    emailChangeExpiration: null,
+                    emailChangeAttempts: 0
+                }
+            )
+            expect(mockIncrementEmailChangeAttempts).not.toHaveBeenCalled()
+        })
+    })
+
     // ==================== removeEmailChangeOTP ====================
     describe('removeEmailChangeOTP', () => {
         it(
@@ -242,7 +271,8 @@ describe('authOTP', () => {
                     {
                         pendingEmail: null,
                         emailChangeOTP: null,
-                        emailChangeExpiration: null
+                        emailChangeExpiration: null,
+                        emailChangeAttempts: 0
                     }
                 )
             }

@@ -35,6 +35,7 @@ model User {
   pendingEmail          String?
   emailChangeOTP        Int?
   emailChangeExpiration DateTime?
+  emailChangeAttempts   Int       @default(0)
 
   profile Profile?
 }

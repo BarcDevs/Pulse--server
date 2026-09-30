@@ -350,7 +350,8 @@ describe('AuthModel', () => {
             await authModel.setEmailChangeOTP(user.id, {
                 pendingEmail: 'new@test.com',
                 emailChangeOTP: 654321,
-                emailChangeExpiration: expiration
+                emailChangeExpiration: expiration,
+                emailChangeAttempts: 0
             })
 
             expect(prismaMock.user.update).toHaveBeenCalledWith(
@@ -372,7 +373,8 @@ describe('AuthModel', () => {
             await authModel.setEmailChangeOTP(user.id, {
                 pendingEmail: null,
                 emailChangeOTP: null,
-                emailChangeExpiration: null
+                emailChangeExpiration: null,
+                emailChangeAttempts: 0
             })
 
             expect(prismaMock.user.update).toHaveBeenCalledWith(

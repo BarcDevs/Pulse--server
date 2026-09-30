@@ -228,6 +228,7 @@ export const setEmailChangeOTP = (
         pendingEmail: string | null
         emailChangeOTP: number | null
         emailChangeExpiration: Date | null
+        emailChangeAttempts: number
     }
 ): Promise<ServerUserType> =>
     Prisma.user.update({
@@ -236,6 +237,21 @@ export const setEmailChangeOTP = (
             active: true
         },
         data
+    }) as Promise<ServerUserType>
+
+export const incrementEmailChangeAttempts = (
+    userId: string
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true
+        },
+        data: {
+            emailChangeAttempts: {
+                increment: 1
+            }
+        }
     }) as Promise<ServerUserType>
 
 export const updateEmail = (
@@ -252,6 +268,7 @@ export const updateEmail = (
             pendingEmail: null,
             emailChangeOTP: null,
             emailChangeExpiration: null,
+            emailChangeAttempts: 0,
             emailVerifiedAt: new Date(Date.now())
         }
     }) as Promise<ServerUserType>
