@@ -272,6 +272,52 @@ describe('Rate Limiting Middleware', () => {
         })
     })
 
+    describe('OTP rate limiters (real implementation) (L18)', () => {
+        const {
+            forgotPasswordRateLimiter: realForgotPasswordRateLimiter,
+            verifyResetCodeRateLimiter: realVerifyResetCodeRateLimiter
+        } = jest.requireActual('../../middlewares/rateLimiting')
+
+        const createRateLimitMockResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        it('keeps a separate bucket per OTP route', async () => {
+            const ip = '10.0.18.200'
+            for (let i = 0; i < 6; i++) {
+                await realForgotPasswordRateLimiter(
+                    createMockRequest({ ip }) as Request,
+                    createRateLimitMockResponse(),
+                    createMockNext()
+                )
+            }
+
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await realVerifyResetCodeRateLimiter(
+                createMockRequest({ ip }) as Request,
+                res,
+                next
+            )
+
+            expect(next).toHaveBeenCalled()
+            expect(res.status).not.toHaveBeenCalled()
+        })
+    })
+
     describe('passwordChangeRateLimiter behavior (real implementation) (L18)', () => {
         const { passwordChangeRateLimiter: realPasswordChangeRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')

@@ -20,12 +20,22 @@ export const rateLimiter = rateLimit({
     }
 })
 
-export const otpRateLimiter = rateLimit({
+// One bucket per OTP route, so traffic on one flow (e.g. requesting reset
+// codes) can't exhaust the attempts another flow needs, and each route's
+// limit means what it says
+const createOtpRateLimiter = () => rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 5,
     message:
         'Too many OTP requests from this IP, please try again after 15 minutes'
 })
+
+export const confirmEmailRateLimiter = createOtpRateLimiter()
+export const forgotPasswordRateLimiter = createOtpRateLimiter()
+export const verifyResetCodeRateLimiter = createOtpRateLimiter()
+export const resetPasswordRateLimiter = createOtpRateLimiter()
+export const changeEmailRateLimiter = createOtpRateLimiter()
+export const confirmEmailChangeRateLimiter = createOtpRateLimiter()
 
 // Stops mass account creation / email squatting from one IP
 export const signupRateLimiter = rateLimit({
