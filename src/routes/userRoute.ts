@@ -10,6 +10,7 @@ import {
     extractCsrfToken
 } from '../middlewares/csrf'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { passwordChangeRateLimiter } from '../middlewares/rateLimiting'
 
 const router = Router()
 
@@ -144,6 +145,7 @@ router
         isAuthenticated,
         extractCsrfToken,
         csrfMiddleware,
+        passwordChangeRateLimiter,
         updatePassword
     )
 

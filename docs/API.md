@@ -409,7 +409,7 @@ Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many
 ---
 
 ### `PATCH /password`
-> Auth + CSRF required
+> Auth + CSRF required · Rate limited: 5 requests per 15 minutes per user
 
 **Body**
 | Field             | Type   | Required | Notes                        |
