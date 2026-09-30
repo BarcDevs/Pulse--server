@@ -23,7 +23,13 @@ jobs:
   deploy:
     name: Build, push, and roll out to EC2
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # Waits for the owner's approval click (required reviewer on this environment); the
+    # deploy role's trust policy only accepts tokens from this environment
+    environment: aws-production
+    # The repo is public and CI also runs on fork pull requests, and a fork branch can be named
+    # `main`, so the `branches` filter above is not enough. Only deploy a CI run that was a push
+    # to this repository's own main branch.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main') }}
 
     env:
       DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
