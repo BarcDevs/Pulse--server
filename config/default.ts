@@ -1,5 +1,8 @@
 export default {
-    env: 'development',
+    // Fail closed: an unrecognized NODE_ENV (no config file of its own) runs
+    // as production, so dev-only behavior (OTPs in responses, swagger, /dev)
+    // needs development.ts to opt in
+    env: 'production',
     app: {
         start: 'Server is running on {0}'
     },

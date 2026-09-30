@@ -41,7 +41,7 @@ Status legend: **OPEN** · **FIXED** · **DECIDED** (owner decision recorded, wo
 | L12 | Low | `npm audit`: server `axios` (unused — remove), `nodemailer`, `sanitize-html`; client `quill`, `dompurify` | PARTIALLY FIXED 29/09 — server: removed unused `axios`, bumped `nodemailer` 8→10 (CRLF injection, TLS cert validation, file/URL-access bypass CVEs). `sanitize-html` left pinned at 2.17.4: 2.17.5+ pulls in an ESM-only `htmlparser2` that breaks Jest's CJS transform — needs a Jest ESM config change to take, deferred. Client `quill`/`dompurify` still open (client-side) |
 | L13 | Low | Intervention logs pair `userId` with reason/severity/mode (health-derived) | ACCEPTED |
 | L14 | Low | Prisma error messages (may include query args) go to server logs | FIXED |
-| L15 | Low | `config/default.ts` defaults env to `development`, which returns OTPs in response bodies; prod safe only because `NODE_ENV=production` is set (found 30/09) | OPEN — needs owner decision (fail closed) |
+| L15 | Low | `config/default.ts` defaults env to `development`, which returns OTPs in response bodies; prod safe only because `NODE_ENV=production` is set (found 30/09) | FIXED 30/09 — `default.ts` env is `production`; only `development.ts` opts into dev mode |
 | L16 | Low | Error handler logged `req.originalUrl`, so failed Google callbacks logged the OAuth code/state (found 30/09) | FIXED 30/09 |
 | L17 | Low | `/auth/signup` has only the global rate limit: mass account creation / email squatting (found 30/09) | OPEN — needs owner decision |
 | L18 | Low | `PATCH /users/password` has no per-user throttle; `confirm-email-change` has no attempts counter; one `otpRateLimiter` bucket is shared by six OTP routes (found 30/09) | OPEN — needs owner decision |
