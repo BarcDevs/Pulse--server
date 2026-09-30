@@ -16,3 +16,6 @@
 ## Log
 
 _(append a dated line per completed step)_
+
+- 2026-09-30: found the watcher blind since it started. It read `logs/error.log`, which the file transport pretty-prints as multi-line objects, so `filterSince.ts` parsed nothing and every run reported no errors. Now reads `docker logs --since` (JSON per line) and fails loudly on SSM timeouts or the output cap. M10 (dry run against real prod logs) is still open and would have caught this.
+- 2026-09-30: records moved from `docs/PROD-ERRORS.md` to `docs/prod-errors/` (index + one file per error) and onto the local `monitor/records` branch, one amended commit that ships only with a fix. Checkpoint reset to 1970 so the first working run rescans the current container.

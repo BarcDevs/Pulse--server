@@ -3,16 +3,16 @@ import path from 'path'
 
 // Reads winston JSON error-log lines (one per line, from pull-prod-logs.sh),
 // splits them into the 404-pattern bucket vs. real-error bucket, updates
-// docs/PROD-ERRORS.md's `## 404 Patterns` and `## Known Fixes` occurrence
-// counts, and prints the list of real errors with NO matching Known Fixes
-// entry — those are what the monitor routine (.claude/routines/
-// prod-error-monitor.md) diagnoses/fixes/PRs.
+// docs/prod-errors/index.md's `## 404 Patterns` lines and `## Known Fixes`
+// table rows, and prints the real errors with NO matching Known Fixes row,
+// one per signature — those are what the monitor routine (.claude/routines/
+// prod-error-monitor.md) diagnoses and fixes.
 //
 // Usage: tsx scripts/monitor/processLogs.ts < logs.jsonl
 
 const DOC_PATH = path.resolve(
     __dirname,
-    '../../docs/PROD-ERRORS.md'
+    '../../docs/prod-errors/index.md'
 )
 
 type LogEntry = {
@@ -36,6 +36,7 @@ type NewError = {
     route?: string
     method?: string
     timestamp: string
+    count: number
 }
 
 const is404 = (entry: LogEntry): boolean =>
@@ -129,39 +130,43 @@ const updateDoc = (
         )
     }
 
-    // --- Known Fixes matching ---
-    const knownFixesSection = extractSection(
-        updatedDoc,
-        '## Known Fixes'
-    )
-    const newErrors: NewError[] = []
+    // --- Known Fixes matching (one table row per signature) ---
+    const newErrors = new Map<string, NewError>()
     for (const entry of entries.filter(e => !is404(e))) {
         const signature = normalizeSignature(entry)
-        const escaped = escapeRegex(signature)
-        const matchRegex = new RegExp(
-            `(- \\*\\*Signature:\\*\\* \`${escaped}\`[\\s\\S]*?- \\*\\*Last seen:\\*\\* )(\\S+)([\\s\\S]*?- \\*\\*Occurrences:\\*\\* )(\\d+)`
+        const rowRegex = new RegExp(
+            `^(\\| \`${escapeRegex(toTableCell(signature))}\` \\| )(\\d+)( \\| \\S+ \\| )\\S+( \\|)`,
+            'm'
         )
-        if (matchRegex.test(updatedDoc)) {
+        if (rowRegex.test(updatedDoc)) {
             updatedDoc = updatedDoc.replace(
-                matchRegex,
-                (_m, pre, _last, mid, count) =>
-                    `${pre}${today}${mid}${Number(count) + 1}`
+                rowRegex,
+                (_m, pre, count, mid, post) =>
+                    `${pre}${Number(count) + 1}${mid}${today}${post}`
             )
-        } else {
-            newErrors.push({
+            continue
+        }
+        const seen = newErrors.get(signature)
+        if (seen) {
+            seen.count += 1
+            continue
+        }
+        newErrors.set(
+            signature,
+            {
                 signature,
                 name: entry.metadata?.name ?? 'Error',
                 message: entry.metadata?.message ?? entry.message,
                 stack: entry.metadata?.stack,
                 route: entry.metadata?.route,
                 method: entry.metadata?.method,
-                timestamp: entry.timestamp
-            })
-        }
+                timestamp: entry.timestamp,
+                count: 1
+            }
+        )
     }
-    void knownFixesSection
 
-    return { doc: updatedDoc, newErrors }
+    return { doc: updatedDoc, newErrors: [...newErrors.values()] }
 }
 
 const extractSection = (doc: string, heading: string): string => {
@@ -193,6 +198,13 @@ const replaceSection = (
     const placeholder = body.trim() || '_(none recorded yet)_'
     return `${before}\n\n${placeholder}\n${after}`
 }
+
+// A signature as written in the Known Fixes table: `|` would end the cell
+const toTableCell = (signature: string): string =>
+    signature.replaceAll(
+        '|',
+        '\\|'
+    )
 
 const escapeRegex = (str: string): string =>
     str.replace(
@@ -229,4 +241,4 @@ if (require.main === module) {
     })
 }
 
-export { is404,normalizeSignature }
+export { is404, normalizeSignature, updateDoc }

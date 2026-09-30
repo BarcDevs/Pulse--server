@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 // Reads/writes the `<!-- checkpoint: <ISO8601> -->` marker at the top of
-// docs/PROD-ERRORS.md, so each monitor run only processes log lines newer
-// than the last run.
+// docs/prod-errors/index.md, so each monitor run only processes log lines
+// newer than the last run.
 //
 // Usage:
 //   tsx scripts/monitor/checkpoint.ts get     -> prints the current checkpoint
@@ -11,7 +11,7 @@ import path from 'path'
 
 const DOC_PATH = path.resolve(
     __dirname,
-    '../../docs/PROD-ERRORS.md'
+    '../../docs/prod-errors/index.md'
 )
 const CHECKPOINT_REGEX = /<!-- checkpoint: (.+?) -->/
 
@@ -22,7 +22,7 @@ const getCheckpoint = (): string => {
     )
     const match = doc.match(CHECKPOINT_REGEX)
     if (!match) {
-        throw new Error('docs/PROD-ERRORS.md is missing its checkpoint comment')
+        throw new Error('docs/prod-errors/index.md is missing its checkpoint comment')
     }
     return match[1]
 }
@@ -36,7 +36,7 @@ const setCheckpoint = (timestamp: string): void => {
         'utf8'
     )
     if (!CHECKPOINT_REGEX.test(doc)) {
-        throw new Error('docs/PROD-ERRORS.md is missing its checkpoint comment')
+        throw new Error('docs/prod-errors/index.md is missing its checkpoint comment')
     }
     fs.writeFileSync(
         DOC_PATH,
