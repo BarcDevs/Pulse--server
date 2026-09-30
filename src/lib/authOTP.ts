@@ -5,6 +5,7 @@ import { authConfig } from '../../config'
 import { brandConfig } from '../config/app'
 import {
     MAX_CONFIRM_EMAIL_ATTEMPTS,
+    MAX_EMAIL_CHANGE_ATTEMPTS,
     MAX_RESET_PASSWORD_ATTEMPTS
 } from '../constants/auth/authRules'
 import { errorFactory } from '../errors/factory/ErrorFactory'
@@ -131,9 +132,24 @@ export const removeEmailChangeOTP = async (
         {
             pendingEmail: null,
             emailChangeOTP: null,
-            emailChangeExpiration: null
+            emailChangeExpiration: null,
+            emailChangeAttempts: 0
         }
     )
+}
+
+// Clears the pending change after too many wrong codes, so the 6-digit
+// code can't be brute-forced by spreading guesses over time
+export const recordFailedEmailChangeAttempt = async (
+    userId: string,
+    currentAttempts: number
+): Promise<void> => {
+    if (currentAttempts + 1 >= MAX_EMAIL_CHANGE_ATTEMPTS) {
+        await removeEmailChangeOTP(userId)
+        return
+    }
+
+    await authModel.incrementEmailChangeAttempts(userId)
 }
 
 export const sendForgotPasswordOTP = async (
@@ -208,7 +224,8 @@ export const sendEmailChangeOTP = async (
     await authModel.setEmailChangeOTP(userId, {
         pendingEmail: newEmail,
         emailChangeOTP: otp,
-        emailChangeExpiration: expiration
+        emailChangeExpiration: expiration,
+        emailChangeAttempts: 0
     })
 
     const messages = getMessages(language).emails.changeEmail

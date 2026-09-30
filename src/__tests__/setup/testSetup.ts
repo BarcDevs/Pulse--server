@@ -74,6 +74,7 @@ export const createMockUser = (
     confirmEmailOTP: undefined,
     confirmEmailExpiration: undefined,
     confirmEmailAttempts: 0,
+    emailChangeAttempts: 0,
     ...overrides
 })
 

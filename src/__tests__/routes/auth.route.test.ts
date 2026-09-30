@@ -1158,6 +1158,42 @@ describe('Auth Routes', () => {
         )
 
         it(
+            'cancels the pending change on the 5th wrong OTP (L18)',
+            async () => {
+                const mockUser = createMockUser({
+                    emailChangeOTP: 123456,
+                    emailChangeExpiration: new Date(
+                        Date.now() + 10 * 60000
+                    ),
+                    pendingEmail: 'new@test.com',
+                    emailChangeAttempts: 4
+                })
+                const { token, csrfSecret, csrfToken } =
+                    createAuthenticatedRequest(mockUser)
+
+                prismaMock.user.findUnique
+                    .mockResolvedValue(mockUser as never)
+
+                const response = await withCsrfAuth(
+                    supertest(App).post(endpoint),
+                    token, csrfSecret, csrfToken
+                ).send({ OTP: 999999 })
+
+                expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+                expect(prismaMock.user.update).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: {
+                            pendingEmail: null,
+                            emailChangeOTP: null,
+                            emailChangeExpiration: null,
+                            emailChangeAttempts: 0
+                        }
+                    })
+                )
+            }
+        )
+
+        it(
             'should return 400 for expired OTP',
             async () => {
                 const OTP = 123456

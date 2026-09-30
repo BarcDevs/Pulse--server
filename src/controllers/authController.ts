@@ -25,6 +25,7 @@ import {
     assertResetPasswordOTP,
     completeEmailConfirmation,
     recordFailedConfirmEmailAttempt,
+    recordFailedEmailChangeAttempt,
     removeResetPasswordOTP,
     sendEmailChangeOTP,
     sendForgotPasswordOTP,
@@ -416,8 +417,13 @@ export const confirmEmailChange = async (
             user.emailChangeExpiration,
             OTP
         )
-    )
+    ) {
+        await recordFailedEmailChangeAttempt(
+            user.id,
+            user.emailChangeAttempts
+        )
         throw errorFactory.validation.otpError()
+    }
 
     let updatedUser: ServerUserType
     try {
