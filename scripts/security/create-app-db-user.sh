@@ -39,6 +39,10 @@ aws iam put-role-policy \
         }]
     }"
 
+# IAM is eventually consistent: used right away, the new permission was
+# still denied on the box
+sleep 30
+
 echo "2/4 Creating the secret (placeholder value, replaced on the box)..."
 aws secretsmanager describe-secret --region "$REGION" --secret-id "$APP_SECRET_ID" >/dev/null 2>&1 \
     || aws secretsmanager create-secret \
@@ -60,10 +64,13 @@ MASTER=\$(aws secretsmanager get-secret-value --region $REGION --secret-id pulse
 export PGUSER=\$(echo "\$MASTER" | jq -r .username)
 export PGPASSWORD=\$(echo "\$MASTER" | jq -r .password)
 APP_PASS=\$(openssl rand -hex 32)
-# printf is a shell builtin, so the password reaches aws on stdin and never
-# shows up in a process's arguments
-printf '{"SecretId":"$APP_SECRET_ID","SecretString":"{\\\\"username\\\\":\\\\"$APP_DB_USER\\\\",\\\\"password\\\\":\\\\"%s\\\\"}"}' "\$APP_PASS" \
-    | aws secretsmanager put-secret-value --region $REGION --cli-input-json file:///dev/stdin >/dev/null
+# The password reaches aws through a root-only temp file, so it never shows up
+# in a process's arguments (printf is a builtin). Piping it to
+# file:///dev/stdin failed on the box: the CLI read the pipe as empty JSON
+SECRET_FILE=\$(umask 077 && mktemp)
+trap 'rm -f "\$SECRET_FILE"' EXIT
+printf '{"username":"$APP_DB_USER","password":"%s"}' "\$APP_PASS" > "\$SECRET_FILE"
+aws secretsmanager put-secret-value --region $REGION --secret-id $APP_SECRET_ID --secret-string "file://\$SECRET_FILE" >/dev/null
 docker run --rm -i -e PGUSER -e PGPASSWORD postgres:17-alpine \
     psql "host=$DB_HOST dbname=$DB_NAME sslmode=require" -v ON_ERROR_STOP=1 <<SQL
 DO \\\$\\\$ BEGIN
@@ -92,6 +99,8 @@ COMMAND_ID=$(aws ssm send-command \
     --query 'Command.CommandId' --output text)
 
 aws ssm wait command-executed --region "$REGION" --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" || true
+REMOTE_STATUS=$(aws ssm get-command-invocation --region "$REGION" --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
+    --query 'Status' --output text)
 aws ssm get-command-invocation --region "$REGION" --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
     --query '[Status, StandardOutputContent, StandardErrorContent]' --output text
 
@@ -109,6 +118,14 @@ aws iam put-role-policy \
             \"Resource\": \"arn:aws:secretsmanager:$REGION:$ACCOUNT_ID:secret:$APP_SECRET_ID-*\"
         }]
     }"
+
+# Checked only now, so the role is narrowed back even when the box step failed
+if [ "$REMOTE_STATUS" != "Success" ]; then
+    echo
+    echo "FAILED on the box (status: $REMOTE_STATUS). Nothing was switched over: deploys keep" >&2
+    echo "using the master user while the secret's password is still 'pending'." >&2
+    exit 1
+fi
 
 echo
 echo "Done. The next deploy (ec2-redeploy.sh) runs the app as $APP_DB_USER;"
