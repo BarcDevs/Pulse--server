@@ -16,7 +16,6 @@ type UpdateProfileData = {
     dailyReminder?: boolean
     communityAlerts?: boolean
     profileVisibility?: ProfileVisibility
-    anonymousParticipation?: boolean
     shareNotesWithAI?: boolean
     dateOfBirth?: string
     recoveryType?: string

@@ -84,25 +84,25 @@ model Profile {
   savedPosts    SavedPost[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
 }
 
 model Post {
-  id         String      @id @default(uuid())
-  title      String
-  body       String
-  authorId   String
-  author     Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime?   @updatedAt
-  views      Int         @default(0)
-  shareCount Int         @default(0)
-  replyCount Int         @default(0)
-  category   String
-  replies    Reply[]
-  tags       Tag[]       @relation("PostToTag")
-  likes      PostLike[]
-  savedBy    SavedPost[]
+  id          String      @id @default(uuid())
+  title       String
+  body        String
+  authorId    String
+  author      Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  views       Int         @default(0)
+  shareCount  Int         @default(0)
+  replyCount  Int         @default(0)
+  isAnonymous Boolean     @default(true)
+  category    String
+  replies     Reply[]
+  tags        Tag[]       @relation("PostToTag")
+  likes       PostLike[]
+  savedBy     SavedPost[]
 
   @@index([authorId])
   @@index([category])
@@ -114,15 +114,16 @@ model Post {
 }
 
 model Reply {
-  id        String      @id @default(uuid())
-  body      String
-  authorId  String?
-  author    Profile?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime?   @updatedAt
-  postId    String
-  post      Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
-  likes     ReplyLike[]
+  id          String      @id @default(uuid())
+  body        String
+  authorId    String?
+  author      Profile?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  postId      String
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  isAnonymous Boolean     @default(true)
+  likes       ReplyLike[]
 
   @@index([authorId])
   @@index([postId, createdAt])

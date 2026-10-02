@@ -158,6 +158,6 @@ export const getCandidatePosts = async (
 
     return posts.map((post) => ({
         ...post,
-        author: anonymizeAuthor(post.author)
+        author: anonymizeAuthor(post.author, post.isAnonymous)
     })) as unknown as PostType[]
 }

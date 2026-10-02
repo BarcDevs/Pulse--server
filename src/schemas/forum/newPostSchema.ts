@@ -7,7 +7,8 @@ export const newPostSchema = z.object({
     title: z.string('Title is required').max(POST_LIMITS.MAX_TITLE_LENGTH),
     body: z.string('Body is required').max(POST_LIMITS.MAX_BODY_LENGTH),
     category: z.string('Category is required'),
-    tags: tagsField
+    tags: tagsField,
+    isAnonymous: z.boolean().optional()
 })
 
 export type NewPostType = z.infer<typeof newPostSchema>

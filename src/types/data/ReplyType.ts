@@ -6,6 +6,7 @@ export type ReplyType = {
     body: string
     author: Partial<UserType>
     authorId: string | null
+    isAnonymous?: boolean
     createdAt: Date
     updatedAt?: Date
     post?: PostType
@@ -17,6 +18,7 @@ export type NewReplyType = {
     body: string
     authorId: string
     postId: string
+    isAnonymous?: boolean
 }
 
 export type UpdateReplyType = Partial<

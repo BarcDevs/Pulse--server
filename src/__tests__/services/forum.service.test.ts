@@ -788,3 +788,83 @@ describe('Forum Service', () => {
         })
     })
 })
+
+describe('per-item anonymity', () => {
+    const profileWith = (anonymousParticipation: boolean) =>
+        prismaMock.profile.findUnique.mockResolvedValue({
+            id: 'profile-id',
+            userId: 'user-id',
+            anonymousParticipation
+        } as never)
+    const newPost = {
+        title: 'Post',
+        body: 'Body',
+        category: 'general',
+        authorId: 'user-id'
+    }
+
+    beforeEach(() => {
+        prismaMock.post.create.mockResolvedValue(createMockPost() as never)
+        prismaMock.post.findUnique.mockResolvedValue(createMockPost() as never)
+        prismaMock.reply.create.mockResolvedValue(createMockReply() as never)
+    })
+
+    it('uses the remembered choice when the request does not send one', async () => {
+        profileWith(false)
+
+        await createPost(newPost)
+
+        expect(prismaMock.post.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({ isAnonymous: false })
+            })
+        )
+        expect(prismaMock.profile.update).not.toHaveBeenCalled()
+    })
+
+    it('stores the chosen value on the post and remembers it on the profile', async () => {
+        profileWith(true)
+
+        await createPost({ ...newPost, isAnonymous: false })
+
+        expect(prismaMock.post.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({ isAnonymous: false })
+            })
+        )
+        expect(prismaMock.profile.update).toHaveBeenCalledWith({
+            where: { userId: 'user-id' },
+            data: { anonymousParticipation: false }
+        })
+    })
+
+    it('does not rewrite the profile when the choice is unchanged', async () => {
+        profileWith(true)
+
+        await createPost({ ...newPost, isAnonymous: true })
+
+        expect(prismaMock.profile.update).not.toHaveBeenCalled()
+    })
+
+    it('applies the same rules to replies', async () => {
+        profileWith(true)
+
+        await createReply({
+            body: 'Reply',
+            authorId: 'user-id',
+            postId: 'post-id',
+            isAnonymous: false
+        })
+
+        expect(prismaMock.reply.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({ isAnonymous: false })
+            })
+        )
+        expect(prismaMock.profile.update).toHaveBeenCalledWith({
+            where: { userId: 'user-id' },
+            data: { anonymousParticipation: false }
+        })
+    })
+})
+

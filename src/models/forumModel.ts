@@ -56,6 +56,7 @@ const mapTag = (raw: RawTag): TagType => ({
 
 const mapPostTags = <T extends {
     tags?: RawTag[]
+    isAnonymous: boolean
     author?: unknown
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     replies?: any[]
@@ -65,13 +66,13 @@ const mapPostTags = <T extends {
     ...post,
     tags: post.tags?.map(mapTag) ?? [],
     ...(post.author !== undefined
-        && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0]) }),
+        && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0], post.isAnonymous) }),
     ...(post.replies !== undefined
         && {
             replies: post.replies.map((reply) => ({
                 ...reply,
                 ...(reply.author !== undefined
-                    && { author: anonymizeAuthor(reply.author as Parameters<typeof anonymizeAuthor>[0]) })
+                    && { author: anonymizeAuthor(reply.author as Parameters<typeof anonymizeAuthor>[0], reply.isAnonymous) })
             }))
         })
 })
@@ -222,7 +223,7 @@ export const getReply = async (
     return reply
         ? {
             ...reply,
-            author: anonymizeAuthor(reply.author)
+            author: anonymizeAuthor(reply.author, reply.isAnonymous)
         } as unknown as ReplyType
         : null
 }
@@ -259,7 +260,7 @@ export const getReplies = async (
 
     return replies.map((reply) => ({
         ...reply,
-        author: anonymizeAuthor(reply.author)
+        author: anonymizeAuthor(reply.author, reply.isAnonymous)
     })) as unknown as ReplyType[]
 }
 
@@ -650,7 +651,7 @@ export const getProfileInteractions = async (
             likedReplies: likedReplyRows.map(
                 (r) => ({
                     ...r.reply,
-                    author: anonymizeAuthor(r.reply.author)
+                    author: anonymizeAuthor(r.reply.author, r.reply.isAnonymous)
                 })
             ),
             savedPosts: savedPostRows.map(
@@ -701,13 +702,15 @@ export const createReply = async (
     const {
         authorId,
         postId,
-        body
+        body,
+        isAnonymous
     } = reply
 
     return Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
         const created = await tx.reply.create({
             data: {
                 body,
+                isAnonymous,
                 author: {
                     connect: {
                         id: authorId

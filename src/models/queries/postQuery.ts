@@ -26,12 +26,7 @@ export const authorSelect = {
             id: true,
             username: true,
             firstName: true,
-            lastName: true,
-            profile: {
-                select: {
-                    anonymousParticipation: true
-                }
-            }
+            lastName: true
         }
     }
 }
@@ -81,7 +76,6 @@ type RawAuthor = {
         username: string
         firstName: string
         lastName: string
-        profile: { anonymousParticipation: boolean } | null
     }
 } | null | undefined
 
@@ -99,15 +93,15 @@ const deletedAuthor = {
 }
 
 export const anonymizeAuthor = <T extends RawAuthor>(
-    author: T
+    author: T,
+    isAnonymous: boolean
 ) => {
     if (author === null) return deletedAuthor
     if (!author || !author.user) return author
 
-    const { profile, ...user } = author.user
+    if (!isAnonymous) return author
 
-    if (!profile?.anonymousParticipation)
-        return { ...author, user }
+    const { user } = author
 
     return {
         ...author,
@@ -142,10 +136,10 @@ export const postQueryBuilder = (
                 { tags: { some: { name: { contains: searchText, mode: 'insensitive' } } } },
                 { category: { contains: searchText, mode: 'insensitive' } },
                 {
+                    isAnonymous: false,
                     author: {
                         user: {
-                            username: { contains: searchText, mode: 'insensitive' },
-                            profile: { anonymousParticipation: false }
+                            username: { contains: searchText, mode: 'insensitive' }
                         }
                     }
                 }

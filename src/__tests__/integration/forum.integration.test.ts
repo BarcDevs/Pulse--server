@@ -367,4 +367,100 @@ describe('Forum Routes — Integration', () => {
             expect(ids.indexOf(busyId)).toBeLessThan(ids.indexOf(quietId))
         })
     })
+
+    describe('per-post anonymity', () => {
+        const getPost = (token: string, postId: string) =>
+            supertest(App)
+                .get(`${POSTS_URL}/${postId}`)
+                .set('Cookie', [`accessToken=${token}`])
+
+        const rememberedChoice = async (userId: string) =>
+            (await Prisma.profile.findUniqueOrThrow({ where: { userId } }))
+                .anonymousParticipation
+
+        it('shows the real author on a named post and an alias on an anonymous one', async () => {
+            const { token, dbUser } = await setupUser()
+
+            const named = await createPost(token, {
+                ...validPost,
+                isAnonymous: false
+            } as typeof validPost)
+            const anon = await createPost(token, {
+                ...validPost,
+                isAnonymous: true
+            } as typeof validPost)
+
+            const namedAuthor = (await getPost(token, named.body.data.id))
+                .body.data.author.user
+            const anonAuthor = (await getPost(token, anon.body.data.id))
+                .body.data.author.user
+            expect(namedAuthor.username).toBe(dbUser.username)
+            expect(anonAuthor.username).toMatch(/^anonymous-/)
+            expect(anonAuthor.firstName).toBe('Anonymous')
+        })
+
+        it('defaults to the last choice and remembers each new one', async () => {
+            const { token, dbUser } = await setupUser()
+            expect(await rememberedChoice(dbUser.id)).toBe(true)
+
+            await createPost(token, {
+                ...validPost,
+                isAnonymous: false
+            } as typeof validPost)
+            expect(await rememberedChoice(dbUser.id)).toBe(false)
+
+            const inherited = await createPost(token)
+            expect(inherited.body.data.isAnonymous).toBe(false)
+        })
+
+        it('applies the choice to replies and keeps it per reply', async () => {
+            const { token, dbUser } = await setupUser()
+            const postId = (await createPost(token)).body.data.id
+            const reply = async (isAnonymous: boolean) => {
+                const { cookies, csrfToken } = buildCsrfHeaders(token)
+                return supertest(App)
+                    .post(`${POSTS_URL}/${postId}/replies`)
+                    .set('Cookie', cookies)
+                    .set('x-csrf-token', csrfToken)
+                    .send({ ...validReply, isAnonymous })
+            }
+
+            await reply(false)
+            await reply(true)
+
+            const res = await supertest(App)
+                .get(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', [`accessToken=${token}`])
+            const usernames = res.body.data.items.map(
+                (r: { author: { user: { username: string } } }) =>
+                    r.author.user.username
+            )
+            expect(usernames).toContain(dbUser.username)
+            expect(usernames.some((u: string) => u.startsWith('anonymous-')))
+                .toBe(true)
+        })
+
+        it('finds a post by author username only when that post is not anonymous', async () => {
+            const { token, dbUser } = await setupUser()
+            const named = await createPost(token, {
+                ...validPost,
+                title: 'Named one',
+                isAnonymous: false
+            } as typeof validPost)
+            const anon = await createPost(token, {
+                ...validPost,
+                title: 'Hidden one',
+                isAnonymous: true
+            } as typeof validPost)
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ search: dbUser.username })
+                .set('Cookie', [`accessToken=${token}`])
+
+            const ids = res.body.data.items.map((p: { id: string }) => p.id)
+            expect(ids).toContain(named.body.data.id)
+            expect(ids).not.toContain(anon.body.data.id)
+        })
+    })
 })

@@ -18,6 +18,7 @@ export type PostType = {
     body: string
     author?: PostAuthor
     authorId?: string
+    isAnonymous?: boolean
     createdAt: Date
     updatedAt?: Date
     replies: ReplyType[]
@@ -37,6 +38,7 @@ export type NewPostType = {
     category: string
     authorId: string
     tags?: string[]
+    isAnonymous?: boolean
 }
 
 export type UpdatePostType = Partial<

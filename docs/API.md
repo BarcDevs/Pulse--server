@@ -546,6 +546,7 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 | `body`     | string   | yes      |
 | `category` | string   | yes      |
 | `tags`     | string[] | yes      | max 5 names, 1-100 chars each |
+| `isAnonymous` | boolean | no    | Post anonymously (author shown as `anonymous-<id>`). Omitted = the user's last choice (default `true`). Fixed at creation. Sending it also remembers it as the next default |
 
 **Response `200`**
 ```json
@@ -756,6 +757,9 @@ A reply whose author's account was purged has `authorId: null` and a placeholder
 | Field  | Type   | Required |
 |--------|--------|----------|
 | `body` | string | yes      |
+| `isAnonymous` | boolean | no |
+
+`isAnonymous` works as on `POST /posts`: omitted means the user's last choice, and it is fixed once the reply is created.
 
 **Response `200`**
 ```json
@@ -1247,6 +1251,8 @@ Generates a human-readable summary of recovery progress by comparing the last 7 
 
 Retrieve the current user's profile with interests and activities.
 
+The response includes `anonymousParticipation`: the user's last anonymity choice, to prefill the post and reply forms. It is read-only here and updated by posting or replying with `isAnonymous`.
+
 **Query**
 | Param          | Type    | Notes                                                        |
 |----------------|---------|--------------------------------------------------------------|
@@ -1295,7 +1301,6 @@ Update user profile presentation and preferences.
 | `dailyReminder` | boolean | |
 | `communityAlerts` | boolean | |
 | `profileVisibility` | string | `onlyMe` · `friends` · `public` |
-| `anonymousParticipation` | boolean | |
 | `shareNotesWithAI` | boolean | Default `true`. When `false`, check-in notes are left out of AI insight prompts |
 | `dateOfBirth` | string | ISO 8601 date string |
 | `recoveryType` | string | Free text — type of recovery (e.g. `addiction`, `injury`) |
