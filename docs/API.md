@@ -1248,7 +1248,7 @@ Retrieve the current user's profile with interests and activities.
 **Query**
 | Param          | Type    | Notes                                                        |
 |----------------|---------|--------------------------------------------------------------|
-| `includePosts` | boolean | If `true`, includes liked posts, saved posts, liked replies  |
+| `includePosts` | boolean | If `true`, includes liked posts, saved posts, liked replies (newest 100 of each) |
 
 **Response `200`**
 ```json

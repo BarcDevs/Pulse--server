@@ -2,6 +2,7 @@ import {
     Prisma as PrismaNamespace,
     type Prisma as PrismaTypes
 } from '../../prisma/generated/prisma/client'
+import { FORUM_PAGINATION } from '../constants/forum/pagination'
 import type {
     NewPostType,
     PostType,
@@ -595,6 +596,7 @@ export const getProfileInteractions = async (
                     post: activeAuthorWhere
                 },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     post: {
                         include: postInclude('multiple')
@@ -607,6 +609,7 @@ export const getProfileInteractions = async (
                     reply: activeAuthorWhere
                 },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     reply: {
                         include: {
@@ -623,6 +626,7 @@ export const getProfileInteractions = async (
                     post: activeAuthorWhere
                 },
                 orderBy: { savedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     post: {
                         include: postInclude('multiple')
