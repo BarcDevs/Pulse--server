@@ -85,7 +85,6 @@ model Profile {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
 }
 
 model Post {
@@ -142,7 +141,6 @@ model DailyCheckIn {
   recommendations PostRecommendation?
 
   @@unique([profileId, checkInDate])
-  @@index([profileId, checkInDate])
 }
 
 model PostRecommendation {
@@ -195,7 +193,6 @@ model ProfileToTag {
   tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, tagId])
-  @@index([profileId])
   @@index([tagId])
 }
 
@@ -242,7 +239,6 @@ model Milestone {
   updatedAt   DateTime        @updatedAt
 
   @@unique([goalId, order])
-  @@index([goalId])
 }
 
 model PostLike {
@@ -275,7 +271,6 @@ model SavedPost {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@id([profileId, postId])
-  @@index([profileId])
 }
 
 enum Role {
