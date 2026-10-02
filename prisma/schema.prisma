@@ -42,6 +42,8 @@ model User {
   deleteAccountAttempts   Int       @default(0)
 
   profile Profile?
+
+  @@index([username(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_username_trgm_idx")
 }
 
 model Profile {
@@ -106,6 +108,8 @@ model Post {
   @@index([category])
   @@index([createdAt])
   @@index([views])
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_title_trgm_idx")
+  @@index([body(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_body_trgm_idx")
 }
 
 model Reply {
