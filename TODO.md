@@ -16,6 +16,9 @@ password reset (email -> code -> new password) worked end to end.
   `SET statement_timeout` on connect is only proven on Neon). Also confirm the pending migrations
   applied: `pg_trgm` extension and the three `*_trgm_idx` indexes exist, the five redundant
   indexes are gone. Then run `EXPLAIN ANALYZE` on forum search on RDS.
+  The `Post.replyCount` backfill ran while the old container could still write replies, so
+  reconcile once after deploy (idempotent):
+  `UPDATE "Post" p SET "replyCount" = (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id) WHERE "replyCount" <> (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id);`
 
 - **Clean up accounts verified through the H6 bug (security audit H6, fixed 30/09).**
   Until the fix, 5 wrong codes on `POST /auth/confirm-email` marked any email verified, and a
