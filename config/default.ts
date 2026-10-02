@@ -20,7 +20,12 @@ export default {
         otp_expiration: '10m'
     },
     database: {
-        url: 'DEV_DATABASE_URL'
+        url: 'DEV_DATABASE_URL',
+        poolMax: 10,
+        connectionTimeoutMs: 5000,
+        idleTimeoutMs: 30000,
+        statementTimeoutMs: 15000,
+        slowQueryMs: 200
     },
     // Resend SMTP: user is always "resend", the password is the API key
     // (EMAIL_PASSWORD, the only env-provided email value)

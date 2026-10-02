@@ -43,7 +43,18 @@ if (authConfig.jwtSecret.length < 32) {
 }
 
 const databaseConfig: DatabaseConfig = {
-    url: config.get<string>('database.url')
+    url: config.get<string>('database.url'),
+    poolMax: config.get<number>('database.poolMax'),
+    connectionTimeoutMs: config.get<number>(
+        'database.connectionTimeoutMs'
+    ),
+    idleTimeoutMs: config.get<number>(
+        'database.idleTimeoutMs'
+    ),
+    statementTimeoutMs: config.get<number>(
+        'database.statementTimeoutMs'
+    ),
+    slowQueryMs: config.get<number>('database.slowQueryMs')
 }
 
 const emailConfig: EmailConfig = {

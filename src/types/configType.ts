@@ -15,6 +15,11 @@ type AppConfig = {
 
 type DatabaseConfig = {
     url: string
+    poolMax: number
+    connectionTimeoutMs: number
+    idleTimeoutMs: number
+    statementTimeoutMs: number
+    slowQueryMs: number
 }
 
 type EmailConfig = {
