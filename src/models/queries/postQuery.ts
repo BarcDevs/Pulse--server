@@ -196,7 +196,7 @@ export const postQueryBuilder = (
             query?.filter === PostFilter.NEWEST
                 ? { createdAt: 'desc' }
                 : query?.filter === PostFilter.HOT
-                    ? { replies: { _count: 'desc' } }
+                    ? { replyCount: 'desc' }
                     : query?.filter === PostFilter.POPULAR
                         ? { views: 'desc' }
                         : { createdAt: 'desc' }

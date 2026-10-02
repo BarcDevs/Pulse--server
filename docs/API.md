@@ -489,7 +489,7 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 |------------|--------|---------------------------------------------|
 | `limit`    | number | Max 100                                     |
 | `page`     | number |                                             |
-| `filter`   | string | `newest` · `popular` · `hot` · `unanswered` |
+| `filter`   | string | `newest` · `popular` (most views) · `hot` (most replies, from the stored `Post.replyCount`) · `unanswered` |
 | `search`   | string | Search title, body, category, tags, author name (case-insensitive) |
 | `tag`      | string | Filter by tag name                          |
 | `category` | string | Filter by category                          |

@@ -313,4 +313,58 @@ describe('Forum Routes — Integration', () => {
             expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
         })
     })
+
+    describe('post reply count', () => {
+        const addReply = async (token: string, postId: string) => {
+            const { cookies, csrfToken } = buildCsrfHeaders(token)
+            return supertest(App)
+                .post(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', cookies)
+                .set('x-csrf-token', csrfToken)
+                .send(validReply)
+        }
+
+        const storedCount = async (postId: string) =>
+            (await Prisma.post.findUniqueOrThrow({ where: { id: postId } }))
+                .replyCount
+
+        it('follows reply creation and deletion', async () => {
+            const { token } = await setupUser()
+            const postId = (await createPost(token)).body.data.id
+
+            await addReply(token, postId)
+            const second = await addReply(token, postId)
+            expect(await storedCount(postId)).toBe(2)
+
+            const { cookies, csrfToken } = buildCsrfHeaders(token)
+            const delRes = await supertest(App)
+                .delete(`${POSTS_URL}/${postId}/replies/${second.body.data.id}`)
+                .set('Cookie', cookies)
+                .set('x-csrf-token', csrfToken)
+
+            expect(delRes.status).toBe(HttpStatusCodes.OK)
+            expect(await storedCount(postId)).toBe(1)
+        })
+
+        it('orders the hot filter by reply count', async () => {
+            const { token } = await setupUser()
+            const quietId = (await createPost(token)).body.data.id
+            const busyId = (await createPost(token, {
+                ...validPost,
+                title: 'Busy post'
+            })).body.data.id
+            await addReply(token, quietId)
+            await addReply(token, busyId)
+            await addReply(token, busyId)
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ filter: 'hot' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(res.status).toBe(HttpStatusCodes.OK)
+            const ids = res.body.data.items.map((p: { id: string }) => p.id)
+            expect(ids.indexOf(busyId)).toBeLessThan(ids.indexOf(quietId))
+        })
+    })
 })

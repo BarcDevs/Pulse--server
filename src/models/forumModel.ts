@@ -293,11 +293,18 @@ export const deleteReply = async (
     replyId: string,
     postId: string
 ) =>
-    Prisma.reply.delete({
-        where: {
-            id: replyId,
-            postId
-        }
+    Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
+        const deleted = await tx.reply.delete({
+            where: {
+                id: replyId,
+                postId
+            }
+        })
+        await tx.post.update({
+            where: { id: postId },
+            data: { replyCount: { decrement: 1 } }
+        })
+        return deleted
     })
 
 export const getTags = async (
@@ -697,19 +704,26 @@ export const createReply = async (
         body
     } = reply
 
-    return (await Prisma.reply.create({
-        data: {
-            body,
-            author: {
-                connect: {
-                    id: authorId
+    return Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
+        const created = await tx.reply.create({
+            data: {
+                body,
+                author: {
+                    connect: {
+                        id: authorId
+                    }
+                },
+                post: {
+                    connect: {
+                        id: postId
+                    }
                 }
-            },
-            post: {
-                connect: {
-                    id: postId
-                }
-            }
-        } as PrismaTypes.ReplyCreateInput
-    })) as unknown as ReplyType
+            } as PrismaTypes.ReplyCreateInput
+        })
+        await tx.post.update({
+            where: { id: postId },
+            data: { replyCount: { increment: 1 } }
+        })
+        return created as unknown as ReplyType
+    })
 }

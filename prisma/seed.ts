@@ -410,6 +410,10 @@ async function main() {
                     postId: post.id
                 }
             })
+            await prisma.post.update({
+                where: { id: post.id },
+                data: { replyCount: { increment: 1 } }
+            })
         }
     }
 

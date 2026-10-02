@@ -186,3 +186,10 @@ describe('reply visibility with purged authors', () => {
     })
 })
 
+describe('hot sort', () => {
+    it('orders by the stored reply count', () => {
+        const result = postQueryBuilder({ filter: PostFilter.HOT })
+        expect(result.orderBy).toEqual({ replyCount: 'desc' })
+    })
+})
+

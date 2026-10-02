@@ -329,6 +329,26 @@ describe('forumModel', () => {
             })
         })
 
+        it('decrements the post reply count with the delete', async () => {
+            prismaMock.reply.delete.mockResolvedValue(rawReply as never)
+
+            await forumModel.deleteReply('reply-1', 'post-1')
+
+            expect(prismaMock.post.update).toHaveBeenCalledWith({
+                where: { id: 'post-1' },
+                data: { replyCount: { decrement: 1 } }
+            })
+        })
+
+        it('does not touch the count when the delete fails', async () => {
+            prismaMock.reply.delete.mockRejectedValue(new Error('missing'))
+
+            await expect(
+                forumModel.deleteReply('reply-1', 'post-1')
+            ).rejects.toThrow('missing')
+            expect(prismaMock.post.update).not.toHaveBeenCalled()
+        })
+
         it('propagates Prisma error', async () => {
             prismaMock.reply.delete.mockRejectedValue(new Error('locked'))
 
@@ -646,6 +666,21 @@ describe('forumModel', () => {
 
             expect(prismaMock.reply.create).toHaveBeenCalled()
             expect(result).toEqual(rawReply)
+        })
+
+        it('increments the post reply count with the create', async () => {
+            prismaMock.reply.create.mockResolvedValue(rawReply as never)
+
+            await forumModel.createReply({
+                authorId: 'profile-1',
+                postId: 'post-1',
+                body: 'A reply'
+            })
+
+            expect(prismaMock.post.update).toHaveBeenCalledWith({
+                where: { id: 'post-1' },
+                data: { replyCount: { increment: 1 } }
+            })
         })
 
         it('propagates Prisma error', async () => {
