@@ -103,6 +103,21 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
 3. Verify: `curl https://pulserehab.app/api/status` and a real DB-backed route (health
    checks alone don't catch DB/SSL misconfiguration — confirmed the hard way).
 
+## Database performance and observability
+
+- **Pool/timeouts** (`config/default.ts` `database.*`): `poolMax` 10, `connectionTimeoutMs` 5s,
+  `idleTimeoutMs` 30s, `statementTimeoutMs` 15s (set per session with `SET statement_timeout`
+  on connect, so a runaway query is cancelled with `57014` instead of holding a connection).
+  Each container uses up to `poolMax` connections and a redeploy briefly runs two, so keep
+  `2 x poolMax x instances` under the `db.t3.micro` `max_connections`.
+- **Slow queries**: any query over `database.slowQueryMs` (200ms) is logged as a `Slow database
+  query` warning with SQL text (placeholders only) and duration, never bound values.
+- **`pg_trgm`**: forum search relies on GIN trigram indexes. The migration runs
+  `CREATE EXTENSION IF NOT EXISTS pg_trgm`, which works as `pulse_admin` (migrations user);
+  `pulse_app` needs no DDL rights.
+- Index-only migrations (`CREATE`/`DROP INDEX`) pass the redeploy destructive-migration gate,
+  which only blocks `DROP`/`RENAME COLUMN|TABLE`.
+
 ## Known build-time gotchas
 
 - **Prisma generator module format** — `prisma-client` (the generator in

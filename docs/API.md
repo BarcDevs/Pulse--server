@@ -545,7 +545,7 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 | `title`    | string   | yes      |
 | `body`     | string   | yes      |
 | `category` | string   | yes      |
-| `tags`     | string[] | yes      |
+| `tags`     | string[] | yes      | max 5 names, 1-100 chars each |
 
 **Response `200`**
 ```json
@@ -608,7 +608,7 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 | `title`    | string   |
 | `body`     | string   |
 | `category` | string   |
-| `tags`     | string[] |
+| `tags`     | string[] | max 5 names, 1-100 chars each |
 
 **Response `200`**
 ```json
