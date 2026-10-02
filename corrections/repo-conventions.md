@@ -98,3 +98,12 @@ CI on `development` broke from the prod error monitor commits (`e3e764c`, `0f4e1
 The H1 fix (28/09) added `20260928191230_add_email_verified_at` and the overnight M3 fix added `20260930020000_add_share_notes_with_ai`. Tests passed because the jest integration setup runs `migrate deploy` on its own Postgres, but the Neon dev DB was never migrated. The user's dev server then failed with "The column `User.emailVerifiedAt` does not exist in the current database." User: "also you forgot to migrate the db".
 
 **Lesson:** a change that adds a migration isn't done until `npx prisma migrate status` against the dev DB (Neon, `DEV_DATABASE_URL`) is clean. Apply it with `npx prisma migrate deploy` in the same step. It only applies additive, pending migrations and never resets. Prod gets it from `ec2-redeploy.sh`; the dev DB gets nothing automatically.
+
+---
+
+## 02/10/2026 — Judged DB changes against Neon first instead of RDS
+
+During the DB perf pass I tested and reasoned about pool/timeout/index changes against the Neon dev DB (it was the only DB reachable) and only looked at RDS afterwards. User: "you should address RDS first not neon". Neon is dev only; RDS is what production runs on, and it differs: migrations run as `pulse_admin` while the app runs as `pulse_app` (no DDL), the redeploy gate rejects `DROP`/`RENAME COLUMN|TABLE`, and `db.t3.micro` has a small `max_connections`.
+
+**Lesson:** for any DB change, check the RDS constraints first (`docs/DEPLOYMENT.md`: roles, deploy gate, instance size, Postgres 17.10) and design for them; Neon is only where it gets exercised locally. Say what could not be verified on RDS, since local work never runs against it.
+
