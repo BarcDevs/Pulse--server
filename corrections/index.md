@@ -26,6 +26,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 29/09/2026 | Only `development` → `main` goes through a PR; feature branch → `development` is a direct merge, no PR |
 | 30/09/2026 | A new migration isn't done until it's applied to the Neon dev DB (`prisma migrate deploy`, then `migrate status` clean) |
 | 02/10/2026 | DB changes: check RDS constraints first (roles, deploy gate, instance size); Neon is only the local test bed |
+| 02/10/2026 | "tell client" is a role, not a session: ask which session even if only one name matches (repeat of 29/09) |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
