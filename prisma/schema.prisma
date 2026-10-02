@@ -104,6 +104,8 @@ model Post {
 
   @@index([authorId])
   @@index([category])
+  @@index([createdAt])
+  @@index([views])
 }
 
 model Reply {
@@ -118,6 +120,7 @@ model Reply {
   likes     ReplyLike[]
 
   @@index([authorId])
+  @@index([postId, createdAt])
 }
 
 model DailyCheckIn {
@@ -148,7 +151,7 @@ model PostRecommendation {
   generationPending Boolean      @default(false)
   pendingSince      DateTime?
 
-  @@index([userId])
+  @@index([userId, generatedAt])
 }
 
 model AIInsight {
