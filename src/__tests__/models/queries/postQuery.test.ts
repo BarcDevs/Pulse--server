@@ -1,4 +1,10 @@
-import { anonymizeAuthor, postQueryBuilder } from '../../../models/queries/postQuery'
+import {
+    activeReplyAuthorWhere,
+    anonymizeAuthor,
+    postInclude,
+    postQueryBuilder
+} from '../../../models/queries/postQuery'
+import { PostFilter } from '../../../types/query'
 
 describe('postQueryBuilder', () => {
     describe('search', () => {
@@ -108,9 +114,21 @@ describe('anonymizeAuthor', () => {
         }
     }
 
-    it('returns null/undefined author unchanged', () => {
-        expect(anonymizeAuthor(null)).toBeNull()
+    it('returns undefined author unchanged', () => {
         expect(anonymizeAuthor(undefined)).toBeUndefined()
+    })
+
+    it('replaces a purged (null) author with the deleted-user placeholder', () => {
+        expect(anonymizeAuthor(null)).toEqual({
+            id: '',
+            image: null,
+            user: {
+                id: '',
+                username: 'deleted-user',
+                firstName: '',
+                lastName: ''
+            }
+        })
     })
 
     it('strips the profile key and keeps real identity when not anonymous', () => {
@@ -145,3 +163,26 @@ describe('anonymizeAuthor', () => {
         expect(anonymizeAuthor(baseAuthor)?.image).toBe('pic.jpg')
     })
 })
+
+describe('reply visibility with purged authors', () => {
+    it('treats a null author as visible next to active authors', () => {
+        expect(activeReplyAuthorWhere.OR).toContainEqual({ authorId: null })
+        expect(activeReplyAuthorWhere.OR).toContainEqual({
+            author: { user: { active: true } }
+        })
+    })
+
+    it('uses the reply-aware filter for the reply count and single-post replies', () => {
+        expect(postInclude('multiple')._count.select.replies.where)
+            .toBe(activeReplyAuthorWhere)
+        expect(postInclude('single').replies).toMatchObject({
+            where: activeReplyAuthorWhere
+        })
+    })
+
+    it('uses the reply-aware filter for the unanswered filter', () => {
+        const result = postQueryBuilder({ filter: PostFilter.UNANSWERED })
+        expect(result.where.replies).toEqual({ none: activeReplyAuthorWhere })
+    })
+})
+

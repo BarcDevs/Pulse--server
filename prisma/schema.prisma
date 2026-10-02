@@ -114,8 +114,8 @@ model Post {
 model Reply {
   id        String      @id @default(uuid())
   body      String
-  authorId  String
-  author    Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    Profile?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   createdAt DateTime    @default(now())
   updatedAt DateTime?   @updatedAt
   postId    String

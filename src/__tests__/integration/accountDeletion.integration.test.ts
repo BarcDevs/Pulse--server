@@ -15,6 +15,7 @@ import {
     secondInMs
 } from '../../constants/time'
 import { createToken } from '../../lib/authCrypto'
+import * as forumModel from '../../models/forumModel'
 import { purgeExpiredAccounts } from '../../services/accountDeletionService'
 import Prisma from '../../utils/prismaClient'
 
@@ -168,5 +169,59 @@ describe('Account deletion — Integration', () => {
             .not.toBeNull()
         expect(await Prisma.user.findUnique({ where: { id: active.id } }))
             .not.toBeNull()
+    })
+
+    it('purge deletes the posts of a user but keeps their replies as deleted-user', async () => {
+        const { dbUser: leaver } = await setupUser('leaver')
+        const { dbUser: stayer } = await setupUser('stayer')
+        const leaverProfile = await Prisma.profile.findUniqueOrThrow({
+            where: { userId: leaver.id }
+        })
+        const stayerProfile = await Prisma.profile.findUniqueOrThrow({
+            where: { userId: stayer.id }
+        })
+        const stayerPost = await Prisma.post.create({
+            data: {
+                title: 'Stayer post',
+                body: 'body',
+                category: 'general',
+                authorId: stayerProfile.id
+            }
+        })
+        const leaverPost = await Prisma.post.create({
+            data: {
+                title: 'Leaver post',
+                body: 'body',
+                category: 'general',
+                authorId: leaverProfile.id
+            }
+        })
+        const leaverReply = await Prisma.reply.create({
+            data: {
+                body: 'Leaver reply',
+                postId: stayerPost.id,
+                authorId: leaverProfile.id
+            }
+        })
+        await markDeleted(leaver.id, ACCOUNT_DELETION_GRACE_DAYS + 1)
+
+        await purgeExpiredAccounts()
+
+        expect(await Prisma.post.findUnique({ where: { id: leaverPost.id } }))
+            .toBeNull()
+        const kept = await Prisma.reply.findUnique({
+            where: { id: leaverReply.id }
+        })
+        expect(kept).not.toBeNull()
+        expect(kept!.authorId).toBeNull()
+
+        const replies = await forumModel.getReplies(stayerPost.id)
+        expect(replies).toHaveLength(1)
+        expect(replies[0].body).toBe('Leaver reply')
+        expect((replies[0].author as unknown as { user: { username: string } }).user.username)
+            .toBe('deleted-user')
+        const post = await forumModel.getPost(stayerPost.id)
+        expect(post!.replies).toHaveLength(1)
+        expect(post!._count!.replies).toBe(1)
     })
 })

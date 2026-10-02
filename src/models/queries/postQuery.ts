@@ -10,6 +10,14 @@ export const activeAuthorWhere = {
     }
 }
 
+// A reply whose author account was purged keeps its text with authorId null
+export const activeReplyAuthorWhere = {
+    OR: [
+        { authorId: null },
+        activeAuthorWhere
+    ]
+}
+
 export const authorSelect = {
     id: true,
     image: true,
@@ -35,7 +43,7 @@ export const postInclude = (
     _count: {
         select: {
             replies: {
-                where: activeAuthorWhere
+                where: activeReplyAuthorWhere
             },
             likes: true
         }
@@ -55,7 +63,7 @@ export const postInclude = (
     },
 
     replies: type === 'single' && {
-        where: activeAuthorWhere,
+        where: activeReplyAuthorWhere,
         take: options?.replies,
         include: {
             author: {
@@ -77,9 +85,23 @@ type RawAuthor = {
     }
 } | null | undefined
 
+export const DELETED_USER_USERNAME = 'deleted-user'
+
+const deletedAuthor = {
+    id: '',
+    image: null,
+    user: {
+        id: '',
+        username: DELETED_USER_USERNAME,
+        firstName: '',
+        lastName: ''
+    }
+}
+
 export const anonymizeAuthor = <T extends RawAuthor>(
     author: T
 ) => {
+    if (author === null) return deletedAuthor
     if (!author || !author.user) return author
 
     const { profile, ...user } = author.user
@@ -159,7 +181,7 @@ export const postQueryBuilder = (
             // filter by unanswered
             ...(query?.filter === PostFilter.UNANSWERED && {
                 replies: {
-                    none: activeAuthorWhere
+                    none: activeReplyAuthorWhere
                 }
             }),
 

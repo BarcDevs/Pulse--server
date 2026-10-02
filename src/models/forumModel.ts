@@ -19,6 +19,7 @@ import Prisma from '../utils/prismaClient'
 
 import {
     activeAuthorWhere,
+    activeReplyAuthorWhere,
     anonymizeAuthor,
     authorSelect,
     connectTags,
@@ -209,7 +210,7 @@ export const getReply = async (
         where: {
             id: replyId,
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         },
         include: {
             author: {
@@ -234,7 +235,7 @@ export const getReplies = async (
     const replies = await Prisma.reply.findMany({
         where: {
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         },
         include: {
             author: {
@@ -268,7 +269,7 @@ export const getRepliesCount = async (
     count: await Prisma.reply.count({
         where: {
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         }
     })
 })
@@ -606,7 +607,7 @@ export const getProfileInteractions = async (
             Prisma.replyLike.findMany({
                 where: {
                     profileId,
-                    reply: activeAuthorWhere
+                    reply: activeReplyAuthorWhere
                 },
                 orderBy: { likedAt: 'desc' },
                 take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,

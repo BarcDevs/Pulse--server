@@ -458,7 +458,7 @@ password.
 ### `DELETE /me`
 > Auth + CSRF required
 
-Deactivates the account now; it's permanently deleted after 30 days unless the user logs back in.
+Deactivates the account now; it's permanently deleted after 30 days unless the user logs back in. The user's posts are deleted with it; their replies on other users' posts stay, returned with `author.user.username` `deleted-user` and `authorId` `null`.
 
 **Body**
 | Field | Type   | Required | Description                        |
@@ -742,6 +742,8 @@ Returns the current user's saved posts. Supports the same pagination query param
   ]
 }
 ```
+
+A reply whose author's account was purged has `authorId: null` and a placeholder author (`username: "deleted-user"`, empty names). It can't be edited or deleted.
 
 **Errors:** `404` no replies found
 

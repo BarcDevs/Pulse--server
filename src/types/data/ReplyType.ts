@@ -5,7 +5,7 @@ export type ReplyType = {
     id: string
     body: string
     author: Partial<UserType>
-    authorId: string
+    authorId: string | null
     createdAt: Date
     updatedAt?: Date
     post?: PostType
