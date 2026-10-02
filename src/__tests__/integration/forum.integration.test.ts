@@ -401,16 +401,16 @@ describe('Forum Routes — Integration', () => {
 
         it('defaults to the last choice and remembers each new one', async () => {
             const { token, dbUser } = await setupUser()
-            expect(await rememberedChoice(dbUser.id)).toBe(true)
+            expect(await rememberedChoice(dbUser.id)).toBe(false)
 
             await createPost(token, {
                 ...validPost,
-                isAnonymous: false
+                isAnonymous: true
             } as typeof validPost)
-            expect(await rememberedChoice(dbUser.id)).toBe(false)
+            expect(await rememberedChoice(dbUser.id)).toBe(true)
 
             const inherited = await createPost(token)
-            expect(inherited.body.data.isAnonymous).toBe(false)
+            expect(inherited.body.data.isAnonymous).toBe(true)
         })
 
         it('applies the choice to replies and keeps it per reply', async () => {

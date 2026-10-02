@@ -91,3 +91,15 @@ Implementation uses the existing `dayInMs` from `src/constants/time.ts` for the 
 
 **How to apply:** the author shown on a post or reply comes from that item's `isAnonymous`, never from the profile. The old profile column is kept (the deploy gate blocks DROP COLUMN) and only stores the last choice.
 
+---
+
+## 02/10/2026 — The anonymity toggle starts off (named) until the user has chosen otherwise
+
+Follows the per-post anonymity entry above and changes its default.
+
+**Decision (owner):** the toggle on the post and reply forms starts OFF. It only starts ON if the user's previous post or reply was made anonymous. The remembered value (`Profile.anonymousParticipation`) therefore defaults to `false`, and the migration reset every existing profile to `false`, because the old value was just the old default (the column cannot tell a stored default from a real choice, and nobody had chosen under the per-post model). Posts and replies already created keep their own `isAnonymous`, so nothing visible changed.
+
+**Why:** the owner wants named posting to be the starting point and anonymity to be an explicit choice each time it is first made.
+
+**How to apply:** a new profile is created with `anonymousParticipation = false`; never seed or backfill it to `true`.
+

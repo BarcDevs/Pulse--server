@@ -57,7 +57,7 @@ model Profile {
   updatedAt  DateTime @updatedAt
   dateFormat String?  @default("dd/mm/yyyy")
 
-  anonymousParticipation Boolean           @default(true)
+  anonymousParticipation Boolean           @default(false)
   // Opt-out for sending check-in notes to AI insight providers (M3)
   shareNotesWithAI       Boolean           @default(true)
   communityAlerts        Boolean           @default(false)

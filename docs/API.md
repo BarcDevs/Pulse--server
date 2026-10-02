@@ -546,7 +546,7 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 | `body`     | string   | yes      |
 | `category` | string   | yes      |
 | `tags`     | string[] | yes      | max 5 names, 1-100 chars each |
-| `isAnonymous` | boolean | no    | Post anonymously (author shown as `anonymous-<id>`). Omitted = the user's last choice (default `true`). Fixed at creation. Sending it also remembers it as the next default |
+| `isAnonymous` | boolean | no    | Post anonymously (author shown as `anonymous-<id>`). Omitted = the user's last choice (default `false`, i.e. named). Fixed at creation. Sending it also remembers it as the next default |
 
 **Response `200`**
 ```json
@@ -1251,7 +1251,7 @@ Generates a human-readable summary of recovery progress by comparing the last 7 
 
 Retrieve the current user's profile with interests and activities.
 
-The response includes `anonymousParticipation`: the user's last anonymity choice, to prefill the post and reply forms. It is read-only here and updated by posting or replying with `isAnonymous`.
+The response includes `anonymousParticipation`: the user's last anonymity choice (default `false`), to prefill the post and reply forms. It is read-only here and updated by posting or replying with `isAnonymous`.
 
 **Query**
 | Param          | Type    | Notes                                                        |
