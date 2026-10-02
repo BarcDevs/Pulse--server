@@ -313,4 +313,154 @@ describe('Forum Routes — Integration', () => {
             expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
         })
     })
+
+    describe('post reply count', () => {
+        const addReply = async (token: string, postId: string) => {
+            const { cookies, csrfToken } = buildCsrfHeaders(token)
+            return supertest(App)
+                .post(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', cookies)
+                .set('x-csrf-token', csrfToken)
+                .send(validReply)
+        }
+
+        const storedCount = async (postId: string) =>
+            (await Prisma.post.findUniqueOrThrow({ where: { id: postId } }))
+                .replyCount
+
+        it('follows reply creation and deletion', async () => {
+            const { token } = await setupUser()
+            const postId = (await createPost(token)).body.data.id
+
+            await addReply(token, postId)
+            const second = await addReply(token, postId)
+            expect(await storedCount(postId)).toBe(2)
+
+            const { cookies, csrfToken } = buildCsrfHeaders(token)
+            const delRes = await supertest(App)
+                .delete(`${POSTS_URL}/${postId}/replies/${second.body.data.id}`)
+                .set('Cookie', cookies)
+                .set('x-csrf-token', csrfToken)
+
+            expect(delRes.status).toBe(HttpStatusCodes.OK)
+            expect(await storedCount(postId)).toBe(1)
+        })
+
+        it('orders the hot filter by reply count', async () => {
+            const { token } = await setupUser()
+            const quietId = (await createPost(token)).body.data.id
+            const busyId = (await createPost(token, {
+                ...validPost,
+                title: 'Busy post'
+            })).body.data.id
+            await addReply(token, quietId)
+            await addReply(token, busyId)
+            await addReply(token, busyId)
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ filter: 'hot' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(res.status).toBe(HttpStatusCodes.OK)
+            const ids = res.body.data.items.map((p: { id: string }) => p.id)
+            expect(ids.indexOf(busyId)).toBeLessThan(ids.indexOf(quietId))
+        })
+    })
+
+    describe('per-post anonymity', () => {
+        const getPost = (token: string, postId: string) =>
+            supertest(App)
+                .get(`${POSTS_URL}/${postId}`)
+                .set('Cookie', [`accessToken=${token}`])
+
+        const rememberedChoice = async (userId: string) =>
+            (await Prisma.profile.findUniqueOrThrow({ where: { userId } }))
+                .anonymousParticipation
+
+        it('shows the real author on a named post and an alias on an anonymous one', async () => {
+            const { token, dbUser } = await setupUser()
+
+            const named = await createPost(token, {
+                ...validPost,
+                isAnonymous: false
+            } as typeof validPost)
+            const anon = await createPost(token, {
+                ...validPost,
+                isAnonymous: true
+            } as typeof validPost)
+
+            const namedAuthor = (await getPost(token, named.body.data.id))
+                .body.data.author.user
+            const anonAuthor = (await getPost(token, anon.body.data.id))
+                .body.data.author.user
+            expect(namedAuthor.username).toBe(dbUser.username)
+            expect(anonAuthor.username).toMatch(/^anonymous-/)
+            expect(anonAuthor.firstName).toBe('Anonymous')
+        })
+
+        it('defaults to the last choice and remembers each new one', async () => {
+            const { token, dbUser } = await setupUser()
+            expect(await rememberedChoice(dbUser.id)).toBe(false)
+
+            await createPost(token, {
+                ...validPost,
+                isAnonymous: true
+            } as typeof validPost)
+            expect(await rememberedChoice(dbUser.id)).toBe(true)
+
+            const inherited = await createPost(token)
+            expect(inherited.body.data.isAnonymous).toBe(true)
+        })
+
+        it('applies the choice to replies and keeps it per reply', async () => {
+            const { token, dbUser } = await setupUser()
+            const postId = (await createPost(token)).body.data.id
+            const reply = async (isAnonymous: boolean) => {
+                const { cookies, csrfToken } = buildCsrfHeaders(token)
+                return supertest(App)
+                    .post(`${POSTS_URL}/${postId}/replies`)
+                    .set('Cookie', cookies)
+                    .set('x-csrf-token', csrfToken)
+                    .send({ ...validReply, isAnonymous })
+            }
+
+            await reply(false)
+            await reply(true)
+
+            const res = await supertest(App)
+                .get(`${POSTS_URL}/${postId}/replies`)
+                .set('Cookie', [`accessToken=${token}`])
+            const usernames = res.body.data.items.map(
+                (r: { author: { user: { username: string } } }) =>
+                    r.author.user.username
+            )
+            expect(usernames).toContain(dbUser.username)
+            expect(usernames.some((u: string) => u.startsWith('anonymous-')))
+                .toBe(true)
+        })
+
+        it('finds a post by author username only when that post is not anonymous', async () => {
+            const { token, dbUser } = await setupUser()
+            const named = await createPost(token, {
+                ...validPost,
+                title: 'Named one',
+                isAnonymous: false
+            } as typeof validPost)
+            const anon = await createPost(token, {
+                ...validPost,
+                title: 'Hidden one',
+                isAnonymous: true
+            } as typeof validPost)
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ search: dbUser.username })
+                .set('Cookie', [`accessToken=${token}`])
+
+            const ids = res.body.data.items.map((p: { id: string }) => p.id)
+            expect(ids).toContain(named.body.data.id)
+            expect(ids).not.toContain(anon.body.data.id)
+        })
+    })
 })

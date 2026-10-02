@@ -2,6 +2,7 @@ import {
     Prisma as PrismaNamespace,
     type Prisma as PrismaTypes
 } from '../../prisma/generated/prisma/client'
+import { FORUM_PAGINATION } from '../constants/forum/pagination'
 import type {
     NewPostType,
     PostType,
@@ -18,6 +19,7 @@ import Prisma from '../utils/prismaClient'
 
 import {
     activeAuthorWhere,
+    activeReplyAuthorWhere,
     anonymizeAuthor,
     authorSelect,
     connectTags,
@@ -54,6 +56,7 @@ const mapTag = (raw: RawTag): TagType => ({
 
 const mapPostTags = <T extends {
     tags?: RawTag[]
+    isAnonymous: boolean
     author?: unknown
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     replies?: any[]
@@ -63,13 +66,13 @@ const mapPostTags = <T extends {
     ...post,
     tags: post.tags?.map(mapTag) ?? [],
     ...(post.author !== undefined
-        && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0]) }),
+        && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0], post.isAnonymous) }),
     ...(post.replies !== undefined
         && {
             replies: post.replies.map((reply) => ({
                 ...reply,
                 ...(reply.author !== undefined
-                    && { author: anonymizeAuthor(reply.author as Parameters<typeof anonymizeAuthor>[0]) })
+                    && { author: anonymizeAuthor(reply.author as Parameters<typeof anonymizeAuthor>[0], reply.isAnonymous) })
             }))
         })
 })
@@ -208,7 +211,7 @@ export const getReply = async (
         where: {
             id: replyId,
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         },
         include: {
             author: {
@@ -220,7 +223,7 @@ export const getReply = async (
     return reply
         ? {
             ...reply,
-            author: anonymizeAuthor(reply.author)
+            author: anonymizeAuthor(reply.author, reply.isAnonymous)
         } as unknown as ReplyType
         : null
 }
@@ -233,7 +236,7 @@ export const getReplies = async (
     const replies = await Prisma.reply.findMany({
         where: {
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         },
         include: {
             author: {
@@ -257,7 +260,7 @@ export const getReplies = async (
 
     return replies.map((reply) => ({
         ...reply,
-        author: anonymizeAuthor(reply.author)
+        author: anonymizeAuthor(reply.author, reply.isAnonymous)
     })) as unknown as ReplyType[]
 }
 
@@ -267,7 +270,7 @@ export const getRepliesCount = async (
     count: await Prisma.reply.count({
         where: {
             postId,
-            ...activeAuthorWhere
+            ...activeReplyAuthorWhere
         }
     })
 })
@@ -291,11 +294,18 @@ export const deleteReply = async (
     replyId: string,
     postId: string
 ) =>
-    Prisma.reply.delete({
-        where: {
-            id: replyId,
-            postId
-        }
+    Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
+        const deleted = await tx.reply.delete({
+            where: {
+                id: replyId,
+                postId
+            }
+        })
+        await tx.post.update({
+            where: { id: postId },
+            data: { replyCount: { decrement: 1 } }
+        })
+        return deleted
     })
 
 export const getTags = async (
@@ -595,6 +605,7 @@ export const getProfileInteractions = async (
                     post: activeAuthorWhere
                 },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     post: {
                         include: postInclude('multiple')
@@ -604,9 +615,10 @@ export const getProfileInteractions = async (
             Prisma.replyLike.findMany({
                 where: {
                     profileId,
-                    reply: activeAuthorWhere
+                    reply: activeReplyAuthorWhere
                 },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     reply: {
                         include: {
@@ -623,6 +635,7 @@ export const getProfileInteractions = async (
                     post: activeAuthorWhere
                 },
                 orderBy: { savedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTIONS,
                 include: {
                     post: {
                         include: postInclude('multiple')
@@ -638,7 +651,7 @@ export const getProfileInteractions = async (
             likedReplies: likedReplyRows.map(
                 (r) => ({
                     ...r.reply,
-                    author: anonymizeAuthor(r.reply.author)
+                    author: anonymizeAuthor(r.reply.author, r.reply.isAnonymous)
                 })
             ),
             savedPosts: savedPostRows.map(
@@ -689,22 +702,31 @@ export const createReply = async (
     const {
         authorId,
         postId,
-        body
+        body,
+        isAnonymous
     } = reply
 
-    return (await Prisma.reply.create({
-        data: {
-            body,
-            author: {
-                connect: {
-                    id: authorId
+    return Prisma.$transaction(async (tx: PrismaTypes.TransactionClient) => {
+        const created = await tx.reply.create({
+            data: {
+                body,
+                isAnonymous,
+                author: {
+                    connect: {
+                        id: authorId
+                    }
+                },
+                post: {
+                    connect: {
+                        id: postId
+                    }
                 }
-            },
-            post: {
-                connect: {
-                    id: postId
-                }
-            }
-        } as PrismaTypes.ReplyCreateInput
-    })) as unknown as ReplyType
+            } as PrismaTypes.ReplyCreateInput
+        })
+        await tx.post.update({
+            where: { id: postId },
+            data: { replyCount: { increment: 1 } }
+        })
+        return created as unknown as ReplyType
+    })
 }

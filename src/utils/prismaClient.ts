@@ -13,10 +13,25 @@ export const getPrismaClient = (): PrismaClient => {
     if (!client) {
         const connectionString = databaseConfig.url
 
-        const pool = new Pool({ connectionString })
+        const pool = new Pool({
+            connectionString,
+            max: databaseConfig.poolMax,
+            connectionTimeoutMillis:
+                databaseConfig.connectionTimeoutMs,
+            idleTimeoutMillis: databaseConfig.idleTimeoutMs
+        })
 
-        pool.on('connect', () => {
-            logger.info('Database pool connected')
+        // Set per session: Neon drops the statement_timeout startup
+        // parameter, a SET on connect works on every host.
+        pool.on('connect', (poolClient) => {
+            poolClient.query(
+                `SET statement_timeout = ${Number(databaseConfig.statementTimeoutMs)}`
+            ).catch((err: Error) => {
+                logger.error('Failed to set statement timeout', {
+                    message: err.message
+                })
+            })
+            logger.debug('Database pool connected')
         })
 
         pool.on('error', (err: Error) => {
@@ -36,9 +51,27 @@ export const getPrismaClient = (): PrismaClient => {
         const baseClient = new PrismaClient({
             adapter,
             errorFormat: 'minimal',
-            log:
-                isDev ? ['info', 'warn', 'error']
-                    : undefined
+            log: [
+                ...(isDev
+                    ? [
+                        { emit: 'stdout', level: 'info' },
+                        { emit: 'stdout', level: 'warn' },
+                        { emit: 'stdout', level: 'error' }
+                    ] as const
+                    : []),
+                { emit: 'event', level: 'query' }
+            ]
+        })
+
+        // Only the SQL text (placeholders, no bound values) and timing are
+        // logged, so row data never reaches the logs.
+        baseClient.$on('query', (event) => {
+            if (event.duration >= databaseConfig.slowQueryMs) {
+                logger.warn('Slow database query', {
+                    durationMs: event.duration,
+                    query: event.query
+                })
+            }
         })
 
         client = baseClient

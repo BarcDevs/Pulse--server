@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { POST_LIMITS } from '../../constants/forum/postLimits'
+
 export const paginationFields = {
     limit: z.coerce
         .number()
@@ -14,12 +16,13 @@ export const paginationFields = {
         .optional()
 }
 
-export const tagsField = z.array(z.string())
-    .optional()
-
 export const tagNameField = z.string()
     .min(1)
     .max(100)
+
+export const tagsField = z.array(tagNameField)
+    .max(POST_LIMITS.MAX_TAGS)
+    .optional()
 
 export const scoreField = z.number()
     .int()

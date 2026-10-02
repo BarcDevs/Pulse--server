@@ -496,7 +496,8 @@ Response 200: null, clears auth cookies
 Note: the code from /me/delete-code is required, for password and Google-only users alike,
 so a stolen session alone can't delete the account. 5 wrong codes void it.
 Note: deactivates now and sets deleted_at; a daily job hard-deletes after 30 days
-(cascades to profile, check-ins, insights, goals, posts, replies, likes). Logging back
+(cascades to profile, check-ins, insights, goals, posts and likes; replies on other users'
+posts are kept with a null author, shown as `deleted-user`). Logging back
 in (password or Google) within 30 days restores the account. The email and username
 stay taken until the purge. Replies and posts of a pending-deletion account are hidden.
 Immediate deletion: via support.

@@ -38,12 +38,7 @@ export const getLatestSnapshot = async (
 ): Promise<RecommendationSnapshot | null> => {
     const snapshot = await Prisma.postRecommendation.findFirst({
         where: { userId },
-        orderBy: { generatedAt: 'desc' },
-        include: {
-            checkIn: {
-                select: { id: true }
-            }
-        }
+        orderBy: { generatedAt: 'desc' }
     })
 
     if (!snapshot) return null
@@ -163,6 +158,6 @@ export const getCandidatePosts = async (
 
     return posts.map((post) => ({
         ...post,
-        author: anonymizeAuthor(post.author)
+        author: anonymizeAuthor(post.author, post.isAnonymous)
     })) as unknown as PostType[]
 }

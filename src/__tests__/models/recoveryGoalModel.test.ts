@@ -205,25 +205,27 @@ describe('RecoveryGoalModel', () => {
     })
 
     describe('getGoalsStats', () => {
-        it('returns aggregated counts for all statuses', async () => {
-            prismaMock.recoveryGoal.count.mockResolvedValue(5);
+        it('aggregates counts per status from a single groupBy', async () => {
             (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([
-                { category: 'LIFESTYLE', _count: { _all: 3 } },
-                { category: 'MENTAL_HEALTH', _count: { _all: 2 } }
+                { status: 'ACTIVE', category: 'LIFESTYLE', _count: { _all: 3 } },
+                { status: 'COMPLETED', category: 'LIFESTYLE', _count: { _all: 1 } },
+                { status: 'PAUSED', category: 'MENTAL', _count: { _all: 2 } }
             ])
 
             const result = await recoveryGoalModel.getGoalsStats('profile-id')
 
-            expect(result.totalCreated).toBe(5)
-            expect(result.completed).toBe(5)
-            expect(result.active).toBe(5)
-            expect(result.paused).toBe(5)
+            expect(result.totalCreated).toBe(6)
+            expect(result.completed).toBe(1)
+            expect(result.active).toBe(3)
+            expect(result.paused).toBe(2)
+            expect(prismaMock.recoveryGoal.groupBy).toHaveBeenCalledTimes(1)
+            expect(prismaMock.recoveryGoal.count).not.toHaveBeenCalled()
         })
 
-        it('maps byCategory correctly', async () => {
-            prismaMock.recoveryGoal.count.mockResolvedValue(0);
+        it('sums byCategory across statuses', async () => {
             (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([
-                { category: 'LIFESTYLE', _count: { _all: 4 } }
+                { status: 'ACTIVE', category: 'LIFESTYLE', _count: { _all: 3 } },
+                { status: 'COMPLETED', category: 'LIFESTYLE', _count: { _all: 1 } }
             ])
 
             const result = await recoveryGoalModel.getGoalsStats('profile-id')
@@ -231,13 +233,18 @@ describe('RecoveryGoalModel', () => {
             expect(result.byCategory['LIFESTYLE']).toBe(4)
         })
 
-        it('returns zero byCategory when no goals', async () => {
-            prismaMock.recoveryGoal.count.mockResolvedValue(0);
+        it('returns zeros and empty byCategory when no goals', async () => {
             (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([])
 
             const result = await recoveryGoalModel.getGoalsStats('profile-id')
 
-            expect(result.byCategory).toEqual({})
+            expect(result).toEqual({
+                totalCreated: 0,
+                completed: 0,
+                active: 0,
+                paused: 0,
+                byCategory: {}
+            })
         })
     })
 
@@ -347,9 +354,10 @@ describe('RecoveryGoalModel', () => {
             const { MilestoneStatus } = require('../../../prisma/generated/prisma/enums')
             prismaMock.$executeRaw.mockResolvedValue(0)
             prismaMock.milestone.count.mockResolvedValue(0)
-            prismaMock.milestone.create
-                .mockResolvedValueOnce(createMockMilestone({ order: 0, status: MilestoneStatus.ACTIVE }))
-                .mockResolvedValueOnce(createMockMilestone({ id: 'ms-2', order: 1, status: MilestoneStatus.LOCKED }))
+            prismaMock.milestone.createManyAndReturn.mockResolvedValue([
+                createMockMilestone({ id: 'ms-2', order: 1, status: MilestoneStatus.LOCKED }),
+                createMockMilestone({ order: 0, status: MilestoneStatus.ACTIVE })
+            ])
 
             const result = await recoveryGoalModel.createMilestonesInBatch({
                 goalId: 'goal-id',
@@ -361,7 +369,14 @@ describe('RecoveryGoalModel', () => {
             })
 
             expect(result).toHaveLength(2)
-            expect(prismaMock.milestone.create).toHaveBeenCalledTimes(2)
+            expect(result.map((m) => m.order)).toEqual([0, 1])
+            expect(prismaMock.milestone.createManyAndReturn).toHaveBeenCalledTimes(1)
+            expect(prismaMock.milestone.createManyAndReturn).toHaveBeenCalledWith({
+                data: [
+                    expect.objectContaining({ order: 0, status: MilestoneStatus.ACTIVE }),
+                    expect.objectContaining({ order: 1, status: MilestoneStatus.LOCKED })
+                ]
+            })
         })
 
         it('throws conflict when milestone count exceeds max (8)', async () => {
@@ -385,9 +400,9 @@ describe('RecoveryGoalModel', () => {
             const { MilestoneStatus } = require('../../../prisma/generated/prisma/enums')
             prismaMock.$executeRaw.mockResolvedValue(0)
             prismaMock.milestone.count.mockResolvedValue(0)
-            prismaMock.milestone.create.mockResolvedValue(
+            prismaMock.milestone.createManyAndReturn.mockResolvedValue([
                 createMockMilestone({ status: MilestoneStatus.LOCKED })
-            )
+            ])
 
             await recoveryGoalModel.createMilestonesInBatch({
                 goalId: 'goal-id',
@@ -395,11 +410,9 @@ describe('RecoveryGoalModel', () => {
                 setFirstActive: false
             })
 
-            expect(prismaMock.milestone.create).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: expect.objectContaining({ status: MilestoneStatus.LOCKED })
-                })
-            )
+            expect(prismaMock.milestone.createManyAndReturn).toHaveBeenCalledWith({
+                data: [expect.objectContaining({ status: MilestoneStatus.LOCKED })]
+            })
         })
     })
 
@@ -549,19 +562,26 @@ describe('RecoveryGoalModel', () => {
     })
 
     describe('getMilestonesStats', () => {
-        it('returns counts for all milestone statuses', async () => {
-            prismaMock.milestone.count.mockResolvedValue(4)
+        it('aggregates counts per status from a single groupBy', async () => {
+            (prismaMock.milestone.groupBy as jest.Mock).mockResolvedValue([
+                { status: 'COMPLETED', _count: { _all: 4 } },
+                { status: 'ACTIVE', _count: { _all: 1 } },
+                { status: 'LOCKED', _count: { _all: 2 } }
+            ])
 
             const result = await recoveryGoalModel.getMilestonesStats('profile-id')
 
-            expect(result.totalCreated).toBe(4)
-            expect(result.completed).toBe(4)
-            expect(result.active).toBe(4)
-            expect(result.paused).toBe(4)
+            expect(result).toEqual({
+                totalCreated: 7,
+                completed: 4,
+                active: 1,
+                paused: 2
+            })
+            expect(prismaMock.milestone.count).not.toHaveBeenCalled()
         })
 
         it('returns zeros when no milestones', async () => {
-            prismaMock.milestone.count.mockResolvedValue(0)
+            (prismaMock.milestone.groupBy as jest.Mock).mockResolvedValue([])
 
             const result = await recoveryGoalModel.getMilestonesStats('profile-id')
 

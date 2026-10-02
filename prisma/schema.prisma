@@ -42,6 +42,8 @@ model User {
   deleteAccountAttempts   Int       @default(0)
 
   profile Profile?
+
+  @@index([username(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_username_trgm_idx")
 }
 
 model Profile {
@@ -55,7 +57,7 @@ model Profile {
   updatedAt  DateTime @updatedAt
   dateFormat String?  @default("dd/mm/yyyy")
 
-  anonymousParticipation Boolean           @default(true)
+  anonymousParticipation Boolean           @default(false)
   // Opt-out for sending check-in notes to AI insight providers (M3)
   shareNotesWithAI       Boolean           @default(true)
   communityAlerts        Boolean           @default(false)
@@ -82,42 +84,49 @@ model Profile {
   savedPosts    SavedPost[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model Post {
-  id         String      @id @default(uuid())
-  title      String
-  body       String
-  authorId   String
-  author     Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime?   @updatedAt
-  views      Int         @default(0)
-  shareCount Int         @default(0)
-  category   String
-  replies    Reply[]
-  tags       Tag[]       @relation("PostToTag")
-  likes      PostLike[]
-  savedBy    SavedPost[]
+  id          String      @id @default(uuid())
+  title       String
+  body        String
+  authorId    String
+  author      Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  views       Int         @default(0)
+  shareCount  Int         @default(0)
+  replyCount  Int         @default(0)
+  isAnonymous Boolean     @default(true)
+  category    String
+  replies     Reply[]
+  tags        Tag[]       @relation("PostToTag")
+  likes       PostLike[]
+  savedBy     SavedPost[]
 
   @@index([authorId])
   @@index([category])
+  @@index([createdAt])
+  @@index([views])
+  @@index([replyCount])
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_title_trgm_idx")
+  @@index([body(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_body_trgm_idx")
 }
 
 model Reply {
-  id        String      @id @default(uuid())
-  body      String
-  authorId  String
-  author    Profile     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime?   @updatedAt
-  postId    String
-  post      Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
-  likes     ReplyLike[]
+  id          String      @id @default(uuid())
+  body        String
+  authorId    String?
+  author      Profile?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  postId      String
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  isAnonymous Boolean     @default(true)
+  likes       ReplyLike[]
 
   @@index([authorId])
+  @@index([postId, createdAt])
 }
 
 model DailyCheckIn {
@@ -135,7 +144,6 @@ model DailyCheckIn {
   recommendations PostRecommendation?
 
   @@unique([profileId, checkInDate])
-  @@index([profileId, checkInDate])
 }
 
 model PostRecommendation {
@@ -148,7 +156,7 @@ model PostRecommendation {
   generationPending Boolean      @default(false)
   pendingSince      DateTime?
 
-  @@index([userId])
+  @@index([userId, generatedAt])
 }
 
 model AIInsight {
@@ -188,7 +196,6 @@ model ProfileToTag {
   tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, tagId])
-  @@index([profileId])
   @@index([tagId])
 }
 
@@ -235,7 +242,6 @@ model Milestone {
   updatedAt   DateTime        @updatedAt
 
   @@unique([goalId, order])
-  @@index([goalId])
 }
 
 model PostLike {
@@ -268,7 +274,6 @@ model SavedPost {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@id([profileId, postId])
-  @@index([profileId])
 }
 
 enum Role {

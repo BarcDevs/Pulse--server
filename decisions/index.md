@@ -17,6 +17,8 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 13/04/2026 | Goals/Milestones stats endpoint: streak definition and schema |
 | 10/08/2026 | Check-in gap detection for intervention feedback |
 | 27/09/2026 | Error-code granularity: per-factory-method, not per-resource |
+| 02/10/2026 | Anonymity is chosen per post/reply (`isAnonymous`), default = last choice; settings toggle removed |
+| 02/10/2026 | Anonymity toggle starts off (named) until the user chose otherwise; existing profile values reset to false |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -49,6 +51,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 | 28/09/2026 | Security audit follow-up: owner positions on H1 (no signup verification), M2 (deactivate-only), M4 (per-user limit), L1 (QUERY rejected), L7 (password policy) |
 | 28/09/2026 | Account deletion = 30-day countdown + support for immediate; Google links only into verified local accounts |
 | 29/09/2026 | Remaining audit findings: M3 opt-out toggle, L9 image host allowlist, M6 basic headers + CSP report-only, overnight commit+merge-local authority |
+| 02/10/2026 | Account deletion keeps replies as `deleted-user` (nullable author, SET NULL); posts still deleted |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

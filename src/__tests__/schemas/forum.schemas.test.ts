@@ -96,6 +96,31 @@ describe('Forum Schemas', () => {
             expect(result.error).toBeUndefined()
             expect(result.data!.tags).toHaveLength(4)
         })
+
+        it('should reject more than the max number of tags', () => {
+            const result = newPostSchema.safeParse({
+                title: 'Test Post',
+                body: 'Post content',
+                category: 'general',
+                tags: Array.from(
+                    { length: POST_LIMITS.MAX_TAGS + 1 },
+                    (_, i) => `tag${i}`
+                )
+            })
+
+            expect(result.success).toBe(false)
+        })
+
+        it('should reject an empty tag name', () => {
+            const result = newPostSchema.safeParse({
+                title: 'Test Post',
+                body: 'Post content',
+                category: 'general',
+                tags: ['']
+            })
+
+            expect(result.success).toBe(false)
+        })
     })
 
     // ==================== UPDATE POST SCHEMA ====================

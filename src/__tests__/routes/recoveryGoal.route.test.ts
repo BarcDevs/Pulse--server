@@ -991,7 +991,7 @@ describe('Recovery Goals Routes', () => {
                     $executeRaw: jest.fn(),
                     milestone: {
                         count: jest.fn().mockResolvedValue(0 as never),
-                        create: jest.fn().mockResolvedValue(mockMilestone as never)
+                        createManyAndReturn: jest.fn().mockResolvedValue([mockMilestone] as never)
                     },
                     recoveryGoal: {
                         findUnique: jest.fn()
@@ -1044,7 +1044,7 @@ describe('Recovery Goals Routes', () => {
                     $executeRaw: jest.fn(),
                     milestone: {
                         count: jest.fn().mockResolvedValue(0 as never),
-                        create: jest.fn().mockResolvedValue(mockMilestone as never)
+                        createManyAndReturn: jest.fn().mockResolvedValue([mockMilestone] as never)
                     },
                     recoveryGoal: {
                         findUnique: jest.fn()
@@ -1616,17 +1616,21 @@ describe('Recovery Goals Routes', () => {
     })
 
     describe(`GET /api/${serverConfig.apiVersion}/recovery-goals/stats`, () => {
+        const goalGroupBy = prismaMock.recoveryGoal.groupBy as unknown as jest.Mock
+        const milestoneGroupBy = prismaMock.milestone.groupBy as unknown as jest.Mock
+
         it('should return stats for authenticated user with no filters', async () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
-            prismaMock.recoveryGoal.count.mockResolvedValue(10 as never);
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([
-                { category: 'PHYSICAL', _count: 4 },
-                { category: 'MENTAL', _count: 3 },
-                { category: 'LIFESTYLE', _count: 3 }
+            goalGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', category: 'PHYSICAL', _count: { _all: 4 } },
+                { status: 'ACTIVE', category: 'MENTAL', _count: { _all: 3 } },
+                { status: 'COMPLETED', category: 'LIFESTYLE', _count: { _all: 3 } }
+            ])
+            milestoneGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', _count: { _all: 20 } }
             ] as any)
-            prismaMock.milestone.count.mockResolvedValue(20 as never)
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
             prismaMock.milestone.findMany.mockResolvedValue([])
 
@@ -1652,9 +1656,8 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
-            prismaMock.recoveryGoal.count.mockResolvedValue(0 as never);
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([])
-            prismaMock.milestone.count.mockResolvedValue(0 as never)
+            goalGroupBy.mockResolvedValue([])
+            milestoneGroupBy.mockResolvedValue([])
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
             prismaMock.milestone.findMany.mockResolvedValue([])
 
@@ -1674,9 +1677,12 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
-            prismaMock.recoveryGoal.count.mockResolvedValue(5 as never);
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([])
-            prismaMock.milestone.count.mockResolvedValue(10 as never)
+            goalGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', category: 'PHYSICAL', _count: { _all: 5 } }
+            ])
+            milestoneGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', _count: { _all: 10 } }
+            ] as any)
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
             prismaMock.milestone.findMany.mockResolvedValue([])
 
@@ -1698,11 +1704,12 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
-            prismaMock.recoveryGoal.count.mockResolvedValue(4 as never);
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([
-                { category: 'PHYSICAL', _count: 4 }
+            goalGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', category: 'PHYSICAL', _count: { _all: 4 } }
+            ])
+            milestoneGroupBy.mockResolvedValue([
+                { status: 'ACTIVE', _count: { _all: 8 } }
             ] as any)
-            prismaMock.milestone.count.mockResolvedValue(8 as never)
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
             prismaMock.milestone.findMany.mockResolvedValue([])
 
@@ -1729,9 +1736,10 @@ describe('Recovery Goals Routes', () => {
             const today = new Date()
             const yesterday = new Date(today.getTime() - dayInMs)
 
-            prismaMock.recoveryGoal.count.mockResolvedValue(2 as never);
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([])
-            prismaMock.milestone.count.mockResolvedValue(0 as never)
+            goalGroupBy.mockResolvedValue([
+                { status: 'COMPLETED', category: 'PHYSICAL', _count: { _all: 2 } }
+            ])
+            milestoneGroupBy.mockResolvedValue([])
             prismaMock.recoveryGoal.findMany.mockResolvedValue([
                 { completedAt: today },
                 { completedAt: yesterday }
@@ -1751,17 +1759,16 @@ describe('Recovery Goals Routes', () => {
             const mockUser = createMockUser()
             const token = createAuthToken(mockUser)
 
-            prismaMock.recoveryGoal.count
-                .mockResolvedValueOnce(10 as never) // totalCreated
-                .mockResolvedValueOnce(3 as never) // completed
-                .mockResolvedValueOnce(6 as never) // active
-                .mockResolvedValueOnce(1 as never); // paused
-            (prismaMock.recoveryGoal.groupBy as jest.Mock).mockResolvedValue([])
-            prismaMock.milestone.count
-                .mockResolvedValueOnce(20 as never) // totalCreated
-                .mockResolvedValueOnce(8 as never) // completed
-                .mockResolvedValueOnce(10 as never) // active
-                .mockResolvedValueOnce(2 as never) // paused
+            goalGroupBy.mockResolvedValue([
+                { status: 'COMPLETED', category: 'PHYSICAL', _count: { _all: 3 } },
+                { status: 'ACTIVE', category: 'PHYSICAL', _count: { _all: 6 } },
+                { status: 'PAUSED', category: 'MENTAL', _count: { _all: 1 } }
+            ])
+            milestoneGroupBy.mockResolvedValue([
+                { status: 'COMPLETED', _count: { _all: 8 } },
+                { status: 'ACTIVE', _count: { _all: 10 } },
+                { status: 'LOCKED', _count: { _all: 2 } }
+            ] as any)
             prismaMock.recoveryGoal.findMany.mockResolvedValue([])
             prismaMock.milestone.findMany.mockResolvedValue([])
 

@@ -73,6 +73,23 @@ const resolveKnownTags = async (
     return known
 }
 
+// The chosen value is remembered on the profile as the next form default
+const resolveAnonymity = async (
+    userId: string,
+    remembered: boolean,
+    chosen: boolean | undefined
+): Promise<boolean> => {
+    if (chosen === undefined) return remembered
+
+    if (chosen !== remembered) {
+        await profileModel.updateProfile(userId, {
+            anonymousParticipation: chosen
+        })
+    }
+
+    return chosen
+}
+
 export const createPost = async (
     post: NewPostType
 ) => {
@@ -87,11 +104,17 @@ export const createPost = async (
     }
 
     const knownTags = await resolveKnownTags(post.tags)
+    const isAnonymous = await resolveAnonymity(
+        userId,
+        profile.anonymousParticipation,
+        post.isAnonymous
+    )
 
     return forumModel.createPost({
         ...post,
         tags: knownTags,
-        authorId: profile.id
+        authorId: profile.id,
+        isAnonymous
     })
 }
 
@@ -237,9 +260,16 @@ export const createReply = async (
             .notFound('User profile')
     }
 
+    const isAnonymous = await resolveAnonymity(
+        userId,
+        profile.anonymousParticipation,
+        reply.isAnonymous
+    )
+
     return forumModel.createReply({
         ...reply,
-        authorId: profile.id
+        authorId: profile.id,
+        isAnonymous
     })
 }
 

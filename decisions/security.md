@@ -62,3 +62,16 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 - **M6 (client security headers):** enforce the basics now: HSTS, frame-ancestors/X-Frame-Options, nosniff, referrer-policy. The CSP ships as Report-Only and gets tightened after reviewing reports, so Google login, Sentry and fonts can't break silently in prod.
 - **Unattended overnight authority:** commit each item after tests and a security scan, and merge it locally into `development`. No push, PR or deploy; the owner reviews everything in the morning. This is a one-time waiver of "ask before committing" for this run only.
 - **Defaults the owner accepted without override:** L2 makes confirm-email and reset replies identical for known and unknown emails, while signup keeps "email in use". L7 requires an uppercase letter and rejects runs of 4+ sequential or repeated characters, on signup, reset and change but never login. L8 reuses the post-body cap for replies. L6 (least-privilege DB user) is prepared as a script the owner runs, because secrets and IAM writes need them.
+
+---
+
+## 02/10/2026 — Account deletion keeps replies as `deleted-user`; posts still go
+
+**Problem:** the 30-day purge hard-deletes the user, and `Reply.authorId` cascades from the profile, so every reply the user ever wrote on other people's threads vanished, leaving gaps in conversations.
+
+**Decision (owner):** when an account is purged, its posts are still deleted (with their replies, as before), but its replies on other users' posts stay, attributed to `deleted-user`. Likes the user gave are removed as before.
+
+**Implementation choice:** `Reply.authorId` becomes nullable with `ON DELETE SET NULL`, and a reply with no author is returned with a placeholder author whose username is `deleted-user`. Chosen over a sentinel "deleted-user" account (a fake login-able user that shows up in search, stats and the active-user filters). Reply queries must treat a null author as visible, since the "active author" filter would otherwise hide exactly these replies. During the 30-day countdown the user's replies stay hidden, as today; they reappear as `deleted-user` only after the purge.
+
+**How to apply:** any new reply query filters on the reply-aware active-author condition, never on `activeAuthorWhere` alone. Reply text is kept verbatim, so it can still contain what the user wrote about themselves.
+

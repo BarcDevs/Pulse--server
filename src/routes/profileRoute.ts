@@ -63,8 +63,6 @@ const router = Router()
  *               profileVisibility:
  *                 type: string
  *                 enum: [onlyMe, friends, public]
- *               anonymousParticipation:
- *                 type: boolean
  *               shareNotesWithAI:
  *                 type: boolean
  *                 description: When false, check-in notes are left out of AI insight prompts

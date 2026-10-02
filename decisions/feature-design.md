@@ -78,3 +78,28 @@ Implementation uses the existing `dayInMs` from `src/constants/time.ts` for the 
 **Follow-up (12/08/2026):** `GAP_DAYS_THRESHOLD` started at 10, dropped to **7** — too large relative to the 7-check-in fetch window; symmetric with it is simpler to reason about ("gap exceeding one check-in cycle voids the trend").
 
 **TODO (future):** expose `trend`/`gapDays` to the client response — currently computed but discarded after prompt-building, only the AI's free-text output reaches the user. Positive ('up') trends are already fed into the AI prompt today, just not surfaced as structured data. **TODO (future):** split intervention feedback into two distinct messages (trend-change feedback + supportive feedback) instead of one blended AI response.
+
+---
+
+## 02/10/2026 — Anonymity is chosen per post/reply, not in settings
+
+**Problem:** anonymity was one profile-wide setting (`anonymousParticipation`, default true) in the settings page, so a user could not be anonymous in one thread and named in another.
+
+**Decision (owner):** each post and reply carries its own `isAnonymous` flag, chosen with a toggle on the post and reply forms, and the settings toggle goes away. The toggle starts from the user's last choice, which is stored on the profile (the existing `anonymousParticipation` column, now meaning "last choice" and updated on every create) and is not shown in settings. The alias stays the same per user (`anonymous-<profile id prefix>`), so one voice can be followed in a thread. Owner confirmed the linking is intended, not a cost: a different alias on every post or reply would be confusing, because the same person would look like many strangers. The flag is fixed at creation and can't be edited afterwards. Existing posts and replies are backfilled from their author's current setting (no real data existed at decision time).
+
+**Why over alternatives:** a new alias per post would stop linking but make a user look like a stranger in their own thread; defaulting always to anonymous or always to named was rejected in favor of remembering the last choice so the form matches what the user usually wants.
+
+**How to apply:** the author shown on a post or reply comes from that item's `isAnonymous`, never from the profile. The old profile column is kept (the deploy gate blocks DROP COLUMN) and only stores the last choice.
+
+---
+
+## 02/10/2026 — The anonymity toggle starts off (named) until the user has chosen otherwise
+
+Follows the per-post anonymity entry above and changes its default.
+
+**Decision (owner):** the toggle on the post and reply forms starts OFF. It only starts ON if the user's previous post or reply was made anonymous. The remembered value (`Profile.anonymousParticipation`) therefore defaults to `false`, and the migration reset every existing profile to `false`, because the old value was just the old default (the column cannot tell a stored default from a real choice, and nobody had chosen under the per-post model). Posts and replies already created keep their own `isAnonymous`, so nothing visible changed.
+
+**Why:** the owner wants named posting to be the starting point and anonymity to be an explicit choice each time it is first made.
+
+**How to apply:** a new profile is created with `anonymousParticipation = false`; never seed or backfill it to `true`.
+

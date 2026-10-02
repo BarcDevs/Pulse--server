@@ -1,4 +1,10 @@
-import { anonymizeAuthor, postQueryBuilder } from '../../../models/queries/postQuery'
+import {
+    activeReplyAuthorWhere,
+    anonymizeAuthor,
+    postInclude,
+    postQueryBuilder
+} from '../../../models/queries/postQuery'
+import { PostFilter } from '../../../types/query'
 
 describe('postQueryBuilder', () => {
     describe('search', () => {
@@ -46,13 +52,13 @@ describe('postQueryBuilder', () => {
             })
         })
 
-        it('searches author username, excluding anonymous authors', () => {
+        it('searches author username, excluding anonymous posts', () => {
             const result = postQueryBuilder({ search: 'john' })
             expect(result.where.OR).toContainEqual({
+                isAnonymous: false,
                 author: {
                     user: {
-                        username: { contains: 'john', mode: 'insensitive' },
-                        profile: { anonymousParticipation: false }
+                        username: { contains: 'john', mode: 'insensitive' }
                     }
                 }
             })
@@ -103,18 +109,29 @@ describe('anonymizeAuthor', () => {
             id: 'user-1',
             username: 'johndoe',
             firstName: 'John',
-            lastName: 'Doe',
-            profile: { anonymousParticipation: false }
+            lastName: 'Doe'
         }
     }
 
-    it('returns null/undefined author unchanged', () => {
-        expect(anonymizeAuthor(null)).toBeNull()
-        expect(anonymizeAuthor(undefined)).toBeUndefined()
+    it('returns undefined author unchanged', () => {
+        expect(anonymizeAuthor(undefined, true)).toBeUndefined()
     })
 
-    it('strips the profile key and keeps real identity when not anonymous', () => {
-        const result = anonymizeAuthor(baseAuthor)
+    it('replaces a purged (null) author with the deleted-user placeholder', () => {
+        expect(anonymizeAuthor(null, false)).toEqual({
+            id: '',
+            image: null,
+            user: {
+                id: '',
+                username: 'deleted-user',
+                firstName: '',
+                lastName: ''
+            }
+        })
+    })
+
+    it('keeps real identity when the item is not anonymous', () => {
+        const result = anonymizeAuthor(baseAuthor, false)
         expect(result?.user).toEqual({
             id: 'user-1',
             username: 'johndoe',
@@ -123,25 +140,50 @@ describe('anonymizeAuthor', () => {
         })
     })
 
-    it('masks id/username/firstName/lastName when anonymousParticipation is true', () => {
-        const anonAuthor = {
-            ...baseAuthor,
-            user: { ...baseAuthor.user, profile: { anonymousParticipation: true } }
-        }
-        const result = anonymizeAuthor(anonAuthor)
+    it('masks id/username/firstName/lastName when the item is anonymous', () => {
+        const result = anonymizeAuthor(baseAuthor, true)
         expect(result?.user.id).toBe('profile-1')
         expect(result?.user.username).toBe('anonymous-profile-')
         expect(result?.user.firstName).toBe('Anonymous')
         expect(result?.user.lastName).toBe('')
-        expect(result?.user).not.toHaveProperty('profile')
     })
 
-    it('hides the profile image of anonymous authors only', () => {
-        const anonAuthor = {
-            ...baseAuthor,
-            user: { ...baseAuthor.user, profile: { anonymousParticipation: true } }
-        }
-        expect(anonymizeAuthor(anonAuthor)?.image).toBeNull()
-        expect(anonymizeAuthor(baseAuthor)?.image).toBe('pic.jpg')
+    it('shows the placeholder for a purged author whatever the flag', () => {
+        expect(anonymizeAuthor(null, true)).toEqual(anonymizeAuthor(null, false))
+    })
+
+    it('hides the profile image of anonymous items only', () => {
+        expect(anonymizeAuthor(baseAuthor, true)?.image).toBeNull()
+        expect(anonymizeAuthor(baseAuthor, false)?.image).toBe('pic.jpg')
     })
 })
+
+describe('reply visibility with purged authors', () => {
+    it('treats a null author as visible next to active authors', () => {
+        expect(activeReplyAuthorWhere.OR).toContainEqual({ authorId: null })
+        expect(activeReplyAuthorWhere.OR).toContainEqual({
+            author: { user: { active: true } }
+        })
+    })
+
+    it('uses the reply-aware filter for the reply count and single-post replies', () => {
+        expect(postInclude('multiple')._count.select.replies.where)
+            .toBe(activeReplyAuthorWhere)
+        expect(postInclude('single').replies).toMatchObject({
+            where: activeReplyAuthorWhere
+        })
+    })
+
+    it('uses the reply-aware filter for the unanswered filter', () => {
+        const result = postQueryBuilder({ filter: PostFilter.UNANSWERED })
+        expect(result.where.replies).toEqual({ none: activeReplyAuthorWhere })
+    })
+})
+
+describe('hot sort', () => {
+    it('orders by the stored reply count', () => {
+        const result = postQueryBuilder({ filter: PostFilter.HOT })
+        expect(result.orderBy).toEqual({ replyCount: 'desc' })
+    })
+})
+
