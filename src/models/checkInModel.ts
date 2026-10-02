@@ -11,7 +11,8 @@ export const getProfileIdForUser = async (
 ): Promise<string> => {
     const profile = await Prisma.profile
         .findUnique({
-            where: { userId }
+            where: { userId },
+            select: { id: true }
         })
 
     if (!profile)
