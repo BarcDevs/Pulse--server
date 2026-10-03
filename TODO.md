@@ -8,6 +8,37 @@ All cleared 29/09/2026 (server `b308d17`, client `b62caa9` in production). Last 
 email, verified: startup log shows `Email transport ready (smtp.resend.com:465)` and a real
 password reset (email -> code -> new password) worked end to end.
 
+## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
+
+Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
+`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner.
+
+- **Count post views (feature).** `Post.views` is never incremented anywhere, so the "popular" sort
+  (`postQuery.ts`, `orderBy views`) has been ordering by zero; the `Post[views]` index is unused until
+  this exists. Recommended design: a `PostView(postId, profileId)` table with a composite primary
+  key, written on `GET /forum/posts/:id` with `createMany({ skipDuplicates: true })`, incrementing
+  `Post.views` only when a row was inserted (unique viewers, no inflation by refresh). Skip the
+  author's own view. Never expose who viewed (anonymity). Add tests and `API.md`; the migration must
+  not backfill (no history exists).
+- **Cache the profile lookup.** About 33 call sites fetch the profile (`getProfileIdForUser`,
+  `getProfileContext`, `getProfileByUserId`) on every request just to get its id. Cache only stable
+  fields (`id`, `timezone`) in a small in-memory map with a short TTL and invalidate on profile
+  update; do NOT cache `anonymousParticipation` (changes on every post/reply choice) or serve it stale.
+  The ASG can run 2 instances, so keep the TTL short instead of relying on invalidation alone. The
+  alternative is putting the profile id in the JWT, which needs token reissue and a fallback.
+- **Show the stored `replyCount` on post lists, and use `replyCount = 0` for "unanswered".** Lists
+  still count replies per post with a join against reply authors (`postInclude` `_count`). The stored
+  counter also includes replies from deactivated (pending-deletion) authors, which are hidden today.
+  Decide first whether a hidden reply may still count, then switch.
+- **Cursor pagination for posts and replies.** Lists use skip/offset (`page`), which slows on deep
+  pages. Only matters with thousands of posts; needs a client contract change.
+- **Index for the purge job.** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff`
+  with no index. Add a partial index (`WHERE active = false`) once the user table grows.
+- **Enable `pg_stat_statements` on RDS** (parameter group + `CREATE EXTENSION`) to see the slowest
+  queries once there is traffic; pairs with the `Slow database query` log.
+- **`getProfileInteractions` id lists** (default branch) are unbounded; cap them if a user can
+  accumulate thousands of likes.
+
 ## FIRST ON SCALING
 
 - **Re-check DB performance once there is real forum data.** The DB-perf release was verified
