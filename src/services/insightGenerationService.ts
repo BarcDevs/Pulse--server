@@ -1,6 +1,8 @@
+import { isGoodCheckIn } from '../lib/aiInsight/decision/goodCheckInDetector'
 import { decideInsightType } from '../lib/aiInsight/decision/InsightDecision'
 import { generateTitle } from '../lib/aiInsight/prompts/insightsPrompts'
 import { getFallbackContent } from '../lib/aiInsight/validation/aiInsightValidator'
+import { calculateStreaks } from '../lib/checkInStats'
 import { getMessages } from '../locales'
 import * as aiInsightModel from '../models/aiInsightModel'
 import {
@@ -10,24 +12,36 @@ import {
 } from '../models/authModel'
 import * as checkInModel from '../models/checkInModel'
 import type { CheckInType } from '../types/data/CheckInType'
+import type {
+    InsightDecisionResult,
+    InsightStats,
+    InsightType
+} from '../types/insight'
 import logger from '../utils/logger'
 
 import { isFirstCheckIn } from './feedback/helpers'
 import { generateInterventionInsight } from './feedback/interventionOrchestrator'
 import { generateInsight } from './aiInsightGeneratorService'
 
-const generateBaselineInsight = async (
+const getInsightStats = async (
+    profileId: string,
+    userTimezone: string | null
+): Promise<InsightStats> => {
+    const dates = await checkInModel.getCheckInDates(profileId)
+
+    return {
+        ...calculateStreaks(dates, userTimezone || undefined),
+        totalCheckIns: dates.length
+    }
+}
+
+const storeInsight = async (
     userId: string,
     checkInId: string,
     recentCheckIns: CheckInType[],
-    userTimezone: string | null,
-    userLanguage: string
+    userLanguage: string,
+    decision: InsightDecisionResult
 ): Promise<void> => {
-    const decision = decideInsightType(
-        recentCheckIns,
-        userTimezone || undefined
-    )
-
     let title: string
     let content: string
     let usedFallback = false
@@ -79,6 +93,55 @@ const generateBaselineInsight = async (
         titleLength: title.length,
         contentLength: content.length
     })
+}
+
+// The decision only sees the 7 latest check-ins; the stats carry the streak over all of them
+const generateBaselineInsight = async (
+    userId: string,
+    checkInId: string,
+    recentCheckIns: CheckInType[],
+    userTimezone: string | null,
+    userLanguage: string,
+    stats: InsightStats
+): Promise<InsightType> => {
+    const decision = decideInsightType(
+        recentCheckIns,
+        userTimezone || undefined
+    )
+
+    await storeInsight(
+        userId,
+        checkInId,
+        recentCheckIns,
+        userLanguage,
+        { ...decision, metadata: { ...decision.metadata, stats } }
+    )
+
+    return decision.type
+}
+
+const generateMotivationalInsight = async (
+    userId: string,
+    checkInId: string,
+    recentCheckIns: CheckInType[],
+    userLanguage: string,
+    stats: InsightStats
+): Promise<void> => {
+    await storeInsight(
+        userId,
+        checkInId,
+        recentCheckIns,
+        userLanguage,
+        {
+            type: 'MOTIVATIONAL',
+            reason: 'Good check-in',
+            metadata: {
+                currentStreak: stats.currentStreak,
+                checkInCount: recentCheckIns.length,
+                stats
+            }
+        }
+    )
 }
 
 const generateInterventionInsightInternal = async (
@@ -166,13 +229,30 @@ export const generateInsightForCheckIn = async (
         ? recentCheckIns
         : recentCheckIns.map((checkIn) => ({ ...checkIn, notes: null }))
 
-    await generateBaselineInsight(
+    const stats = await getInsightStats(profileId, userTimezone)
+
+    const baselineType = await generateBaselineInsight(
         userId,
         checkInId,
         checkInsForAI,
         userTimezone,
-        userLanguage
+        userLanguage,
+        stats
     )
+
+    // A good check-in also gets encouragement, unless the baseline already is the motivational one
+    if (
+        isGoodCheckIn(recentCheckIns[0])
+        && baselineType !== 'MOTIVATIONAL'
+    ) {
+        await generateMotivationalInsight(
+            userId,
+            checkInId,
+            checkInsForAI,
+            userLanguage,
+            stats
+        )
+    }
 
     if (!isFirstCheckIn(recentCheckIns.slice(1))) {
         await generateInterventionInsightInternal(

@@ -19,6 +19,9 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 27/09/2026 | Error-code granularity: per-factory-method, not per-resource |
 | 02/10/2026 | Anonymity is chosen per post/reply (`isAnonymous`), default = last choice; settings toggle removed |
 | 02/10/2026 | Anonymity toggle starts off (named) until the user chose otherwise; existing profile values reset to false |
+| 09/10/2026 | AI insight prompts: Hebrew wording rules, and one streak line over all check-ins |
+| 09/10/2026 | A good check-in gets two insights: the baseline and a motivational one |
+| 09/10/2026 | Daily observation rotates through every pattern that applies |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -42,6 +45,13 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 26/09/2026 | Keep production on RDS, not Neon — private in-VPC DB; ~$15/mo saving not worth the architecture trade-off |
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
 | 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
+
+## Database & Performance — [[decisions/database-and-performance]]
+Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
+
+| Date | Entry |
+|---|---|
+| 03/10/2026 | DB performance pass: trigram search, stored `replyCount`, per-session `statement_timeout`, slow-query log; toggle-transaction rejected; views counter + profile cache chosen next |
 
 ## Security & Privacy — [[decisions/security]]
 Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.

@@ -10,10 +10,10 @@ type PromptContext = {
 
 const languageInstruction = (language?: string | null): string => {
     const lang = resolveLanguage(language)
-    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native.`
+    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native. Never use em dashes, en dashes or typographic quotes; use only plain keyboard punctuation. Write activity names as bare nouns, without a leading definite article.`
     const terminology =
         lang === 'he'
-            ? " When referring to check-ins, use the term 'דיווח יומי'."
+            ? " When referring to check-ins, use the term 'דיווח יומי'. Use the exact term 'מצב הרוח' for mood (never 'המצב רוח')."
             : ''
     return base + terminology
 }

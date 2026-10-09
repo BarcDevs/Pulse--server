@@ -235,6 +235,12 @@ Profile is a separate entity from User — auto-created on signup. Identity fiel
 - Post/reply editing and deletion (by author or admin)
 - Signed-in users only: every forum endpoint, reads included, requires a session
 
+### 8. Installable App (PWA)
+- Client-only: no new endpoints, data or server behavior
+- Web app manifest with name, theme color and 192/512/maskable icons; standalone display
+- Minimal service worker that caches nothing (no signed-in page or API response is stored); production only
+- Install dialog for signed-in phone users: Install button on Android/Chrome, Add to Home Screen steps on iOS; hidden once installed, snoozed 14 days after dismissal (one localStorage key, disclosed on the Privacy page)
+
 ---
 
 ## System Architecture
@@ -723,6 +729,7 @@ Fallback to deterministic template if AI fails
 - Forum: likes, saves, categories, search, unknown tag reporting, recommendations
 - Email change flow (OTP-based)
 - Profile settings: bio, location, timezone, health interests, activity preferences
+- Installable PWA (client-only) — manifest, icons, minimal service worker and a mobile install dialog; no server changes
 
 ### In Progress / Feature-Flagged
 - **Daily Reflection card** — dashboard card powered by `GET /insight/observation`; already live on dashboard

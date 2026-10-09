@@ -127,3 +127,124 @@ describe('buildPromptByType()', () => {
         ).toThrow('BAD_DAY_SUPPORT insights are generated directly, not via AI')
     })
 })
+
+describe('writing rules in the language instruction', () => {
+    const checkIns = [mockCheckIn(), mockCheckIn(), mockCheckIn()]
+
+    it.each([
+        ['mood drop', buildPromptForMoodDropAlert(checkIns, 'he')],
+        ['motivational', buildPromptForMotivational(checkIns, 'he')],
+        ['weekly summary', buildPromptForWeeklySummary(checkIns, 'he')]
+    ])('%s prompt in he fixes the mood term and bans dashes', (_name, prompt) => {
+        expect(prompt).toContain("Use the exact term 'מצב הרוח' for mood")
+        expect(prompt).toContain('Never use em dashes, en dashes or typographic quotes')
+        expect(prompt).toContain('without a leading definite article')
+    })
+
+    it('en prompt keeps the dash rule but has no Hebrew mood term', () => {
+        const prompt = buildPromptForWeeklySummary(checkIns, 'en')
+        expect(prompt).toContain('Never use em dashes, en dashes or typographic quotes')
+        expect(prompt).not.toContain('מצב הרוח')
+    })
+})
+
+describe('buildPromptForWeeklySummary() stats', () => {
+    const daysAgo = (days: number): Date =>
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+    // Newest first, like checkInModel.getCheckIns returns them
+    const checkIns: CheckInType[] = [
+        { ...mockCheckIn(), checkInDate: daysAgo(0), moodScore: 8, painLevel: 2 },
+        { ...mockCheckIn(), checkInDate: daysAgo(1), moodScore: 6, painLevel: 4 }
+    ]
+    const stats = { currentStreak: 18, longestStreak: 24, totalCheckIns: 25 }
+
+    it('adds best streak, totals, average pain and the newest check-in', () => {
+        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 2, 2, stats)
+        expect(prompt).toContain('- Current streak: 18 days (best streak: 24 days)')
+        expect(prompt).toContain('- Total check-ins so far: 25')
+        expect(prompt).toContain('- Average pain this week: 3.0')
+        expect(prompt).toContain('- Latest check-in (today): mood 8, pain 2')
+    })
+
+    it('uses the stats streak instead of the streak derived from the recent check-ins', () => {
+        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 2, 2, stats)
+        expect(prompt).not.toContain('Current streak: 2 days')
+    })
+
+    it('leaves the prompt unchanged when no stats are given', () => {
+        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 3, 2)
+        expect(prompt).toContain('- Current streak: 3 days')
+        expect(prompt).not.toContain('Total check-ins so far')
+        expect(prompt).not.toContain('best streak')
+    })
+
+    it('passes stats through buildPromptByType', () => {
+        const prompt = buildPromptByType('WEEKLY_SUMMARY', checkIns, 'he', { currentStreak: 2, checkInCount: 2, stats })
+        expect(prompt).toContain('(best streak: 24 days)')
+    })
+})
+
+describe('motivational prompt with stats', () => {
+    const daysAgo = (days: number): Date =>
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+    // Newest first, like checkInModel.getCheckIns returns them
+    const checkIns: CheckInType[] = [
+        { ...mockCheckIn(), checkInDate: daysAgo(0), moodScore: 9 },
+        { ...mockCheckIn(), checkInDate: daysAgo(3), moodScore: 4 }
+    ]
+
+    it('puts current and best streak on one line', () => {
+        const prompt = buildPromptForMotivational(checkIns, 'he', 18, 24)
+        expect(prompt).toContain('- Current streak: 18 days (best streak: 24 days)')
+    })
+
+    it('keeps the old single streak line when no best streak is given', () => {
+        const prompt = buildPromptForMotivational(checkIns, 'he', 5)
+        expect(prompt).toContain('- Current streak: 5 days')
+        expect(prompt).not.toContain('best streak')
+    })
+
+    it('uses the mood of the newest check-in, not the last array element', () => {
+        const prompt = buildPromptForMotivational(checkIns, 'he', 5)
+        expect(prompt).toContain('- Latest mood score: 9')
+    })
+
+    it('prefers the stats streak in buildPromptByType', () => {
+        const prompt = buildPromptByType('MOTIVATIONAL', checkIns, 'he', {
+            currentStreak: 2,
+            stats: { currentStreak: 18, longestStreak: 24, totalCheckIns: 25 }
+        })
+        expect(prompt).toContain('(best streak: 24 days)')
+        expect(prompt).not.toContain('Current streak: 2 days')
+    })
+})
+
+describe('recent activities and notes come from the newest check-ins', () => {
+    const daysAgo = (days: number): Date =>
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+    // Newest first, like checkInModel.getCheckIns returns them: index 0 is today
+    const checkIns: CheckInType[] = Array.from({ length: 7 }, (_, i) => ({
+        ...mockCheckIn(),
+        checkInDate: daysAgo(i),
+        activities: [`activity-${i}`],
+        notes: `note-${i}`
+    }))
+
+    it('keeps the newest notes and drops the oldest', () => {
+        const prompt = buildPromptForWeeklySummary(checkIns, 'en')
+        expect(prompt).toContain('note-0')
+        expect(prompt).toContain('note-4')
+        expect(prompt).not.toContain('note-5')
+        expect(prompt).not.toContain('note-6')
+    })
+
+    it('keeps the newest activities and drops the oldest', () => {
+        const prompt = buildPromptForMoodDropAlert(checkIns, 'en')
+        expect(prompt).toContain('activity-0')
+        expect(prompt).toContain('activity-5')
+        expect(prompt).not.toContain('activity-6')
+    })
+})

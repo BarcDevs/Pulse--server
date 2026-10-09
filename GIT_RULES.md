@@ -24,6 +24,8 @@
 - *IMPORTANT:* refactor job - always name `rfc` instead of `refactor`!
 - If you're not sure, read `"C:\Users\66bar\OneDrive\documents\Programming\conventional-commits-cheatsheet.md"` for more info
 - **Always push tags** — whenever pushing a branch, also push tags (`git push origin --tags`). The version-bump hook tags every bumped commit locally; unpushed tags leave the remote's versions stale.
+- **Always pull before pushing** — before any `git push` (a branch, `development`, tags), run `git pull --ff-only origin <branch>` first; if it can't fast-forward, fetch and rebase or merge, then push. Never push from a stale branch: `development` must always contain `origin/development`, so local → development → main stays in sync.
 - Atomic commits — one change or fix per commit
 - Claude's plans must never be committed
 - Use /commit skill only when user explicitly invokes it — never on plain "commit"
+- **"open pr" = "open the PR and merge it if CI is green"** (user alias, 09/10/2026). Opens `development` → `main`, waits for all checks, merges if every one passes; if any fails or is pending, stop and report. Merging only queues the Deploy workflow, which still waits for the user's approval click on the `aws-production` environment. If the merge is blocked (e.g. the stacked-PR asynchronous-merge error, or a permission denial), report it; do not work around it.
