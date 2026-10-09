@@ -81,7 +81,12 @@ if [ "${#OUTPUT}" -ge "$SSM_OUTPUT_CAP" ]; then
     echo "SSM output cap hit: only the oldest new errors were returned" >&2
 fi
 
-printf '%s\n' "$OUTPUT" | npx tsx "$(dirname "$0")/filterSince.ts" "$SINCE"
+# Run tsx from the main checkout (the only one with node_modules; worktrees and
+# the routine's own working directory don't have them), whichever directory
+# this script was started from.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MAIN_CHECKOUT="$(cd "$(git -C "$SCRIPT_DIR" rev-parse --git-common-dir)/.." && pwd)"
+printf '%s\n' "$OUTPUT" | (cd "$MAIN_CHECKOUT" && npx tsx "$SCRIPT_DIR/filterSince.ts" "$SINCE")
 
 if [ "$TRUNCATED" = "1" ]; then
     exit 3
