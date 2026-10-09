@@ -24,6 +24,7 @@
 - *IMPORTANT:* refactor job - always name `rfc` instead of `refactor`!
 - If you're not sure, read `"C:\Users\66bar\OneDrive\documents\Programming\conventional-commits-cheatsheet.md"` for more info
 - **Always push tags** — whenever pushing a branch, also push tags (`git push origin --tags`). The version-bump hook tags every bumped commit locally; unpushed tags leave the remote's versions stale.
+- **Always pull before pushing** — before any `git push` (a branch, `development`, tags), run `git pull --ff-only origin <branch>` first; if it can't fast-forward, fetch and rebase or merge, then push. Never push from a stale branch: `development` must always contain `origin/development`, so local → development → main stays in sync.
 - Atomic commits — one change or fix per commit
 - Claude's plans must never be committed
 - Use /commit skill only when user explicitly invokes it — never on plain "commit"

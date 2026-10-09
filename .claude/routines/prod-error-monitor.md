@@ -128,7 +128,9 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    merge that PR. In the shared checkout (`$MAIN`): first run `ListAgents` and `git status`. If
    another session is active there or the tree is dirty, don't merge: leave the fix branches and
    records unmerged, say "merge blocked: checkout busy" in the notification, and open no PR.
-   Otherwise, on `development` (all via `git -C "$MAIN"`): `merge --no-ff` each passing fix branch,
+   Otherwise, on `development` (all via `git -C "$MAIN"`): first `pull --ff-only origin
+   development` (GIT_RULES.md: always pull before pushing; if it can't fast-forward, merge nothing
+   and notify), then `merge --no-ff` each passing fix branch,
    then `merge --no-ff monitor/records -m "Merge branch 'monitor/records' into development"`, then
    `git push origin development`. Remove each merged fix worktree (`git -C "$MAIN" worktree
    remove`) and delete its branch. The next run fast-forwards `monitor/records` (it is then 0
