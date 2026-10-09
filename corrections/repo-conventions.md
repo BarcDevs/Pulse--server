@@ -115,3 +115,19 @@ I wrote that I would not pick a client session without asking. The user then sai
 
 **Lesson:** "tell client" / "tell audit" is a role, not a session. Use a session only if the user named it in this conversation or it is already collaborating on this work; otherwise ask which one before sending anything, even when only one candidate exists. Being the only name match is exactly the failing case. A "queued" delivery is still not a hand-off.
 
+
+---
+
+## 09/10/2026 — Pushed and opened a PR after running only typecheck
+
+Asked to commit, merge stale branches into `development`, push and open a PR, I ran `npm run typecheck` and pushed. `GIT_RULES.md` requires typecheck, lint and unit tests before committing, and the merge pulled in 585 lines from `fix/ai-prompt-quality`. CI's integration job then failed (a Docker Hub rate limit, unrelated to the code), and I had no local result to say whether the merged code was actually fine. User: "integrations failed, shouldve run before pushing".
+
+**Lesson:** before any push of merged work, run the whole gate locally: `npm run typecheck`, `npm run lint:check`, `npm test` and, after merging branches, `npm run test:integration` (`docker-compose -f docker-compose.test.yml up -d` first). One passing check is not "validated". On this Windows shell, `NODE_ENV=test` in the npm scripts fails under `cmd`, so `export NODE_ENV=test` and call `npx jest` directly.
+
+---
+
+## 09/10/2026 — Removing worktrees left the main checkout's `node_modules` empty
+
+After `git worktree remove` on two worktrees, the main checkout's `node_modules/` was an empty directory, so `eslint` and `jest` could not run (`npm ci` restored it). Typecheck had passed minutes earlier, so something in between emptied it. The likely cause is a worktree `node_modules` junction to main's being followed by the removal, but that was not confirmed. One of the worktrees (`monitor-records`) also still existed on disk afterwards.
+
+**Lesson:** before `git worktree remove`, check whether the worktree's `node_modules` is a junction/symlink (`Get-Item <wt>\node_modules | fl LinkType,Target`); if so remove the link itself first. After any worktree removal, check the main checkout still has `node_modules` before running tests. Treat the cause as unconfirmed until reproduced.
