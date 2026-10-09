@@ -1,4 +1,4 @@
-<!-- checkpoint: 2026-09-30T21:06:40Z -->
+<!-- checkpoint: 2026-10-09T17:12:28Z -->
 
 # Production Errors
 
@@ -20,8 +20,8 @@ not re-diagnose). `|` inside a signature is written as `\|`.
 
 | Signature | Occurrences | First seen | Last seen | Record |
 |-----------|-------------|------------|-----------|--------|
-| `Error: Unhandled error caught Unauthorized! please login first!` | 16 | 2026-09-30 | 2026-09-30 | [error-handler-log-level](error-handler-log-level.md) |
-| `Error: Unhandled error caught Route not found! please check your inputs and try again!` | 1 | 2026-10-01 | 2026-10-01 | [custom-error-name](custom-error-name.md) |
+| `Error: Unhandled error caught Unauthorized! please login first!` | 18 | 2026-09-30 | 2026-10-01 | [error-handler-log-level](error-handler-log-level.md) |
+| `Error: Unhandled error caught Route not found! please check your inputs and try again!` | 50 | 2026-10-01 | 2026-10-02 | [custom-error-name](custom-error-name.md) |
 
 <!--
 Row template:
