@@ -131,3 +131,11 @@ Asked to commit, merge stale branches into `development`, push and open a PR, I 
 After `git worktree remove` on two worktrees, the main checkout's `node_modules/` was an empty directory, so `eslint` and `jest` could not run (`npm ci` restored it). Typecheck had passed minutes earlier, so something in between emptied it. The likely cause is a worktree `node_modules` junction to main's being followed by the removal, but that was not confirmed. One of the worktrees (`monitor-records`) also still existed on disk afterwards.
 
 **Lesson:** before `git worktree remove`, check whether the worktree's `node_modules` is a junction/symlink (`Get-Item <wt>\node_modules | fl LinkType,Target`); if so remove the link itself first. After any worktree removal, check the main checkout still has `node_modules` before running tests. Treat the cause as unconfirmed until reproduced.
+
+---
+
+## 09/10/2026 — "open pr" means open the PR and merge it if CI is green
+
+Asked to "open pr", I opened `development` → `main` and then waited, because I read "open" literally. The user had meant their shorthand: "`open pr` = alias to `open pr and merge if green`, I don't write the whole sentence every time". Two earlier "open PR" requests had been left unmerged for the same reason.
+
+**How to apply:** when the user says "open pr" (or "open the PR"), open it, wait for the checks, and merge it if they are all green; if any check fails or is pending, stop and report. Merging into `main` only queues the Deploy workflow, which still waits for the user's approval click on the `aws-production` environment. If the merge itself is blocked (e.g. the "stacked PR" asynchronous-merge error, or a permission denial), report that instead of working around it.
