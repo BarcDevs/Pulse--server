@@ -1,4 +1,4 @@
-import { monthInMs } from '../constants/time'
+import { dayInMs, monthInMs } from '../constants/time'
 import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
 import { toLocalDateTimeStr } from '../lib/checkInDateHelpers'
 import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
@@ -38,7 +38,11 @@ export const getTodayObservation = async (
     const checkIns = await checkInModel
         .getCheckInsForStats(profileId, since)
 
-    const detection = detectObservationType(checkIns)
+    // Days since epoch: changes once a day, so every pattern that applies gets its turn
+    const detection = detectObservationType(
+        checkIns,
+        Math.floor(Date.now() / dayInMs)
+    )
 
     if (!detection) {
         dailyObservationCache.set(

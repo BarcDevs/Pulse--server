@@ -1,7 +1,7 @@
 import { brandConfig } from '../../../config/app'
 import { getMessages, resolveLanguage } from '../../../locales'
 import type { CheckInType } from '../../../types/data/CheckInType'
-import type { InsightType } from '../../../types/insight'
+import type { InsightStats, InsightType } from '../../../types/insight'
 
 import {
     calculateAverageMood,
@@ -9,6 +9,7 @@ import {
     extractRecentNotes,
     formatMoodTrend,
     formatStreakLine,
+    formatWeeklyStatsLines,
     getLatestMood,
     getTopActivities
 } from './insightsPromptHelpers'
@@ -17,10 +18,10 @@ const languageInstruction = (
     language?: string | null
 ): string => {
     const lang = resolveLanguage(language)
-    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native.`
+    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native. Never use em dashes, en dashes or typographic quotes; use only plain keyboard punctuation. Write activity names as bare nouns, without a leading definite article.`
     const terminology =
         lang === 'he'
-            ? " When referring to check-ins, use the term 'דיווח יומי'."
+            ? " When referring to check-ins, use the term 'דיווח יומי'. Use the exact term 'מצב הרוח' for mood (never 'המצב רוח')."
             : ''
     return base + terminology
 }
@@ -70,9 +71,10 @@ Output only the final message text.
 export const buildPromptForMotivational = (
     checkIns: CheckInType[],
     language?: string | null,
-    currentStreak?: number
+    currentStreak?: number,
+    longestStreak?: number
 ): string => {
-    const streakLine = formatStreakLine(currentStreak)
+    const streakLine = formatStreakLine(currentStreak, longestStreak)
     const latestMood = getLatestMood(checkIns)
 
     return injectBrandName(`
@@ -104,13 +106,17 @@ export const buildPromptForWeeklySummary = (
     checkIns: CheckInType[],
     language?: string | null,
     currentStreak?: number,
-    checkInCount?: number
+    checkInCount?: number,
+    stats?: InsightStats
 ): string => {
     const avgMood = calculateAverageMood(checkIns)
     const topActivities = getTopActivities(checkIns)
     const notes = extractRecentNotes(checkIns)
-    const displayStreak = currentStreak ?? 1
+    const displayStreak = stats?.currentStreak ?? currentStreak ?? 1
     const streakLabel = `${displayStreak} day${displayStreak > 1 ? 's' : ''}`
+    const statsLines = stats
+        ? formatWeeklyStatsLines(checkIns, stats)
+        : ''
 
     return injectBrandName(`
 You are a recovery support assistant for {{brandName}}.
@@ -120,8 +126,8 @@ ${languageInstruction(language)}
 Context:
 - Check-ins analyzed: ${checkInCount || checkIns.length}
 - Average mood: ${avgMood}
-- Current streak: ${streakLabel}
-- Most common activities: ${topActivities || 'not enough activity data'}
+- Current streak: ${streakLabel}${stats?.longestStreak ? ` (best streak: ${stats.longestStreak} days)` : ''}
+${statsLines}- Most common activities: ${topActivities || 'not enough activity data'}
 - Notes from the user this week: ${notes || 'not available'}
 
 Write a weekly reflection for the user.
@@ -160,6 +166,7 @@ export const buildPromptByType = (
         currentStreak?: number
         moodTrend?: number[]
         checkInCount?: number
+        stats?: InsightStats
     }
 ): string => {
     switch (insightType) {
@@ -174,7 +181,8 @@ export const buildPromptByType = (
             return buildPromptForMotivational(
                 checkIns,
                 language,
-                metadata?.currentStreak
+                metadata?.stats?.currentStreak ?? metadata?.currentStreak,
+                metadata?.stats?.longestStreak
             )
 
         case 'WEEKLY_SUMMARY':
@@ -182,7 +190,8 @@ export const buildPromptByType = (
                 checkIns,
                 language,
                 metadata?.currentStreak,
-                metadata?.checkInCount
+                metadata?.checkInCount,
+                metadata?.stats
             )
 
         case 'BAD_DAY_SUPPORT':

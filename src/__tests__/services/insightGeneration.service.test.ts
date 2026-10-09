@@ -35,7 +35,7 @@ const CHECK_IN_ID = 'check-in-id-123'
 const makeCheckIn = (overrides = {}) => ({
     id: CHECK_IN_ID,
     profileId: PROFILE_ID,
-    moodScore: 7,
+    moodScore: 5,
     painLevel: 3,
     activities: ['walking'],
     notes: null,
@@ -52,6 +52,7 @@ describe('InsightGenerationService', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         jest.spyOn(checkInModel, 'getProfileIdForUser').mockResolvedValue(PROFILE_ID as never)
+        jest.spyOn(checkInModel, 'getCheckInDates').mockResolvedValue([])
         jest.spyOn(authModel, 'getUserTimezone').mockResolvedValue('UTC')
         jest.spyOn(authModel, 'getUserLanguage').mockResolvedValue('en')
         jest.spyOn(authModel, 'getUserShareNotesWithAI').mockResolvedValue(true)
@@ -192,6 +193,88 @@ describe('InsightGenerationService', () => {
             await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
 
             expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
+        })
+
+        describe('good check-in and streak stats', () => {
+            const goodCheckIn = makeCheckIn({ moodScore: 8, painLevel: 2 })
+            const day = (daysAgo: number) => {
+                const date = new Date()
+                date.setUTCHours(12, 0, 0, 0)
+                date.setUTCDate(date.getUTCDate() - daysAgo)
+                return date
+            }
+
+            beforeEach(() => {
+                jest.spyOn(aiInsightGeneratorService, 'generateInsight')
+                    .mockResolvedValue({ title: 'T', content: 'C' } as never)
+                jest.spyOn(InsightDecision, 'decideInsightType').mockReturnValue(
+                    { type: 'WEEKLY_SUMMARY', reason: 'enough data', metadata: { currentStreak: 1 } } as never
+                )
+            })
+
+            it('creates a baseline and a motivational insight for a good check-in', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(2)
+                expect(aiInsightModel.createInsight).toHaveBeenNthCalledWith(1,
+                    expect.objectContaining({ insightType: 'WEEKLY_SUMMARY', classification: 'baseline' })
+                )
+                expect(aiInsightModel.createInsight).toHaveBeenNthCalledWith(2,
+                    expect.objectContaining({ insightType: 'MOTIVATIONAL', classification: 'baseline' })
+                )
+            })
+
+            it('does not add a second motivational insight when the baseline already is one', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+                jest.spyOn(InsightDecision, 'decideInsightType').mockReturnValue(
+                    { type: 'MOTIVATIONAL', reason: 'low streak', metadata: {} } as never
+                )
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
+            })
+
+            it('creates only the baseline insight for an ordinary check-in', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn()] as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
+            })
+
+            it('gives the generator streak stats over all check-ins while the prompt keeps the recent ones', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+                jest.spyOn(checkInModel, 'getCheckInDates')
+                    .mockResolvedValue([day(0), day(1), day(2), day(5)])
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                const [{ decision, checkIns }] = jest.mocked(
+                    aiInsightGeneratorService.generateInsight
+                ).mock.calls[0]
+                expect(checkIns).toHaveLength(1)
+                expect(decision.metadata?.stats).toEqual({
+                    currentStreak: 3,
+                    longestStreak: 3,
+                    totalCheckIns: 4
+                })
+            })
+
+            it('gives the motivational insight the same stats', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+                jest.spyOn(checkInModel, 'getCheckInDates').mockResolvedValue([day(0), day(1)])
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                const [, [{ decision }]] = jest.mocked(
+                    aiInsightGeneratorService.generateInsight
+                ).mock.calls
+                expect(decision.type).toBe('MOTIVATIONAL')
+                expect(decision.metadata?.stats?.currentStreak).toBe(2)
+            })
         })
     })
 })

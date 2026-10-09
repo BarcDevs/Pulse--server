@@ -61,6 +61,41 @@ Why, evidence and the RDS read-only verification recipe: `.claude/db-optimizatio
   code on signup (`sendConfirmEmailOTP` exists but is never called), add the client step, and
   block posting until the email is verified.
 
+## AI PROMPT QUALITY (found 09/10/2026 while generating demo feedback for the landing page)
+
+Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-quality`, not merged):
+- All prompts tell the model to say `מצב הרוח` (never `המצב רוח`), to avoid em/en dashes and
+  typographic quotes, and to write activity names without a leading `ה` (`הליכה`, not `ההליכה`).
+- The insight service now computes streak stats over all check-ins (`getCheckInDates` +
+  `calculateStreaks`, dates only, one cheap query) and passes them as `metadata.stats` next to the
+  7 latest check-ins. The streak is one line in the prompt: `Current streak: 18 days (best streak:
+  24 days)`. The weekly prompt also gets total check-ins, average pain and today's check-in.
+- A good check-in (mood 7 or more and pain 4 or less, `isGoodCheckIn`) now gets two insights: the
+  usual baseline plus a `MOTIVATIONAL` one (skipped when the baseline already is `MOTIVATIONAL`,
+  since `AIInsight` is unique per check-in and type). The dashboard already lists every insight of
+  the latest check-in.
+- `getLatestMood`, `extractRecentActivities` and `extractRecentNotes` choose the newest check-ins by
+  date. Before, they assumed oldest-first while `getCheckIns` returns newest-first, so the prompts
+  got the oldest activities and notes of the 7 check-ins and dropped the newest.
+- The daily observation no longer hides patterns behind an earlier rule: `detectAllObservationTypes`
+  lists every pattern that applies and `detectObservationType(checkIns, rotation)` shows one per
+  day, rotating by days since epoch (the generic `checkin_consistency` stays a last resort, only
+  when nothing specific applies).
+- Tests added for all of the above.
+
+Still open:
+- **Activity name goes to the model as a raw English slug** (`walking`). Pass the localized
+  label (the client has them in `messages/he-IL.json` under `checkIn.activities.default`) so the
+  model does not translate it and add its own article.
+- **`languageInstruction` is duplicated** in `observationPrompt.ts` and `insightsPrompts.ts`, so
+  every wording fix has to be made twice. Move it to one shared module.
+- **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
+  because a prompt rule is not a guarantee.
+- **Validate weekly and motivational output the way the observation is validated** (length,
+  numbers allowed or not, retry on failure). In three samples of the same weekly prompt one had
+  a garbled Hebrew phrase, one said mood "rose to 8" when it was 8 the day before, and one said
+  "almost without a break" for an unbroken 18-day streak.
+
 ## LOW PRIORITY (non-blocking)
 
 - **Monitor agent for production errors.**

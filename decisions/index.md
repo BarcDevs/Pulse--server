@@ -19,6 +19,9 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 27/09/2026 | Error-code granularity: per-factory-method, not per-resource |
 | 02/10/2026 | Anonymity is chosen per post/reply (`isAnonymous`), default = last choice; settings toggle removed |
 | 02/10/2026 | Anonymity toggle starts off (named) until the user chose otherwise; existing profile values reset to false |
+| 09/10/2026 | AI insight prompts: Hebrew wording rules, and one streak line over all check-ins |
+| 09/10/2026 | A good check-in gets two insights: the baseline and a motivational one |
+| 09/10/2026 | Daily observation rotates through every pattern that applies |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
