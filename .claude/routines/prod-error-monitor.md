@@ -99,6 +99,21 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       current directory). Make the minimal fix. Run `npm test` and `npm run typecheck` — do not
       proceed if either fails; fall back to notify-only instead. Commit per this repo's
       `GIT_RULES.md`.
+   c2. **Verify the fix fixes it** (after the fix commit, before the review). Passing
+      typecheck and the existing tests only shows nothing else broke.
+      1. Reproduce: write the smallest failing test or request against the route/service with the logged input that triggers the error from the evidence in
+         the diagnosis. In the fix worktree run it WITHOUT the fix: it must fail with the same
+         error. Then with the fix: it must pass. Commit the test with the fix as a regression
+         test. Also run the tests next to the changed files. If it still fails with the fix, the
+         fix does not fix it: no merge, notify-only.
+      2. If the error cannot be reproduced locally (needs prod data, a real browser or
+         infrastructure), do NOT claim it is fixed: record `Verification: unverified locally`
+         with the reason, and say so in the PR body and notification. A fix that only filters or
+         suppresses the error is always this case: record `suppression, cause not fixed`.
+      3. Put the result in the record as a one-line `Verification:` (`reproduced, test <path>` |
+         `unverified locally: <why>` | `suppression, cause not fixed`). The next run's re-open
+         check is the post-deploy confirmation: if the signature keeps appearing after the fix, it
+         did not hold.
    d. **Full review before merge.** From inside the fix worktree, invoke the local `code-review`
       skill (via the Skill tool) on the branch's diff — the one that runs code-reviewer, architecture-auditor,
       duplication-eliminator and security-scanner in parallel, then style-enforcer, i.e.
@@ -106,8 +121,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       `/code-review ultra` (`/ultrareview`): never pass `ultra`, it is user-triggered and billed. Any HIGH/CRITICAL
       finding, or an ESCALATE line → the fix is not merged; notify-only with the review
       findings, and leave the branch unmerged for manual review instead of deleting it. Only
-      a clean review (or one whose own auto-fixes were applied and tests/typecheck still pass)
-      counts as a fix ready to merge. This is the actual gate against shipping unsafe
+      a clean review (or one whose own auto-fixes were applied and tests/typecheck still pass),
+      after c2 is done or honestly labeled unverified, counts as a fix ready to merge. This is the actual gate against shipping unsafe
       autonomous code — the confidence gate in (b) only decides whether to *attempt* a fix,
       not whether it's safe to land.
    e. **Record** in `$WT`: add a Known Fixes row to `docs/prod-errors/index.md` (signature from
@@ -117,7 +132,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       by review, branch <name> left unmerged`. Every record needs an **Investigated** section
       (what you pulled and read in (a): log lines, files/lines opened, greps and read-only checks
       run), a **Root cause** (evidence-backed with `file:line`, or `Hypothesis (unverified)`),
-      and **Options** with a recommendation. A record without an Investigated section means (a)
+      and **Options** with a recommendation; a record of a fix also needs its one-line
+      **Verification** (step d2/c2). A record without an Investigated section means (a)
       was skipped: go back and do it. For a re-opened row, append a dated "recurrence" note with
       what you re-checked, not just the bumped count.
 6. **Set the checkpoint:** `npx tsx "$WT/scripts/monitor/checkpoint.ts" set "$NEXT_CHECKPOINT"`.
@@ -138,7 +154,7 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    if `gh pr list --base main --head development --state open` shows one, add a comment to it
    listing the new fixes; otherwise `gh pr create --base main --head development` with a title in
    the repo's commit convention and a body listing each fix (issue link, evidence-backed root cause
-   with `file:line`, what changed, typecheck/test results, `/code-review` result) plus the line
+   with `file:line`, what changed, typecheck/test results, verification result, `/code-review` result) plus the line
    "This PR carries everything on `development` not yet on `main`." NEVER merge a PR, enable
    auto-merge, or push `main`. If the push or `gh` fails, notify with the error (the fixes stay
    merged on `development`). If no fix passed, nothing is merged, pushed or opened; the records
