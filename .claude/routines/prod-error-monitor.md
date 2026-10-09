@@ -17,8 +17,8 @@ Records are `docs/prod-errors/index.md` (checkpoint, one row per error signature
 plus one `docs/prod-errors/<slug>.md` per diagnosed error. The routine never writes them in the
 shared checkout. It keeps them on the local branch `monitor/records`, in its own worktree
 `../pulse--server.wt/monitor-records`, as **exactly one commit on top of `development`, amended
-every run**. That commit reaches `development` (and origin) only inside a fix PR that a human
-merges, so quiet runs leave no commits, no pushes and no dirty tree anywhere.
+every run**. That commit reaches `development` (and origin) only in a run that merges a fix, so
+quiet runs leave no commits, no pushes and no dirty tree anywhere.
 
 The routine does NOT start in the repo, so define absolute paths first and never rely on the
 current directory:
@@ -66,15 +66,15 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       current directory). Make the minimal fix. Run `npm test` and `npm run typecheck` — do not
       proceed if either fails; fall back to notify-only instead. Commit per this repo's
       `GIT_RULES.md`.
-   d. **Full review before opening a PR.** From inside the fix worktree, invoke the local `code-review`
+   d. **Full review before merge.** From inside the fix worktree, invoke the local `code-review`
       skill (via the Skill tool) on the branch's diff — the one that runs code-reviewer, architecture-auditor,
       duplication-eliminator and security-scanner in parallel, then style-enforcer, i.e.
       `/commit`'s review without the typecheck/lint/commit steps. NOT the cloud multi-agent
       `/code-review ultra` (`/ultrareview`): never pass `ultra`, it is user-triggered and billed. Any HIGH/CRITICAL
-      finding, or an ESCALATE line → no PR is opened; notify-only with the review
+      finding, or an ESCALATE line → the fix is not merged; notify-only with the review
       findings, and leave the branch unmerged for manual review instead of deleting it. Only
       a clean review (or one whose own auto-fixes were applied and tests/typecheck still pass)
-      counts as a fix ready for a PR. This is the actual gate against shipping unsafe
+      counts as a fix ready to merge. This is the actual gate against shipping unsafe
       autonomous code — the confidence gate in (b) only decides whether to *attempt* a fix,
       not whether it's safe to land.
    e. **Record** in `$WT`: add a Known Fixes row to `docs/prod-errors/index.md` (signature from
@@ -86,34 +86,39 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 7. **Amend the records commit** in `$WT` (`git -C "$WT" add docs/prod-errors`):
    no records commit yet (`N=0` after step 1) → `git commit -m "docs(prod-errors): monitor
    records"`; otherwise `git commit --amend --no-edit`. Never a second commit.
-8. **Open PRs, only if at least one fix passed (d).** Open a PR for each passing fix; never merge it. In order, per passing fix, from its fix
-   worktree: (1) for the FIRST passing fix of the run only, if `monitor/records` has a records
-   commit, `git merge --no-ff monitor/records -m "Merge branch 'monitor/records' into <branch>"`
-   so the records ship in that PR; (2) `git push -u origin <branch>`; (3) `gh pr create --base
-   development --head <branch>` with a title in the repo's commit convention and a body with: the
-   Sentry issue link, evidence-backed root cause (`file:line`), what the fix changes, the
-   typecheck/test results and the `/code-review` result. Once that PR exists, `git -C "$WT" reset
-   --hard development` (the records now live in the PR; the next run starts clean), then
-   `git -C "$MAIN" worktree remove` the fix worktree and keep the pushed branch for the PR.
-   NEVER merge a PR, enable auto-merge, or push `development`. If push or `gh` fails, notify with
-   the error and leave the branch and records as they are. If no fix passed, nothing is pushed;
-   the records wait on `monitor/records` for the next fix.
+8. **Ship, only if at least one fix passed (d).** Merge into `development`, push it, then open the release PR; never
+   merge that PR. In the shared checkout (`$MAIN`): first run `ListAgents` and `git status`. If
+   another session is active there or the tree is dirty, don't merge: leave the fix branches and
+   records unmerged, say "merge blocked: checkout busy" in the notification, and open no PR.
+   Otherwise, on `development` (all via `git -C "$MAIN"`): `merge --no-ff` each passing fix branch,
+   then `merge --no-ff monitor/records -m "Merge branch 'monitor/records' into development"`, then
+   `git push origin development`. Remove each merged fix worktree (`git -C "$MAIN" worktree
+   remove`) and delete its branch. The next run fast-forwards `monitor/records` (it is then 0
+   commits ahead). Then open the PR that carries it to `main` (flow: local -> development -> main):
+   if `gh pr list --base main --head development --state open` shows one, add a comment to it
+   listing the new fixes; otherwise `gh pr create --base main --head development` with a title in
+   the repo's commit convention and a body listing each fix (issue link, evidence-backed root cause
+   with `file:line`, what changed, typecheck/test results, `/code-review` result) plus the line
+   "This PR carries everything on `development` not yet on `main`." NEVER merge a PR, enable
+   auto-merge, or push `main`. If the push or `gh` fails, notify with the error (the fixes stay
+   merged on `development`). If no fix passed, nothing is merged, pushed or opened; the records
+   wait on the branch for the next fix.
 9. **Notify** with a summary of the run: N Known Fixes rows bumped, N new 404-pattern hits, N
-   new errors (M fix PRs opened, K notify-only, J blocked by review), the PR links, and the new
-   records (quote them: they are on origin only inside a fix PR a human hasn't merged yet).
+   new errors (M merged to `development`, K notify-only, J blocked by review or busy checkout), the
+   `development` -> `main` PR link, commit links, and the new records (quote them).
 
 ## Guardrails
 
-- Never touch `main`, never force-push, never merge a PR, never enable auto-merge. Opening PRs
-  into `development` is expected (step 8).
-- Never commit records on `development` directly, never push `development`, never push
-  `monitor/records` on its own (records ship inside a fix PR), and keep it at most one commit
-  ahead of `development` (amend, don't add).
+- Never push `main`, never force-push, never merge a PR, never enable auto-merge. The only branch
+  this routine pushes is `development` (step 8), and the only PR it opens is `development` -> `main`.
+- Never commit records on `development` directly (they arrive via the `monitor/records` merge),
+  never push `monitor/records` on its own, and keep it at most one commit ahead of `development`
+  (amend, don't add).
 - Never invent a fix for an error whose cause isn't clearly localized (see confidence
   gate) — a wrong guess in prod is worse than a delayed manual fix.
-- Never open a fix PR that hasn't cleanly passed the full `/code-review` (step 5d) — it is the
-  quality gate on what a human is asked to merge, since this routine may run on a
-  smaller/cheaper model whose own judgment of "safe to land" isn't trusted alone.
+- Never merge a fix that hasn't cleanly passed the full `/code-review` (step 5d) — that review is
+  the actual safety gate on unsupervised code reaching `development`, since this routine may run on
+  a smaller/cheaper model whose own judgment of "safe to merge" isn't trusted alone.
 - Never switch branches, stash or reset in the shared checkout.
 - If the checkpoint comment in `$WT/docs/prod-errors/index.md` is missing/corrupted, stop and
   notify instead of guessing a timestamp.
