@@ -28,3 +28,4 @@
 - Atomic commits — one change or fix per commit
 - Claude's plans must never be committed
 - Use /commit skill only when user explicitly invokes it — never on plain "commit"
+- **"open pr" = "open the PR and merge it if CI is green"** (user alias, 09/10/2026). Opens `development` → `main`, waits for all checks, merges if every one passes; if any fails or is pending, stop and report. Merging only queues the Deploy workflow, which still waits for the user's approval click on the `aws-production` environment. If the merge is blocked (e.g. the stacked-PR asynchronous-merge error, or a permission denial), report it; do not work around it.
