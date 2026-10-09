@@ -52,16 +52,47 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 4. **Process:** `npx tsx "$WT/scripts/monitor/processLogs.ts" < <temp file>`. It bumps matching
    Known Fixes rows and 404 lines in `$WT/docs/prod-errors/index.md` and prints a JSON array of
    unknown errors, one per signature (with `count`).
-5. **First notification, before diagnosing anything** (only if the array from step 4 is non-empty):
-   send a Claude Code notification that new errors were found: how many, and for each its
-   signature, `count` and route. Then, for each unknown error:
-   a. **Diagnose.** Read the relevant source under `$MAIN/` around the error (`stack` gives the file).
-      Form a root-cause hypothesis and a minimal fix.
-   b. **Confidence gate.** Only proceed to (c) if BOTH hold: the stack trace points to a
-      specific line/function in this repo (not a third-party/node_modules frame as the
-      sole location), AND the fix is a small, localized change (no schema/migration,
-      no cross-cutting refactor, no ambiguity about which of >1 plausible causes is
-      correct). If either fails: skip to (e) as notify-only.
+   **Re-open check.** The processor bumps a known row without looking at what its record says.
+   After it runs, read `$WT/docs/prod-errors/index.md`: every row whose Last seen is today is
+   "bumped". Open its `<slug>.md` and branch on its **Fix**:
+   - a **merged fix** (commit link) → don't reinvent it. If the newest occurrence in this run's
+     logs is later than that fix's commit (`git -C "$MAIN" log -1 --format=%cI <sha>`), the fix did
+     not hold, or is not deployed yet (check the deploy state before concluding): flag it
+     explicitly and add it to the list below to re-diagnose;
+   - **anything else** (`notify only`, `blocked by review`, an unverified hypothesis) → the
+     error is still OPEN. A record is not a resolution: do NOT carry the old verdict forward. Add
+     it to the list below and redo 5a and 5b from scratch, treating the recurrence (higher
+     `count`, new route, new status) as new evidence.
+   Step 5 runs on the unknown errors from the processor plus every re-opened row.
+5. **First notification, before diagnosing anything** (only if step 5 has at least one error to
+   work on: unknown or re-opened): send a Claude Code notification that errors were found: how
+   many, and for each its signature, `count` and route. Then, for each:
+   a. **Diagnose — investigation is mandatory, and happens BEFORE the confidence gate.** You may
+      not reach (b) until all of these are done and written down for the record:
+      1. Read the raw log lines for the signature in the temp file, not just the processor's
+         summary: stack, route, method, status, request id, timestamps, and the `count` trend
+         against the record. Pull neighbouring lines for the same request id if present.
+      2. Find the first-party code involved. If the stack is all third-party frames
+         (`node_modules`), that is the START of the investigation, not the end of it: Grep
+         `$MAIN/src` for the library API named in the frames, and open the route handler,
+         controller and service behind the logged route and method. Read what you find.
+      3. Verify any claim about the environment before relying on it (config, schema, env vars,
+         deploy state): read the file, or use read-only AWS/SSM checks. Never change
+         infrastructure.
+      4. State the root cause only if the evidence supports it, citing `file:line` and what you
+         saw. If it is a guess, label it `Hypothesis (unverified)`; never write a guess under
+         "Root cause".
+      5. List the realistic options (e.g. fix in app code, change config, leave alone, filter the
+         log) with the trade-off of each, and pick a recommendation.
+   b. **Confidence gate.** Evaluated only on the evidence from (a). Only proceed to (c) if BOTH
+      hold: the root cause is traced to first-party code you read (the stack frame itself, OR the
+      first-party code that triggers the library path, found in (a)2), AND the fix is a small,
+      localized change (no schema/migration, no cross-cutting refactor, no ambiguity about which
+      of >1 plausible causes is correct). "Every stack frame is third-party" alone is NOT a
+      reason to fail the gate: it is only valid together with the result of the (a)2 search
+      ("looked in X, Y; first-party code Z triggers it but cannot be changed safely because …").
+      If the gate fails: skip to (e) as notify-only, and the record must say which criterion
+      failed and what you checked.
    c. **Fix** in its own worktree, never in the shared checkout:
       `git -C "$MAIN" worktree add "$MAIN/../pulse--server.wt/monitor-fix-<slug>" -b fix/monitor-<slug> development`,
       then `cd` into that worktree for everything below (tests, review and commit act on the
@@ -81,9 +112,14 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       not whether it's safe to land.
    e. **Record** in `$WT`: add a Known Fixes row to `docs/prod-errors/index.md` (signature from
       the processor output, occurrences = its `count`, first/last seen = today, link to the
-      file) and write `docs/prod-errors/<slug>.md` from the template in the index, with the root
-      cause and one of: the fix + commit link, `not auto-applied, notify only (see confidence
-      gate)`, or `blocked by review, branch <name> left unmerged`.
+      file) and write `docs/prod-errors/<slug>.md` from the template in the index, with one of:
+      the fix + commit link, `not auto-applied, notify only (see confidence gate)`, or `blocked
+      by review, branch <name> left unmerged`. Every record needs an **Investigated** section
+      (what you pulled and read in (a): log lines, files/lines opened, greps and read-only checks
+      run), a **Root cause** (evidence-backed with `file:line`, or `Hypothesis (unverified)`),
+      and **Options** with a recommendation. A record without an Investigated section means (a)
+      was skipped: go back and do it. For a re-opened row, append a dated "recurrence" note with
+      what you re-checked, not just the bumped count.
 6. **Set the checkpoint:** `npx tsx "$WT/scripts/monitor/checkpoint.ts" set "$NEXT_CHECKPOINT"`.
 7. **Amend the records commit** in `$WT` (`git -C "$WT" add docs/prod-errors`):
    no records commit yet (`N=0` after step 1) → `git commit -m "docs(prod-errors): monitor
@@ -107,7 +143,9 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    wait on the branch for the next fix.
 9. **Final notification** (the second of the run) with a summary: N Known Fixes rows bumped, N new 404-pattern hits, N
    new errors (M merged to `development`, K notify-only, J blocked by review or busy checkout), the
-   `development` -> `main` PR link, commit links, and the new records (quote them).
+   `development` -> `main` PR link, commit links, and the new records (quote them). For each
+   notify-only error include the recommendation from (a)5, and flag any error that has now been
+   notify-only for 2+ runs as "needs a human decision", with its `count` trend.
 
 ## Guardrails
 
@@ -118,6 +156,10 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
   (amend, don't add).
 - Never invent a fix for an error whose cause isn't clearly localized (see confidence
   gate) — a wrong guess in prod is worse than a delayed manual fix.
+- Recording is not handling. Every error must end a run as a merged fix, blocked-by-review, or a
+  notify-only backed by an actual investigation (5a). Never stop at the processor's summary and
+  never write a guess as a root cause. Never carry a previous run's notify-only verdict forward
+  without re-checking it (step 4, Re-open check).
 - Never merge a fix that hasn't cleanly passed the full `/code-review` (step 5d) — that review is
   the actual safety gate on unsupervised code reaching `development`, since this routine may run on
   a smaller/cheaper model whose own judgment of "safe to merge" isn't trusted alone.
