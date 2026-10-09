@@ -1,4 +1,4 @@
-import { detectObservationType } from '../../../lib/dailyObservation/observationDetectors'
+import { detectAllObservationTypes, detectObservationType } from '../../../lib/dailyObservation/observationDetectors'
 
 type CheckInStats = {
     moodScore: number
@@ -233,5 +233,47 @@ describe('detectObservationType', () => {
             const result = detectObservationType([...recent, ...previous])
             expect(result?.type).toBe('pain_improvement')
         })
+    })
+})
+
+describe('detectAllObservationTypes and rotation', () => {
+    // Newest first: 5 recent check-ins with activities and low pain, 5 earlier ones with higher pain.
+    // Moods vary (no mood_stability) and the dates are daily, so more than one pattern applies.
+    const recentTen = [
+        ...Array.from({ length: 5 }, (_, i) =>
+            makeCheckIn({ moodScore: i % 2 === 0 ? 8 : 4, painLevel: 2, activities: ['walking'] }, i)),
+        ...Array.from({ length: 5 }, (_, i) =>
+            makeCheckIn({ moodScore: i % 2 === 0 ? 8 : 4, painLevel: 6 }, i + 5))
+    ]
+
+    it('lists every pattern that applies, in priority order', () => {
+        const types = detectAllObservationTypes(recentTen).map(r => r.type)
+        expect(types.slice(0, 2)).toEqual(['activity_consistency', 'pain_improvement'])
+        expect(types).toContain('streak_consistency')
+    })
+
+    it('keeps the old behavior by default (first pattern)', () => {
+        expect(detectObservationType(recentTen)?.type).toBe('activity_consistency')
+    })
+
+    it('shows a different pattern as the rotation number changes, so none is hidden', () => {
+        const all = detectAllObservationTypes(recentTen)
+        const shown = all.map((_, rotation) => detectObservationType(recentTen, rotation)?.type)
+        expect(shown).toEqual(all.map(r => r.type))
+        expect(new Set(shown).size).toBe(all.length)
+    })
+
+    it('wraps around when the rotation is larger than the number of patterns', () => {
+        const all = detectAllObservationTypes(recentTen)
+        expect(detectObservationType(recentTen, all.length)?.type).toBe(all[0].type)
+    })
+
+    it('uses the generic check-in note only when nothing more specific applies', () => {
+        expect(detectAllObservationTypes(recentTen).map(r => r.type)).not.toContain('checkin_consistency')
+
+        // Every other day (no streak), varied mood, flat pain, no activities
+        const flat = Array.from({ length: 10 }, (_, i) =>
+            makeCheckIn({ moodScore: (i % 5) + 2 }, i * 2))
+        expect(detectAllObservationTypes(flat).map(r => r.type)).toEqual(['checkin_consistency'])
     })
 })

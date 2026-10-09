@@ -116,6 +116,15 @@ export const updateUserLastCheckIn = async (
     })
 }
 
+// Dates only, so streak stats over every check-in stay cheap
+export const getCheckInDates = async (
+    profileId: string
+): Promise<Date[]> =>
+    (await Prisma.dailyCheckIn.findMany({
+        where: { profileId },
+        select: { checkInDate: true }
+    })).map((checkIn) => checkIn.checkInDate)
+
 export const getCheckInsForStats = async (
     profileId: string,
     since?: Date
