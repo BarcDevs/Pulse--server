@@ -103,3 +103,36 @@ Follows the per-post anonymity entry above and changes its default.
 
 **How to apply:** a new profile is created with `anonymousParticipation = false`; never seed or backfill it to `true`.
 
+---
+
+## 09/10/2026 — AI insight prompts: Hebrew wording rules, and one streak line over all check-ins
+
+**Problem:** generated Hebrew said "המצב רוח", used an en dash and "ההליכה". The streak in the prompt was computed from the 7 latest check-ins only, so it could never exceed 7 while the dashboard showed the real one (18).
+
+**Decision (owner):** the language instruction of every insight and observation prompt now says: use the exact term `מצב הרוח` for mood, never use em dashes, en dashes or typographic quotes, and write activity names as bare nouns without a leading definite article. The insight service also computes current streak, best streak and total check-ins over all check-ins (one dates-only query) and passes them as `metadata.stats`. The prompt still receives only the 7 latest check-ins. The streak is one line: `Current streak: 18 days (best streak: 24 days)`. The weekly prompt also gets total check-ins, average pain and today's check-in.
+
+**Why over alternatives:** sending more than 7 check-ins costs tokens and changes what a "weekly" summary is about, while the stats are one line. Fixing the wording in the prompt (not in the saved text) keeps every future generation right.
+
+**How to apply:** `languageInstruction` still exists in two files (`observationPrompt.ts`, `insightsPrompts.ts`), so change both until it is deduplicated. The database returns check-ins newest first, so helpers pick "latest" and "recent N" by `checkInDate` (`getLatestMood`, `extractRecentActivities`, `extractRecentNotes`), never by array position.
+
+---
+
+## 09/10/2026 — A good check-in gets two insights: the baseline and a motivational one
+
+**Decision (owner):** when a check-in is good (mood 7 or more and pain 4 or less, `isGoodCheckIn`), the service creates the usual baseline insight and then also a `MOTIVATIONAL` insight (classification `baseline`). It is skipped when the baseline already is `MOTIVATIONAL`, because `AIInsight` is unique on (checkInId, type). Both use the same stats.
+
+**Why over alternatives:** low check-ins already get an intervention insight, good ones got only the generic summary. A second insight needs no schema change and the dashboard already lists every insight of the latest check-in.
+
+**How to apply:** the thresholds equal the daily observation's `better_days_pattern` (separate constants today, change both together). Ordinary check-ins still get exactly one insight.
+
+---
+
+## 09/10/2026 — Daily observation rotates through every pattern that applies
+
+**Problem:** `detectObservationType` returned the first rule that matched. `activity_consistency` (an activity in 3 of the last 5 check-ins) is first, so `pain_improvement` and `better_days_pattern` were never reached for anyone who logs activities.
+
+**Decision (owner):** "the order shouldn't hide anything". `detectAllObservationTypes` lists every pattern that applies; `detectObservationType(checkIns, rotation)` shows one, and the service passes days since epoch, so each pattern gets its turn on different days. The generic `checkin_consistency` stays a last resort, used only when nothing specific applies.
+
+**Why over alternatives:** reordering priorities would only hide a different pattern. Showing several cards at once was not wanted (one card per day, cached per day).
+
+**How to apply:** add a pattern by pushing to the list in `detectAllObservationTypes`, never with an early `return`. The default `rotation = 0` keeps the old first-match behavior for callers that do not pass one.
