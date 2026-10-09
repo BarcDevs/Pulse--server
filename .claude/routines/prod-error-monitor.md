@@ -52,7 +52,9 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 4. **Process:** `npx tsx "$WT/scripts/monitor/processLogs.ts" < <temp file>`. It bumps matching
    Known Fixes rows and 404 lines in `$WT/docs/prod-errors/index.md` and prints a JSON array of
    unknown errors, one per signature (with `count`).
-5. For each unknown error:
+5. **First notification, before diagnosing anything** (only if the array from step 4 is non-empty):
+   send a Claude Code notification that new errors were found: how many, and for each its
+   signature, `count` and route. Then, for each unknown error:
    a. **Diagnose.** Read the relevant source under `$MAIN/` around the error (`stack` gives the file).
       Form a root-cause hypothesis and a minimal fix.
    b. **Confidence gate.** Only proceed to (c) if BOTH hold: the stack trace points to a
@@ -103,7 +105,7 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    auto-merge, or push `main`. If the push or `gh` fails, notify with the error (the fixes stay
    merged on `development`). If no fix passed, nothing is merged, pushed or opened; the records
    wait on the branch for the next fix.
-9. **Notify** with a summary of the run: N Known Fixes rows bumped, N new 404-pattern hits, N
+9. **Final notification** (the second of the run) with a summary: N Known Fixes rows bumped, N new 404-pattern hits, N
    new errors (M merged to `development`, K notify-only, J blocked by review or busy checkout), the
    `development` -> `main` PR link, commit links, and the new records (quote them).
 
