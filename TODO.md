@@ -8,6 +8,56 @@ All cleared 29/09/2026 (server `b308d17`, client `b62caa9` in production). Last 
 email, verified: startup log shows `Email transport ready (smtp.resend.com:465)` and a real
 password reset (email -> code -> new password) worked end to end.
 
+## CRITICAL (found 10/10/2026 by the model audit)
+
+- **Return the check-in first; generate and deliver the AI feedback afterwards.**
+  `checkInService.ts` awaits `generateInsightSafely` (and recommendations) inside the check-in
+  save (lines ~64, ~82, ~103) and only then returns the check-in with its insights. Up to three
+  AI calls run one after another (baseline, motivational, intervention), each with a provider chain
+  and one retry. The client (`CheckInContext.tsx`) shows the check-in optimistically, sends the
+  request in the background and rolls the check-in back with an error toast if the request fails.
+  The client reaches the server through the Next.js `/api` rewrite (`next.config.mjs`), which has no
+  `proxyTimeout`, so Next's 30 s default applies. A single hanging provider already takes up to ~31 s
+  (2 x 15 s attempts + 1 s), so a slow or failing AI call can fail a check-in that the server did
+  save; the retry then goes down the "update existing check-in" path and generates the insights
+  again. Healthy-day cost with `gpt-6.1-sol` is already ~11 s per check-in (median 5.5 s per call, 2
+  calls), up to ~17 s with three.
+  Target: `POST /check-ins` returns as soon as the check-in is stored, and the insights arrive
+  separately when ready (the client keeps showing them as toasts). Open design points: how the
+  client learns they are ready (poll `GET` for the check-in's insights a few times vs. a push channel);
+  where the work runs (in-process after the response loses work on a restart, a queue or job
+  survives it and keeps working with more than one instance); retries must not create duplicate
+  insights; an AI failure must still store the template fallback so the user always gets a message.
+  Update `docs/API.md` and both READMEs.
+
+## HIGH (found 10/10/2026 by the model audit)
+
+- **`GoogleAIProvider` stores replies that ended with `finishReason=MAX_TOKENS`.**
+  Confirmed cause of the 79-character prod insight. Prod log, 10/10/2026 01:08 UTC: the stale Anthropic key
+  returned 401 (twice), the chain fell to `google-pro` (`gemini-3.1-pro-preview`), which finished with
+  `finishReason=MAX_TOKENS, tokens=1251` (thinking used the output budget), and `GoogleAIProvider` only logs
+  a warning for any finish reason other than `STOP`, so the cut-off reply was stored as a normal insight
+  (`contentLength` 79, `usedFallback` false). The prod chain no longer includes `google-pro`, and
+  `gemini-3.1-flash-lite` showed no cutoffs in the audit, but the provider is still unguarded. Add the same
+  guard `AnthropicProvider` and `OpenAIProvider` have (throw on `MAX_TOKENS`, log `thoughtsTokenCount`) plus a
+  test. Audit evidence: `gemini-3.8-flash` and `gemini-3.6-flash` were cut off in 26 of 36 calls.
+
+- **Modularise the prompt builders like `pantry` does, with one shared language-rules module.**
+  (Covers and replaces the narrower "`languageInstruction` is duplicated" item under AI PROMPT QUALITY.)
+  Today `languageInstruction` (no em/en dashes or typographic quotes, native phrasing, bare activity
+  nouns, the Hebrew term rules) exists as two separate copies in `src/lib/aiInsight/prompts/insightsPrompts.ts`
+  and `src/lib/dailyObservation/observationPrompt.ts`; the progress prompt
+  (`src/lib/progressInsights/promptBuilder.ts`) and the check-in feedback prompt
+  (`src/services/feedback/aiRenderer.ts`, private `buildAIPrompt`) have none, so their replies can contain
+  dashes, and the progress summary has no language directive at all (Hebrew users likely get English).
+  Target layout, as in `~/Claude/work/projects/pantry/src/lib/prompts/`: one file per prompt
+  (`build-<name>-prompt.ts`) plus separate shared-instruction modules (language rules, "output only the
+  final text / no reasoning" rule, the no-scores rule) imported by every prompt, each with a co-located test.
+  Export the feedback prompt builder so the audit imports it instead of the copy in
+  `scripts/eval-ai-models/scenarios.ts`. Afterwards update the audit scenarios and rules in the same change
+  (AI Eval Sync) and scope the dash rule in `scripts/eval-ai-models/rules.ts` to match
+  (`docs/AI-MODEL-AUDIT.md`, Caveats).
+
 ## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
@@ -96,8 +146,21 @@ Still open:
   a garbled Hebrew phrase, one said mood "rose to 8" when it was 8 the day before, and one said
   "almost without a break" for an unbroken 18-day streak.
 
-## LOW PRIORITY (non-blocking)
+## DONE
 
-- **Monitor agent for production errors.**
-  Catch unexpected prod errors, create PR + notify dev, record in a doc, and check if
-  recurring — if so, reuse the recorded fix instead of inventing a new one.
+- **`countSentences` counted decimals as sentence ends, so AI progress summaries were rejected** (fixed 10/10/2026,
+  `c197afe` on `development`, not yet redeployed). It now counts only periods followed by whitespace or the end of
+  the text; 7 new tests including the real audit reply. The audit found 41 of 45 progress replies failing the
+  prod check on this alone. The prod log could not confirm the effect: the container (up since 09/10 22:07 UTC)
+  had no progress-summary lines at all. After the redeploy, search the log for `AI progress summary failed validation`.
+- **`OpenAIProvider` stored replies cut off at the token limit** (fixed 10/10/2026, `afaf064`): it now throws on
+  `finish_reason=length`, like `AnthropicProvider`. The Google equivalent is still open (HIGH).
+- **Prod AI chain moved to `gpt-6.1-sol` primary with `gemini-3.1-flash-lite` fallback** (10/10/2026, `b03c6d4`):
+  Anthropic and `google-pro` left the chain, `openaiModel` default is `gpt-6.1-sol`, and the chain logs a warning
+  when it skips a provider for a missing key (`3282657`). Prod checked: no env overrides on the container, the
+  OpenAI and Google secrets match the audited keys. Decisions in `decisions/ai-and-rag.md`.
+- **Repeatable AI model audit** (10/10/2026): `scripts/eval-ai-models/`, process and results in
+  `docs/AI-MODEL-AUDIT.md`, how to add scenarios for a new AI pipeline in `workflow/05-adding-ai-pipeline.md`.
+- **Monitor agent for production errors** (built by the `aws-monitor` session; first commit e3e764c on 29/09/2026,
+  last change 09/10/2026; resolved in this list 10/10/2026). Scripts in `scripts/monitor/` (`pull-prod-logs.sh`,
+  `checkpoint.ts`, `filterSince.ts`, `processLogs.ts`), recorded fixes in `docs/prod-errors/`.

@@ -39,7 +39,10 @@ Post-launch / scale-up items, not launch blockers.
   delete is idempotent so duplicates are harmless, but move it to one scheduler (EventBridge ->
   SSM, or a Postgres advisory lock) when scaling out.
 
-- **Wire up Anthropic identity federation for the Pulse deployment (not urgent).**
+- **Wire up Anthropic identity federation for the Pulse deployment (deferred).**
+  Deferred 10/10/2026: the model audit dropped Anthropic from the prod chain (primary `gpt-6.1-sol`,
+  fallback `gemini-3.1-flash-lite`), so there is no prod Anthropic key to replace. Revisit only if a
+  new audit brings an Anthropic model back into the chain.
   Replace the static Anthropic API key in the EC2 deployment with workload identity
   federation via the instance's AWS IAM role: short-lived tokens, nothing to store in
   Secrets/`.env`, no manual rotation. Check first how the Anthropic SDK does the AWS token
