@@ -1,194 +1,232 @@
-import { mkdirSync, writeFileSync } from 'fs'
+import { execSync } from 'child_process'
+import {
+    mkdirSync,
+    readFileSync,
+    writeFileSync
+} from 'fs'
+import { join, resolve } from 'path'
 
-import { aiConfig } from '../../config'
-import { buildPromptByType } from '../../src/lib/aiInsight/prompts/insightsPrompts'
-import type { AIProvider } from '../../src/services/aiProviders/AIProvider'
-import { createProviderByType } from '../../src/services/aiProviders/ProviderFactory'
-import type { CheckInType } from '../../src/types/data/CheckInType'
-import type { InsightDecisionResult } from '../../src/types/insight'
+import { checkOutput } from './rules'
+import { buildScenarios } from './scenarios'
+import type { AuditConfig, RunRecord } from './types'
+import { generate } from './vendors'
 
-type Scenario = {
-    name: string
-    decision: InsightDecisionResult
-    checkIns: CheckInType[]
+// Stage 1 of the model audit: run every candidate model on every scenario and record output,
+// latency, tokens, finish reason and programmatic rule results. Stage 2 is judge-ai-outputs.ts.
+// Process and how to repeat it: docs/AI-MODEL-AUDIT.md.
+//
+// Usage: npx tsx --env-file=.env scripts/eval-ai-models/eval-ai-models.ts
+//   [--run-id <id>] [--src-root <dir>] [--reps <n>] [--only <modelId,modelId>] [--rescore] [--merge <runId,runId>]
+// --src-root points at the checkout whose prompts are being audited (default: this repo).
+
+const PER_VENDOR_CONCURRENCY = 3
+const DEFAULT_REPS = 3
+const OUTPUT_ROOT = 'eval-output'
+
+const readFlag = (name: string): string | undefined => {
+    const index = process.argv.indexOf(`--${name}`)
+    return index === -1 ? undefined : process.argv[index + 1]
 }
 
-const baseCheckIns: CheckInType[] = [
-    {
-        id: '1',
-        profileId: 'eval-profile',
-        checkInDate: new Date('2026-07-27'),
-        moodScore: 6,
-        painLevel: 2,
-        activities: ['walk', 'journaling'],
-        createdAt: new Date('2026-07-27'),
-        insights: []
-    },
-    {
-        id: '2',
-        profileId: 'eval-profile',
-        checkInDate: new Date('2026-07-28'),
-        moodScore: 5,
-        painLevel: 3,
-        activities: ['reading'],
-        createdAt: new Date('2026-07-28'),
-        insights: []
-    },
-    {
-        id: '3',
-        profileId: 'eval-profile',
-        checkInDate: new Date('2026-07-29'),
-        moodScore: 3,
-        painLevel: 4,
-        activities: [],
-        createdAt: new Date('2026-07-29'),
-        insights: []
+const runPool = async (tasks: Array<() => Promise<void>>, limit: number): Promise<void> => {
+    let next = 0
+    const worker = async (): Promise<void> => {
+        while (next < tasks.length) {
+            const index = next
+            next += 1
+            await tasks[index]()
+        }
     }
-]
-
-const scenarios: Scenario[] = [
-    {
-        name: 'mood-drop-alert',
-        decision: {
-            type: 'MOOD_DROP_ALERT',
-            reason: 'mood declined 3 check-ins in a row',
-            metadata: { moodTrend: [6, 5, 3] }
-        },
-        checkIns: baseCheckIns
-    },
-    {
-        name: 'motivational',
-        decision: {
-            type: 'MOTIVATIONAL',
-            reason: 'streak milestone',
-            metadata: { currentStreak: 7 }
-        },
-        checkIns: baseCheckIns
-    },
-    {
-        name: 'weekly-summary',
-        decision: {
-            type: 'WEEKLY_SUMMARY',
-            reason: 'end of week',
-            metadata: { currentStreak: 7, checkInCount: 7 }
-        },
-        checkIns: baseCheckIns
-    }
-]
-
-type Candidate = {
-    id: string
-    apiKey: string
-    build: () => AIProvider
+    await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker))
 }
 
-const candidateProviders: Candidate[] = [
-    {
-        id: 'google',
-        apiKey: aiConfig.googleApiKey,
-        build: () => createProviderByType('google')
-    },
-    {
-        id: 'google-pro',
-        apiKey: aiConfig.googleApiKey,
-        build: () => createProviderByType('google-pro')
-    },
-    {
-        id: 'openai',
-        apiKey: aiConfig.openaiApiKey,
-        build: () => createProviderByType('openai')
-    },
-    {
-        id: 'anthropic',
-        apiKey: aiConfig.anthropicApiKey,
-        build: () => createProviderByType('anthropic')
+const gitSha = (dir: string): string => {
+    try {
+        return execSync('git rev-parse --short HEAD', { cwd: dir }).toString().trim()
+    } catch {
+        return 'unknown'
     }
-]
-
-const shuffle = <T,>(items: T[]): T[] => {
-    const copy = [...items]
-    for (let i = copy.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]]
-    }
-    return copy
 }
 
-const labelFor = (index: number): string => `model-${index + 1}`
+// Recompute rule results from the stored outputs after fixing rules.ts: no API calls, no cost.
+const rescore = async (
+    runId: string,
+    srcRoot: string
+): Promise<void> => {
+    const runsPath = join(
+        OUTPUT_ROOT,
+        `audit-${runId}`,
+        'runs.json'
+    )
+    const records = JSON.parse(readFileSync(runsPath, 'utf-8')) as RunRecord[]
+    const scenarios = await buildScenarios(srcRoot)
+    for (const record of records) {
+        const scenario = scenarios.find(s => s.name === record.scenario)
+        if (!scenario || record.error) continue
+        record.rules = checkOutput(
+            scenario,
+            record.text
+        )
+    }
+    writeFileSync(
+        runsPath,
+        JSON.stringify(
+            records,
+            null,
+            2
+        )
+    )
+    console.info(`Rescored ${records.length} runs in ${runsPath}`)
+}
+
+// Combine the outputs of earlier runs (same prompts) into one run, so a late candidate can be judged
+// side by side with a shortlist: judge scores are relative to the models shown together.
+const mergeRuns = (runIds: string[], newRunId: string): void => {
+    const dirOf = (id: string): string => join(
+        OUTPUT_ROOT,
+        `audit-${id}`
+    )
+    const metas = runIds.map(id => JSON.parse(readFileSync(
+        join(
+            dirOf(id),
+            'meta.json'
+        ),
+        'utf-8'
+    )) as {
+        promptsGitSha: string
+        scenarios: Array<{ prompt: string }>
+        candidates: AuditConfig['candidates']
+    } & Record<string, unknown>)
+    const samePrompts = metas.every(m => JSON.stringify(m.scenarios.map(sc => sc.prompt)) === JSON.stringify(metas[0].scenarios.map(sc => sc.prompt)))
+    if (!samePrompts) throw new Error('Runs have different prompts, refusing to merge')
+    const records = runIds.flatMap(id => JSON.parse(readFileSync(
+        join(
+            dirOf(id),
+            'runs.json'
+        ),
+        'utf-8'
+    )) as RunRecord[])
+    mkdirSync(
+        dirOf(newRunId),
+        { recursive: true }
+    )
+    writeFileSync(
+        join(
+            dirOf(newRunId),
+            'runs.json'
+        ),
+        JSON.stringify(
+            records,
+            null,
+            2
+        )
+    )
+    writeFileSync(
+        join(
+            dirOf(newRunId),
+            'meta.json'
+        ),
+        JSON.stringify(
+            {
+                ...metas[0],
+                runId: newRunId,
+                mergedFrom: runIds,
+                candidates: metas.flatMap(m => m.candidates)
+            },
+            null,
+            2
+        )
+    )
+    console.info(`Merged ${runIds.join(', ')} into ${dirOf(newRunId)} (${records.length} runs)`)
+}
 
 const run = async (): Promise<void> => {
-    const active = candidateProviders.filter(p => p.apiKey)
-    const skipped = candidateProviders.filter(p => !p.apiKey).map(p => p.id)
+    const config = JSON.parse(readFileSync(join(__dirname, 'candidates.json'), 'utf-8')) as AuditConfig
+    const runId = readFlag('run-id') ?? new Date().toISOString().slice(0, 10)
+    const srcRoot = resolve(readFlag('src-root') ?? process.cwd())
+    const reps = Number(readFlag('reps') ?? DEFAULT_REPS)
+    const only = readFlag('only')?.split(',')
+    const candidates = config.candidates.filter(c => !only || only.includes(c.id))
 
-    if (skipped.length > 0) {
-        console.warn(`Skipping providers with no API key configured: ${skipped.join(', ')}`)
+    const mergeFlag = readFlag('merge')
+    if (mergeFlag) {
+        mergeRuns(
+            mergeFlag.split(','),
+            runId
+        )
+        return
     }
 
-    mkdirSync('eval-output', { recursive: true })
-
-    const mapping: Record<string, Record<string, string>> = {}
-    const judgeSections: string[] = []
-
-    for (const scenario of scenarios) {
-        const prompt = buildPromptByType(
-            scenario.decision.type,
-            scenario.checkIns,
-            'en',
-            scenario.decision.metadata
+    if (process.argv.includes('--rescore')) {
+        await rescore(
+            runId,
+            srcRoot
         )
-
-        const order = shuffle(active)
-        mapping[scenario.name] = {}
-
-        const outputs = await Promise.all(order.map(async (provider, index) => {
-            const label = labelFor(index)
-            mapping[scenario.name][label] = provider.id
-            try {
-                const instance = provider.build()
-                const result = await instance.generateContent({ prompt })
-                return `**${label}:**\n${result.content.trim()}`
-            } catch (error) {
-                const msg = error instanceof Error ? error.message : 'unknown error'
-                return `**${label}:** [ERROR generating content: ${msg}]`
-            }
-        }))
-
-        judgeSections.push(
-            `## Scenario: ${scenario.name}\n\n`
-            + `Prompt sent to each model:\n\`\`\`\n${prompt}\n\`\`\`\n\n`
-            + outputs.join('\n\n')
-        )
+        return
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const scenarios = await buildScenarios(srcRoot)
+    const outDir = join(OUTPUT_ROOT, `audit-${runId}`)
+    mkdirSync(outDir, { recursive: true })
 
-    const judgeDoc = `# AI Insight Output Evaluation
+    const records: RunRecord[] = []
+    const vendors = [...new Set(candidates.map(c => c.vendor))]
 
-Background: Pulse is a recovery/wellness app. These outputs are AI-generated "insight" messages
-shown to users after check-ins (mood drop alert, motivational nudge, weekly summary). Judge for:
-tone (calm, supportive, non-clinical), adherence to length/format constraints, specificity to the
-given data (not generic filler), and overall fit for a recovery-support product. Models are
-anonymized as model-1/model-2/... — do not guess which is which.
+    // One pool per vendor so a slow vendor does not hold up the others.
+    await Promise.all(vendors.map(async (vendor) => {
+        const tasks = candidates
+            .filter(c => c.vendor === vendor)
+            .flatMap(candidate => scenarios.flatMap(scenario =>
+                Array.from({ length: reps }, (_, rep) => async (): Promise<void> => {
+                    const result = await generate(
+                        vendor,
+                        candidate.id,
+                        scenario.prompt
+                    )
+                    const rules = result.error
+                        ? [{ rule: 'call-succeeded', pass: false }]
+                        : checkOutput(scenario, result.text)
+                    records.push({
+                        ...result,
+                        model: candidate.id,
+                        vendor,
+                        scenario: scenario.name,
+                        rep,
+                        rules
+                    })
+                    console.info(`${candidate.id} / ${scenario.name} #${rep + 1}: ${result.error ?? result.finish} (${result.ms}ms)`)
+                })))
+        await runPool(tasks, PER_VENDOR_CONCURRENCY)
+    }))
 
-For each scenario, rank the models best to worst and give a one-line reason per scenario.
-
-${judgeSections.join('\n\n---\n\n')}
-`
-
-    const mappingJson = JSON.stringify(
-        mapping,
+    writeFileSync(join(outDir, 'runs.json'), JSON.stringify(
+        records,
         null,
-        4
-    )
+        2
+    ))
+    writeFileSync(join(outDir, 'meta.json'), JSON.stringify(
+        {
+            runId,
+            date: new Date().toISOString(),
+            reps,
+            srcRoot,
+            promptsGitSha: gitSha(srcRoot),
+            scenarios: scenarios.map(s => ({
+                name: s.name,
+                kind: s.kind,
+                language: s.language,
+                prompt: s.prompt
+            })),
+            candidates
+        },
+        null,
+        2
+    ))
 
-    writeFileSync(`eval-output/judge-prompt-${timestamp}.md`, judgeDoc)
-    writeFileSync(`eval-output/mapping-${timestamp}.json`, mappingJson)
-
-    console.info(`Wrote eval-output/judge-prompt-${timestamp}.md (share with judges)`)
-    console.info(`Wrote eval-output/mapping-${timestamp}.json (keep secret until scoring done)`)
+    console.info(`Wrote ${records.length} runs to ${outDir}/runs.json. Next: judge-ai-outputs.ts --run-id ${runId}`)
 }
 
 run().catch((error) => {
     console.error(error)
-    throw error
+    process.exitCode = 1
 })
