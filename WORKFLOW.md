@@ -10,4 +10,5 @@ Quick-reference guide. Find your scenario, read constraints + references only.
 - [Changing Database Schema](./workflow/02-changing-database-schema.md)
 - [Writing Tests](./workflow/03-writing-tests.md)
 - [Adding Error Handling](./workflow/04-adding-error-handling.md)
+- [Adding a New AI Pipeline](./workflow/05-adding-ai-pipeline.md)
 - [Global Constraints](./workflow/global-constraints.md)
