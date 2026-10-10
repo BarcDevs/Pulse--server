@@ -155,6 +155,15 @@ Still open:
   had no progress-summary lines at all. After the redeploy, search the log for `AI progress summary failed validation`.
 - **`OpenAIProvider` stored replies cut off at the token limit** (fixed 10/10/2026, `afaf064`): it now throws on
   `finish_reason=length`, like `AnthropicProvider`. The Google equivalent is still open (HIGH).
+- **Insights said "your mood is 8" / "your pain stays around 3"** (fixed 10/10/2026, `NO_SCORES_RULE` in
+  `insightsPrompts.ts`, used by the mood-drop, motivational and weekly prompts). Checked by the audit session:
+  8 runs per prompt on `claude-sonnet-5`, Hebrew, 0 of 24 replies quoted a score with the rule, against 7-8 of 8
+  (mood drop), 4 of 8 (motivational) and 8 of 8 (weekly) without it; same on 14 other models. No validator needed.
+- **A prod `MOTIVATIONAL` insight was stored cut off mid-sentence** (found 10/10/2026, 79 characters). Cause
+  confirmed from the prod log: Anthropic returned 401 (stale key), the chain fell to `google-pro`, which ended with
+  `finishReason=MAX_TOKENS` and `GoogleAIProvider` stored it. The open fix is the Google guard in HIGH above. The
+  `stop_reason=max_tokens` guard added to `AnthropicProvider` here was not the cause and is a safeguard only, since
+  Anthropic left the prod chain.
 - **Prod AI chain moved to `gpt-6.1-sol` primary with `gemini-3.1-flash-lite` fallback** (10/10/2026, `b03c6d4`):
   Anthropic and `google-pro` left the chain, `openaiModel` default is `gpt-6.1-sol`, and the chain logs a warning
   when it skips a provider for a missing key (`3282657`). Prod checked: no env overrides on the container, the
