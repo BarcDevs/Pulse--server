@@ -248,3 +248,13 @@ describe('recent activities and notes come from the newest check-ins', () => {
         expect(prompt).not.toContain('activity-6')
     })
 })
+
+describe('score quoting', () => {
+    it.each([
+        ['mood drop', () => buildPromptForMoodDropAlert([mockCheckIn()], 'en', [8, 6, 4])],
+        ['motivational', () => buildPromptForMotivational([mockCheckIn()], 'en', 3, 5)],
+        ['weekly', () => buildPromptForWeeklySummary([mockCheckIn()], 'en', 3, 1)]
+    ])('tells the model never to quote scores in the %s prompt', (_name, build) => {
+        expect(build()).toContain('Never quote mood or pain scores')
+    })
+})

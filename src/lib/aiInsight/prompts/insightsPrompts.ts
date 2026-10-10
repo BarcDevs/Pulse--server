@@ -26,7 +26,9 @@ const languageInstruction = (
     return base + terminology
 }
 
-const injectBrandName = (prompt: string): string =>
+const NO_SCORES_RULE = '- Never quote mood or pain scores, averages or any number from the 1 to 10 scales (not "your mood is 8", not "your pain stays around 3"). The numbers in the context are only for you to understand the pattern: describe it in words instead (steadier, lighter, heavier, improving). Streak and day counts may be mentioned'
+
+const injectBrandName =(prompt: string): string =>
     prompt.replaceAll('{{brandName}}', brandConfig.brandName)
 
 // region Prompt Builders
@@ -61,6 +63,7 @@ Requirements:
 - Do not diagnose, do not use medical language, and do not sound like a crisis warning
 - Avoid generic filler like "take it one day at a time" unless clearly relevant
 - Make it feel human, calm, and specific to a recovery journey
+${NO_SCORES_RULE}
 - Do not show your reasoning, drafts, alternatives, or revisions
 - Output ONLY the final message text, with nothing before or after it
 
@@ -95,6 +98,7 @@ Requirements:
 - Keep the tone warm, grounded, and respectful
 - Avoid hype, clichés, and over-the-top praise
 - Do not sound generic
+${NO_SCORES_RULE}
 - Do not show your reasoning, drafts, alternatives, or revisions
 - Output ONLY the final message text, with nothing before or after it
 
@@ -140,6 +144,7 @@ Requirements:
 - Keep the tone supportive, calm, and non-judgmental
 - Do not diagnose or make medical claims
 - Avoid generic phrasing that could apply to anyone
+${NO_SCORES_RULE}
 - Do not show your reasoning, drafts, alternatives, or revisions
 - Output ONLY the final message text, with nothing before or after it
 
