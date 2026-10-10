@@ -139,3 +139,11 @@ After `git worktree remove` on two worktrees, the main checkout's `node_modules/
 Asked to "open pr", I opened `development` → `main` and then waited, because I read "open" literally. The user had meant their shorthand: "`open pr` = alias to `open pr and merge if green`, I don't write the whole sentence every time". Two earlier "open PR" requests had been left unmerged for the same reason.
 
 **How to apply:** when the user says "open pr" (or "open the PR"), open it, wait for the checks, and merge it if they are all green; if any check fails or is pending, stop and report. Merging into `main` only queues the Deploy workflow, which still waits for the user's approval click on the `aws-production` environment. If the merge itself is blocked (e.g. the "stacked PR" asynchronous-merge error, or a permission denial), report that instead of working around it.
+
+---
+
+## 10/10/2026 — Told sessions to remove worktree junctions with `cmd /c rmdir`, which Git Bash mangles
+
+Repeat of the 09/10/2026 entry. I told two sessions to remove each worktree's `node_modules` and `prisma/generated` junctions with `cmd /c rmdir` before `git worktree remove`. From Git Bash `/c` is rewritten as a path, so the first session's `cmd //c rmdir` calls failed silently, `git worktree remove` followed the junctions and emptied the main checkout's `node_modules` and `prisma/generated`. It was restored with `npm ci` and `npm run prisma:generate`; a few minutes of anything run in the main checkout or in other worktrees could have failed.
+
+**How to apply:** when handing out the junction removal, give the exact command for the receiving shell (PowerShell: `cmd /c rmdir <path>`, Git Bash: `cmd //c rmdir <path>`), and require a check that the link is gone (`Test-Path` false, or `ls` shows no entry) BEFORE `git worktree remove`. Do not run `git worktree remove` while the check fails. Prefer not creating the junctions at all when a plain `npm ci` in the worktree is affordable.

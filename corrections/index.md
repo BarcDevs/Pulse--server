@@ -29,6 +29,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 02/10/2026 | "tell client" is a role, not a session: ask which session even if only one name matches (repeat of 29/09) |
 | 09/10/2026 | Run the full gate (typecheck, lint, unit, integration after merges) before pushing, not just typecheck |
 | 09/10/2026 | `git worktree remove` left the main checkout's `node_modules` empty - check for a junction first, verify `node_modules` after |
+| 10/10/2026 | Told sessions to remove worktree junctions with `cmd /c rmdir`, which Git Bash mangles; the main `node_modules` was emptied again (verify the link is gone first) |
 | 09/10/2026 | "open pr" = open the PR and merge it if CI is green (deploy still needs the user's approval click) |
 
 ## Infra Facts — [[corrections/infra-facts]]
