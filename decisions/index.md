@@ -29,8 +29,8 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | Date | Entry |
 |---|---|
 | 11/08/2026 | RAG: not needed app-wide, one legit fit identified for later |
-| 12/08/2026 | No manual AI provider switch needed before Anthropic price change |
 | 12/08/2026 | Post title/body length cap; pgvector confirmed viable; embedding model/vector DB picked for RAG plan |
+| 10/10/2026 | Prod AI chain: gpt-6.1-sol primary, gemini-3.1-flash-lite fallback, Anthropic dropped (supersedes archived 12/08 entry) |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
