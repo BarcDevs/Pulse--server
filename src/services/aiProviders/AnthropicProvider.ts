@@ -70,7 +70,20 @@ export class AnthropicProvider extends AIProvider {
             )
         }
 
-        const data = await response.json() as { content?: Array<{ type?: string, text?: string }> }
+        const data = await response.json() as {
+            content?: Array<{ type?: string, text?: string }>
+            stop_reason?: string
+            usage?: { output_tokens?: number }
+        }
+
+        if (data.stop_reason === 'max_tokens') {
+            logger.warn(
+                `Anthropic: response cut off - stop_reason=max_tokens, output_tokens=${data.usage?.output_tokens}, max_tokens=${aiGenerationConfig.maxOutputTokens}`
+            )
+            throw new Error(
+                'Anthropic response was cut off at the token limit'
+            )
+        }
 
         const textBlock = data.content?.find(block => block.type === 'text' && block.text)
 
