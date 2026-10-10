@@ -14,4 +14,4 @@ Superseded entries moved here from [[decisions/ai-and-rag]]. Not current guidanc
 
 **How to apply:** No action needed. Revisit only if the Anthropic allotment gets auto-reload enabled (then per-call cost becomes ongoing and a proactive switch may be worth it) or if the tokens turn out to have an expiry.
 
-*Archived 10/10/2026 — superseded: the fallback order it relies on (`anthropic,google-pro,openai`) was replaced by gpt-6.1-sol primary + gemini-3.1-flash-lite fallback and Anthropic left the prod chain. See [[decisions/ai-and-rag]] (10/10/2026).*
+*Archived 10/10/2026 — superseded: the fallback order it relies on (`anthropic,google-pro,openai`) was replaced by gpt-6.1-sol primary + gemini-3.1-flash-lite fallback and Anthropic left the prod chain. See [[decisions/ai-and-rag]] (10/10/2026, both entries).*
