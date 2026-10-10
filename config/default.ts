@@ -49,7 +49,7 @@ export default {
         anthropicModel: 'claude-sonnet-5',
         googleFreeModel: 'gemini-3.1-flash-lite',
         googleModel: 'gemini-3.1-pro-preview',
-        openaiModel: 'gpt-5.6-sol',
+        openaiModel: 'gpt-6.1-sol',
         openaiApiKey: '',
         anthropicApiKey: '',
         googleApiKey: '',

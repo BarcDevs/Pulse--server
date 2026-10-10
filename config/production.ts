@@ -11,7 +11,7 @@ export default {
         expiresIn: '7d'
     },
     ai: {
-        provider: 'anthropic',
-        fallbackOrder: 'anthropic,google-pro,openai'
+        provider: 'openai',
+        fallbackOrder: 'google'
     }
 }
