@@ -146,6 +146,16 @@ Still open:
   a garbled Hebrew phrase, one said mood "rose to 8" when it was 8 the day before, and one said
   "almost without a break" for an unbroken 18-day streak.
 
+## LOW PRIORITY (non-blocking)
+
+- **Evaluate Node 26 once it reaches LTS (reported 28/10/2026; check nodejs.org's schedule).** Node 26 (out 05/2026) adds
+  Temporal by default, V8 14.6, Undici 8 and removes some old APIs; nothing in it fixes a current problem, and Node 24
+  is Active LTS for years, so there is no urgency. Node is pinned in `Dockerfile` (builder and runner stages),
+  `.github/workflows/ci.yml` (two jobs), `engines` in `package.json` and `@types/node`. Do it in its own branch,
+  not together with another change: run the `stack-update-check` skill first, then bump all four and run typecheck,
+  lint, unit and integration tests. Watch the Prisma 7 CJS output, `rewriteRelativeImportExtensions`, Jest 30's
+  resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
+
 ## DONE
 
 - **`countSentences` counted decimals as sentence ends, so AI progress summaries were rejected** (fixed 10/10/2026,
