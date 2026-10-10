@@ -2,6 +2,7 @@ import { generateInsight } from '../../../../services/aiInsightGeneratorService'
 import * as providerModule from '../../../../services/aiProviders/ProviderFactory'
 import type { CheckInType } from '../../../../types/data/CheckInType'
 import type { InsightDecisionResult } from '../../../../types/insight'
+import logger from '../../../../utils/logger'
 
 jest.mock('../../../../services/aiProviders/ProviderFactory')
 jest.mock('../../../../../config', () => ({
@@ -420,6 +421,7 @@ describe('generateInsight', () => {
         })
 
         it('prod skips providers with no API key configured', async () => {
+            const warnSpy = jest.spyOn(logger, 'warn').mockImplementation()
             configModule.isProd = true
             configModule.aiConfig.provider = 'anthropic'
             configModule.aiConfig.googleApiKey = ''
@@ -442,9 +444,14 @@ describe('generateInsight', () => {
                 language: 'en'
             })
 
-            // google-pro shares googleApiKey, so it's skipped when that key is empty
+            // google-pro shares googleApiKey, so it's skipped when that key is empty, and the skip is logged
+            expect(warnSpy).toHaveBeenCalledWith(
+                'AI provider google-pro skipped: no API key configured',
+                { provider: 'google-pro' }
+            )
             expect(mockConfig.createProviderByType).toHaveBeenCalledWith('anthropic')
             expect(mockConfig.createProviderByType).not.toHaveBeenCalledWith('google-pro')
+            warnSpy.mockRestore()
 
             configModule.aiConfig.googleApiKey = 'test-google-key'
         })

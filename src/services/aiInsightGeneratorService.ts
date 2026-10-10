@@ -138,7 +138,7 @@ const hasApiKeyForProvider = (providerType: ProviderType): boolean =>
 
 const buildProviderChain = (): ProviderType[] => {
     // Render forces NODE_ENV=production on preview builds, which also
-    // merges in config/production.ts (provider: anthropic + fallbackOrder).
+    // merges in config/production.ts (provider: openai + fallbackOrder).
     // isProd is resolved from APP_ENV, so preview correctly falls back to
     // plain google-lite here instead of inheriting the prod chain.
     if (!isProd) {
@@ -156,9 +156,14 @@ const buildProviderChain = (): ProviderType[] => {
     for (const providerType of chain) {
         if (seen.has(providerType)) continue
         seen.add(providerType)
-        if (hasApiKeyForProvider(providerType)) {
-            dedup.push(providerType)
+        if (!hasApiKeyForProvider(providerType)) {
+            logger.warn(
+                `AI provider ${providerType} skipped: no API key configured`,
+                { provider: providerType }
+            )
+            continue
         }
+        dedup.push(providerType)
     }
 
     return dedup
