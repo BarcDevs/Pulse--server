@@ -42,3 +42,11 @@ The $7.74 August VPC line (and later the September one) was repeated across sess
 Across several turns I framed the server's changing public IP as the ASG blocker, called the reason the site survived the resize an unconfirmed "Cloudflare mechanism", and priced an EIP on `pulse-server`. `docs/DEPLOYMENT.md` line 13 already documented the answer: Cloudflare points at the **client** instance's public IP, and the client proxies `/api` to the server over its **private** IP, which is baked into the client build (`NEXT_PUBLIC_SERVER_URL=http://172.31.25.240:80` in `pulse--client/.github/workflows/deploy.yml`). The server's public IP is used by nothing, so an EIP there fixes nothing; the real risks are the client's public IP (site down if the client restarts) and the server's private IP (client breaks if an ASG replaces the server).
 
 **How to apply:** before designing HA/IP-stability changes, read the deployment doc's topology and grep the callers (client workflow/config) for the address in question. Don't call a mechanism "unconfirmed" while the repo's own docs state it.
+
+---
+
+## 10/10/2026 — Credited the monitor agent to the owner and dated it today without checking
+
+Asked to resolve the "Monitor agent for production errors" TODO, I wrote "resolved 10/10/2026, built by the owner" in `TODO.md` from the user's words "i already built it", without checking who built it or when. The user corrected it: it was not built by them and not today; it was built by the `aws-monitor` session. `git log -- scripts/monitor` shows the scripts first added 29/09/2026 (e3e764c) and last changed 09/10/2026.
+
+**How to apply:** before recording who built something or when, read the history (`git log` dates and `Claude-Session` trailers) or ask. "I built it" from the user can mean work done by their agent sessions, and a record that names an author or date is a claim that needs a source.
