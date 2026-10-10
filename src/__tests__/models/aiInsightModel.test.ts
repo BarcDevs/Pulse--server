@@ -112,6 +112,32 @@ describe('aiInsightModel', () => {
         })
     })
 
+    describe('deleteInsightsExceptTypes', () => {
+        it('deletes only this check-in\'s insights whose type is not kept', async () => {
+            prismaMock.aIInsight.deleteMany.mockResolvedValue({ count: 1 } as never)
+
+            await aiInsightModel.deleteInsightsExceptTypes(
+                'checkin-1',
+                ['MOTIVATIONAL'] as never
+            )
+
+            expect(prismaMock.aIInsight.deleteMany).toHaveBeenCalledWith({
+                where: {
+                    checkInId: 'checkin-1',
+                    type: { notIn: ['MOTIVATIONAL'] }
+                }
+            })
+        })
+
+        it('propagates Prisma error', async () => {
+            prismaMock.aIInsight.deleteMany.mockRejectedValue(new Error('DB down'))
+
+            await expect(
+                aiInsightModel.deleteInsightsExceptTypes('checkin-1', [])
+            ).rejects.toThrow('DB down')
+        })
+    })
+
     describe('getInsightsByUserId', () => {
         it('returns insights ordered by createdAt desc', async () => {
             const insights = [mockInsight, { ...mockInsight, id: 'insight-2' }]
