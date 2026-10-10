@@ -19,18 +19,6 @@ context in this topic — not routinely.
 
 ---
 
-## 12/08/2026 — No manual AI provider switch needed before Anthropic price change
-
-**Problem:** Anthropic token pricing increases after 2026-08-31. Considered manually switching the primary provider to Google before that date to avoid the higher rate.
-
-**Decision:** Not needed. The app runs on a pre-purchased, fixed Anthropic token allotment with no auto-reload — those tokens are a sunk cost already paid at the old rate, not billed per-call going forward, and aren't used for anything else. The existing per-call fallback order (`fallbackOrder: 'anthropic,google-pro,openai'`, `config/production.ts`) already switches to Google automatically once the Anthropic allotment is exhausted or a call fails — no date-based manual switch adds anything.
-
-**Why this approach over alternatives:** A scheduled manual switch on 31.8 was the original plan, but it only makes sense if the tokens have an expiry date or ongoing per-call billing risk (auto-reload). Neither applies here, so the existing reactive fallback is strictly sufficient — a proactive scheduled switch would just stop using already-paid-for tokens early.
-
-**How to apply:** No action needed. Revisit only if the Anthropic allotment gets auto-reload enabled (then per-call cost becomes ongoing and a proactive switch may be worth it) or if the tokens turn out to have an expiry.
-
----
-
 ## 12/08/2026 — Post title/body length cap; pgvector confirmed viable; embedding model/vector DB picked for RAG plan
 
 **Problem:** Three loose ends surfaced while prepping the RAG-for-recommendations plan (see 11/08/2026 entry above) for an architecture interview: (1) `newPostSchema`/`updatePostSchema` had no `.max()` on `title`/`body` — an unbounded string is both an abuse vector (huge paste) and, once embedding is added, a real risk of exceeding the embedding model's input token limit; (2) hadn't confirmed pgvector actually works on the current RDS instance (Postgres 17.10, `db.t3.micro`) before committing to the plan; (3) hadn't picked a concrete embedding model or a future vector-DB-at-scale option, which reads badly in an interview as "haven't decided."
@@ -44,3 +32,27 @@ context in this topic — not routinely.
 **Why this approach over alternatives:** `text-embedding-3-large` and Pinecone were the main alternatives considered — both rejected as over-spec/over-cost for current post volume, not because they're wrong in principle. Qdrant over Pinecone/Weaviate specifically because native filter+vector queries avoid adding a second scoring pass in application code.
 
 **How to apply:** Length caps are live now (independent of RAG timing). The model/vector-DB choices are the plan to execute when the RAG work is actually picked up — no code for embeddings exists yet, only the scoring bug and this plan (see 11/08/2026 entry).
+
+---
+
+## 10/10/2026 — Prod primary model: gpt-6.1-sol
+
+**Problem:** The prod chain (`config/production.ts`) had `anthropic` primary, set from a first audit with few scenarios and few samples that found GPT far costlier than Sonnet. That audit evaluated OpenAI through the config default `gpt-5.6-sol` ($4/$20 per 1M tokens, a different, cyber-oriented model), not `gpt-6.1-sol` ($2/$10). A repeatable audit was run on 10/10/2026: 15 models, 6 scenarios covering every AI request type, 3 blind judges, then a playoff of the top models at 8 reps (`docs/AI-MODEL-AUDIT.md`).
+
+**Decision:** Primary model is `gpt-6.1-sol` (`provider: 'openai'`; `openaiModel` default changed from `gpt-5.6-sol` to `gpt-6.1-sol` so the audited id is the one that runs). Evidence, vendor-neutral judge mean (judges from other vendors only, because judges favour their own vendor; GPT 6.1 Sol rated itself 1.4-2.2 points above the others): gpt-6.1-sol 8.08, claude-sonnet-5-5 7.33, gpt-5.6-terra 6.83, gpt-6-luna 6.42, gemini-3.1-flash-lite 5.08. gpt-6.1-sol: slowest call 10.1 s over 66 calls, no cutoffs, 99% rule pass (the misses were a dash check applied to a prompt that never asks for it), $2.89 per 1k requests.
+
+**Why over alternatives:** claude-sonnet-5-5 is within the 0.5 tie range (0.75 behind) at 2.1x the cost per request and the same latency. gpt-6-luna is the cheapest and fastest of the strong models but scored lowest on the vendor-neutral judges among the top four; its lead in the first run came mostly from the GPT judge. gpt-5.6-terra is faster but 1.25 points lower.
+
+**How to apply:** This is the model of choice until the next audit; repeat it per `docs/AI-MODEL-AUDIT.md`. Verified on 10/10/2026: the prod container has no `AI_PROVIDER`, `AI_FALLBACK_ORDER` or `OPENAI_MODEL` override, and the prod `OPENAI_API_KEY` and `GOOGLE_AI_API_KEY` secrets are identical to the local keys used in the audit.
+
+---
+
+## 10/10/2026 — Fallback: gemini-3.1-flash-lite preferred over claude-sonnet-5-5; Anthropic dropped from the prod chain
+
+**Problem:** What should run when the primary fails. The old fallbacks were `google-pro` (`gemini-3.1-pro-preview`, never audited) then `openai`. A prod log from 10/10/2026 01:08 UTC showed what an unaudited fallback can do: the stale Anthropic key returned 401 (twice), the chain fell to `google-pro`, which finished with `finishReason=MAX_TOKENS, tokens=1251` (thinking used the budget); `GoogleAIProvider` only warns on that, so a 79-character cut-off insight was stored as a normal one.
+
+**Decision:** One fallback, `gemini-3.1-flash-lite` (`fallbackOrder: 'google'`). `claude-sonnet-5-5` is demoted out of the chain and Anthropic leaves the prod chain entirely (the Anthropic provider stays in code), as does `google-pro`. The chain now also logs a warning when a provider is skipped for a missing API key (it used to skip silently).
+
+**Why over alternatives:** In the audit gemini-3.1-flash-lite had no cutoffs and no reasoning overhead, a slowest call of 2.6 s and $0.23 per 1k requests; claude-sonnet-5-5 has better quality (7.33 vs 5.08) but costs $6.16 per 1k, its slowest call was 10.3 s and one of 48 calls was cut off. Speed decides it, because the check-in request currently awaits the whole AI chain and the Next.js `/api` proxy cuts at 30 s (a prod check-in took 10.4 s in the log above), so a slow fallback risks failing a check-in that the server saved. Using a different vendor than the primary means an OpenAI outage cannot take both down. Quality during an outage is an accepted trade-off.
+
+**How to apply:** Anthropic identity federation (`scaling-todo.md`) is deferred until a new audit brings Anthropic back into the chain. Only insights use the chain; daily observation, progress summaries and check-in feedback call a single provider. `GoogleAIProvider` still stores a reply that ended with `MAX_TOKENS`; it needs the same guard `AnthropicProvider` and `OpenAIProvider` got (TODO.md).

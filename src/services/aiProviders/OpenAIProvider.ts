@@ -69,7 +69,23 @@ export class OpenAIProvider extends AIProvider {
         }
 
         const data = await response.json() as {
-            choices?: Array<{ message?: { content?: string } }>
+            choices?: Array<{
+                message?: { content?: string }
+                finish_reason?: string
+            }>
+            usage?: {
+                completion_tokens?: number
+                completion_tokens_details?: { reasoning_tokens?: number }
+            }
+        }
+
+        if (data.choices?.[0]?.finish_reason === 'length') {
+            logger.warn(
+                `OpenAI: response cut off - finish_reason=length, completion_tokens=${data.usage?.completion_tokens}, reasoning_tokens=${data.usage?.completion_tokens_details?.reasoning_tokens}, max_completion_tokens=${aiGenerationConfig.maxOutputTokens}`
+            )
+            throw new Error(
+                'OpenAI response was cut off at the token limit'
+            )
         }
 
         if (

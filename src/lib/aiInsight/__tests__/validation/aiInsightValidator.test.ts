@@ -193,6 +193,50 @@ describe('countSentences', () => {
             countSentences('Hello!! World??')
         ).toBe(2)
     })
+
+    it('should not split on decimal points', () => {
+        expect(
+            countSentences('Mood rose to 6.9 and pain eased to 3.0.')
+        ).toBe(1)
+    })
+
+    it('should not split on decimals inside parentheses', () => {
+        expect(
+            countSentences('Mood rose (+0.8) and pain fell (-0.6). Nice.')
+        ).toBe(2)
+    })
+
+    it('should not split on percentages', () => {
+        expect(
+            countSentences('Consistency hit 71% (+28%). Keep going.')
+        ).toBe(2)
+    })
+
+    it('should count a trailing period without an empty sentence', () => {
+        expect(countSentences('One sentence.')).toBe(1)
+    })
+
+    it('should treat an ellipsis as a single boundary', () => {
+        expect(
+            countSentences('Hmm... maybe so. Okay.')
+        ).toBe(3)
+    })
+
+    it('should count Hebrew sentences with decimals', () => {
+        expect(
+            countSentences(
+                'מצב הרוח עלה ל-6.9 (+0.8). הכאב ירד ל-3.0. המשך כך!'
+            )
+        ).toBe(3)
+    })
+
+    it('should count a real progress reply with decimals as 3 sentences', () => {
+        expect(
+            countSentences(
+                'This week showed positive movement across the board: mood rose to 6.9 (+0.8), pain eased slightly to 3.0 (-0.6), and activity consistency jumped significantly to 71% (+28%). This marks a strong week of improvement, particularly in maintaining a more consistent activity routine alongside better mood. Keep noting what is contributing to these gains as you move into next week.'
+            )
+        ).toBe(3)
+    })
 })
 
 describe('validateGeneratedInsight', () => {

@@ -29,6 +29,8 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 02/10/2026 | "tell client" is a role, not a session: ask which session even if only one name matches (repeat of 29/09) |
 | 09/10/2026 | Run the full gate (typecheck, lint, unit, integration after merges) before pushing, not just typecheck |
 | 09/10/2026 | `git worktree remove` left the main checkout's `node_modules` empty - check for a junction first, verify `node_modules` after |
+| 10/10/2026 | Told sessions to remove worktree junctions with `cmd /c rmdir`, which Git Bash mangles; the main `node_modules` was emptied again (verify the link is gone first) |
+| 10/10/2026 | Chained `git worktree remove` after junction `rmdir` calls that had errored; `node_modules` emptied a third time (separate step, verify link gone) |
 | 09/10/2026 | "open pr" = open the PR and merge it if CI is green (deploy still needs the user's approval click) |
 
 ## Infra Facts — [[corrections/infra-facts]]
@@ -60,4 +62,5 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 24/09/2026 | Told the user to restore a form field to its old value without asking what it represented (marketing spend was the mistake, not the fix) |
 | 26/09/2026 | Called the VPC charge a "NAT Gateway" without checking usage types (it is public IPv4 addresses; no NAT exists) |
 | 26/09/2026 | Planned an Elastic IP on the server without reading the topology (domain → client public IP; client → server private IP baked at build) |
+| 10/10/2026 | Credited the monitor agent to the owner and dated it today without checking git history |
 | 29/09/2026 | Model Selection in CLAUDE.md said Haiku for sub-agents (stale); Sonnet default, Opus via /opusplan |

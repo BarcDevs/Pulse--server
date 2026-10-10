@@ -1,0 +1,28 @@
+{
+    "pricingNote": "USD per 1M tokens, standard tier, short context. Re-check before each audit: Anthropic platform.claude.com/docs/en/about-claude/pricing, OpenAI developers.openai.com/api/docs/pricing, Google ai.google.dev/gemini-api/docs/pricing. Gemini 3.8/3.6 flash list a promo rate through 2026-12-31 that doubles on 2027-01-01 (promo rate used here).",
+    "notCandidates": "gemini-3.8-live: Live API (WebSocket bidiGenerateContent) only, no REST generateContent. Revisit when a live-chat feature exists.",
+    "pricingCheckedOn": "2026-10-10",
+    "candidates": [
+        { "id": "gpt-6.1-sol", "vendor": "openai", "inPerM": 2.0, "outPerM": 10.0 },
+        { "id": "gpt-6-luna", "vendor": "openai", "inPerM": 0.1, "outPerM": 0.5 },
+        { "id": "gpt-5.6-terra", "vendor": "openai", "inPerM": 2.0, "outPerM": 12.0 },
+        { "id": "gpt-5.4-mini", "vendor": "openai", "inPerM": 0.75, "outPerM": 4.5 },
+        { "id": "gpt-5.4-nano", "vendor": "openai", "inPerM": 0.2, "outPerM": 1.25 },
+        { "id": "gpt-5.2", "vendor": "openai", "inPerM": 1.75, "outPerM": 14.0 },
+        { "id": "gemini-3.8-flash", "vendor": "google", "inPerM": 0.75, "outPerM": 3.75 },
+        { "id": "gemini-3.6-flash", "vendor": "google", "inPerM": 0.75, "outPerM": 3.75 },
+        { "id": "gemini-3.5-flash-lite", "vendor": "google", "inPerM": 0.3, "outPerM": 2.5 },
+        { "id": "gemini-3.1-flash-lite", "vendor": "google", "inPerM": 0.25, "outPerM": 1.5 },
+        { "id": "claude-sonnet-5", "vendor": "anthropic", "inPerM": 2.0, "outPerM": 10.0 },
+        { "id": "claude-sonnet-4-6", "vendor": "anthropic", "inPerM": 3.0, "outPerM": 15.0 },
+        { "id": "claude-sonnet-5-5", "vendor": "anthropic", "inPerM": 2.0, "outPerM": 10.0 },
+        { "id": "claude-haiku-5-5", "vendor": "anthropic", "inPerM": 0.1, "outPerM": 0.5 },
+        { "id": "claude-haiku-4-5", "vendor": "anthropic", "inPerM": 1.0, "outPerM": 5.0 }
+    ],
+    "judges": [
+        { "id": "claude-sonnet-5-5", "vendor": "anthropic", "mode": "subagent" },
+        { "id": "gpt-6.1-sol", "vendor": "openai", "mode": "api" },
+        { "id": "gemini-3.8-flash", "vendor": "google", "mode": "api" }
+    ],
+    "weights": { "quality": 0.4, "obedience": 0.25, "reliability": 0.15, "cost": 0.1, "latency": 0.1 }
+}

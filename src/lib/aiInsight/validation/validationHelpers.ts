@@ -10,7 +10,7 @@ export const normalizeContent = (content: string): string =>
 export const countSentences = (content: string): number => {
     const normalized = normalizeContent(content)
     const parts = normalized
-        .split(/[.!?]+/)
+        .split(/[.!?]+(?=\s|$)/)
         .map((part) => part.trim())
         .filter(Boolean)
     return parts.length
