@@ -36,3 +36,15 @@ context in this topic — not routinely.
 **Why over alternatives:** committing records straight to `development` (the old step 7) fills history with bookkeeping and pushes it on its own; leaving them uncommitted dirties the shared checkout other sessions use. An amended local branch keeps both clean and still loses nothing, since the branch persists between runs and the notification quotes unshipped records.
 
 **How to apply:** Look for the latest watcher records on the `monitor/records` branch, not only on `development`. Never push that branch on its own or let it grow past one commit. Watcher steps are in `.claude/routines/prod-error-monitor.md` (and the client's `sentry-error-monitor.md`).
+
+---
+
+## 11/10/2026 — Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed
+
+**Problem:** Every quiet AWS-watcher run still moved the checkpoint, which edited the tracked `index.md`. That dirtied the records worktree and forced a `git add` + `git commit --amend` (and sometimes a rebase) every 5h, even with nothing to record. The auto-mode classifier blocked those git commands as "Git Destructive" even with allow rules in `.watchers/.claude/settings.local.json`, so runs died after setting the checkpoint and left a dirty tree that blocked the next run's rebase. It contradicted the routine's own goal: quiet runs leave no dirty tree.
+
+**Decision:** `scripts/monitor/checkpoint.ts` keeps the live checkpoint in an untracked file in the records worktree's git dir (`monitor-checkpoint`). `set` writes only that file; `get` reads it, falling back to the `<!-- checkpoint -->` marker in `index.md`; `flush` copies it into `index.md`. The routine runs `flush`, `add` and the amend only when `git status` shows record changes (bumped rows, 404 tallies, new records). A quiet run runs no git write commands. The client's Sentry watcher has no checkpoint (it searches a fixed ~8h window and stops with no trace when there are no issues), so it needed no change.
+
+**Why over alternatives:** more allow rules or splitting the chained command only chase the classifier's wording and failed in practice. Dropping the checkpoint into a tracked file in a new location would still dirty the tree. The git dir is never tracked, never shows in `git status`, and is per-worktree.
+
+**How to apply:** if the records worktree is deleted and recreated, the untracked value is lost and the committed marker is used, so the next run re-scans from the last committed checkpoint (safe, just a bigger window). Never put the live checkpoint back into a tracked file.
