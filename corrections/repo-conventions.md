@@ -164,3 +164,11 @@ I added "move the check-in job queue to SQS" and "push insights over a socket" t
 
 **How to apply:** when a decision defers something "for scale" (SQS, sockets, locks for more than one instance, RAG), append it to `scaling-todo.md`. Check which file a section belongs to before editing a TODO file.
 
+
+---
+
+## 11/10/2026 — "Deploy" means open the PR to `main` and merge it when CI is green
+
+After pushing `development` I opened PR #55 for "deploy" but stopped before merging and asked again. The user: "but why dont you merge when i say deploy????" and "next time merge it when i say deploy". The merge was also blocked by the auto-mode classifier ("Merge Without Review"), which the user fixed by adding a `Bash(gh pr merge:*)` allow rule.
+
+**How to apply:** "deploy" is the same as "open pr" (see `GIT_RULES.md`): pull, push `development` and tags, open the `development` → `main` PR, wait for every check, merge if all pass. Stop and report only on a failing or pending check. The `aws-production` approval click stays with the user.
