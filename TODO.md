@@ -91,6 +91,14 @@ Why, evidence and the RDS read-only verification recipe: `.claude/db-optimizatio
 
 ## FIRST ON SCALING
 
+- **Move the check-in AI job queue from the database table to SQS (decided 11/10/2026).** The job table
+  (`CheckInAiJob`) is the durable queue for now. Move to SQS (queue + dead-letter queue, IAM on the instance role,
+  long-polling consumer, LocalStack or stub for local dev) only when volume or separate worker machines justify it.
+  Keep job claiming behind one model function so the swap is local. Cost is not the reason to wait (free tier covers
+  1M requests a month); the extra infra is.
+- **Push insights over a socket once the chat feature is connected (decided 11/10/2026).** Reuse the chat
+  connection to tell the client an insight is ready, replacing the polling of `GET /check-in`. Needs the socket to
+  work through the Next.js rewrite and Cloudflare Tunnel, and pub/sub across the 2 ASG instances.
 - **Re-check DB performance once there is real forum data.** The DB-perf release was verified
   on RDS on 03/10/2026 (all 7 migrations applied, `pg_trgm` and the new indexes present, the
   old ones gone, `Post.replyCount` drift 0, the per-session `statement_timeout` enforced). Prod
