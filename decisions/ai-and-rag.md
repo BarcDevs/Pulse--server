@@ -35,6 +35,34 @@ context in this topic — not routinely.
 
 ---
 
+## 11/10/2026 — Considering Bedrock Knowledge Bases instead of pgvector/Qdrant (not decided)
+
+**Not a decision — open consideration, logged so it isn't lost.** User is thinking about using AWS
+Bedrock with a Knowledge Base (managed RAG: ingestion, chunking, embedding, and retrieval, backed
+by a vector store Bedrock manages — OpenSearch Serverless by default, or pgvector-on-RDS/Aurora,
+or Pinecone/Redis as a bring-your-own store) for the `/forum/recommendations` RAG plan above,
+instead of the already-decided pgvector-now/Qdrant-at-scale/OpenAI-embeddings path.
+
+**Why this needs a real comparison before picking:** AWS credits are currently unavailable (see
+AWS Activate entries below — 4 rejections, private tracking in `.claude/private/`), so Bedrock KB
+would run at full list price: per-query/indexing cost plus whatever backing vector store it uses
+(OpenSearch Serverless has its own non-trivial minimum OCU cost; pgvector-on-RDS reuses the
+existing `pulse-db` instance already confirmed viable). Also a build-vs-managed tradeoff: Bedrock
+KB owns chunking/retrieval internally, less control than the existing `scorePost` multi-signal
+design (semantic + condition + stage + engagement + recency — already planned to need app-side
+filter+vector queries, which is why Qdrant was picked over Pinecone/Weaviate in the first place).
+
+**Not yet evaluated:** actual Bedrock KB pricing at this corpus size; whether it can do
+combined filter+vector queries as naturally as Qdrant; whether `help@pulserehab.app`'s AWS
+account region (eu-central-1) has full Bedrock KB availability at the time of implementation.
+
+**How to apply:** when RAG is actually picked up, compare this against the existing plan on cost
+(no Activate credits to offset it) and on whether the multi-signal scoring need is better served
+by Qdrant's native filter+vector queries or Bedrock KB's built-in retrieval — don't default to
+either without that comparison.
+
+---
+
 ## 10/10/2026 — Prod primary model: gpt-6.1-sol
 
 **Problem:** The prod chain (`config/production.ts`) had `anthropic` primary, set from a first audit with few scenarios and few samples that found GPT far costlier than Sonnet. That audit evaluated OpenAI through the config default `gpt-5.6-sol` ($4/$20 per 1M tokens, a different, cyber-oriented model), not `gpt-6.1-sol` ($2/$10). A repeatable audit was run on 10/10/2026: 15 models, 6 scenarios covering every AI request type, 3 blind judges, then a playoff of the top models at 8 reps (`docs/AI-MODEL-AUDIT.md`).
