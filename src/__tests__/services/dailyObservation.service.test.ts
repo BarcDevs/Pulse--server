@@ -16,7 +16,8 @@ jest.mock('../../models/authModel')
 jest.mock('../../models/checkInModel')
 jest.mock('../../locales', () => ({
     getMessages: jest.fn().mockReturnValue({
-        observation: { title: 'Your Daily Observation' }
+        observation: { title: 'Your Daily Observation' },
+        activities: { yoga: 'localized yoga' }
     } as never)
 }))
 jest.mock('../../utils/logger', () => ({
@@ -149,7 +150,7 @@ describe('DailyObservationService', () => {
             await getTodayObservation(USER_ID)
 
             expect(generateSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ topActivity: 'yoga' })
+                expect.objectContaining({ topActivity: 'localized yoga' })
             )
         })
     })

@@ -1,5 +1,6 @@
 import type { CheckInType } from '../../../types/data/CheckInType'
 import type { InsightStats } from '../../../types/insight'
+import { localizeActivity } from '../../activityLabels'
 
 // Check-ins arrive newest first from the database, so pick the newest by date instead of by position.
 const getNewestCheckIn = (checkIns: CheckInType[]): CheckInType | undefined =>
@@ -15,11 +16,13 @@ const oldestFirst = (checkIns: CheckInType[]): CheckInType[] =>
 
 export const extractRecentActivities = (
     checkIns: CheckInType[],
-    limit: number = 6
+    limit: number = 6,
+    language?: string | null
 ): string =>
     oldestFirst(checkIns)
         .flatMap(checkIn => checkIn.activities ?? [])
         .slice(-limit)
+        .map(activity => localizeActivity(activity, language))
         .join(', ')
 
 export const calculateAverageMood = (
@@ -39,7 +42,8 @@ export const calculateAverageMood = (
 
 export const getTopActivities = (
     checkIns: CheckInType[],
-    limit: number = 3
+    limit: number = 3,
+    language?: string | null
 ): string => {
     const activities = checkIns
         .flatMap(checkIn => checkIn.activities ?? [])
@@ -51,7 +55,7 @@ export const getTopActivities = (
     return Object.entries(activities)
         .sort(([, countA], [, countB]) => countB - countA)
         .slice(0, limit)
-        .map(([name]) => name)
+        .map(([name]) => localizeActivity(name, language))
         .join(', ')
 }
 

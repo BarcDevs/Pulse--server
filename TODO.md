@@ -125,9 +125,6 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
 - Tests added for all of the above.
 
 Still open:
-- **Activity name goes to the model as a raw English slug** (`walking`). Pass the localized
-  label (the client has them in `messages/he-IL.json` under `checkIn.activities.default`) so the
-  model does not translate it and add its own article.
 - **`languageInstruction` is duplicated** in `observationPrompt.ts` and `insightsPrompts.ts`, so
   every wording fix has to be made twice. Move it to one shared module.
 - **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
@@ -148,6 +145,13 @@ Still open:
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
 
 ## DONE
+
+- **Activity names reached the AI prompts as raw English slugs** (fixed 11/10/2026, branch `fix/localized-activity-names`,
+  not yet merged). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
+  maps a slug to its label from a new `activities` map in `src/locales/en.json` and `he.json` (the client's
+  `checkIn.activities.default` labels plus `yoga` and `medical`); custom activities pass through unchanged. Used by the
+  insight prompts (recent and top activities) and the daily observation (prompt and template). The server keeps its
+  own copy of the labels: when the client adds a default activity, add it to both server locale files.
 
 - **Check-in returns first, AI feedback is generated afterwards** (done 11/10/2026, branch `feat/checkin-async-ai`, not
   yet deployed; client `feat/checkin-async-insights` must ship after the server). `POST`/`PATCH /check-in` store the
