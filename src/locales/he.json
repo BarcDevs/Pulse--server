@@ -220,5 +220,26 @@
   },
   "progress": {
     "fallback": "עדיין אין מספיק נתונים כדי לזהות דפוסים. המשך לעדכן כדי לפתוח תובנות אישיות לאורך זמן."
+  },
+  "activities": {
+    "meditation": "מדיטציה",
+    "exercise": "פעילות גופנית",
+    "social time": "זמן חברתי",
+    "reading": "קריאה",
+    "journaling": "כתיבה ביומן",
+    "therapy": "טיפול",
+    "rest": "מנוחה",
+    "walking": "הליכה",
+    "stretching": "מתיחות",
+    "work": "עבודה",
+    "study": "לימודים",
+    "household": "משק בית",
+    "socializing": "מפגשים חברתיים",
+    "hobbies": "תחביבים",
+    "outdoors": "פעילות בחוץ",
+    "mindfulness": "מיינדפולנס",
+    "self-care": "טיפוח עצמי",
+    "yoga": "יוגה",
+    "medical": "פגישה עם רופא"
   }
 }

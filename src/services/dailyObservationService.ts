@@ -1,4 +1,5 @@
 import { dayInMs, monthInMs } from '../constants/time'
+import { localizeActivity } from '../lib/activityLabels'
 import * as dailyObservationCache from '../lib/cache/dailyObservationCache'
 import { toLocalDateTimeStr } from '../lib/checkInDateHelpers'
 import { generateObservation } from '../lib/dailyObservation/observationAiGenerator'
@@ -54,7 +55,10 @@ export const getTodayObservation = async (
     }
 
     const { type } = detection
-    const topActivity = getTopActivity(checkIns)
+    const topSlug = getTopActivity(checkIns)
+    const topActivity = topSlug
+        ? localizeActivity(topSlug, language)
+        : undefined
 
     let payload: {
         observation: string

@@ -63,6 +63,7 @@ export type AppMessages = {
     observation: {
         title: string
     }
+    activities: Record<string, string>
     progress: {
         fallback: string
     }

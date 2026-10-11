@@ -155,3 +155,12 @@ Repeat of the 09/10/2026 entry. I told two sessions to remove each worktree's `n
 While closing the `fix/sentence-count` worktree I ran `cmd //c "rmdir \"$W\node_modules\""` for both junctions. Both printed "The filename, directory name, or volume label syntax is incorrect." I chained `git worktree remove` in the same command anyway, so it followed the junctions and emptied the main checkout's `node_modules` and `prisma/generated`. Restored with `npm ci` and `npm run prisma:generate` (typecheck clean). The user's reaction when I only offered to log it: "do you really asking me that?" - the repo rule says write corrections unprompted.
 
 **How to apply:** never chain `git worktree remove` after the rmdir in one command. Remove the junctions as a separate step, confirm the link is gone (`ls` / `Test-Path`), and only then remove the worktree. Any error output from the rmdir step means stop. Write the correction record in the same turn, without offering.
+
+---
+
+## 11/10/2026 — Scaling follow-ups go in `scaling-todo.md`, not `TODO.md`
+
+I added "move the check-in job queue to SQS" and "push insights over a socket" to the "FIRST ON SCALING" section of `TODO.md`. The user: "@scaling-todo.md not in todo.md". Post-launch scale-up items have their own file, `scaling-todo.md`; `TODO.md` holds current work (critical, high, DB follow-ups, low priority).
+
+**How to apply:** when a decision defers something "for scale" (SQS, sockets, locks for more than one instance, RAG), append it to `scaling-todo.md`. Check which file a section belongs to before editing a TODO file.
+

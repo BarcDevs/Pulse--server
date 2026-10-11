@@ -20,6 +20,11 @@ shared checkout. It keeps them on the local branch `monitor/records`, in its own
 every run**. That commit reaches `development` (and origin) only in a run that merges a fix, so
 quiet runs leave no commits, no pushes and no dirty tree anywhere.
 
+The checkpoint's live value is NOT in a tracked file: `checkpoint.ts set` writes it to an
+untracked file in `$WT`'s git dir (`monitor-checkpoint`), so moving it never dirties the tree.
+It is copied into `index.md` (`checkpoint.ts flush`) only in a run that has record changes to
+commit anyway (step 7). A quiet run therefore runs no git write commands at all.
+
 The routine does NOT start in the repo, so define absolute paths first and never rely on the
 current directory:
 `MAIN=C:/Users/66bar/Claude/work/projects/pulse/pulse--server`,
@@ -137,9 +142,13 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       was skipped: go back and do it. For a re-opened row, append a dated "recurrence" note with
       what you re-checked, not just the bumped count.
 6. **Set the checkpoint:** `npx tsx "$WT/scripts/monitor/checkpoint.ts" set "$NEXT_CHECKPOINT"`.
-7. **Amend the records commit** in `$WT` (`git -C "$WT" add docs/prod-errors`):
-   no records commit yet (`N=0` after step 1) → `git commit -m "docs(prod-errors): monitor
-   records"`; otherwise `git commit --amend --no-edit`. Never a second commit.
+   This writes only the untracked file; no git is involved.
+7. **Commit the records, only if there are any.** Check `git -C "$WT" status --short`. If it is
+   empty (a quiet run: nothing was bumped, recorded or tallied), skip this step entirely: no
+   `flush`, no `add`, no commit. Otherwise `npx tsx "$WT/scripts/monitor/checkpoint.ts" flush`
+   (writes the live checkpoint into `index.md`), then `git -C "$WT" add docs/prod-errors`, then
+   commit: no records commit yet (`N=0` after step 1) → `git commit -m "docs(prod-errors):
+   monitor records"`; otherwise `git commit --amend --no-edit`. Never a second commit.
 8. **Ship, only if at least one fix passed (d).** Merge into `development`, push it, then open the release PR; never
    merge that PR. In the shared checkout (`$MAIN`): first run `ListAgents` and `git status`. If
    another session is active there or the tree is dirty, don't merge: leave the fix branches and

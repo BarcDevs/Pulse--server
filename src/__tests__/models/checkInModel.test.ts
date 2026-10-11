@@ -19,6 +19,7 @@ const mockCheckIn = {
     activities: [],
     insights: []
 } as never
+const expectedCheckIn = { ...(mockCheckIn as object), insightsStatus: 'ready' }
 
 describe('CheckInModel', () => {
     describe('getProfileIdForUser', () => {
@@ -64,7 +65,7 @@ describe('CheckInModel', () => {
 
             const result = await checkInModel.getCheckIns('profile-id')
 
-            expect(result).toEqual([mockCheckIn])
+            expect(result).toEqual([expectedCheckIn])
             expect(prismaMock.dailyCheckIn.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: { profileId: 'profile-id' }
@@ -83,13 +84,41 @@ describe('CheckInModel', () => {
         })
     })
 
+    describe('insightsStatus', () => {
+        it.each([
+            ['PENDING', 'pending'],
+            ['RUNNING', 'pending'],
+            ['DONE', 'ready'],
+            ['FAILED', 'ready']
+        ])('maps a %s job to %s', async (status, expected) => {
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([
+                { ...(mockCheckIn as object), aiJob: { status } }
+            ] as never)
+
+            const [result] = await checkInModel.getCheckIns('profile-id')
+
+            expect(result.insightsStatus).toBe(expected)
+            expect(result).not.toHaveProperty('aiJob')
+        })
+
+        it('is ready when the check-in has no job', async () => {
+            prismaMock.dailyCheckIn.findMany.mockResolvedValue([
+                { ...(mockCheckIn as object), aiJob: null }
+            ] as never)
+
+            const [result] = await checkInModel.getCheckIns('profile-id')
+
+            expect(result.insightsStatus).toBe('ready')
+        })
+    })
+
     describe('findCheckInById', () => {
         it('returns check-in when found', async () => {
             prismaMock.dailyCheckIn.findUnique.mockResolvedValue(mockCheckIn)
 
             const result = await checkInModel.findCheckInById('checkin-id')
 
-            expect(result).toEqual(mockCheckIn)
+            expect(result).toEqual(expectedCheckIn)
         })
 
         it('returns null when not found', async () => {
@@ -133,7 +162,7 @@ describe('CheckInModel', () => {
             )
 
             expect(prismaMock.dailyCheckIn.create).toHaveBeenCalled()
-            expect(result).toEqual(mockCheckIn)
+            expect(result).toEqual(expectedCheckIn)
         })
     })
 
@@ -205,7 +234,7 @@ describe('CheckInModel', () => {
                     }
                 })
             )
-            expect(result).toEqual([mockCheckIn])
+            expect(result).toEqual([expectedCheckIn])
         })
 
         it('returns empty array when no check-ins in range', async () => {

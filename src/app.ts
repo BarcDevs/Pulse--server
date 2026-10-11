@@ -10,6 +10,7 @@ import {
 import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
 import { scheduleAccountPurge } from './services/accountDeletionService'
+import { startCheckInAiWorker } from './services/checkInAiWorkerService'
 import { verifyEmailTransport } from './utils/emailSender'
 import logger from './utils/logger'
 import prisma from './utils/prismaClient'
@@ -36,6 +37,8 @@ exposeProductionApp(app)
 
 // Only start server when not in test environment
 if (env !== 'test') {
+    let stopCheckInAiWorker = async () => {}
+
     const server = app.listen(port, host, () => {
         const serverUrl = url
             .replace(/\{protocol}/g, protocol)
@@ -48,13 +51,17 @@ if (env !== 'test') {
 
         verifyEmailTransport()
         scheduleAccountPurge()
+        stopCheckInAiWorker = startCheckInAiWorker()
     })
 
     const shutdown = (signal: string) => {
         logger.info(`${signal} received, shutting down gracefully`)
 
+        const workerStopped = stopCheckInAiWorker()
+
         server.close(() => {
-            prisma.$disconnect()
+            workerStopped
+                .then(() => prisma.$disconnect())
                 .then(() => {
                     logger.info('Shutdown complete')
                 })

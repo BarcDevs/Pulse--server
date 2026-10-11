@@ -136,3 +136,15 @@ Follows the per-post anonymity entry above and changes its default.
 **Why over alternatives:** reordering priorities would only hide a different pattern. Showing several cards at once was not wanted (one card per day, cached per day).
 
 **How to apply:** add a pattern by pushing to the list in `detectAllObservationTypes`, never with an early `return`. The default `rotation = 0` keeps the old first-match behavior for callers that do not pass one.
+
+---
+
+## 11/10/2026 — Check-in AI work moves to a database job table; SQS and sockets come later
+
+**Problem:** `POST /check-ins` awaits up to three AI calls, so a slow provider can exceed the Next.js 30 s proxy timeout and fail a check-in the server already saved.
+
+**Decision (owner):** the check-in is returned as soon as it is stored; insight and recommendation generation run from a job table (`CheckInAiJob`, one row per check-in, claimed with `FOR UPDATE SKIP LOCKED`, stuck `RUNNING` jobs reclaimed after a timeout). The client polls the existing `GET /check-in`. In-process fire-and-forget was rejected: a restart mid-work loses the job. SQS is deferred to the scaling list. Server push over a socket is planned once the chat feature exists, reusing the same connection.
+
+**Why over alternatives:** the job table is as durable as SQS with no new AWS infra, IAM or local-dev stub, and `SKIP LOCKED` keeps two ASG instances from running one job twice. SQS costs almost nothing in money (free tier covers 1M requests a month) but adds a queue, a dead-letter queue, a consumer and a local stub. A socket now would need a persistent connection through the Next.js rewrite and Cloudflare Tunnel plus pub/sub for two instances, too heavy for a 5-15 s wait.
+
+**How to apply:** keep job claiming behind one model function so the worker can later be swapped for an SQS consumer or a socket notification without touching the check-in flow. A retried job must upsert insights (unique per check-in and type), never insert.

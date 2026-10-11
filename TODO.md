@@ -8,29 +8,20 @@ All cleared 29/09/2026 (server `b308d17`, client `b62caa9` in production). Last 
 email, verified: startup log shows `Email transport ready (smtp.resend.com:465)` and a real
 password reset (email -> code -> new password) worked end to end.
 
-## CRITICAL (found 10/10/2026 by the model audit)
+## CRITICAL
 
-- **Return the check-in first; generate and deliver the AI feedback afterwards.**
-  `checkInService.ts` awaits `generateInsightSafely` (and recommendations) inside the check-in
-  save (lines ~64, ~82, ~103) and only then returns the check-in with its insights. Up to three
-  AI calls run one after another (baseline, motivational, intervention), each with a provider chain
-  and one retry. The client (`CheckInContext.tsx`) shows the check-in optimistically, sends the
-  request in the background and rolls the check-in back with an error toast if the request fails.
-  The client reaches the server through the Next.js `/api` rewrite (`next.config.mjs`), which has no
-  `proxyTimeout`, so Next's 30 s default applies. A single hanging provider already takes up to ~31 s
-  (2 x 15 s attempts + 1 s), so a slow or failing AI call can fail a check-in that the server did
-  save; the retry then goes down the "update existing check-in" path and generates the insights
-  again. Healthy-day cost with `gpt-6.1-sol` is already ~11 s per check-in (median 5.5 s per call, 2
-  calls), up to ~17 s with three.
-  Target: `POST /check-ins` returns as soon as the check-in is stored, and the insights arrive
-  separately when ready (the client keeps showing them as toasts). Open design points: how the
-  client learns they are ready (poll `GET` for the check-in's insights a few times vs. a push channel);
-  where the work runs (in-process after the response loses work on a restart, a queue or job
-  survives it and keeps working with more than one instance); retries must not create duplicate
-  insights; an AI failure must still store the template fallback so the user always gets a message.
-  Update `docs/API.md` and both READMEs.
+None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
+
+- **A superseded check-in AI job can overwrite newer insights (found 11/10/2026 by the deep review of the job queue).**
+  When a check-in is re-submitted while its job is `RUNNING`, the row goes back to `PENDING` and a second worker
+  starts on the new answers while the first keeps running (generation cannot be cancelled). The first worker's
+  result is dropped from the job row (claim token), but its insight and recommendation upserts can still land after
+  the second worker's, leaving insights for the old answers marked `ready`. Window: an edit within ~95 s of the
+  first submit, roughly a coin flip on which upsert lands last. Fix: re-check the claim (`status = RUNNING` and
+  `lockedAt` equal to the token) right before each write in `insightGenerationService`, or make re-queue wait for the
+  running job instead of overwriting it.
 
 - **`GoogleAIProvider` stores replies that ended with `finishReason=MAX_TOKENS`.**
   Confirmed cause of the 79-character prod insight. Prod log, 10/10/2026 01:08 UTC: the stale Anthropic key
@@ -134,9 +125,6 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
 - Tests added for all of the above.
 
 Still open:
-- **Activity name goes to the model as a raw English slug** (`walking`). Pass the localized
-  label (the client has them in `messages/he-IL.json` under `checkIn.activities.default`) so the
-  model does not translate it and add its own article.
 - **`languageInstruction` is duplicated** in `observationPrompt.ts` and `insightsPrompts.ts`, so
   every wording fix has to be made twice. Move it to one shared module.
 - **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
@@ -157,6 +145,22 @@ Still open:
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
 
 ## DONE
+
+- **Activity names reached the AI prompts as raw English slugs** (fixed 11/10/2026, branch `fix/localized-activity-names`,
+  not yet merged). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
+  maps a slug to its label from a new `activities` map in `src/locales/en.json` and `he.json` (the client's
+  `checkIn.activities.default` labels plus `yoga` and `medical`); custom activities pass through unchanged. Used by the
+  insight prompts (recent and top activities) and the daily observation (prompt and template). The server keeps its
+  own copy of the labels: when the client adds a default activity, add it to both server locale files.
+
+- **Check-in returns first, AI feedback is generated afterwards** (done 11/10/2026, branch `feat/checkin-async-ai`, not
+  yet deployed; client `feat/checkin-async-insights` must ship after the server). `POST`/`PATCH /check-in` store the
+  check-in and queue a `CheckInAiJob` row; a worker started with the server claims jobs (`FOR UPDATE SKIP LOCKED`),
+  runs insights and recommendations, retries up to 3 times, and takes over a `RUNNING` job after 2 minutes (dead
+  worker). Every check-in carries `insightsStatus: 'pending' | 'ready'`; the client polls `GET /check-in?limit=1`.
+  Verified end to end 11/10/2026 against a throwaway Postgres with real AI keys: POST in ~80 ms, insights ready ~3 s
+  later, same-day re-submit re-queues, stale-job takeover works. Deploy needs `prisma migrate deploy` on RDS
+  (migration `20261011120000_add_check_in_ai_job`). SQS and socket push are in `scaling-todo.md`.
 
 - **`countSentences` counted decimals as sentence ends, so AI progress summaries were rejected** (fixed 10/10/2026,
   `c197afe` on `development`, not yet redeployed). It now counts only periods followed by whitespace or the end of

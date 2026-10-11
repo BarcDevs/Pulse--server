@@ -22,6 +22,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 09/10/2026 | AI insight prompts: Hebrew wording rules, and one streak line over all check-ins |
 | 09/10/2026 | A good check-in gets two insights: the baseline and a motivational one |
 | 09/10/2026 | Daily observation rotates through every pattern that applies |
+| 11/10/2026 | Check-in AI work moves to a DB job table; SQS and sockets come later |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -71,3 +72,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 |---|---|
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
 | 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |
+| 11/10/2026 | Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed, so quiet runs need no git writes |

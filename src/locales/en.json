@@ -220,5 +220,26 @@
   },
   "progress": {
     "fallback": "Not enough data yet to identify patterns. Keep checking in to unlock personal insights over time."
+  },
+  "activities": {
+    "meditation": "meditation",
+    "exercise": "exercise",
+    "social time": "social time",
+    "reading": "reading",
+    "journaling": "journaling",
+    "therapy": "therapy",
+    "rest": "rest",
+    "walking": "walking",
+    "stretching": "stretching",
+    "work": "work",
+    "study": "study",
+    "household": "household chores",
+    "hobbies": "hobbies",
+    "socializing": "socializing",
+    "outdoors": "time outdoors",
+    "mindfulness": "mindfulness",
+    "self-care": "self-care",
+    "yoga": "yoga",
+    "medical": "medical appointment"
   }
 }

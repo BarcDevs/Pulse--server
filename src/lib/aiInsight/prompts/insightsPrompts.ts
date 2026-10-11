@@ -39,7 +39,11 @@ export const buildPromptForMoodDropAlert = (
     moodTrend?: number[]
 ): string => {
     const recentMoods = formatMoodTrend(moodTrend)
-    const activities = extractRecentActivities(checkIns)
+    const activities = extractRecentActivities(
+        checkIns,
+        undefined,
+        language
+    )
     const notes = extractRecentNotes(checkIns)
 
     return injectBrandName(`
@@ -114,7 +118,11 @@ export const buildPromptForWeeklySummary = (
     stats?: InsightStats
 ): string => {
     const avgMood = calculateAverageMood(checkIns)
-    const topActivities = getTopActivities(checkIns)
+    const topActivities = getTopActivities(
+        checkIns,
+        undefined,
+        language
+    )
     const notes = extractRecentNotes(checkIns)
     const displayStreak = stats?.currentStreak ?? currentStreak ?? 1
     const streakLabel = `${displayStreak} day${displayStreak > 1 ? 's' : ''}`

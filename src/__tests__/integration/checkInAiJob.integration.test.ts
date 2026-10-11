@@ -1,0 +1,168 @@
+import Csrf from 'csrf'
+import supertest from 'supertest'
+
+import { serverConfig } from '../../../config'
+import App from '../../app'
+import { CHECK_IN_AI_JOB_MAX_ATTEMPTS } from '../../constants/checkInAiJob'
+import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { minuteInMs } from '../../constants/time'
+import { createToken } from '../../lib/authCrypto'
+import * as jobModel from '../../models/checkInAiJobModel'
+import { drainJobs } from '../../services/checkInAiWorkerService'
+import * as insightGenerationService from '../../services/insightGenerationService'
+import * as recommendationsService from '../../services/recommendationsService'
+import Prisma from '../../utils/prismaClient'
+
+jest.mock('../../services/insightGenerationService')
+jest.mock('../../services/recommendationsService')
+
+const SIGNUP_URL = `/api/${serverConfig.apiVersion}/auth/signup`
+const CHECK_IN_URL = `/api/${serverConfig.apiVersion}/check-in`
+
+const csrfLib = new Csrf()
+
+const testUser = {
+    firstName: 'Job',
+    lastName: 'Tester',
+    email: 'job@test.com',
+    password: 'Password123!'
+}
+
+const postCheckIn = async (moodScore = 7) => {
+    await supertest(App).post(SIGNUP_URL).send(testUser)
+    const dbUser = await Prisma.user.findUnique({
+        where: { email: testUser.email }
+    })
+    const secret = csrfLib.secretSync()
+
+    const res = await supertest(App)
+        .post(CHECK_IN_URL)
+        .set('Cookie', [
+            `accessToken=${createToken(dbUser!)}`,
+            `_csrf=${secret}`
+        ])
+        .set('x-csrf-token', csrfLib.create(secret))
+        .send({ moodScore, painLevel: 3, activities: [] })
+
+    return { res, userId: dbUser!.id }
+}
+
+// A cutoff in the future makes every RUNNING job count as stale
+const staleCutoff = () => new Date(Date.now() + minuteInMs)
+
+describe('Check-in AI job — Integration', () => {
+    beforeEach(() => {
+        jest.spyOn(insightGenerationService, 'generateInsightForCheckIn')
+            .mockResolvedValue(undefined)
+        jest.spyOn(recommendationsService, 'generateRecommendationsSafely')
+            .mockResolvedValue(undefined)
+    })
+
+    it('returns the check-in without running the AI and queues one job', async () => {
+        const { res } = await postCheckIn()
+
+        expect(res.status).toBe(HttpStatusCodes.CREATED)
+        expect(res.body.data.insightsStatus).toBe('pending')
+        expect(insightGenerationService.generateInsightForCheckIn)
+            .not.toHaveBeenCalled()
+
+        const jobs = await Prisma.checkInAiJob.findMany()
+        expect(jobs).toHaveLength(1)
+        expect(jobs[0].status).toBe('PENDING')
+        expect(jobs[0].checkInId).toBe(res.body.data.id)
+    })
+
+    it('re-submitting the same day keeps one job and re-queues it', async () => {
+        const { res } = await postCheckIn()
+        await Prisma.checkInAiJob.updateMany({ data: { status: 'DONE', attempts: 2 } })
+
+        await jobModel.enqueueJob(res.body.data.id, 'user')
+
+        const jobs = await Prisma.checkInAiJob.findMany()
+        expect(jobs).toHaveLength(1)
+        expect(jobs[0].status).toBe('PENDING')
+        expect(jobs[0].attempts).toBe(0)
+    })
+
+    it('two workers claiming at once run the job only once', async () => {
+        await postCheckIn()
+
+        const claims = await Promise.all([
+            jobModel.claimNextJob(new Date(0)),
+            jobModel.claimNextJob(new Date(0))
+        ])
+
+        expect(claims.filter(Boolean)).toHaveLength(1)
+        expect(claims.find(Boolean)!.attempts).toBe(1)
+    })
+
+    it('takes over a RUNNING job whose worker died, but not a fresh one', async () => {
+        await postCheckIn()
+        await jobModel.claimNextJob(new Date(0))
+
+        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+
+        const taken = await jobModel.claimNextJob(staleCutoff())
+        expect(taken!.attempts).toBe(2)
+    })
+
+    it('drops the result of a worker whose job was re-submitted meanwhile', async () => {
+        const { res, userId } = await postCheckIn()
+        const claimed = await jobModel.claimNextJob(new Date(0))
+
+        await jobModel.enqueueJob(res.body.data.id, userId)
+
+        expect(await jobModel.markJobDone(claimed!)).toBe(false)
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.status).toBe('PENDING')
+    })
+
+    it('drops the result of a worker whose job another worker took over', async () => {
+        await postCheckIn()
+        const first = await jobModel.claimNextJob(new Date(0))
+        const second = await jobModel.claimNextJob(staleCutoff())
+
+        expect(await jobModel.markJobDone(first!)).toBe(false)
+        expect(await jobModel.markJobDone(second!)).toBe(true)
+    })
+
+    it('fails a stale job that used all its attempts instead of retrying it', async () => {
+        await postCheckIn()
+        await Prisma.checkInAiJob.updateMany({
+            data: {
+                status: 'RUNNING',
+                attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+                lockedAt: new Date(0)
+            }
+        })
+
+        expect(await jobModel.claimNextJob(staleCutoff())).toBeNull()
+
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.status).toBe('FAILED')
+    })
+
+    it('drains the job and marks it done', async () => {
+        await postCheckIn()
+
+        expect(await drainJobs()).toBe(1)
+
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.status).toBe('DONE')
+        expect(insightGenerationService.generateInsightForCheckIn)
+            .toHaveBeenCalledTimes(1)
+    })
+
+    it('retries a failing job and gives up after the last attempt', async () => {
+        await postCheckIn()
+        jest.spyOn(insightGenerationService, 'generateInsightForCheckIn')
+            .mockRejectedValue(new Error('boom'))
+
+        await drainJobs()
+
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.status).toBe('FAILED')
+        expect(job.attempts).toBe(3)
+        expect(job.lastError).toBe('Error')
+    })
+})

@@ -1,6 +1,7 @@
 import { Prisma } from '../../../prisma/generated/prisma/client'
 import * as dateHelpers from '../../lib/checkInDateHelpers'
 import * as checkInStats from '../../lib/checkInStats'
+import * as checkInAiJobModel from '../../models/checkInAiJobModel'
 import * as checkInModel from '../../models/checkInModel'
 import {
     createCheckIn,
@@ -8,12 +9,9 @@ import {
     getCheckInStats,
     updateCheckIn
 } from '../../services/checkInService'
-import * as insightService from '../../services/insightService'
-import * as recommendationsService from '../../services/recommendationsService'
 
 jest.mock('../../models/checkInModel')
-jest.mock('../../services/insightService')
-jest.mock('../../services/recommendationsService')
+jest.mock('../../models/checkInAiJobModel')
 jest.mock('../../lib/checkInDateHelpers')
 jest.mock('../../lib/checkInStats')
 jest.mock('../../utils/logger', () => ({
@@ -50,8 +48,7 @@ describe('CheckInService', () => {
         jest.clearAllMocks()
         jest.spyOn(dateHelpers, 'resolveCheckInDate').mockReturnValue(CHECK_IN_DATE as never)
         jest.spyOn(dateHelpers, 'resolveTimestampInUserTimeZone').mockReturnValue(new Date())
-        jest.spyOn(insightService, 'generateInsightSafely').mockResolvedValue(undefined as never)
-        jest.spyOn(recommendationsService, 'generateRecommendationsSafely').mockResolvedValue(undefined as never)
+        jest.spyOn(checkInAiJobModel, 'enqueueJob').mockResolvedValue(undefined as never)
     })
 
     // ==================== model error propagation ====================
@@ -166,7 +163,7 @@ describe('CheckInService', () => {
             expect(checkInModel.createCheckIn).not.toHaveBeenCalled()
         })
 
-        it('triggers insight and recommendations generation', async () => {
+        it('queues the AI job instead of generating inline', async () => {
             mockProfileContext()
             jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(null as never)
             jest.spyOn(checkInModel, 'createCheckIn').mockResolvedValue(mockCheckIn())
@@ -175,8 +172,47 @@ describe('CheckInService', () => {
 
             await createCheckIn(newCheckInData)
 
-            expect(insightService.generateInsightSafely).toHaveBeenCalledWith(USER_ID, CHECK_IN_ID)
-            expect(recommendationsService.generateRecommendationsSafely).toHaveBeenCalledWith(USER_ID, CHECK_IN_ID)
+            expect(checkInAiJobModel.enqueueJob).toHaveBeenCalledWith(CHECK_IN_ID, USER_ID)
+        })
+
+        it('queues the AI job when updating the existing check-in of today', async () => {
+            mockProfileContext()
+            const existing = mockCheckIn()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(existing as never)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined as never)
+
+            await createCheckIn(newCheckInData)
+
+            expect(checkInAiJobModel.enqueueJob).toHaveBeenCalledWith(CHECK_IN_ID, USER_ID)
+        })
+
+        it('still returns the saved check-in when queuing the AI job fails', async () => {
+            mockProfileContext()
+            const created = mockCheckIn()
+            jest.spyOn(checkInModel, 'findTodayCheckIn')
+                .mockResolvedValueOnce(null as never)
+                .mockResolvedValueOnce(created as never)
+            jest.spyOn(checkInModel, 'createCheckIn').mockResolvedValue(created as never)
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn').mockResolvedValue(undefined as never)
+            jest.spyOn(checkInAiJobModel, 'enqueueJob').mockRejectedValue(new Error('db blip'))
+
+            const result = await createCheckIn(newCheckInData)
+
+            expect(result).toEqual({ checkIn: created, created: true })
+        })
+
+        it('does not fail the request when the AI job cannot run yet', async () => {
+            mockProfileContext()
+            const created = mockCheckIn({ insightsStatus: 'pending' })
+            jest.spyOn(checkInModel, 'findTodayCheckIn')
+                .mockResolvedValueOnce(null as never)
+                .mockResolvedValueOnce(created as never)
+            jest.spyOn(checkInModel, 'createCheckIn').mockResolvedValue(created as never)
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn').mockResolvedValue(undefined as never)
+
+            const result = await createCheckIn(newCheckInData)
+
+            expect(result.checkIn.insightsStatus).toBe('pending')
         })
 
         it('falls through to update on P2002 (concurrent create race)', async () => {
@@ -233,7 +269,7 @@ describe('CheckInService', () => {
             expect(result.moodScore).toBe(8)
         })
 
-        it('triggers insight and recommendations after update', async () => {
+        it('queues the AI job after update', async () => {
             mockProfileContext()
             const existing = mockCheckIn()
             jest.spyOn(checkInModel, 'findTodayCheckIn')
@@ -244,7 +280,7 @@ describe('CheckInService', () => {
 
             await updateCheckIn(updateData)
 
-            expect(insightService.generateInsightSafely).toHaveBeenCalledWith(USER_ID, CHECK_IN_ID)
+            expect(checkInAiJobModel.enqueueJob).toHaveBeenCalledWith(CHECK_IN_ID, USER_ID)
         })
     })
 
