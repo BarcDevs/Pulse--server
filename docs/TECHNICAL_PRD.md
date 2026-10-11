@@ -185,7 +185,7 @@ Activities are suggested based on recent history:
 
 Two distinct AI insight surfaces:
 
-**Per-Check-In Insights** — generated immediately after each check-in submission:
+**Per-Check-In Insights** — generated right after each check-in submission, by a background job (the request returns first; `insightsStatus` tells the client when to stop polling):
 - `mood_drop_alert`: Latest 3 mood scores strictly decreasing — early disengagement signal
 - `motivational`: Streak < 2 days — encouragement for new or inconsistent users
 - `weekly_summary`: ≥ 5 check-ins AND streak ≥ 2 — progress summary for established habit
@@ -273,7 +273,7 @@ Google AI API (for insight generation)
 - **Server**: Express.js with middleware (auth, validation, error handling)
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: JWT in HTTP-only cookies + CSRF tokens
-- **Async Jobs**: Planned (not yet implemented); future for insight generation pipeline
+- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`; SQS and socket push are planned for scale (`scaling-todo.md`)
 - **Caching**: Session/token caching via Redis (future optimization)
 
 ---

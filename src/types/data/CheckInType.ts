@@ -15,6 +15,8 @@ export type AIInsightType = {
     createdAt: Date
 }
 
+export type InsightsStatus = 'pending' | 'ready'
+
 export type CheckInType = {
     id: string
     profileId: string
@@ -26,6 +28,7 @@ export type CheckInType = {
     createdAt: Date
     updatedAt?: Date | null
     insights: AIInsightType[]
+    insightsStatus?: InsightsStatus
 }
 
 export type NewCheckInType = {

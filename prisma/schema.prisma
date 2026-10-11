@@ -142,8 +142,24 @@ model DailyCheckIn {
   updatedAt       DateTime?
   insights        AIInsight[]
   recommendations PostRecommendation?
+  aiJob           CheckInAiJob?
 
   @@unique([profileId, checkInDate])
+}
+
+model CheckInAiJob {
+  id        String             @id @default(uuid())
+  checkInId String             @unique
+  checkIn   DailyCheckIn       @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  userId    String
+  status    CheckInAiJobStatus @default(PENDING)
+  attempts  Int                @default(0)
+  lockedAt  DateTime?
+  lastError String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([status, createdAt])
 }
 
 model PostRecommendation {
@@ -298,6 +314,13 @@ enum MilestoneStatus {
   LOCKED
   ACTIVE
   COMPLETED
+}
+
+enum CheckInAiJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
 }
 
 enum InsightType {

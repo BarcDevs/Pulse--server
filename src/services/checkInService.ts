@@ -10,6 +10,7 @@ import {
     calculateStreaks,
     calculateTopActivities
 } from '../lib/checkInStats'
+import * as checkInAiJobModel from '../models/checkInAiJobModel'
 import * as checkInModel from '../models/checkInModel'
 import {
     getProfileContext,
@@ -22,9 +23,25 @@ import type {
     UpdateCheckInType
 } from '../types/data/CheckInType'
 import type { CheckInQuery } from '../types/query'
+import { toLoggableError } from '../utils/loggableError'
+import logger from '../utils/logger'
 
-import { generateInsightSafely } from './insightService'
-import { generateRecommendationsSafely } from './recommendationsService'
+// The check-in is already saved when this runs: a queue failure must not fail
+// the request. Without a job the check-in simply reads as 'ready' with no insights.
+const queueAiJob = async (
+    checkInId: string,
+    userId: string
+): Promise<void> => {
+    try {
+        await checkInAiJobModel.enqueueJob(checkInId, userId)
+    } catch (err: unknown) {
+        logger.error('Failed to queue check-in AI job', {
+            userId,
+            checkInId,
+            error: toLoggableError(err)
+        })
+    }
+}
 
 export const getCheckIns = async (
     userId: string,
@@ -61,8 +78,7 @@ export const createCheckIn = async (
             createdAt
         )
 
-        await generateInsightSafely(data.userId, existing.id)
-        await generateRecommendationsSafely(data.userId, existing.id)
+        await queueAiJob(existing.id, data.userId)
 
         const checkIn = await checkInModel
             .findTodayCheckIn(profileId, checkInDate)
@@ -79,8 +95,7 @@ export const createCheckIn = async (
         )
 
         await checkInModel.updateUserLastCheckIn(data.userId)
-        await generateInsightSafely(data.userId, checkIn.id)
-        await generateRecommendationsSafely(data.userId, checkIn.id)
+        await queueAiJob(checkIn.id, data.userId)
 
         const checkInWithInsights = await checkInModel
             .findTodayCheckIn(profileId, checkInDate)
@@ -100,8 +115,7 @@ export const createCheckIn = async (
             )
             const checkIn = await checkInModel
                 .findTodayCheckIn(profileId, checkInDate)
-            await generateInsightSafely(data.userId, checkIn!.id)
-            await generateRecommendationsSafely(data.userId, checkIn!.id)
+            await queueAiJob(checkIn!.id, data.userId)
             return { checkIn: checkIn!, created: false }
         }
         throw err
@@ -131,8 +145,7 @@ export const updateCheckIn = async (
         updatedAt
     )
     await checkInModel.updateUserLastCheckIn(userId)
-    await generateInsightSafely(userId, existing.id)
-    await generateRecommendationsSafely(userId, existing.id)
+    await queueAiJob(existing.id, userId)
 
     const fetchedCheckIn = await checkInModel
         .findTodayCheckIn(profileId, checkInDate)

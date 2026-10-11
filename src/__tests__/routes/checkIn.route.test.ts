@@ -4,8 +4,6 @@ import { serverConfig } from '../../../config'
 import App from '../../app'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { dayInMs } from '../../constants/time'
-import * as insightService from '../../services/insightService'
-import * as recommendationsService from '../../services/recommendationsService'
 import type { CheckInType } from '../../types/data/CheckInType'
 import { prismaMock } from '../setup/jestSetup'
 import {
@@ -14,9 +12,6 @@ import {
     createMockUser,
     withCsrfAuth
 } from '../setup/testSetup'
-
-jest.mock('../../services/recommendationsService')
-jest.mock('../../services/insightService')
 
 const createMockCheckIn = (
     overrides?: Partial<CheckInType>
@@ -52,10 +47,6 @@ describe('Check-in Routes', () => {
                 userId: 'test-user-id-123',
                 ...args.data
             })) as never)
-        jest.mocked(recommendationsService.generateRecommendationsSafely)
-            .mockResolvedValue(undefined as never)
-        jest.mocked(insightService.generateInsightSafely)
-            .mockResolvedValue(undefined as never)
     })
 
     // ==================== GET CHECK-INS ====================

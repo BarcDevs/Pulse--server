@@ -58,3 +58,9 @@ Post-launch / scale-up items, not launch blockers.
 - **Push insights over a socket once the chat feature is connected (decided 11/10/2026).** Reuse the chat
   connection to tell the client an insight is ready, replacing the polling of `GET /check-in`. Needs the socket to
   work through the Next.js rewrite and Cloudflare Tunnel, and pub/sub across the 2 ASG instances.
+
+- **Back off between check-in AI job retries (found 11/10/2026).** A failed job goes straight back to `PENDING` and the
+  same drain loop claims it again, so all 3 attempts can burn within seconds during a short outage, and a re-submit
+  resets `attempts` to 0. Add a `runAfter` column (delay grows with `attempts`) and make the claim skip jobs whose
+  `runAfter` is in the future. Check the check-in routes' rate limit covers re-submits.
+
