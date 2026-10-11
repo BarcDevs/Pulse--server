@@ -32,6 +32,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 10/10/2026 | Told sessions to remove worktree junctions with `cmd /c rmdir`, which Git Bash mangles; the main `node_modules` was emptied again (verify the link is gone first) |
 | 10/10/2026 | Chained `git worktree remove` after junction `rmdir` calls that had errored; `node_modules` emptied a third time (separate step, verify link gone) |
 | 09/10/2026 | "open pr" = open the PR and merge it if CI is green (deploy still needs the user's approval click) |
+| 11/10/2026 | Scaling follow-ups go in `scaling-todo.md`, not `TODO.md` |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.

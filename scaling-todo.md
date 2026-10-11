@@ -49,3 +49,12 @@ Post-launch / scale-up items, not launch blockers.
   exchange and how `src/services/aiProviders/` builds its client today. Local dev and
   `scripts/eval-ai-models/` still need a static key (no cloud identity on a laptop) — keep
   those on a spend-limited dev key. See `docs/DEPLOYMENT.md` for the secrets layout.
+
+- **Move the check-in AI job queue from the database table to SQS (decided 11/10/2026).** The job table
+  (`CheckInAiJob`) is the durable queue for now. Move to SQS (queue + dead-letter queue, IAM on the instance role,
+  long-polling consumer, LocalStack or stub for local dev) only when volume or separate worker machines justify it.
+  Keep job claiming behind one model function so the swap is local. Cost is not the reason to wait (free tier covers
+  1M requests a month); the extra infra is.
+- **Push insights over a socket once the chat feature is connected (decided 11/10/2026).** Reuse the chat
+  connection to tell the client an insight is ready, replacing the polling of `GET /check-in`. Needs the socket to
+  work through the Next.js rewrite and Cloudflare Tunnel, and pub/sub across the 2 ASG instances.
