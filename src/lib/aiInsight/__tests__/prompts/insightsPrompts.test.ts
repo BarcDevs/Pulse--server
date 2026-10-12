@@ -1,9 +1,9 @@
 import type { CheckInType } from '../../../../types/data/CheckInType'
+import { MoodDropPromptBuilder } from '../../../prompts/MoodDropPromptBuilder'
+import { MotivationalPromptBuilder } from '../../../prompts/MotivationalPromptBuilder'
+import { WeeklySummaryPromptBuilder } from '../../../prompts/WeeklySummaryPromptBuilder'
 import {
     buildPromptByType,
-    buildPromptForMoodDropAlert,
-    buildPromptForMotivational,
-    buildPromptForWeeklySummary,
     generateTitle
 } from '../../prompts/insightsPrompts'
 
@@ -77,28 +77,28 @@ describe('generateTitle()', () => {
 describe('language instruction injection', () => {
     const checkIns = [mockCheckIn(), mockCheckIn(), mockCheckIn()]
 
-    it('buildPromptForMoodDropAlert includes language instruction for he', () => {
-        const prompt = buildPromptForMoodDropAlert(checkIns, 'he')
+    it('MoodDropPromptBuilder includes language instruction for he', () => {
+        const prompt = new MoodDropPromptBuilder().build({ checkIns }, 'he')
         expect(prompt).toContain('Respond entirely in he')
     })
 
-    it('buildPromptForMoodDropAlert includes language instruction for en', () => {
-        const prompt = buildPromptForMoodDropAlert(checkIns, 'en')
+    it('MoodDropPromptBuilder includes language instruction for en', () => {
+        const prompt = new MoodDropPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('Respond entirely in en')
     })
 
-    it('buildPromptForMoodDropAlert defaults to he when language is null', () => {
-        const prompt = buildPromptForMoodDropAlert(checkIns, null)
+    it('MoodDropPromptBuilder defaults to he when language is null', () => {
+        const prompt = new MoodDropPromptBuilder().build({ checkIns }, null)
         expect(prompt).toContain('Respond entirely in he')
     })
 
-    it('buildPromptForMotivational includes language instruction', () => {
-        const prompt = buildPromptForMotivational(checkIns, 'en')
+    it('MotivationalPromptBuilder includes language instruction', () => {
+        const prompt = new MotivationalPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('Respond entirely in en')
     })
 
-    it('buildPromptForWeeklySummary includes language instruction', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'en')
+    it('WeeklySummaryPromptBuilder includes language instruction', () => {
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('Respond entirely in en')
     })
 })
@@ -132,9 +132,9 @@ describe('writing rules in the language instruction', () => {
     const checkIns = [mockCheckIn(), mockCheckIn(), mockCheckIn()]
 
     it.each([
-        ['mood drop', buildPromptForMoodDropAlert(checkIns, 'he')],
-        ['motivational', buildPromptForMotivational(checkIns, 'he')],
-        ['weekly summary', buildPromptForWeeklySummary(checkIns, 'he')]
+        ['mood drop', new MoodDropPromptBuilder().build({ checkIns }, 'he')],
+        ['motivational', new MotivationalPromptBuilder().build({ checkIns }, 'he')],
+        ['weekly summary', new WeeklySummaryPromptBuilder().build({ checkIns }, 'he')]
     ])('%s prompt in he fixes the mood term and bans dashes', (_name, prompt) => {
         expect(prompt).toContain("Use the exact term 'מצב הרוח' for mood")
         expect(prompt).toContain('Never use em dashes, en dashes or typographic quotes')
@@ -142,13 +142,13 @@ describe('writing rules in the language instruction', () => {
     })
 
     it('en prompt keeps the dash rule but has no Hebrew mood term', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'en')
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('Never use em dashes, en dashes or typographic quotes')
         expect(prompt).not.toContain('מצב הרוח')
     })
 })
 
-describe('buildPromptForWeeklySummary() stats', () => {
+describe('WeeklySummaryPromptBuilder stats', () => {
     const daysAgo = (days: number): Date =>
         new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
@@ -160,7 +160,7 @@ describe('buildPromptForWeeklySummary() stats', () => {
     const stats = { currentStreak: 18, longestStreak: 24, totalCheckIns: 25 }
 
     it('adds best streak, totals, average pain and the newest check-in', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 2, 2, stats)
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns, currentStreak: 2, checkInCount: 2, stats }, 'he')
         expect(prompt).toContain('- Current streak: 18 days (best streak: 24 days)')
         expect(prompt).toContain('- Total check-ins so far: 25')
         expect(prompt).toContain('- Average pain this week: 3.0')
@@ -168,12 +168,12 @@ describe('buildPromptForWeeklySummary() stats', () => {
     })
 
     it('uses the stats streak instead of the streak derived from the recent check-ins', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 2, 2, stats)
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns, currentStreak: 2, checkInCount: 2, stats }, 'he')
         expect(prompt).not.toContain('Current streak: 2 days')
     })
 
     it('leaves the prompt unchanged when no stats are given', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'he', 3, 2)
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns, currentStreak: 3, checkInCount: 2 }, 'he')
         expect(prompt).toContain('- Current streak: 3 days')
         expect(prompt).not.toContain('Total check-ins so far')
         expect(prompt).not.toContain('best streak')
@@ -196,18 +196,18 @@ describe('motivational prompt with stats', () => {
     ]
 
     it('puts current and best streak on one line', () => {
-        const prompt = buildPromptForMotivational(checkIns, 'he', 18, 24)
+        const prompt = new MotivationalPromptBuilder().build({ checkIns, currentStreak: 18, longestStreak: 24 }, 'he')
         expect(prompt).toContain('- Current streak: 18 days (best streak: 24 days)')
     })
 
     it('keeps the old single streak line when no best streak is given', () => {
-        const prompt = buildPromptForMotivational(checkIns, 'he', 5)
+        const prompt = new MotivationalPromptBuilder().build({ checkIns, currentStreak: 5 }, 'he')
         expect(prompt).toContain('- Current streak: 5 days')
         expect(prompt).not.toContain('best streak')
     })
 
     it('uses the mood of the newest check-in, not the last array element', () => {
-        const prompt = buildPromptForMotivational(checkIns, 'he', 5)
+        const prompt = new MotivationalPromptBuilder().build({ checkIns, currentStreak: 5 }, 'he')
         expect(prompt).toContain('- Latest mood score: 9')
     })
 
@@ -234,7 +234,7 @@ describe('recent activities and notes come from the newest check-ins', () => {
     }))
 
     it('keeps the newest notes and drops the oldest', () => {
-        const prompt = buildPromptForWeeklySummary(checkIns, 'en')
+        const prompt = new WeeklySummaryPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('note-0')
         expect(prompt).toContain('note-4')
         expect(prompt).not.toContain('note-5')
@@ -242,7 +242,7 @@ describe('recent activities and notes come from the newest check-ins', () => {
     })
 
     it('keeps the newest activities and drops the oldest', () => {
-        const prompt = buildPromptForMoodDropAlert(checkIns, 'en')
+        const prompt = new MoodDropPromptBuilder().build({ checkIns }, 'en')
         expect(prompt).toContain('activity-0')
         expect(prompt).toContain('activity-5')
         expect(prompt).not.toContain('activity-6')
@@ -251,9 +251,9 @@ describe('recent activities and notes come from the newest check-ins', () => {
 
 describe('score quoting', () => {
     it.each([
-        ['mood drop', () => buildPromptForMoodDropAlert([mockCheckIn()], 'en', [8, 6, 4])],
-        ['motivational', () => buildPromptForMotivational([mockCheckIn()], 'en', 3, 5)],
-        ['weekly', () => buildPromptForWeeklySummary([mockCheckIn()], 'en', 3, 1)]
+        ['mood drop', () => new MoodDropPromptBuilder().build({ checkIns: [mockCheckIn()], moodTrend: [8, 6, 4] }, 'en')],
+        ['motivational', () => new MotivationalPromptBuilder().build({ checkIns: [mockCheckIn()], currentStreak: 3, longestStreak: 5 }, 'en')],
+        ['weekly', () => new WeeklySummaryPromptBuilder().build({ checkIns: [mockCheckIn()], currentStreak: 3, checkInCount: 1 }, 'en')]
     ])('tells the model never to quote scores in the %s prompt', (_name, build) => {
         expect(build()).toContain('Never quote mood or pain scores')
     })

@@ -39,8 +39,8 @@ One scenario per kind of AI request the server makes. Fixtures live in `scripts/
 | `progress-summary` | progress insight summary | text, 2-4 sentences (prompt has no language directive, so replies are English) |
 | `checkin-feedback` | check-in feedback message | JSON, one sentence per field |
 
-New pipeline? Follow `workflow/05-adding-ai-pipeline.md`. `checkin-feedback` uses a copy of the private
-`buildAIPrompt` in `src/services/feedback/aiRenderer.ts`; re-sync it when that function changes (or export it).
+New pipeline? Follow `workflow/05-adding-ai-pipeline.md`. All prompts come from `src/lib/prompts/` (one `<Name>PromptBuilder.ts` class extending `PromptBuilder`
+per prompt, shared rules in `sharedInstructions.ts`); the scenarios import them, so there is no copy to re-sync.
 
 ## Files
 
@@ -157,7 +157,7 @@ A second table gives rule pass per scenario and the most-failed rules.
   thinking; that is real prod behavior, so cutoffs here predict cutoffs in prod.
 - Models served only through a realtime/WebSocket API (`gemini-3.8-live`) cannot be called the way the server
   calls models; they are not candidates until there is a live-chat feature.
-- The no-dashes / no-typographic-quotes check runs on every scenario, but only the insight and daily-observation prompts tell the model to avoid them (their `languageInstruction`); the progress-summary and check-in-feedback prompts do not. Misses on those two scenarios are not model faults. Next audit: scope that rule to the kinds whose prompts ask for it (or add the instruction to those prompts, which is the better fix), then `--rescore`.
+- The no-dashes / no-typographic-quotes check runs on every scenario. In the 10/10/2026 results only the insight and daily-observation prompts told the model to avoid them, so misses on the progress-summary and check-in-feedback scenarios were not model faults. Since 12/10/2026 every prompt carries the shared `languageInstruction`, so the rule applies to all six; results recorded before that date still carry the old caveat. Rerun the audit before comparing.
 - The rule checks are heuristics for the prompt's own instructions (e.g. "no score numbers" ignores streak/day
   counts). When a check looks wrong for a specific reply, read `runs.json` before trusting the percentage.
 
@@ -265,6 +265,6 @@ The playoff outputs above merged with `gemini-3.1-flash-lite` (8 reps, same prom
 - **Before shipping (verified 2026-10-10):**
   - `config/default.ts` defaulted `openaiModel` to `gpt-5.6-sol`, a different (cyber-oriented, $4/$20) model. Fixed on branch `chore/ai-fallback-chain` (default now `gpt-6.1-sol`), together with `config/production.ts`: `provider: 'openai'`, `fallbackOrder: 'google'` (Anthropic and `google-pro` dropped from the prod chain).
   - `OpenAIProvider` does **not** check `finish_reason`: it only reads `choices[0].message.content`. A `length` cutoff with partial text would be stored. Sol had no cutoffs in 66 calls, but the guard `AnthropicProvider` got is missing here and should be added.
-  - There is no shared prompt-rules builder: `languageInstruction` (the dash, quote and native-phrasing rules) exists as two separate copies in `insightsPrompts.ts` and `observationPrompt.ts`, and the progress and check-in feedback prompts have none. The progress prompt also has no language directive, so its summaries come back in English whatever the user's language.
+  - (Fixed 12/10/2026.) There was no shared prompt-rules builder: `languageInstruction` existed as two copies and the progress and check-in feedback prompts had none; the progress prompt had no language directive. All prompts now live in `src/lib/prompts/` and share `sharedInstructions.ts`.
 
 **Decision (10/10/2026, owner):** primary `gpt-6.1-sol`, single fallback `gemini-3.1-flash-lite`, Anthropic out of the prod chain until a new audit brings it back (the fallback was chosen over sonnet-5-5 for speed: a slow fallback inside a check-in request that the Next.js proxy cuts at 30 s is the larger risk). Recorded in `decisions/ai-and-rag.md`.

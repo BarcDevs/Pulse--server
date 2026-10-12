@@ -1,10 +1,10 @@
 import { resolve } from 'path'
 import { pathToFileURL } from 'url'
 
-import { FEEDBACK_DETECTION } from '../../src/constants/feedback/detection'
 import type * as InsightsPrompts from '../../src/lib/aiInsight/prompts/insightsPrompts'
-import type * as ObservationPrompt from '../../src/lib/dailyObservation/observationPrompt'
-import type * as ProgressPromptBuilder from '../../src/lib/progressInsights/promptBuilder'
+import type * as FeedbackPrompt from '../../src/lib/prompts/FeedbackPromptBuilder'
+import type * as ObservationPrompt from '../../src/lib/prompts/ObservationPromptBuilder'
+import type * as ProgressPromptBuilder from '../../src/lib/prompts/ProgressInsightPromptBuilder'
 import type { CheckInType } from '../../src/types/data/CheckInType'
 import type { ObservationType } from '../../src/types/data/DailyObservationType'
 
@@ -26,6 +26,7 @@ export type Scenario = {
 
 type PromptModules = {
     insights: typeof InsightsPrompts
+    feedback: typeof FeedbackPrompt
     observation: typeof ObservationPrompt
     progress: typeof ProgressPromptBuilder
 }
@@ -35,8 +36,9 @@ const loadFrom = async <T,>(srcRoot: string, relPath: string): Promise<T> =>
 
 const loadPromptModules = async (srcRoot: string): Promise<PromptModules> => ({
     insights: await loadFrom(srcRoot, 'src/lib/aiInsight/prompts/insightsPrompts.ts'),
-    observation: await loadFrom(srcRoot, 'src/lib/dailyObservation/observationPrompt.ts'),
-    progress: await loadFrom(srcRoot, 'src/lib/progressInsights/promptBuilder.ts')
+    feedback: await loadFrom(srcRoot, 'src/lib/prompts/FeedbackPromptBuilder.ts'),
+    observation: await loadFrom(srcRoot, 'src/lib/prompts/ObservationPromptBuilder.ts'),
+    progress: await loadFrom(srcRoot, 'src/lib/prompts/ProgressInsightPromptBuilder.ts')
 })
 
 const day = (offset: number): Date => new Date(Date.UTC(
@@ -153,60 +155,9 @@ const steadyWeek: CheckInType[] = [
     )
 ]
 
-// Copied from src/services/feedback/aiRenderer.ts buildAIPrompt (private there).
-// Re-sync when that function changes.
-const buildFeedbackPrompt = (
-    mode: 'FULL' | 'SOFT',
-    severityLabel: string,
-    reasonText: string,
-    userLanguage: string,
-    direction: string,
-    duration: number,
-    highlightTypes: string[],
-    gapDays: number
-): string => {
-    const structure = mode === 'FULL'
-        ? {
-            acknowledge: 'string',
-            normalize: 'string',
-            suggest: 'string'
-        }
-        : { acknowledge: 'string', normalize: 'string' }
-    const structureJson = JSON.stringify(
-        structure,
-        null,
-        2
-    )
-
-    return `You are a compassionate health support assistant.
-    Generate a supportive message for a user
-    experiencing a ${severityLabel} ${reasonText}.
-
-CONSTRAINTS:
-- Language: ${userLanguage}
-- Tone: supportive, non-clinical (no medical claims), concise, non-judgmental
-- Return ONLY valid JSON with this exact structure:
-${structureJson}
-
-CONTEXT:
-- Trend direction: ${direction}
-  over ${duration} day(s)
-- Recent patterns: ${highlightTypes.join(', ') || 'stable'}${gapDays >= FEEDBACK_DETECTION.TREND.GAP_DAYS_THRESHOLD
-        ? `\n- Note: ${gapDays} day gap since a prior check-in, do not imply a continuous trend`
-        : ''}
-
-MESSAGE STRUCTURE:
-- acknowledge: Validate their experience (1 sentence)
-- normalize: Normalize their struggle as part of recovery (1 sentence)
-${mode === 'FULL'
-        ? '- suggest: Offer gentle guidance (1 sentence, optional)'
-        : ''}
-
-Generate the message now:`
-}
-
 export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
     const {
+        feedback,
         insights,
         observation,
         progress
@@ -257,28 +208,33 @@ export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
             kind: 'observation-json',
             language: 'he',
             observationType: 'activity_consistency',
-            prompt: observation.buildObservationPrompt({
-                type: 'activity_consistency',
-                topActivity: 'הליכה',
-                language: 'he'
-            })
+            prompt: new observation.ObservationPromptBuilder().build(
+                { type: 'activity_consistency', topActivity: 'הליכה' },
+                'he'
+            )
         },
         {
             name: 'progress-summary',
             kind: 'progress-text',
             language: 'en',
-            prompt: progress.buildProgressInsightPrompt(
+            prompt: new progress.ProgressInsightPromptBuilder().build(
                 {
-                    averageMood: 6.9,
-                    averagePain: 3.0,
-                    activityConsistency: 0.71
+                    current: {
+                        averageMood: 6.9,
+                        averagePain: 3.0,
+                        activityConsistency: 0.71
+                    },
+                    previous: {
+                        averageMood: 6.1,
+                        averagePain: 3.6,
+                        activityConsistency: 0.43
+                    },
+                    highlights: {
+                        improvements: ['mood', 'activity consistency'],
+                        regressions: []
+                    }
                 },
-                {
-                    averageMood: 6.1,
-                    averagePain: 3.6,
-                    activityConsistency: 0.43
-                },
-                { improvements: ['mood', 'activity consistency'], regressions: [] }
+                'en'
             )
         },
         {
@@ -286,15 +242,21 @@ export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
             kind: 'feedback-json',
             language: 'he',
             feedbackMode: 'FULL',
-            prompt: buildFeedbackPrompt(
-                'FULL',
-                'moderate',
-                'negative trend',
-                'Hebrew',
-                'down',
-                3,
-                ['drop'],
-                0
+            prompt: new feedback.FeedbackPromptBuilder().build(
+                {
+                    intent: {
+                        primaryReason: 'NEGATIVE_TREND',
+                        severity: 'medium',
+                        mode: 'FULL',
+                        trendDuration: 3
+                    },
+                    context: {
+                        recentCheckIns: [],
+                        trend: { direction: 'down', duration: 3, gapDays: 0 },
+                        highlights: [{ type: 'drop', value: 3 }]
+                    }
+                },
+                'he'
             )
         }
     ]

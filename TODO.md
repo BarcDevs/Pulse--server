@@ -14,22 +14,6 @@ None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
-- **Modularise the prompt builders like `pantry` does, with one shared language-rules module.**
-  (Covers and replaces the narrower "`languageInstruction` is duplicated" item under AI PROMPT QUALITY.)
-  Today `languageInstruction` (no em/en dashes or typographic quotes, native phrasing, bare activity
-  nouns, the Hebrew term rules) exists as two separate copies in `src/lib/aiInsight/prompts/insightsPrompts.ts`
-  and `src/lib/dailyObservation/observationPrompt.ts`; the progress prompt
-  (`src/lib/progressInsights/promptBuilder.ts`) and the check-in feedback prompt
-  (`src/services/feedback/aiRenderer.ts`, private `buildAIPrompt`) have none, so their replies can contain
-  dashes, and the progress summary has no language directive at all (Hebrew users likely get English).
-  Target layout, as in `~/Claude/work/projects/pantry/src/lib/prompts/`: one file per prompt
-  (`build-<name>-prompt.ts`) plus separate shared-instruction modules (language rules, "output only the
-  final text / no reasoning" rule, the no-scores rule) imported by every prompt, each with a co-located test.
-  Export the feedback prompt builder so the audit imports it instead of the copy in
-  `scripts/eval-ai-models/scenarios.ts`. Afterwards update the audit scenarios and rules in the same change
-  (AI Eval Sync) and scope the dash rule in `scripts/eval-ai-models/rules.ts` to match
-  (`docs/AI-MODEL-AUDIT.md`, Caveats).
-
 ## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
@@ -106,8 +90,6 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
 - Tests added for all of the above.
 
 Still open:
-- **`languageInstruction` is duplicated** in `observationPrompt.ts` and `insightsPrompts.ts`, so
-  every wording fix has to be made twice. Move it to one shared module.
 - **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
   because a prompt rule is not a guarantee.
 - **Validate weekly and motivational output the way the observation is validated** (length,
@@ -126,6 +108,16 @@ Still open:
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
 
 ## DONE
+
+- **Prompt builders modularised, one shared rules module** (done 12/10/2026, branch `rfc/prompt-builders`, not yet
+  merged). Every prompt now lives in `src/lib/prompts/` as `<Name>PromptBuilder.ts` class (mood drop, motivational, weekly
+  summary, observation, progress insight, check-in feedback). Each extends the abstract `PromptBuilder`, whose `build()`
+  always assembles role, language rules (`languageInstruction`), body and output rules, so a prompt cannot skip them; shared
+  pieces live in `sharedInstructions.ts`. Call sites use `new XPromptBuilder().build(input, language)`. The progress and feedback prompts now carry
+  the language and no-dashes rules, and the progress summary gets the user's language (`resolveSummary` takes it; before,
+  Hebrew users got English). The feedback prompt is exported and the audit imports it instead of the copy. Behaviour
+  change to know: the feedback prompt's `Language: he` line became the full language instruction. Still open: the
+  audit has not been rerun on the changed progress and feedback prompts.
 
 - **`GoogleAIProvider` stored replies that ended with `finishReason=MAX_TOKENS`** (fixed 12/10/2026, branch
   `fix/google-max-tokens-guard`, not yet merged). It now throws on `MAX_TOKENS` (logging `thoughtsTokenCount`), like the

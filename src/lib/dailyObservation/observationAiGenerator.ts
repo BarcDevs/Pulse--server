@@ -1,8 +1,7 @@
 import { createProvider } from '../../services/aiProviders/ProviderFactory'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 import { retryAsync } from '../aiInsight/retry'
-
-import { buildObservationPrompt } from './observationPrompt'
+import { ObservationPromptBuilder } from '../prompts/ObservationPromptBuilder'
 
 type ObservationPayload = {
     observation: string
@@ -67,11 +66,10 @@ export const generateObservation = async ({
     topActivity,
     language
 }: GeneratorInput): Promise<ObservationPayload> => {
-    const prompt = buildObservationPrompt({
-        type,
-        topActivity,
+    const prompt = new ObservationPromptBuilder().build(
+        { type, topActivity },
         language
-    })
+    )
     const provider = createProvider()
 
     const result = await retryAsync(

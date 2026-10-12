@@ -6,7 +6,7 @@ card, a new summary, a new feedback message, etc. Every pipeline gets covered by
 what is actually shipping and model choice is never made on stale scenarios.
 
 **Files to touch:**
-- `src/lib/<domain>/...Prompt.ts` — the prompt builder. Export it, so the audit can import it instead of copying it.
+- `src/lib/prompts/build-<name>-prompt.ts` — the prompt builder (import the language, no-scores and final-text rules from `sharedInstructions.ts`). Export it, so the audit can import it instead of copying it. `PromptBuilder.build()` adds the language and output rules itself, so a new prompt cannot leave them out.
 - `scripts/eval-ai-models/scenarios.ts` — add 1-3 scenarios for the new pipeline (see below).
 - `scripts/eval-ai-models/rules.ts` — add rule checks only if the pipeline has a new output kind (see below).
 - `docs/AI-MODEL-AUDIT.md` — add the scenario to the scenario table.

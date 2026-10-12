@@ -113,7 +113,7 @@ Follows the per-post anonymity entry above and changes its default.
 
 **Why over alternatives:** sending more than 7 check-ins costs tokens and changes what a "weekly" summary is about, while the stats are one line. Fixing the wording in the prompt (not in the saved text) keeps every future generation right.
 
-**How to apply:** `languageInstruction` lives once in `src/lib/prompts/shared-instructions.ts` since 12/10/2026 (it was two copies before). The database returns check-ins newest first, so helpers pick "latest" and "recent N" by `checkInDate` (`getLatestMood`, `extractRecentActivities`, `extractRecentNotes`), never by array position.
+mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sharedInstructions.ts` since 12/10/2026 (it was two copies before). The database returns check-ins newest first, so helpers pick "latest" and "recent N" by `checkInDate` (`getLatestMood`, `extractRecentActivities`, `extractRecentNotes`), never by array position.
 
 ---
 
@@ -155,7 +155,7 @@ Follows the per-post anonymity entry above and changes its default.
 
 **Problem:** the language rules existed as two copies and the progress and check-in feedback prompts had none, because each prompt was a free function that had to remember to call the shared pieces.
 
-**Decision (owner):** every AI prompt is a class in `src/lib/prompts/` extending the abstract `PromptBuilder<TInput>`. A subclass defines `role()` and `body()`; `build(input, language)` always assembles role, language rules, body and output rules, in that order. Plain-text prompts get the final-text rule by default; JSON prompts (observation, check-in feedback) override `outputRules()` to return nothing. Shared text lives in `shared-instructions.ts`.
+**Decision (owner):** every AI prompt is a class in `src/lib/prompts/` extending the abstract `PromptBuilder<TInput>`. A subclass defines `role()` and `body()`; `build(input, language)` always assembles role, language rules, body and output rules, in that order. Plain-text prompts get the final-text rule by default; JSON prompts (observation, check-in feedback) override `outputRules()` to return nothing. Shared text lives in `sharedInstructions.ts`.
 
 **Why over alternatives:** plain functions (the first version, and the style elsewhere in `src/lib`) left the "remember to add the language rules" step to each author, which is exactly how two prompts missed them. A small `assemblePrompt` function would also work, but the owner preferred finishing the refactor with the class now over revisiting it later. Classes are otherwise used here only for the `AIProvider` hierarchy, so this is a deliberate exception to the function style.
 

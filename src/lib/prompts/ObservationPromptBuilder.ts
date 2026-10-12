@@ -1,21 +1,10 @@
-import { brandConfig } from '../../config/app'
-import { resolveLanguage } from '../../locales'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 
-type PromptContext = {
+import { PromptBuilder } from './PromptBuilder'
+
+export type ObservationPromptInput = {
     type: ObservationType
     topActivity?: string
-    language?: string | null
-}
-
-const languageInstruction = (language?: string | null): string => {
-    const lang = resolveLanguage(language)
-    const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native. Never use em dashes, en dashes or typographic quotes; use only plain keyboard punctuation. Write activity names as bare nouns, without a leading definite article.`
-    const terminology =
-        lang === 'he'
-            ? " When referring to check-ins, use the term 'דיווח יומי'. Use the exact term 'מצב הרוח' for mood (never 'המצב רוח')."
-            : ''
-    return base + terminology
 }
 
 const ACTIVITY_MAX_LENGTH = 50
@@ -47,22 +36,21 @@ const patternHint = (
     }
 }
 
-const injectBrandName = (prompt: string): string =>
-    prompt.replaceAll('{{brandName}}', brandConfig.brandName)
+export class ObservationPromptBuilder extends PromptBuilder<ObservationPromptInput> {
+    protected role(): string {
+        return `You are an observation assistant for {{brandName}}, a health and wellness recovery app.
+Your role is to write a calm, human observation that helps the user notice a meaningful pattern in their recovery journey.`
+    }
 
-export const buildObservationPrompt = ({
-    type,
-    topActivity,
-    language
-}: PromptContext): string => {
-    const hint = patternHint(type, topActivity)
+    // The body already defines the JSON shape the reply must have
+    protected outputRules(): string {
+        return ''
+    }
 
-    return injectBrandName(`
-You are an observation assistant for {{brandName}}, a health and wellness recovery app.
-Your role is to write a calm, human observation that helps the user notice a meaningful pattern in their recovery journey.
-${languageInstruction(language)}
+    protected body({ type, topActivity }: ObservationPromptInput): string {
+        const hint = patternHint(type, topActivity)
 
-${hint}
+        return `${hint}
 
 Write a short observation card for the user.
 
@@ -124,6 +112,6 @@ icon must match the observation type:
 - pain_improvement      → TrendingDown
 - better_days_pattern   → Zap
 
-Do NOT include any text outside the JSON object.
-`).trim()
+Do NOT include any text outside the JSON object.`
+    }
 }
