@@ -14,16 +14,6 @@ None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
-- **`GoogleAIProvider` stores replies that ended with `finishReason=MAX_TOKENS`.**
-  Confirmed cause of the 79-character prod insight. Prod log, 10/10/2026 01:08 UTC: the stale Anthropic key
-  returned 401 (twice), the chain fell to `google-pro` (`gemini-3.1-pro-preview`), which finished with
-  `finishReason=MAX_TOKENS, tokens=1251` (thinking used the output budget), and `GoogleAIProvider` only logs
-  a warning for any finish reason other than `STOP`, so the cut-off reply was stored as a normal insight
-  (`contentLength` 79, `usedFallback` false). The prod chain no longer includes `google-pro`, and
-  `gemini-3.1-flash-lite` showed no cutoffs in the audit, but the provider is still unguarded. Add the same
-  guard `AnthropicProvider` and `OpenAIProvider` have (throw on `MAX_TOKENS`, log `thoughtsTokenCount`) plus a
-  test. Audit evidence: `gemini-3.8-flash` and `gemini-3.6-flash` were cut off in 26 of 36 calls.
-
 - **Modularise the prompt builders like `pantry` does, with one shared language-rules module.**
   (Covers and replaces the narrower "`languageInstruction` is duplicated" item under AI PROMPT QUALITY.)
   Today `languageInstruction` (no em/en dashes or typographic quotes, native phrasing, bare activity
@@ -137,6 +127,12 @@ Still open:
 
 ## DONE
 
+- **`GoogleAIProvider` stored replies that ended with `finishReason=MAX_TOKENS`** (fixed 12/10/2026, branch
+  `fix/google-max-tokens-guard`, not yet merged). It now throws on `MAX_TOKENS` (logging `thoughtsTokenCount`), like the
+  Anthropic and OpenAI providers, so a cut-off fallback reply falls through to the template instead of being stored.
+  Google is only the fallback in prod, but a fallback runs exactly when the primary failed. Cause of the 79-character
+  prod insight on 10/10/2026: `google-pro` ended with `MAX_TOKENS` after thinking used the output budget.
+
 - **A superseded check-in AI job could overwrite newer insights** (fixed 12/10/2026, branch `fix/superseded-ai-job-writes`,
   not yet merged). The worker passes a `canWrite` guard (`jobModel.holdsClaim`: status `RUNNING` and `lockedAt` equal to
   the claim token) into `generateInsightForCheckIn` and `generateRecommendationsSafely`, which check it right before each
@@ -165,7 +161,7 @@ Still open:
   prod check on this alone. The prod log could not confirm the effect: the container (up since 09/10 22:07 UTC)
   had no progress-summary lines at all. After the redeploy, search the log for `AI progress summary failed validation`.
 - **`OpenAIProvider` stored replies cut off at the token limit** (fixed 10/10/2026, `afaf064`): it now throws on
-  `finish_reason=length`, like `AnthropicProvider`. The Google equivalent is still open (HIGH).
+  `finish_reason=length`, like `AnthropicProvider`. The Google equivalent was fixed 12/10/2026 (see below).
 - **Insights said "your mood is 8" / "your pain stays around 3"** (fixed 10/10/2026, `NO_SCORES_RULE` in
   `insightsPrompts.ts`, used by the mood-drop, motivational and weekly prompts). Checked by the audit session:
   8 runs per prompt on `claude-sonnet-5`, Hebrew, 0 of 24 replies quoted a score with the rule, against 7-8 of 8

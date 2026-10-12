@@ -85,7 +85,19 @@ export class GoogleAIProvider extends AIProvider {
                 finishReason?: string
                 content?: { parts?: Array<{ text?: string }> }
             }>
-            usageMetadata?: { totalTokenCount?: number }
+            usageMetadata?: {
+                totalTokenCount?: number
+                thoughtsTokenCount?: number
+            }
+        }
+
+        if (data.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+            logger.warn(
+                `Google AI: response cut off - finishReason=MAX_TOKENS, tokens=${data.usageMetadata?.totalTokenCount}, thoughtsTokens=${data.usageMetadata?.thoughtsTokenCount}, maxOutputTokens=${aiGenerationConfig.maxOutputTokens}`
+            )
+            throw new Error(
+                'Google AI response was cut off at the token limit'
+            )
         }
 
         if (data.candidates?.[0]?.finishReason !== 'STOP') {
