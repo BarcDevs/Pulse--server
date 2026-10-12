@@ -126,6 +126,22 @@ describe('Check-in AI job — Integration', () => {
         expect(await jobModel.markJobDone(second!)).toBe(true)
     })
 
+    it('reports the claim as held until the job is re-submitted or taken over', async () => {
+        const { res, userId } = await postCheckIn()
+        const first = await jobModel.claimNextJob(new Date(0))
+
+        expect(await jobModel.holdsClaim(first!)).toBe(true)
+
+        await jobModel.enqueueJob(res.body.data.id, userId)
+        expect(await jobModel.holdsClaim(first!)).toBe(false)
+
+        const second = await jobModel.claimNextJob(new Date(0))
+        expect(await jobModel.holdsClaim(second!)).toBe(true)
+
+        await jobModel.claimNextJob(staleCutoff())
+        expect(await jobModel.holdsClaim(second!)).toBe(false)
+    })
+
     it('fails a stale job that used all its attempts instead of retrying it', async () => {
         await postCheckIn()
         await Prisma.checkInAiJob.updateMany({

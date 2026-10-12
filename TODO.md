@@ -14,15 +14,6 @@ None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
-- **A superseded check-in AI job can overwrite newer insights (found 11/10/2026 by the deep review of the job queue).**
-  When a check-in is re-submitted while its job is `RUNNING`, the row goes back to `PENDING` and a second worker
-  starts on the new answers while the first keeps running (generation cannot be cancelled). The first worker's
-  result is dropped from the job row (claim token), but its insight and recommendation upserts can still land after
-  the second worker's, leaving insights for the old answers marked `ready`. Window: an edit within ~95 s of the
-  first submit, roughly a coin flip on which upsert lands last. Fix: re-check the claim (`status = RUNNING` and
-  `lockedAt` equal to the token) right before each write in `insightGenerationService`, or make re-queue wait for the
-  running job instead of overwriting it.
-
 - **`GoogleAIProvider` stores replies that ended with `finishReason=MAX_TOKENS`.**
   Confirmed cause of the 79-character prod insight. Prod log, 10/10/2026 01:08 UTC: the stale Anthropic key
   returned 401 (twice), the chain fell to `google-pro` (`gemini-3.1-pro-preview`), which finished with
@@ -145,6 +136,12 @@ Still open:
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
 
 ## DONE
+
+- **A superseded check-in AI job could overwrite newer insights** (fixed 12/10/2026, branch `fix/superseded-ai-job-writes`,
+  not yet merged). The worker passes a `canWrite` guard (`jobModel.holdsClaim`: status `RUNNING` and `lockedAt` equal to
+  the claim token) into `generateInsightForCheckIn` and `generateRecommendationsSafely`, which check it right before each
+  insight, intervention and recommendation-snapshot write and drop the result with a warning when the claim is gone.
+  The check and the write are two statements, so a sliver of a race remains, but the old window was the whole AI call.
 
 - **Activity names reached the AI prompts as raw English slugs** (fixed 11/10/2026, branch `fix/localized-activity-names`,
   not yet merged). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)

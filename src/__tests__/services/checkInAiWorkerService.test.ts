@@ -38,10 +38,25 @@ describe('checkInAiWorker', () => {
 
         expect(processed).toBe(1)
         expect(insightGenerationService.generateInsightForCheckIn)
-            .toHaveBeenCalledWith('user-1', 'check-in-1')
+            .toHaveBeenCalledWith('user-1', 'check-in-1', expect.any(Function))
         expect(recommendationsService.generateRecommendationsSafely)
-            .toHaveBeenCalledWith('user-1', 'check-in-1')
+            .toHaveBeenCalledWith('user-1', 'check-in-1', expect.any(Function))
         expect(jobModel.markJobDone).toHaveBeenCalledWith(job())
+    })
+
+    it('lets the generators ask whether the job still holds its claim', async () => {
+        jest.spyOn(jobModel, 'claimNextJob')
+            .mockResolvedValueOnce(job())
+            .mockResolvedValueOnce(null)
+        jest.spyOn(jobModel, 'holdsClaim').mockResolvedValue(false)
+
+        await drainJobs()
+
+        const [, , canWrite] = jest.mocked(
+            insightGenerationService.generateInsightForCheckIn
+        ).mock.calls[0]
+        expect(await canWrite?.()).toBe(false)
+        expect(jobModel.holdsClaim).toHaveBeenCalledWith(job())
     })
 
     it('does nothing when no job is claimable', async () => {

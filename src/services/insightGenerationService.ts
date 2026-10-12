@@ -17,6 +17,8 @@ import type {
     InsightStats,
     InsightType
 } from '../types/insight'
+import type { WriteGuard } from '../types/writeGuard'
+import { alwaysWrite } from '../types/writeGuard'
 import logger from '../utils/logger'
 
 import { isFirstCheckIn } from './feedback/helpers'
@@ -40,7 +42,8 @@ const storeInsight = async (
     checkInId: string,
     recentCheckIns: CheckInType[],
     userLanguage: string,
-    decision: InsightDecisionResult
+    decision: InsightDecisionResult,
+    canWrite: WriteGuard
 ): Promise<void> => {
     let title: string
     let content: string
@@ -74,6 +77,15 @@ const storeInsight = async (
         content = getFallbackContent(decision.type, userLanguage)
     }
 
+    if (!await canWrite()) {
+        logger.warn('Insight dropped, job superseded', {
+            userId,
+            checkInId,
+            insightType: decision.type
+        })
+        return
+    }
+
     await aiInsightModel.createInsight({
         userId,
         checkInId,
@@ -102,7 +114,8 @@ const generateBaselineInsight = async (
     recentCheckIns: CheckInType[],
     userTimezone: string | null,
     userLanguage: string,
-    stats: InsightStats
+    stats: InsightStats,
+    canWrite: WriteGuard
 ): Promise<InsightType> => {
     const decision = decideInsightType(
         recentCheckIns,
@@ -114,7 +127,8 @@ const generateBaselineInsight = async (
         checkInId,
         recentCheckIns,
         userLanguage,
-        { ...decision, metadata: { ...decision.metadata, stats } }
+        { ...decision, metadata: { ...decision.metadata, stats } },
+        canWrite
     )
 
     return decision.type
@@ -125,7 +139,8 @@ const generateMotivationalInsight = async (
     checkInId: string,
     recentCheckIns: CheckInType[],
     userLanguage: string,
-    stats: InsightStats
+    stats: InsightStats,
+    canWrite: WriteGuard
 ): Promise<void> => {
     await storeInsight(
         userId,
@@ -140,7 +155,8 @@ const generateMotivationalInsight = async (
                 checkInCount: recentCheckIns.length,
                 stats
             }
-        }
+        },
+        canWrite
     )
 }
 
@@ -149,7 +165,8 @@ const generateInterventionInsightInternal = async (
     checkInId: string,
     recentCheckIns: CheckInType[],
     userTimezone: string | null,
-    userLanguage: string
+    userLanguage: string,
+    canWrite: WriteGuard
 ): Promise<void> => {
     const current = recentCheckIns[0]
     const history = recentCheckIns.slice(1)
@@ -179,6 +196,14 @@ const generateInterventionInsightInternal = async (
     const interventionTitle = getMessages(userLanguage)
         .insights.titles.BAD_DAY_SUPPORT
 
+    if (!await canWrite()) {
+        logger.warn('Intervention insight dropped, job superseded', {
+            userId,
+            checkInId
+        })
+        return
+    }
+
     // SILENT mode has empty message but still tracks intervention
     await aiInsightModel.createInsight({
         userId,
@@ -204,7 +229,8 @@ const generateInterventionInsightInternal = async (
 
 export const generateInsightForCheckIn = async (
     userId: string,
-    checkInId: string
+    checkInId: string,
+    canWrite: WriteGuard = alwaysWrite
 ): Promise<void> => {
     const profileId = await checkInModel.getProfileIdForUser(userId)
     const recentCheckIns = await checkInModel.getCheckIns(profileId, 7)
@@ -237,7 +263,8 @@ export const generateInsightForCheckIn = async (
         checkInsForAI,
         userTimezone,
         userLanguage,
-        stats
+        stats,
+        canWrite
     )
 
     // A good check-in also gets encouragement, unless the baseline already is the motivational one
@@ -250,7 +277,8 @@ export const generateInsightForCheckIn = async (
             checkInId,
             checkInsForAI,
             userLanguage,
-            stats
+            stats,
+            canWrite
         )
     }
 
@@ -260,7 +288,8 @@ export const generateInsightForCheckIn = async (
             checkInId,
             checkInsForAI,
             userTimezone,
-            userLanguage
+            userLanguage,
+            canWrite
         )
     }
 }
