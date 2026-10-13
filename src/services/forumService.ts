@@ -210,7 +210,17 @@ export const recordPostView = async (
 
     if (post.authorId === profile.id) return
 
-    await forumModel.recordPostView(profile.id, postId)
+    try {
+        await forumModel.recordPostView(profile.id, postId)
+    } catch (err: unknown) {
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError
+            && (err.code === 'P2003' || err.code === 'P2025')
+        ) {
+            throw errorFactory.generic.notFound('Post')
+        }
+        throw err
+    }
 }
 
 export const toggleReplyLike = async (
