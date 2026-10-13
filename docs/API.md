@@ -523,8 +523,8 @@ when `hasMore` is true, otherwise `null`. In cursor mode `hasMore` means the pag
 be followed by one empty page. Sorting has a fixed tie-break on `id`, so no post is skipped or repeated.
 
 Rules: `cursor` and `page` together → `400`; `cursor` with `filter=hot` or `filter=popular` → `400` (those sort by counters that
-change while scrolling, so they stay on `page`); a `cursor` that does not exist (for example the post was deleted) → `404`
-`Cursor not found`, so restart from the first page. `GET /posts/saved` takes no cursor. `page` still works everywhere and
+change while scrolling, so they stay on `page`); a `cursor` that does not exist (for example the post was deleted) → `404`:
+the error has `code: "NOT_FOUND"` and `params: { resource: "Cursor" }` (match on those, not on the message text; a missing post is the same code with `resource: "Post"`), so restart from the first page. `GET /posts/saved` takes no cursor. `page` still works everywhere and
 also returns `nextCursor`.
 
 **Errors:** `404` no posts found

@@ -385,6 +385,10 @@ describe('Forum Routes — Integration', () => {
                 .set('Cookie', [`accessToken=${token}`])
 
             expect(res.status).toBe(HttpStatusCodes.NOT_FOUND)
+            expect(res.body.error[0]).toMatchObject({
+                code: 'NOT_FOUND',
+                params: { resource: 'Cursor' }
+            })
         })
 
         it('rejects cursor with page, and cursor with the hot filter', async () => {
