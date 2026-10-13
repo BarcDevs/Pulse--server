@@ -3,6 +3,7 @@ import {
     type Prisma as PrismaTypes
 } from '../../prisma/generated/prisma/client'
 import { FORUM_PAGINATION } from '../constants/forum/pagination'
+import { POST_VIEW_WINDOW_MS } from '../constants/forum/postViews'
 import type {
     NewPostType,
     PostType,
@@ -462,6 +463,50 @@ export const getCategoryStats = async ():
         },
         ...mapped
     ]
+}
+
+export const recordPostView = async (
+    profileId: string,
+    postId: string
+): Promise<boolean> => {
+    const now = new Date()
+    const windowStart = new Date(
+        now.getTime() - POST_VIEW_WINDOW_MS
+    )
+
+    return Prisma.$transaction(async (tx) => {
+        const renewed = await tx.postView.updateMany({
+            where: {
+                profileId,
+                postId,
+                lastViewedAt: { lt: windowStart }
+            },
+            data: { lastViewedAt: now }
+        })
+
+        let counted = renewed.count > 0
+
+        if (!counted) {
+            const created = await tx.postView.createMany({
+                data: {
+                    profileId,
+                    postId,
+                    lastViewedAt: now
+                },
+                skipDuplicates: true
+            })
+            counted = created.count > 0
+        }
+
+        if (counted) {
+            await tx.post.update({
+                where: { id: postId },
+                data: { views: { increment: 1 } }
+            })
+        }
+
+        return counted
+    })
 }
 
 export const togglePostLike = async (

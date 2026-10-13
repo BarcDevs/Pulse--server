@@ -662,6 +662,27 @@ Increments a post's share count. Rate limited to 1 request per IP per post per h
 
 ---
 
+### `POST /posts/:postId/view`
+> Auth + CSRF required
+
+Records that the current user opened a post. Counts one view per profile per post per rolling 24 hours
+(`POST_VIEW_WINDOW_MS`), measured from the last counted view. The author's own views are not counted. A
+repeat inside the window is accepted and ignored, so the response never tells the caller whether it
+counted, and nothing about who viewed is stored beyond the profile/post pair or exposed anywhere.
+Fire it once when the post detail page opens; `GET /posts/:postId` does not count views.
+
+**Response `200`**
+```json
+{
+  "message": "View of post <id> recorded",
+  "data": null
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` post not found
+
+---
+
 ### `POST /posts/:postId/like`
 > Auth + CSRF required
 

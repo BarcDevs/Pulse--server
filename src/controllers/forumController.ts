@@ -178,6 +178,22 @@ export const sharePost = async (
         `Post ${postId} shared`
     )
 }
+
+export const recordPostView = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId } = req.params as { postId: string }
+    const userId = extractUserId(req)
+
+    await forumService.recordPostView(postId, userId)
+
+    return successResponse(
+        res,
+        null,
+        `View of post ${postId} recorded`
+    )
+}
 // endregion
 
 // region Replies

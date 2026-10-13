@@ -342,6 +342,11 @@ id, postId, userId, body, createdAt, updatedAt
 userId, postId/replyId
 ```
 
+**PostView** (forum, one row per profile and post)
+```
+profileId, postId, lastViewedAt   -- PK (profileId, postId)
+```
+
 **Tag** (forum)
 ```
 id, slug, label (en, he?), description?
@@ -603,6 +608,8 @@ Detection types (priority order): activity_consistency, pain_improvement,
 **PUT /posts/:postId** — Auth + CSRF, owner only — `{ title?, body?, category?, tags? }` → 200
 
 **DELETE /posts/:postId** — Auth + CSRF, owner only → 200
+
+**POST /posts/:postId/view** — Auth + CSRF — Record a view: one per profile per post per rolling 24h, author excluded → 200 `null`
 
 **POST /posts/:postId/like** — Auth + CSRF — Toggle like/unlike → 200 `{ liked, likes }`
 

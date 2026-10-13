@@ -453,6 +453,7 @@ Login keeps the older rule (8+ characters, a letter and a digit) so existing acc
 | `PUT` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Update post |
 | `DELETE` | `/api/{version}/forum/posts/:postId` | Cookie + CSRF | Delete post |
 | `POST` | `/api/{version}/forum/posts/:postId/share` | Cookie | Increment post share count |
+| `POST` | `/api/{version}/forum/posts/:postId/view` | Cookie + CSRF | Record a post view (once per profile per 24h, author excluded) |
 | `GET` | `/api/{version}/forum/replies` | Cookie | List replies |
 | `POST` | `/api/{version}/forum/replies` | Cookie + CSRF | Add reply to a post |
 | `PUT` | `/api/{version}/forum/replies/:replyId` | Cookie + CSRF | Update reply |

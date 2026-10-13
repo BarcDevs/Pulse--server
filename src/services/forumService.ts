@@ -196,6 +196,23 @@ export const togglePostLike = async (
     return forumModel.togglePostLike(profile.id, postId)
 }
 
+export const recordPostView = async (
+    postId: string,
+    userId: string
+) => {
+    const post = await ensurePostExists(postId)
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    if (post.authorId === profile.id) return
+
+    await forumModel.recordPostView(profile.id, postId)
+}
+
 export const toggleReplyLike = async (
     postId: string,
     replyId: string,
