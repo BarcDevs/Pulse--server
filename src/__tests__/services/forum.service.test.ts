@@ -1,3 +1,4 @@
+import { Prisma } from '../../../prisma/generated/prisma/client'
 import {
     createPost,
     createReply,
@@ -675,6 +676,38 @@ describe('Forum Service', () => {
             await recordPostView('post-id', 'user-id')
 
             expect(prismaMock.$transaction).toHaveBeenCalledTimes(1)
+        })
+
+        it.each(['P2003', 'P2025'])(
+            'throws NotFoundError when the post is deleted mid-request (%s)',
+            async (code) => {
+                prismaMock.post.findUnique.mockResolvedValue(
+                    createMockPost({ authorId: 'someone-else' }) as never
+                )
+                prismaMock.profile.findUnique.mockResolvedValue(viewer as never)
+                prismaMock.$transaction.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('gone', {
+                        code,
+                        clientVersion: 'test'
+                    }) as never
+                )
+
+                await expect(
+                    recordPostView('post-id', 'user-id')
+                ).rejects.toThrow('Post not found')
+            }
+        )
+
+        it('rethrows other database errors', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(
+                createMockPost({ authorId: 'someone-else' }) as never
+            )
+            prismaMock.profile.findUnique.mockResolvedValue(viewer as never)
+            prismaMock.$transaction.mockRejectedValue(new Error('DB error') as never)
+
+            await expect(
+                recordPostView('post-id', 'user-id')
+            ).rejects.toThrow('DB error')
         })
     })
 
