@@ -68,13 +68,7 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
   when nothing specific applies).
 - Tests added for all of the above.
 
-Still open:
-- **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
-  because a prompt rule is not a guarantee.
-- **Validate weekly and motivational output the way the observation is validated** (length,
-  numbers allowed or not, retry on failure). In three samples of the same weekly prompt one had
-  a garbled Hebrew phrase, one said mood "rose to 8" when it was 8 the day before, and one said
-  "almost without a break" for an unbroken 18-day streak.
+Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## LOW PRIORITY (non-blocking)
 
@@ -88,6 +82,15 @@ Still open:
 
 ## DONE
 
+- **AI output sanitised, and regenerated once when invalid** (done 13/10/2026, branch `fix/ai-output-sanitize`).
+  `sanitizeGeneratedText` (`validationHelpers.ts`) turns spaced em/en dashes into a comma, joining ones into a hyphen and
+  curly quotes into straight ones; it runs on every stored AI text (insights, daily observation, progress summary) before
+  validation. `generateInsight` now asks again once when a reply fails validation (length, sentence count, diagnostic
+  language) before using the template; the providers' own retry still covers API errors. Not done, on purpose: checking a
+  claim against the data ("mood rose to 8", "almost without a break" for an unbroken streak). That needs a per-claim parser
+  that does not exist, a numeric whitelist would reject legitimate streak and count mentions, and the prompt rule
+  (`NO_SCORES_RULE`, no scores) already removed the score quotes in the audit. A bad claim still reaches the user at a low
+  rate; the fix would be to stop sending free text for facts the server already knows.
 - **Purge job index and `getProfileInteractions` cap** (done 13/10/2026, branch `perf/db-small-followups`). Migration
   `20261013140000_add_user_deleted_at_index` adds `User_deletedAt_idx` (a plain index, not partial: Prisma cannot express
   a `WHERE` on an index, so a partial one would show as drift on every `migrate dev`; applied to Neon dev, RDS gets it on

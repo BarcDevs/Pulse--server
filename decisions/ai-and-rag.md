@@ -84,3 +84,15 @@ either without that comparison.
 **Why over alternatives:** In the audit gemini-3.1-flash-lite had no cutoffs and no reasoning overhead, a slowest call of 2.6 s and $0.23 per 1k requests; claude-sonnet-5-5 has better quality (7.33 vs 5.08) but costs $6.16 per 1k, its slowest call was 10.3 s and one of 48 calls was cut off. Speed decides it, because the check-in request currently awaits the whole AI chain and the Next.js `/api` proxy cuts at 30 s (a prod check-in took 10.4 s in the log above), so a slow fallback risks failing a check-in that the server saved. Using a different vendor than the primary means an OpenAI outage cannot take both down. Quality during an outage is an accepted trade-off.
 
 **How to apply:** Anthropic identity federation (`scaling-todo.md`) is deferred until a new audit brings Anthropic back into the chain. Only insights use the chain; daily observation, progress summaries and check-in feedback call a single provider. `GoogleAIProvider` still stores a reply that ended with `MAX_TOKENS`; it needs the same guard `AnthropicProvider` and `OpenAIProvider` got (TODO.md).
+
+---
+
+## 13/10/2026 — AI text is sanitised in code, an invalid insight is regenerated once
+
+**Problem:** a prompt rule against dashes and curly quotes is not a guarantee, and an insight that failed validation went straight to the template with no second try.
+
+**Decision (owner, via the TODO):** `sanitizeGeneratedText` runs on all stored AI text, and `generateInsight` makes up to 2 attempts (each walking the provider chain) before the template. Claims are not checked against the data.
+
+**Why over alternatives:** the sanitising is deterministic, so it beats asking the model again. The second attempt costs a call only when the first reply was unusable. A claim checker was rejected: it needs per-claim parsing and either misses lies or blocks true numbers.
+
+**How to apply:** any new place that stores AI text must call `sanitizeGeneratedText`; keep `INSIGHT_GENERATION_ATTEMPTS` small, since each attempt can walk the whole chain.

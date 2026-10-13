@@ -6,7 +6,8 @@ import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
     countSentences,
-    normalizeContent
+    normalizeContent,
+    sanitizeGeneratedText
 } from '../../validation/validationHelpers'
 
 describe('normalizeContent', () => {
@@ -458,5 +459,27 @@ describe('getFallbackContent', () => {
                 )
             expect(validation.isValid).toBe(true)
         })
+    })
+})
+
+describe('sanitizeGeneratedText', () => {
+    it('turns a spaced dash into a comma', () => {
+        expect(sanitizeGeneratedText('Good week — keep going – well done'))
+            .toBe('Good week, keep going, well done')
+    })
+
+    it('turns a joining dash into a hyphen', () => {
+        expect(sanitizeGeneratedText('a 7–10 day run, well—known'))
+            .toBe('a 7-10 day run, well-known')
+    })
+
+    it('straightens curly quotes', () => {
+        expect(sanitizeGeneratedText('“Hello” it’s fine'))
+            .toBe("\"Hello\" it's fine")
+    })
+
+    it('leaves clean text and Hebrew untouched', () => {
+        const text = 'מצב הרוח יציב.'
+        expect(sanitizeGeneratedText(text)).toBe(text)
     })
 })

@@ -8,7 +8,8 @@ import type { TrendType } from '../../types/data/ProgressInsightType'
 import logger from '../../utils/logger'
 import {
     countSentences,
-    normalizeContent
+    normalizeContent,
+    sanitizeGeneratedText
 } from '../aiInsight/validation/validationHelpers'
 import { ProgressInsightPromptBuilder } from '../prompts/ProgressInsightPromptBuilder'
 
@@ -49,7 +50,7 @@ const generateAISummary = async (
         const result = await provider.generateContent({
             prompt
         })
-        const content = result.content.trim()
+        const content = sanitizeGeneratedText(result.content.trim())
 
         if (!isValidSummary(content)) {
             logger.warn(

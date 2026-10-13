@@ -2,6 +2,9 @@ export const MIN_CONTENT_LENGTH = 20
 export const MAX_CONTENT_LENGTH = 500
 export const MAX_SENTENCES = 4
 
+// One regeneration when a reply fails validation; models are not deterministic
+export const INSIGHT_GENERATION_ATTEMPTS = 2
+
 export const HARD_BLOCK_PHRASES = [
     'you may have',
     'you might have',

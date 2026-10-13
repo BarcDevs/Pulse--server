@@ -199,7 +199,7 @@ describe('generateInsight', () => {
     )
 
     it(
-        'does not retry on validation failure',
+        'regenerates once on validation failure, then uses the fallback',
         async () => {
             const mockProvider = {
                 generateContent: jest.fn()
@@ -221,13 +221,41 @@ describe('generateInsight', () => {
                 language: 'en'
             })
 
-            // Should only call once (no retries for validation failure)
+            // One regeneration, no more
             expect(
                 mockProvider.generateContent
-            ).toHaveBeenCalledTimes(1)
+            ).toHaveBeenCalledTimes(2)
 
             // Uses fallback because content failed validation
             expect(result.content).toBeTruthy()
+        }
+    )
+
+    it(
+        'uses the second reply when the first fails validation, and sanitises dashes',
+        async () => {
+            const mockProvider = {
+                generateContent: jest.fn()
+                    .mockResolvedValueOnce({
+                        content: 'You may have depression'
+                    })
+                    .mockResolvedValueOnce({
+                        content: 'A steady week — keep going with what works.'
+                    })
+            }
+
+            mockConfig.createProviderByType.mockReturnValue(mockProvider as any)
+
+            const result = await generateInsight({
+                decision: mockDecision('WEEKLY_SUMMARY'),
+                checkIns: [mockCheckIn()],
+                userId: 'user1',
+                checkInId: 'check1',
+                language: 'en'
+            })
+
+            expect(mockProvider.generateContent).toHaveBeenCalledTimes(2)
+            expect(result.content).toBe('A steady week, keep going with what works.')
         }
     )
 
