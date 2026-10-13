@@ -14,15 +14,16 @@ None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
-## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
+None open.
+
+## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, all done)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
-`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner. All of them are done, see DONE.
-
+`decisions/database-and-performance.md`. Order was by value; the first two were chosen by the owner. All of them are done, see DONE.
 
 ## AI PROMPT QUALITY (found 09/10/2026 while generating demo feedback for the landing page)
 
-Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-quality`, not merged):
+Done (branch `fix/ai-prompt-quality`, merged into `development`):
 - All prompts tell the model to say `מצב הרוח` (never `המצב רוח`), to avoid em/en dashes and
   typographic quotes, and to write activity names without a leading `ה` (`הליכה`, not `ההליכה`).
 - The insight service now computes streak stats over all check-ins (`getCheckInDates` +
@@ -43,16 +44,6 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
 - Tests added for all of the above.
 
 Sanitising and output validation: done 13/10/2026 (see DONE).
-
-## LOW PRIORITY (non-blocking)
-
-- **Evaluate Node 26 once it reaches LTS (reported 28/10/2026; check nodejs.org's schedule).** Node 26 (out 05/2026) adds
-  Temporal by default, V8 14.6, Undici 8 and removes some old APIs; nothing in it fixes a current problem, and Node 24
-  is Active LTS for years, so there is no urgency. Node is pinned in `Dockerfile` (builder and runner stages),
-  `.github/workflows/ci.yml` (two jobs), `engines` in `package.json` and `@types/node`. Do it in its own branch,
-  not together with another change: run the `stack-update-check` skill first, then bump all four and run typecheck,
-  lint, unit and integration tests. Watch the Prisma 7 CJS output, `rewriteRelativeImportExtensions`, Jest 30's
-  resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
 
 ## DONE
 
@@ -108,19 +99,19 @@ Sanitising and output validation: done 13/10/2026 (see DONE).
   audit has not been rerun on the changed progress and feedback prompts.
 
 - **`GoogleAIProvider` stored replies that ended with `finishReason=MAX_TOKENS`** (fixed 12/10/2026, branch
-  `fix/google-max-tokens-guard`, not yet merged). It now throws on `MAX_TOKENS` (logging `thoughtsTokenCount`), like the
+  `fix/google-max-tokens-guard`, merged into `development`). It now throws on `MAX_TOKENS` (logging `thoughtsTokenCount`), like the
   Anthropic and OpenAI providers, so a cut-off fallback reply falls through to the template instead of being stored.
   Google is only the fallback in prod, but a fallback runs exactly when the primary failed. Cause of the 79-character
   prod insight on 10/10/2026: `google-pro` ended with `MAX_TOKENS` after thinking used the output budget.
 
 - **A superseded check-in AI job could overwrite newer insights** (fixed 12/10/2026, branch `fix/superseded-ai-job-writes`,
-  not yet merged). The worker passes a `canWrite` guard (`jobModel.holdsClaim`: status `RUNNING` and `lockedAt` equal to
+  merged into `development`). The worker passes a `canWrite` guard (`jobModel.holdsClaim`: status `RUNNING` and `lockedAt` equal to
   the claim token) into `generateInsightForCheckIn` and `generateRecommendationsSafely`, which check it right before each
   insight, intervention and recommendation-snapshot write and drop the result with a warning when the claim is gone.
   The check and the write are two statements, so a sliver of a race remains, but the old window was the whole AI call.
 
 - **Activity names reached the AI prompts as raw English slugs** (fixed 11/10/2026, branch `fix/localized-activity-names`,
-  not yet merged). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
+  merged into `development`). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
   maps a slug to its label from a new `activities` map in `src/locales/en.json` and `he.json` (the client's
   `checkIn.activities.default` labels plus `yoga` and `medical`); custom activities pass through unchanged. Used by the
   insight prompts (recent and top activities) and the daily observation (prompt and template). The server keeps its
