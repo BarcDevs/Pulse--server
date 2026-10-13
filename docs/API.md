@@ -679,7 +679,7 @@ Fire it once when the post detail page opens; `GET /posts/:postId` does not coun
 }
 ```
 
-**Errors:** `401` not authenticated or invalid CSRF · `404` post not found
+**Errors:** `401` not authenticated or invalid CSRF · `404` post not found · `429` more than one request for this post from this user within an hour (the first one is the one that counts)
 
 ---
 
