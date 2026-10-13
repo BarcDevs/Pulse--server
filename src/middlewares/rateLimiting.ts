@@ -132,3 +132,17 @@ export const sharePostRateLimiter = rateLimit({
         return `${ip}:${postId}`
     }
 })
+
+// A counted view needs 24h since the last one, so one request per hour per
+// profile and post loses nothing; it only absorbs retries and repeated opens.
+export const viewPostRateLimiter = rateLimit({
+    windowMs: hourInMs,
+    limit: 1,
+    message:
+        'This view was already recorded',
+    keyGenerator: (req) => {
+        const user = req.userId ?? ipKeyGenerator(req.ip ?? '')
+        const postId = req.params.postId
+        return `${user}:${postId}`
+    }
+})

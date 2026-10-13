@@ -28,7 +28,10 @@ import {
 } from '../middlewares/csrf'
 import { isAdmin } from '../middlewares/isAdmin'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
-import { sharePostRateLimiter } from '../middlewares/rateLimiting'
+import {
+    sharePostRateLimiter,
+    viewPostRateLimiter
+} from '../middlewares/rateLimiting'
 
 import recommendationsRoute from './recommendationsRoute'
 
@@ -544,11 +547,14 @@ router
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Already recorded for this post within the last hour
  */
 router.route('/posts/:postId/view').post(
     isAuthenticated,
     extractCsrfToken,
     csrfMiddleware,
+    viewPostRateLimiter,
     recordPostView
 )
 

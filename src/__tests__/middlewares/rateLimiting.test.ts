@@ -78,6 +78,66 @@ describe('Rate Limiting Middleware', () => {
         })
     })
 
+    describe('viewPostRateLimiter (real implementation)', () => {
+        const {
+            viewPostRateLimiter: realViewPostRateLimiter
+        } = jest.requireActual('../../middlewares/rateLimiting')
+
+        const buildReq = (userId: string, postId: string) => {
+            const req = createMockRequest({
+                ip: '127.0.0.1',
+                params: { postId },
+                method: 'POST'
+            }) as Request
+            req.userId = userId
+            return req
+        }
+
+        const run = async (userId: string, postId: string) => {
+            const headers: Record<string, unknown> = {}
+            const res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn(),
+                headersSent: false
+            } as unknown as Response
+            const next = createMockNext()
+            await realViewPostRateLimiter(buildReq(userId, postId), res, next)
+            return { res, next }
+        }
+
+        it('lets the first view of a post through', async () => {
+            const { next } = await run('view-user-1', 'view-post-1')
+
+            expect(next).toHaveBeenCalled()
+        })
+
+        it('blocks a second view of the same post by the same user', async () => {
+            await run('view-user-2', 'view-post-2')
+            const { res, next } = await run('view-user-2', 'view-post-2')
+
+            expect(next).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(
+                HttpStatusCodes.TOO_MANY_REQUESTS
+            )
+        })
+
+        it('does not block another user or another post', async () => {
+            await run('view-user-3', 'view-post-3')
+
+            const otherUser = await run('view-user-4', 'view-post-3')
+            const otherPost = await run('view-user-3', 'view-post-4')
+
+            expect(otherUser.next).toHaveBeenCalled()
+            expect(otherPost.next).toHaveBeenCalled()
+        })
+    })
+
     describe('checkInMutationRateLimiter', () => {
         it('should be defined', () => {
             expect(checkInMutationRateLimiter).toBeDefined()
