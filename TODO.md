@@ -22,7 +22,9 @@ Why, evidence and the RDS read-only verification recipe: `.claude/db-optimizatio
 
 ## FIRST ON SCALING
 
-- **Re-check DB performance once there is real forum data.** The DB-perf release was verified
+- **Re-check DB performance once there is real forum data.** (Checked 13/10/2026 over SSM, read-only: still 2 users, 0 posts,
+  3 check-ins, `replyCount` drift 0, so nothing to measure yet; `newest` and `hot` plans use `Post_createdAt_idx` and
+  `Post_replyCount_idx` with an incremental sort. Repeat once posts exist.) The DB-perf release was verified
   on RDS on 03/10/2026 (all 7 migrations applied, `pg_trgm` and the new indexes present, the
   old ones gone, `Post.replyCount` drift 0, the per-session `statement_timeout` enforced). Prod
   held only 2 users and no posts, so speed was not measurable. Once there are posts: run
@@ -30,14 +32,6 @@ Why, evidence and the RDS read-only verification recipe: `.claude/db-optimizatio
   for `Slow database query` warnings and any `57014` cancel, and if `Post.replyCount` is ever
   suspect, reconcile it with
   `UPDATE "Post" p SET "replyCount" = (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id) WHERE "replyCount" <> (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id);`
-- **Clean up accounts verified through the H6 bug (security audit H6, fixed 30/09).**
-  Until the fix, 5 wrong codes on `POST /auth/confirm-email` marked any email verified, and a
-  verified email lets a Google sign-in link into that account. The confirm-email code was never
-  actually sent, so no real user verified that way. Password reset and Google also set
-  `emailVerifiedAt`, so the data alone can't separate them. Candidates:
-  `SELECT id, email, "emailVerifiedAt" FROM "User" WHERE "emailVerifiedAt" IS NOT NULL AND "googleId" IS NULL;`
-  Safe remedy: clear `emailVerifiedAt` on those rows. A real user only loses Google-linking
-  until their next password reset.
 - **Real email verification at signup (security audit H1 scaling plan).** Send the confirm-email
   code on signup (`sendConfirmEmailOTP` exists but is never called), add the client step, and
   block posting until the email is verified.
@@ -78,6 +72,9 @@ Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## DONE
 
+- **H6 account cleanup: nothing to clean** (checked 13/10/2026, read-only SSM as `pulse_app`). Prod has 2 users, none with
+  `emailVerifiedAt` set and no Google id (the only verified-looking path left is the 1 Google account), so no row needed its
+  `emailVerifiedAt` cleared. No prod write was made.
 - **`pg_stat_statements` enabled** (done 13/10/2026, branch `chore/pg-stat-statements`, applied to Neon dev, RDS gets it on
   the next deploy). Migration `20261013180000_enable_pg_stat_statements` is `CREATE EXTENSION IF NOT EXISTS`. No parameter
   group change and no reboot: RDS `default.postgres17` already preloads it (`shared_preload_libraries =
