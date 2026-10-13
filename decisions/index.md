@@ -62,6 +62,7 @@ Indexing, pool/timeout and counter decisions for the Postgres layer, what was re
 | 13/10/2026 | Reply totals read from stored `replyCount`; replies of pending-deletion authors count |
 | 13/10/2026 | Plain `User.deletedAt` index for the purge (no partial index); interaction id lists capped at 1000 |
 | 13/10/2026 | Cursor pagination is additive: optional `cursor` beside `page`, keyset on the item id |
+| 13/10/2026 | `pg_stat_statements` ships as a migration; RDS default parameter group already preloads it |
 
 ## Security & Privacy — [[decisions/security]]
 Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.

@@ -17,10 +17,8 @@ None open.
 ## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
-`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner (the first two are done, see DONE).
+`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner. All of them are done, see DONE.
 
-- **Enable `pg_stat_statements` on RDS** (parameter group + `CREATE EXTENSION`) to see the slowest
-  queries once there is traffic; pairs with the `Slow database query` log.
 
 ## FIRST ON SCALING
 
@@ -80,6 +78,11 @@ Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## DONE
 
+- **`pg_stat_statements` enabled** (done 13/10/2026, branch `chore/pg-stat-statements`, applied to Neon dev, RDS gets it on
+  the next deploy). Migration `20261013180000_enable_pg_stat_statements` is `CREATE EXTENSION IF NOT EXISTS`. No parameter
+  group change and no reboot: RDS `default.postgres17` already preloads it (`shared_preload_libraries =
+  pg_stat_statements,pg_tle`, checked read-only 13/10/2026 on `pulse-db`). After the deploy, query it as `pulse_admin` or grant
+  `pg_read_all_stats` to a read role: `SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;`.
 - **Cursor pagination for posts and replies** (done 13/10/2026, branch `perf/cursor-pagination`; server side, additive).
   `GET /forum/posts` and `GET /forum/posts/:postId/replies` accept an optional `cursor` (the id of the last item the client
   has) that replaces `page`, and every paged response carries `pagination.nextCursor`. Sorting got a fixed `id` tie-break

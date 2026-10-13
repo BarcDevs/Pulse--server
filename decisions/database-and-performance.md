@@ -80,3 +80,15 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 **Rules found in review:** `cursor` with `page` is a 400; `cursor` with `hot`/`popular` is a 400 (their sort keys, `replyCount` and `views`, change while the client scrolls, so a cursor could skip or repeat posts); a cursor id that does not exist gives 404 (Prisma would return an empty page that looks like the end of the list); saved posts take no cursor (they page over save rows). A composite `Post(createdAt desc, id desc)` index replaced the single `createdAt` one; composites for `views` and `replyCount` were skipped (write cost, tiny table).
 
 **How to apply:** new list endpoints should take `cursor` the same way and order by the sort field plus `id`, and only on immutable sort keys.
+
+---
+
+## 13/10/2026 — `pg_stat_statements` ships as a migration, not a manual prod change
+
+**Problem:** the TODO said "parameter group + `CREATE EXTENSION`", which would mean a custom parameter group and an RDS reboot.
+
+**Decision (owner):** a Prisma migration with `CREATE EXTENSION IF NOT EXISTS pg_stat_statements`, run as `pulse_admin` by the normal deploy, like `pg_trgm`. Checked read-only: `pulse-db` uses `default.postgres17`, whose `shared_preload_libraries` already lists `pg_stat_statements`, so nothing else is needed.
+
+**Why over alternatives:** running it by hand over SSM would be an unrecorded prod write; a custom parameter group adds a reboot and a thing to maintain for no gain.
+
+**How to apply:** if RDS is ever moved to a custom parameter group, keep `pg_stat_statements` in its `shared_preload_libraries`.
