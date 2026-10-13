@@ -30,3 +30,15 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 - **Smaller items** (list reply counts from `replyCount`, "unanswered" via `replyCount = 0`, cursor pagination, an index for the purge job, `pg_stat_statements`) are recorded as TODOs; the first two need a decision on hidden-author replies first.
 
 **How to apply:** check the RDS constraints before designing any DB change, ship indexes as their own migration, and verify on RDS read-only over SSM (recipe in the deep doc) once data exists. Do not wrap the toggle write path in a transaction.
+
+---
+
+## 13/10/2026 — Profile lookup cached in memory for 30 s, id and timezone only
+
+**Problem:** about 27 call sites read the profile row on every request just for its id (and timezone).
+
+**Decision (owner):** an in-process map `userId -> { id, timezone }` with a 30 s TTL (`PROFILE_CONTEXT_TTL_MS`) and a 10,000 entry cap. `updateProfile` invalidates the entry. Only `getProfileContext` and the two `getProfileIdForUser` use it; `getProfileByUserId` still reads the DB.
+
+**Why over alternatives:** the id never changes and the timezone rarely does, while `anonymousParticipation` changes with every post or reply choice and so stays uncached. The ASG can run 2 instances and invalidation reaches only the instance that handled the update, so the short TTL is what bounds staleness (a different timezone for at most 30 s). Putting the id in the JWT needs token reissue and a fallback for old tokens, for no gain over this.
+
+**How to apply:** never add a mutable field to the cached shape. Any new write to `Profile.timezone` must call `profileContextCache.invalidate`.

@@ -17,14 +17,8 @@ None open.
 ## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
-`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner.
+`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner (the first is done, see DONE).
 
-- **Cache the profile lookup.** About 33 call sites fetch the profile (`getProfileIdForUser`,
-  `getProfileContext`, `getProfileByUserId`) on every request just to get its id. Cache only stable
-  fields (`id`, `timezone`) in a small in-memory map with a short TTL and invalidate on profile
-  update; do NOT cache `anonymousParticipation` (changes on every post/reply choice) or serve it stale.
-  The ASG can run 2 instances, so keep the TTL short instead of relying on invalidation alone. The
-  alternative is putting the profile id in the JWT, which needs token reissue and a fallback.
 - **Show the stored `replyCount` on post lists, and use `replyCount = 0` for "unanswered".** Lists
   still count replies per post with a join against reply authors (`postInclude` `_count`). The stored
   counter also includes replies from deactivated (pending-deletion) authors, which are hidden today.
@@ -102,7 +96,11 @@ Still open:
 
 ## DONE
 
-- **Post views counted** (done 13/10/2026, branch `feat/post-views`, not yet merged). New `PostView(profileId, postId,
+- **Profile lookup cached** (done 13/10/2026, branch `perf/cache-profile-lookup`). `profileModel.findProfileContext` keeps
+  `{ id, timezone }` per user in `lib/cache/profileContextCache.ts` for 30 s (cap 10,000 entries, misses never cached) and
+  `updateProfile` invalidates it. `getProfileContext` and both `getProfileIdForUser` use it. `getProfileByUserId` (the full
+  profile, with `anonymousParticipation`) is untouched. Another instance can serve an old timezone for up to 30 s.
+- **Post views counted** (done 13/10/2026, merged into `development`, not pushed). New `PostView(profileId, postId,
   lastViewedAt)` table and `POST /forum/posts/:postId/view`: one counted view per profile per post per rolling 24h,
   author skipped, `Post.views` incremented only when counted, no backfill. The client calls it on post detail mount
   because it serves posts from the list cache and often makes no GET. Design and why: `decisions/feature-design.md`.

@@ -17,14 +17,12 @@ import {
     convertMilestoneToDTO
 } from '../utils/recoveryGoalDTOConverter'
 
+import { findProfileContext } from './profileModel'
+
 export const getProfileIdForUser = async (
     userId: string
 ): Promise<string> => {
-    const profile = await Prisma.profile
-        .findUnique({
-            where: { userId },
-            select: { id: true }
-        })
+    const profile = await findProfileContext(userId)
 
     if (!profile)
         throw errorFactory.generic.notFound(
