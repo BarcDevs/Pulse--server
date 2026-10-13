@@ -15,6 +15,7 @@ import {
     getUnknownTagAttempts,
     likePost,
     likeReply,
+    recordPostView,
     reportUnknownTag,
     savePost,
     sharePost,
@@ -513,6 +514,43 @@ router
         sharePostRateLimiter,
         sharePost
     )
+
+/**
+ * @swagger
+ * /forum/posts/{postId}/view:
+ *   post:
+ *     summary: Record that the current user opened a post
+ *     description: >
+ *       Counts one view per profile per post per rolling 24 hours.
+ *       The author's own views are not counted. Nothing about who
+ *       viewed is exposed.
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: View handled (counted or ignored)
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.route('/posts/:postId/view').post(
+    isAuthenticated,
+    extractCsrfToken,
+    csrfMiddleware,
+    recordPostView
+)
 
 /**
  * @swagger

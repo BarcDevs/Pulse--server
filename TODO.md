@@ -19,13 +19,6 @@ None open.
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
 `decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner.
 
-- **Count post views (feature).** `Post.views` is never incremented anywhere, so the "popular" sort
-  (`postQuery.ts`, `orderBy views`) has been ordering by zero; the `Post[views]` index is unused until
-  this exists. Recommended design: a `PostView(postId, profileId)` table with a composite primary
-  key, written on `GET /forum/posts/:id` with `createMany({ skipDuplicates: true })`, incrementing
-  `Post.views` only when a row was inserted (unique viewers, no inflation by refresh). Skip the
-  author's own view. Never expose who viewed (anonymity). Add tests and `API.md`; the migration must
-  not backfill (no history exists).
 - **Cache the profile lookup.** About 33 call sites fetch the profile (`getProfileIdForUser`,
   `getProfileContext`, `getProfileByUserId`) on every request just to get its id. Cache only stable
   fields (`id`, `timezone`) in a small in-memory map with a short TTL and invalidate on profile
@@ -109,6 +102,10 @@ Still open:
 
 ## DONE
 
+- **Post views counted** (done 13/10/2026, branch `feat/post-views`, not yet merged). New `PostView(profileId, postId,
+  lastViewedAt)` table and `POST /forum/posts/:postId/view`: one counted view per profile per post per rolling 24h,
+  author skipped, `Post.views` incremented only when counted, no backfill. The client calls it on post detail mount
+  because it serves posts from the list cache and often makes no GET. Design and why: `decisions/feature-design.md`.
 - **Prompt builders modularised, one shared rules module** (done 12/10/2026, branch `rfc/prompt-builders`, not yet
   merged). Every prompt now lives in `src/lib/prompts/` as `<Name>PromptBuilder.ts` class (mood drop, motivational, weekly
   summary, observation, progress insight, check-in feedback). Each extends the abstract `PromptBuilder`, whose `build()`

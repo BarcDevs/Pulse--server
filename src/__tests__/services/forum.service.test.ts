@@ -10,6 +10,7 @@ import {
     getSavedPosts,
     getTag,
     getTags,
+    recordPostView,
     togglePostLike,
     toggleReplyLike,
     toggleSavePost,
@@ -627,6 +628,53 @@ describe('Forum Service', () => {
                     postId: 'post-id'
                 }
             })
+        })
+    })
+
+    // ==================== recordPostView ====================
+    describe('recordPostView', () => {
+        const viewer = { id: 'viewer-profile', userId: 'user-id' }
+
+        it('throws NotFoundError when post not found', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(null as never)
+
+            await expect(
+                recordPostView('nonexistent-post', 'user-id')
+            ).rejects.toThrow('Post not found')
+        })
+
+        it('throws NotFoundError when profile not found', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(
+                createMockPost() as never
+            )
+            prismaMock.profile.findUnique.mockResolvedValue(null as never)
+
+            await expect(
+                recordPostView('post-id', 'user-id')
+            ).rejects.toThrow('User profile not found')
+        })
+
+        it('does not count the author viewing their own post', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(
+                createMockPost({ authorId: viewer.id }) as never
+            )
+            prismaMock.profile.findUnique.mockResolvedValue(viewer as never)
+
+            await recordPostView('post-id', 'user-id')
+
+            expect(prismaMock.$transaction).not.toHaveBeenCalled()
+        })
+
+        it('records the view for another profile', async () => {
+            prismaMock.post.findUnique.mockResolvedValue(
+                createMockPost({ authorId: 'someone-else' }) as never
+            )
+            prismaMock.profile.findUnique.mockResolvedValue(viewer as never)
+            prismaMock.$transaction.mockResolvedValue(true as never)
+
+            await recordPostView('post-id', 'user-id')
+
+            expect(prismaMock.$transaction).toHaveBeenCalledTimes(1)
         })
     })
 
