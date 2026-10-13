@@ -160,3 +160,15 @@ mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sh
 **Why over alternatives:** plain functions (the first version, and the style elsewhere in `src/lib`) left the "remember to add the language rules" step to each author, which is exactly how two prompts missed them. A small `assemblePrompt` function would also work, but the owner preferred finishing the refactor with the class now over revisiting it later. Classes are otherwise used here only for the `AIProvider` hierarchy, so this is a deliberate exception to the function style.
 
 **How to apply:** a new AI pipeline adds `<Name>PromptBuilder.ts` extending `PromptBuilder`; never build the language or output rules by hand in a subclass. Call it as `new XPromptBuilder().build(input, language)`.
+
+---
+
+## 13/10/2026 — Post views: one per profile per rolling 24h, via a dedicated call
+
+**Problem:** `Post.views` was never incremented, so the "popular" sort and the recommendation score ran on zero.
+
+**Decision (owner):** a `PostView(profileId, postId, lastViewedAt)` row per pair. `POST /forum/posts/:postId/view` counts a view when the pair has no row, or its `lastViewedAt` is older than 24h, then resets `lastViewedAt`; `Post.views` goes up only when it counted. The author's own opens are skipped. The dedup key is the logged-in profile, not the IP, and no IP is stored. The client fires the call once when the post detail page mounts.
+
+**Why over alternatives:** counting inside `GET /forum/posts/:id` (the first draft) misses opens served from the client's list cache (`initialData`, 5 minute `staleTime`) and would make a read endpoint write. Unique viewers forever (never counting a return visit) and a raw counter were rejected: the first ignores returning readers, the second is inflated by refresh. Per profile beats per IP because a profile follows the person across devices and a shared IP does not collapse offices or mobile carriers into one view. One row per pair, not per day, so the table does not grow with time.
+
+**How to apply:** do not add side effects to `GET /posts/:postId` (recommendations and helpers call `forumModel.getPost`). Change the window only through `POST_VIEW_WINDOW_MS`. `migrate dev` wanted to reset the Neon dev database because old migrations were edited after being applied; the migration was written by hand and applied with `migrate deploy` instead.
