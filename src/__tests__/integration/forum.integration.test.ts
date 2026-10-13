@@ -254,7 +254,7 @@ describe('Forum Routes — Integration', () => {
     })
 
     describe('replies of an account pending deletion', () => {
-        it('are hidden from reply lists, counts and the post', async () => {
+        it('are hidden from reply lists and the post, but still counted', async () => {
             const { token } = await setupUser()
             const { token: otherToken, dbUser: other } =
                 await setupUser(otherUser)
@@ -280,7 +280,8 @@ describe('Forum Routes — Integration', () => {
 
             expect(repliesRes.body.data.items).toHaveLength(0)
             expect(repliesRes.body.data.pagination.total).toBe(0)
-            expect(postRes.body.data._count.replies).toBe(0)
+            expect(postRes.body.data.replies).toHaveLength(0)
+            expect(postRes.body.data._count.replies).toBe(1)
         })
     })
 
@@ -365,6 +366,34 @@ describe('Forum Routes — Integration', () => {
             expect(res.status).toBe(HttpStatusCodes.OK)
             const ids = res.body.data.items.map((p: { id: string }) => p.id)
             expect(ids.indexOf(busyId)).toBeLessThan(ids.indexOf(quietId))
+        })
+
+        it('shows the stored count on lists and drops answered posts from unanswered', async () => {
+            const { token } = await setupUser()
+            const answeredId = (await createPost(token)).body.data.id
+            const openId = (await createPost(token, {
+                ...validPost,
+                title: 'Open post'
+            })).body.data.id
+            await addReply(token, answeredId)
+            await addReply(token, answeredId)
+
+            const all = await supertest(App)
+                .get(POSTS_URL)
+                .set('Cookie', [`accessToken=${token}`])
+            const unanswered = await supertest(App)
+                .get(POSTS_URL)
+                .query({ filter: 'unanswered' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            const counts = Object.fromEntries(
+                all.body.data.items.map((p: { id: string; _count: { replies: number } }) =>
+                    [p.id, p._count.replies])
+            )
+            expect(counts[answeredId]).toBe(2)
+            expect(counts[openId]).toBe(0)
+            expect(unanswered.body.data.items.map((p: { id: string }) => p.id))
+                .toEqual([openId])
         })
     })
 

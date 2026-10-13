@@ -17,12 +17,8 @@ None open.
 ## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
-`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner (the first is done, see DONE).
+`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner (the first two are done, see DONE).
 
-- **Show the stored `replyCount` on post lists, and use `replyCount = 0` for "unanswered".** Lists
-  still count replies per post with a join against reply authors (`postInclude` `_count`). The stored
-  counter also includes replies from deactivated (pending-deletion) authors, which are hidden today.
-  Decide first whether a hidden reply may still count, then switch.
 - **Cursor pagination for posts and replies.** Lists use skip/offset (`page`), which slows on deep
   pages. Only matters with thousands of posts; needs a client contract change.
 - **Index for the purge job.** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff`
@@ -96,6 +92,11 @@ Still open:
 
 ## DONE
 
+- **Reply totals come from the stored `replyCount`** (done 13/10/2026, branch `perf/post-list-reply-count`). Post lists,
+  the post detail and recommendations no longer join replies against their authors: `withReplyCount` (`postQuery.ts`)
+  fills `_count.replies` from `Post.replyCount`, and the `unanswered` filter is `replyCount = 0`. Decision: replies of
+  accounts pending deletion DO count (they stay in the thread only once the account is purged), so for the grace period
+  a post can show a total one higher than the replies visible. Response shape is unchanged, no client change.
 - **Profile lookup cached** (done 13/10/2026, branch `perf/cache-profile-lookup`). `profileModel.findProfileContext` keeps
   `{ id, timezone }` per user in `lib/cache/profileContextCache.ts` for 30 s (cap 10,000 entries, misses never cached) and
   `updateProfile` invalidates it. `getProfileContext` and both `getProfileIdForUser` use it. `getProfileByUserId` (the full

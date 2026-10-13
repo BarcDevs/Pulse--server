@@ -3,7 +3,8 @@ import { prismaMock } from '../setup/jestSetup'
 
 jest.mock('../../models/queries/postQuery', () => ({
     postInclude: jest.fn(() => ({})),
-    anonymizeAuthor: jest.fn((author) => author)
+    anonymizeAuthor: jest.fn((author) => author),
+    withReplyCount: jest.fn((post) => post)
 }))
 
 const mockItems = [

@@ -42,3 +42,15 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 **Why over alternatives:** the id never changes and the timezone rarely does, while `anonymousParticipation` changes with every post or reply choice and so stays uncached. The ASG can run 2 instances and invalidation reaches only the instance that handled the update, so the short TTL is what bounds staleness (a different timezone for at most 30 s). Putting the id in the JWT needs token reissue and a fallback for old tokens, for no gain over this.
 
 **How to apply:** never add a mutable field to the cached shape. Any new write to `Profile.timezone` must call `profileContextCache.invalidate`.
+
+---
+
+## 13/10/2026 — Reply totals read from `Post.replyCount`; replies of pending-deletion authors count
+
+**Problem:** every post list counted replies with a join against reply authors, to hide replies of deactivated (pending-deletion) accounts. The stored `replyCount` counts them.
+
+**Decision (owner, via the TODO):** use the stored counter everywhere (`_count.replies` is filled from it, the response shape is unchanged) and `replyCount = 0` for "unanswered". A reply of a pending-deletion author still counts, though it is hidden in the thread, so during the grace period the total can be one higher than the replies shown.
+
+**Why over alternatives:** keeping the exact count means a join per post on every list, or adjusting the counter on every deactivate and restore, which is a write path across many posts for a state that lasts days. The reply survives the purge anyway (as `deleted-user`), so the counter is the long-run truth. The only leak is a number, not content.
+
+**How to apply:** any new place that returns a post must go through `withReplyCount`. Create or delete a reply only inside the existing transaction that moves `replyCount`; a test that inserts replies straight into the table must seed `replyCount` too.

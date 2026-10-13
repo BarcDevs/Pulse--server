@@ -25,7 +25,8 @@ import {
     authorSelect,
     connectTags,
     postInclude,
-    postQueryBuilder
+    postQueryBuilder,
+    withReplyCount
 } from './queries/postQuery'
 
 type RawTag = {
@@ -64,7 +65,7 @@ const mapPostTags = <T extends {
 }>(
     post: T
 ): T => ({
-    ...post,
+    ...withReplyCount(post as T & { replyCount: number }),
     tags: post.tags?.map(mapTag) ?? [],
     ...(post.author !== undefined
         && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0], post.isAnonymous) }),

@@ -185,6 +185,7 @@ describe('Account deletion — Integration', () => {
                 title: 'Stayer post',
                 body: 'body',
                 category: 'general',
+                replyCount: 1,
                 authorId: stayerProfile.id
             }
         })
