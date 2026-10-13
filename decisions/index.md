@@ -59,6 +59,7 @@ Indexing, pool/timeout and counter decisions for the Postgres layer, what was re
 | 03/10/2026 | DB performance pass: trigram search, stored `replyCount`, per-session `statement_timeout`, slow-query log; toggle-transaction rejected; views counter + profile cache chosen next |
 | 13/10/2026 | Profile lookup cached in memory for 30 s (id and timezone only), invalidated on profile update |
 | 13/10/2026 | Reply totals read from stored `replyCount`; replies of pending-deletion authors count |
+| 13/10/2026 | Plain `User.deletedAt` index for the purge (no partial index); interaction id lists capped at 1000 |
 
 ## Security & Privacy — [[decisions/security]]
 Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.

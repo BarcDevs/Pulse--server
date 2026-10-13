@@ -715,16 +715,19 @@ export const getProfileInteractions = async (
             Prisma.postLike.findMany({
                 where: { profileId },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { postId: true }
             }),
             Prisma.replyLike.findMany({
                 where: { profileId },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { replyId: true }
             }),
             Prisma.savedPost.findMany({
                 where: { profileId },
                 orderBy: { savedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { postId: true }
             })
         ])

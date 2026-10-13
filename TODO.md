@@ -21,12 +21,8 @@ Why, evidence and the RDS read-only verification recipe: `.claude/db-optimizatio
 
 - **Cursor pagination for posts and replies.** Lists use skip/offset (`page`), which slows on deep
   pages. Only matters with thousands of posts; needs a client contract change.
-- **Index for the purge job.** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff`
-  with no index. Add a partial index (`WHERE active = false`) once the user table grows.
 - **Enable `pg_stat_statements` on RDS** (parameter group + `CREATE EXTENSION`) to see the slowest
   queries once there is traffic; pairs with the `Slow database query` log.
-- **`getProfileInteractions` id lists** (default branch) are unbounded; cap them if a user can
-  accumulate thousands of likes.
 
 ## FIRST ON SCALING
 
@@ -92,6 +88,11 @@ Still open:
 
 ## DONE
 
+- **Purge job index and `getProfileInteractions` cap** (done 13/10/2026, branch `perf/db-small-followups`). Migration
+  `20261013140000_add_user_deleted_at_index` adds `User_deletedAt_idx` (a plain index, not partial: Prisma cannot express
+  a `WHERE` on an index, so a partial one would show as drift on every `migrate dev`; applied to Neon dev, RDS gets it on
+  the next `migrate deploy`, and it passes the redeploy gate). The default branch of `getProfileInteractions` now returns
+  the newest 1000 liked/saved ids (`MAX_PROFILE_INTERACTION_IDS`); a user past 1000 would see older likes unmarked.
 - **Reply totals come from the stored `replyCount`** (done 13/10/2026, branch `perf/post-list-reply-count`). Post lists,
   the post detail and recommendations no longer join replies against their authors: `withReplyCount` (`postQuery.ts`)
   fills `_count.replies` from `Post.replyCount`, and the `unanswered` filter is `replyCount = 0`. Decision: replies of

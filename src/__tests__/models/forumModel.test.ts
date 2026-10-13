@@ -1,3 +1,4 @@
+import { FORUM_PAGINATION } from '../../constants/forum/pagination'
 import * as forumModel from '../../models/forumModel'
 import { prismaMock } from '../setup/jestSetup'
 
@@ -694,6 +695,24 @@ describe('forumModel', () => {
                     body: 'x'
                 })
             ).rejects.toThrow('write error')
+        })
+    })
+
+    describe('getProfileInteractions', () => {
+        it('caps the id lists to the newest ones', async () => {
+            prismaMock.postLike.findMany.mockResolvedValue([])
+            prismaMock.replyLike.findMany.mockResolvedValue([])
+            prismaMock.savedPost.findMany.mockResolvedValue([])
+
+            await forumModel.getProfileInteractions('profile-1', false)
+
+            const cap = { take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS }
+            expect(prismaMock.postLike.findMany)
+                .toHaveBeenCalledWith(expect.objectContaining(cap))
+            expect(prismaMock.replyLike.findMany)
+                .toHaveBeenCalledWith(expect.objectContaining(cap))
+            expect(prismaMock.savedPost.findMany)
+                .toHaveBeenCalledWith(expect.objectContaining(cap))
         })
     })
 })

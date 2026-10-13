@@ -54,3 +54,15 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 **Why over alternatives:** keeping the exact count means a join per post on every list, or adjusting the counter on every deactivate and restore, which is a write path across many posts for a state that lasts days. The reply survives the purge anyway (as `deleted-user`), so the counter is the long-run truth. The only leak is a number, not content.
 
 **How to apply:** any new place that returns a post must go through `withReplyCount`. Create or delete a reply only inside the existing transaction that moves `replyCount`; a test that inserts replies straight into the table must seed `replyCount` too.
+
+---
+
+## 13/10/2026 — Plain `deletedAt` index for the purge, and a 1000 cap on interaction id lists
+
+**Problem:** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff` with no index, and `getProfileInteractions` (default branch) returned every liked/saved id a profile ever made.
+
+**Decision (owner, via the TODO):** `@@index([deletedAt])` on `User` and `take: 1000` (newest first) on the three id lists.
+
+**Why over alternatives:** a partial index (`WHERE active = false`) was the TODO's idea, but Prisma's schema has no partial-index syntax, so a hand-written one is reported as drift by every `migrate dev` and invites a drop. `deletedAt` is NULL for active users, so a range filter on it is selective anyway. The cap is far above realistic use (the full-post branch caps at 100); the cost of passing it is only that older likes show unmarked.
+
+**How to apply:** raise `MAX_PROFILE_INTERACTION_IDS` before the cap is a user-visible limit; never hand-write an index Prisma cannot model.
