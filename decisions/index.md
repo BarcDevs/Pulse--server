@@ -24,6 +24,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 09/10/2026 | Daily observation rotates through every pattern that applies |
 | 11/10/2026 | Check-in AI work moves to a DB job table; SQS and sockets come later |
 | 12/10/2026 | Prompts are classes extending one abstract `PromptBuilder` that always adds the language and output rules |
+| 13/10/2026 | Post views: one per profile per rolling 24h via a dedicated `/view` call, not a side effect of GET |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
