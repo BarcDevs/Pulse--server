@@ -19,8 +19,6 @@ None open.
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
 `decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner (the first two are done, see DONE).
 
-- **Cursor pagination for posts and replies.** Lists use skip/offset (`page`), which slows on deep
-  pages. Only matters with thousands of posts; needs a client contract change.
 - **Enable `pg_stat_statements` on RDS** (parameter group + `CREATE EXTENSION`) to see the slowest
   queries once there is traffic; pairs with the `Slow database query` log.
 
@@ -82,6 +80,12 @@ Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## DONE
 
+- **Cursor pagination for posts and replies** (done 13/10/2026, branch `perf/cursor-pagination`; server side, additive).
+  `GET /forum/posts` and `GET /forum/posts/:postId/replies` accept an optional `cursor` (the id of the last item the client
+  has) that replaces `page`, and every paged response carries `pagination.nextCursor`. Sorting got a fixed `id` tie-break
+  so pages are stable, and `Post(createdAt desc, id desc)` replaced the single `createdAt` index (migration
+  `20261013160000_post_created_at_id_index`). `cursor` is rejected with `page` or with `hot`/`popular`, and a missing cursor is a 404. `page` still works, so nothing breaks and the client can adopt cursors whenever it likes (infinite
+  scroll); in cursor mode `hasMore` means "the page came back full". `total` is still counted. Contract in `docs/API.md`.
 - **AI output sanitised, and regenerated once when invalid** (done 13/10/2026, branch `fix/ai-output-sanitize`).
   `sanitizeGeneratedText` (`validationHelpers.ts`) turns spaced em/en dashes into a comma, joining ones into a hyphen and
   curly quotes into straight ones; it runs on every stored AI text (insights, daily observation, progress summary) before

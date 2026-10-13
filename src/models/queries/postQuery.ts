@@ -193,15 +193,18 @@ export const postQueryBuilder = (
 
         include: postInclude('multiple'),
 
-        // sort by given sort method
-        orderBy: (
-            query?.filter === PostFilter.NEWEST
-                ? { createdAt: 'desc' }
-                : query?.filter === PostFilter.HOT
-                    ? { replyCount: 'desc' }
-                    : query?.filter === PostFilter.POPULAR
-                        ? { views: 'desc' }
-                        : { createdAt: 'desc' }
-        ) as PrismaTypes.PostOrderByWithRelationInput
+        // sort by given sort method; id breaks ties so pages and cursors are stable
+        orderBy: [
+            (
+                query?.filter === PostFilter.NEWEST
+                    ? { createdAt: 'desc' }
+                    : query?.filter === PostFilter.HOT
+                        ? { replyCount: 'desc' }
+                        : query?.filter === PostFilter.POPULAR
+                            ? { views: 'desc' }
+                            : { createdAt: 'desc' }
+            ),
+            { id: 'desc' }
+        ] as PrismaTypes.PostOrderByWithRelationInput[]
     }
 }

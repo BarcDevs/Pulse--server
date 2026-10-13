@@ -84,11 +84,16 @@ export const getPosts = async (
 ): Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
 
+    const limit = query?.limit || 10
+
     const posts = await Prisma.post.findMany({
-        take: query?.limit || 10,
-        skip:
-            (query?.page ? query.page - 1 : 0)
-            * (query?.limit || 10),
+        take: limit,
+        ...(query?.cursor
+            ? {
+                cursor: { id: query.cursor },
+                skip: 1
+            }
+            : { skip: (query?.page ? query.page - 1 : 0) * limit }),
         ...postQuery
     })
     if (!posts) {
@@ -96,6 +101,17 @@ export const getPosts = async (
     }
     return posts.map(mapPostTags) as unknown as PostType[]
 }
+
+export const postIdExists = async (
+    id: string
+): Promise<boolean> =>
+    await Prisma.post.count({ where: { id } }) > 0
+
+export const replyIdExists = async (
+    id: string,
+    postId: string
+): Promise<boolean> =>
+    await Prisma.reply.count({ where: { id, postId } }) > 0
 
 export const getPostsCount = async (
     query?: PostQuery
@@ -233,7 +249,8 @@ export const getReply = async (
 export const getReplies = async (
     postId: string,
     limit?: number,
-    page?: number
+    page?: number,
+    cursor?: string
 ): Promise<ReplyType[]> => {
     const replies = await Prisma.reply.findMany({
         where: {
@@ -248,16 +265,20 @@ export const getReplies = async (
                 select: { likes: true }
             }
         },
-        orderBy: {
-            createdAt: 'desc'
-        },
+        orderBy: [
+            { createdAt: 'desc' },
+            { id: 'desc' }
+        ],
         ...(limit !== undefined
             && { take: limit }),
-        ...(limit !== undefined
-            && page !== undefined
-            && {
-                skip: (page - 1) * limit
-            })
+        ...(cursor
+            ? {
+                cursor: { id: cursor },
+                skip: 1
+            }
+            : limit !== undefined
+                && page !== undefined
+                && { skip: (page - 1) * limit })
     })
 
     return replies.map((reply) => ({

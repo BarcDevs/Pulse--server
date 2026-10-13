@@ -109,7 +109,7 @@ model Post {
 
   @@index([authorId])
   @@index([category])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([views])
   @@index([replyCount])
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_title_trgm_idx")

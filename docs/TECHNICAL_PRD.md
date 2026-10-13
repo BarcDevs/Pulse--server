@@ -595,7 +595,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 ### Forum Endpoints — /api/{version}/forum
 
-**GET /posts** — Auth — `?limit&page&filter&search&tag&category` → 200 Post[]
+**GET /posts** — Auth — `?limit&page&cursor&filter&search&tag&category` → 200 `{ items, pagination: { total, page, limit, hasMore, nextCursor } }` (`cursor` = id of the last item, replaces `page`)
 
 **POST /posts** — Auth + CSRF — `{ title, body, category, tags }` → 200 Post
 
@@ -615,7 +615,7 @@ Detection types (priority order): activity_consistency, pain_improvement,
 
 **POST /posts/:postId/save** — Auth + CSRF — Toggle save/unsave → 200 `{ saved }`
 
-**GET /posts/:postId/replies** — Auth → 200 Reply[]
+**GET /posts/:postId/replies** — Auth — `?limit&page&cursor` → 200 `{ items, pagination }` (same cursor rules as `GET /posts`)
 
 **POST /posts/:postId/replies** — Auth + CSRF — `{ body }` → 200 Reply
 

@@ -58,6 +58,11 @@ const router = Router()
  *           type: integer
  *         description: Page number
  *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *         description: Id of the last post already loaded (pagination.nextCursor); replaces page
+ *       - in: query
  *         name: filter
  *         schema:
  *           type: string
@@ -582,6 +587,11 @@ router.route('/posts/:postId/view').post(
  *         schema:
  *           type: integer
  *         description: Page number (requires limit)
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *         description: Id of the last reply already loaded (pagination.nextCursor); replaces page
  *     responses:
  *       401:
  *         description: Not authenticated

@@ -5,5 +5,6 @@ export type PaginatedType<T> = {
         page: number
         limit: number
         hasMore: boolean
+        nextCursor: string | null
     }
 }
