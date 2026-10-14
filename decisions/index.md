@@ -43,7 +43,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 
 | Date | Entry |
 |---|---|
-| 13/08/2026 | Single EC2 instance has no automated recovery (flagged as CRITICAL TODO), with 02/09/2026 capacity/rightsizing/IP-stability follow-up |
+| 13/08/2026 | Single EC2 instance has no automated recovery (flagged as CRITICAL TODO), with 02/09/2026 capacity/rightsizing/IP-stability follow-up. **Implemented 26-27/09/2026** as `pulse-server-asg` (see `docs/ASG-MIGRATION.md`) |
 | 07/09/2026 | Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified) |
 | 13/09/2026 | Fixed EOL Docker base (bullseye→bookworm) + Node 20→24 bump; root-caused intermittent prod latency to a leftover, permission-denied ECS agent baked into the instance's AMI — disabled |
 | 16/09/2026 | GCP project consolidation verified + completed — old `healease`/`gen-lang-client-0064017105` projects deleted |

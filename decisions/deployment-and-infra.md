@@ -7,6 +7,8 @@ context in this topic — not routinely.
 
 ## 13/08/2026 — Single EC2 instance has no automated recovery (flagged as CRITICAL TODO)
 
+> **Status (updated 14/10/2026): IMPLEMENTED 26-27/09/2026.** The server now runs in ASG `pulse-server-asg` (min=max=1, one instance in `eu-central-1a`, EC2 health check, 300s grace) from launch template `pulse-server-lt`, with a fixed ENI (`172.31.16.100`) so the client's baked-in server IP survives replacement, and `deploy.yml` targets the `Name=pulse-server` tag instead of a fixed instance id. The old standalone instance `i-0df518d8572bfcfd6` is terminated. Steps, resource ids and the deploy incidents are in `docs/ASG-MIGRATION.md`. The entry below is the original problem/decision, kept for history: its "no ASG", "single fixed instance" and "deferred" wording describes the state *before* 26/09/2026, not today.
+
 **Problem:** Surfaced during architecture-interview prep, not from a production incident. Production deploy targets one fixed EC2 instance (`i-0df518d8572bfcfd6`), addressed by instance ID via SSM Run Command in `ec2-redeploy.sh`. The blue/green swap logic protects against a *bad deploy*, but there's no protection if the EC2 instance itself dies (hardware fault, host maintenance, etc.) — no Auto Scaling Group, no automated replacement. Recovery today means someone notices and fixes it by hand.
 
 **Decision:** Move to an Auto Scaling Group with `min=1/max=1/desired=1`. This is not deferred for cost reasons — an ASG at desired=1 costs exactly the same as the standalone EC2 instance today, AWS doesn't charge for the ASG control plane itself. It's deferred because the current deploy pipeline assumes a static instance ID and a static IP, both of which break under ASG-managed replacement.
