@@ -48,6 +48,8 @@ Evaluated three options for the underlying IP-stability problem:
 
 Decision: **defer this entirely until the AWS Activate application outcome is known** — Activate credits (~$1000+ typical) dwarf the Free Tier one-time credit (~$100-200), no reason to spend migration effort + a spare card/phone if Activate comes through first.
 
+**Update 14/10/2026 — Activate application REJECTED a fifth time, same internal-checks reason as #3/#4.** Attempt #5 (11/10/2026, Tel Aviv city, 2026 founded date matching LinkedIn, rewritten description, correct AWS-experience band) still rejected with the same generic reason as attempts #3/#4: internal checks on (1) valid billing/AWS account details, (2) consistent business info, (3) connection to accounts linked to misuse. No mechanical reason given this time either (website/email checks weren't the complaint — those were only attempts #1/#2's reasons). Since the 2-year-founding-age fix (the mentor's leading theory going into #5) produced no change in outcome or reason text, that theory is now **downgraded** — not ruled impossible, but it didn't move the needle. The **account-linkage theory from 16/09/2026 (closed Free Tier case) is back to being the leading explanation**: AWS Support already confirmed this account is tied to a prior 2024 AWS account under the same email, and "connection to accounts linked to misuse" in the Activate rejection reads as the same signal. Full history and draft tracking in private file (`.claude/private/aws-activate-application.md`, gitignored, PII — not duplicated here).
+
 ---
 
 ## 07/09/2026 — Root-caused Google OAuth login regression from AWS migration (fix implemented, not yet verified)
