@@ -7,6 +7,8 @@ import type {
 } from '../types/data/CheckInType'
 import Prisma from '../utils/prismaClient'
 
+import { findProfileContext } from './profileModel'
+
 const checkInInclude = {
     insights: true,
     aiJob: { select: { status: true } }
@@ -34,11 +36,7 @@ const mapOptional = (row: CheckInRow | null): CheckInType | null =>
 export const getProfileIdForUser = async (
     userId: string
 ): Promise<string> => {
-    const profile = await Prisma.profile
-        .findUnique({
-            where: { userId },
-            select: { id: true }
-        })
+    const profile = await findProfileContext(userId)
 
     if (!profile)
         throw errorFactory.generic.notFound('Profile')
@@ -49,10 +47,7 @@ export const getProfileIdForUser = async (
 export const getProfileContext = async (
     userId: string
 ): Promise<{ id: string; timezone: string }> => {
-    const profile = await Prisma.profile.findUnique({
-        where: { userId },
-        select: { id: true, timezone: true }
-    })
+    const profile = await findProfileContext(userId)
 
     if (!profile)
         throw errorFactory.generic.notFound('Profile')

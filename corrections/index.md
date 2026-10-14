@@ -33,6 +33,8 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 10/10/2026 | Chained `git worktree remove` after junction `rmdir` calls that had errored; `node_modules` emptied a third time (separate step, verify link gone) |
 | 09/10/2026 | "open pr" = open the PR and merge it if CI is green (deploy still needs the user's approval click) |
 | 11/10/2026 | Scaling follow-ups go in `scaling-todo.md`, not `TODO.md` |
+| 13/10/2026 | Started designing a scaling-phase feature from a leftover section in `TODO.md`; those entries belong in `scaling-todo.md` (repeat of 11/10) |
+| 11/10/2026 | "Deploy" = open the PR to `main` and merge it when CI is green, without asking again |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
@@ -41,6 +43,7 @@ Stale/wrong claims about current infrastructure, corrected against what's actual
 |---|---|
 | 10/08/2026 | CI/CD pushes images to ECR, not S3 |
 | 10/08/2026 | Client is deployed on its own EC2+Docker instance, not S3+CloudFront |
+| 13/10/2026 | Pointed a local client at API `v1` from the example env; the server in use is `v2` (read the server `.env`, not defaults or examples) |
 | 10/08/2026 | Domain DNS is Cloudflare, not Route53 |
 | 18/09/2026 | Local dev DB is Neon only; local app never runs against RDS (supersedes archived "DB is RDS, not Neon") |
 

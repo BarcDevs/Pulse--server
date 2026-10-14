@@ -1,8 +1,8 @@
 import { createProvider } from '../../services/aiProviders/ProviderFactory'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 import { retryAsync } from '../aiInsight/retry'
-
-import { buildObservationPrompt } from './observationPrompt'
+import { sanitizeGeneratedText } from '../aiInsight/validation/validationHelpers'
+import { ObservationPromptBuilder } from '../prompts/ObservationPromptBuilder'
 
 type ObservationPayload = {
     observation: string
@@ -56,8 +56,8 @@ const validatePayload = (raw: unknown): ObservationPayload => {
         throw new Error(`icon '${icon}' is not a valid icon name`)
 
     return {
-        observation: obj.observation.trim(),
-        supportiveDescription: obj.supportiveDescription.trim(),
+        observation: sanitizeGeneratedText(obj.observation.trim()),
+        supportiveDescription: sanitizeGeneratedText(obj.supportiveDescription.trim()),
         icon
     }
 }
@@ -67,11 +67,10 @@ export const generateObservation = async ({
     topActivity,
     language
 }: GeneratorInput): Promise<ObservationPayload> => {
-    const prompt = buildObservationPrompt({
-        type,
-        topActivity,
+    const prompt = new ObservationPromptBuilder().build(
+        { type, topActivity },
         language
-    })
+    )
     const provider = createProvider()
 
     const result = await retryAsync(

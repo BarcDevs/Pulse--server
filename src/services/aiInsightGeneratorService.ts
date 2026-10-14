@@ -3,6 +3,7 @@ import {
     aiFallbackOrder,
     isProd
 } from '../../config'
+import { INSIGHT_GENERATION_ATTEMPTS } from '../constants/aiInsight/validation'
 import {
     buildPromptByType,
     generateTitle
@@ -12,6 +13,7 @@ import {
     getFallbackContent,
     validateGeneratedInsight
 } from '../lib/aiInsight/validation/aiInsightValidator'
+import { sanitizeGeneratedText } from '../lib/aiInsight/validation/validationHelpers'
 import type {
     CheckInType
 } from '../types/data/CheckInType'
@@ -54,9 +56,49 @@ export const generateInsight = async (
     )
 
     const title = generateTitle(decision.type, language)
-    const providerChain = buildProviderChain()
 
-    let generatedContent: string | undefined
+    let lastReason: string | undefined
+
+    for (let attempt = 1; attempt <= INSIGHT_GENERATION_ATTEMPTS; attempt++) {
+        const generatedContent = await generateFromChain(
+            prompt,
+            decision.type
+        )
+
+        if (!generatedContent)
+            break
+
+        const content = sanitizeGeneratedText(generatedContent.trim())
+        const validation = validateGeneratedInsight(title, content)
+
+        if (validation.isValid)
+            return { title, content }
+
+        lastReason = validation.reason
+        logger.warn('Insight validation failed', {
+            reason: validation.reason,
+            insightType: decision.type,
+            attempt
+        })
+    }
+
+    logger.warn('Using fallback insight', {
+        insightType: decision.type,
+        ...(lastReason && { reason: lastReason })
+    })
+
+    return {
+        title,
+        content: getFallbackContent(decision.type, language)
+    }
+}
+
+// Tries each provider in the chain; the first usable reply wins.
+const generateFromChain = async (
+    prompt: string,
+    insightType: InsightDecisionResult['type']
+): Promise<string | undefined> => {
+    const providerChain = buildProviderChain()
 
     for (const providerType of providerChain) {
         try {
@@ -73,8 +115,7 @@ export const generateInsight = async (
                 throw new Error('Failed to generate insight content')
             }
 
-            generatedContent = result.content
-            break
+            return result.content
         } catch (error) {
             const errorMsg = error instanceof Error
                 ? error.message
@@ -82,7 +123,7 @@ export const generateInsight = async (
             logger.error(
                 `AI generation failed for provider ${providerType}, trying next`,
                 {
-                    insightType: decision.type,
+                    insightType,
                     provider: providerType,
                     error: errorMsg
                 }
@@ -90,47 +131,12 @@ export const generateInsight = async (
         }
     }
 
-    if (!generatedContent) {
-        logger.error(
-            'AI generation failed for all providers in chain, using fallback',
-            { insightType: decision.type }
-        )
-        const fallbackContent = getFallbackContent(
-            decision.type,
-            language
-        )
-        return {
-            title,
-            content: fallbackContent
-        }
-    }
-
-    const trimmedContent = generatedContent.trim()
-
-    const validation = validateGeneratedInsight(
-        title,
-        trimmedContent
+    logger.error(
+        'AI generation failed for all providers in chain',
+        { insightType }
     )
 
-    if (!validation.isValid) {
-        logger.warn('Insight validation failed, using fallback', {
-            reason: validation.reason,
-            insightType: decision.type
-        })
-        const fallbackContent = getFallbackContent(
-            decision.type,
-            language
-        )
-        return {
-            title,
-            content: fallbackContent
-        }
-    }
-
-    return {
-        title,
-        content: trimmedContent
-    }
+    return undefined
 }
 
 const hasApiKeyForProvider = (providerType: ProviderType): boolean =>

@@ -7,6 +7,15 @@ import {
 export const normalizeContent = (content: string): string =>
     content.replace(/\s+/g, ' ').trim()
 
+// A prompt rule is not a guarantee: models still write em/en dashes and curly
+// quotes. A dash used as a break becomes a comma, a joining one becomes a hyphen.
+export const sanitizeGeneratedText = (content: string): string =>
+    content
+        .replace(/\s+[\u2014\u2013]\s+/g, ', ')
+        .replace(/[\u2014\u2013]/g, '-')
+        .replace(/[\u2018\u2019]/g, `'`)
+        .replace(/[\u201C\u201D]/g, '"')
+
 export const countSentences = (content: string): number => {
     const normalized = normalizeContent(content)
     const parts = normalized

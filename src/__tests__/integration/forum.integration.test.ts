@@ -254,7 +254,7 @@ describe('Forum Routes — Integration', () => {
     })
 
     describe('replies of an account pending deletion', () => {
-        it('are hidden from reply lists, counts and the post', async () => {
+        it('are hidden from reply lists and the post, but still counted', async () => {
             const { token } = await setupUser()
             const { token: otherToken, dbUser: other } =
                 await setupUser(otherUser)
@@ -280,7 +280,8 @@ describe('Forum Routes — Integration', () => {
 
             expect(repliesRes.body.data.items).toHaveLength(0)
             expect(repliesRes.body.data.pagination.total).toBe(0)
-            expect(postRes.body.data._count.replies).toBe(0)
+            expect(postRes.body.data.replies).toHaveLength(0)
+            expect(postRes.body.data._count.replies).toBe(1)
         })
     })
 
@@ -311,6 +312,116 @@ describe('Forum Routes — Integration', () => {
                 .send(validReply)
 
             expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        })
+    })
+
+    describe('cursor pagination', () => {
+        type Page = {
+            items: { id: string }[]
+            pagination: { hasMore: boolean; nextCursor: string | null }
+        }
+
+        const walk = async (
+            token: string,
+            url: string,
+            limit: number
+        ) => {
+            const ids: string[] = []
+            let cursor: string | null = null
+            for (let i = 0; i < 10; i++) {
+                const res: { body: { data: Page } } = await supertest(App)
+                    .get(url)
+                    .query({ limit, ...(cursor && { cursor }) })
+                    .set('Cookie', [`accessToken=${token}`])
+                const { items, pagination } = res.body.data
+                ids.push(...items.map((item) => item.id))
+                if (!pagination.hasMore)
+                    return ids
+                cursor = pagination.nextCursor
+            }
+            return ids
+        }
+
+        it('walks every post once, newest first, with no repeats', async () => {
+            const { token } = await setupUser()
+            const created: string[] = []
+            for (let i = 0; i < 5; i++) {
+                created.push((await createPost(token, {
+                    ...validPost,
+                    title: `Cursor post ${i}`
+                })).body.data.id)
+            }
+
+            const ids = await walk(token, POSTS_URL, 2)
+
+            expect(ids).toHaveLength(5)
+            expect(new Set(ids).size).toBe(5)
+            expect(ids.sort()).toEqual([...created].sort())
+        })
+
+        it('still serves page-based requests and reports a next cursor', async () => {
+            const { token } = await setupUser()
+            for (let i = 0; i < 3; i++)
+                await createPost(token, { ...validPost, title: `Page post ${i}` })
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ limit: 2, page: 1 })
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(res.body.data.items).toHaveLength(2)
+            expect(res.body.data.pagination.hasMore).toBe(true)
+            expect(res.body.data.pagination.nextCursor)
+                .toBe(res.body.data.items[1].id)
+        })
+
+        it('returns 404 for a cursor that no longer exists', async () => {
+            const { token } = await setupUser()
+            await createPost(token)
+
+            const res = await supertest(App)
+                .get(POSTS_URL)
+                .query({ cursor: 'missing-post-id' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(res.status).toBe(HttpStatusCodes.NOT_FOUND)
+            expect(res.body.error[0]).toMatchObject({
+                code: 'NOT_FOUND',
+                params: { resource: 'Cursor' }
+            })
+        })
+
+        it('rejects cursor with page, and cursor with the hot filter', async () => {
+            const { token } = await setupUser()
+            const withPage = await supertest(App)
+                .get(POSTS_URL)
+                .query({ cursor: 'x', page: 2 })
+                .set('Cookie', [`accessToken=${token}`])
+            const withHot = await supertest(App)
+                .get(POSTS_URL)
+                .query({ cursor: 'x', filter: 'hot' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            expect(withPage.status).toBe(HttpStatusCodes.BAD_REQUEST)
+            expect(withHot.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        })
+
+        it('walks the replies of a post by cursor', async () => {
+            const { token } = await setupUser()
+            const postId = (await createPost(token)).body.data.id
+            for (let i = 0; i < 5; i++) {
+                const { cookies, csrfToken } = buildCsrfHeaders(token)
+                await supertest(App)
+                    .post(`${POSTS_URL}/${postId}/replies`)
+                    .set('Cookie', cookies)
+                    .set('x-csrf-token', csrfToken)
+                    .send(validReply)
+            }
+
+            const ids = await walk(token, `${POSTS_URL}/${postId}/replies`, 2)
+
+            expect(ids).toHaveLength(5)
+            expect(new Set(ids).size).toBe(5)
         })
     })
 
@@ -365,6 +476,34 @@ describe('Forum Routes — Integration', () => {
             expect(res.status).toBe(HttpStatusCodes.OK)
             const ids = res.body.data.items.map((p: { id: string }) => p.id)
             expect(ids.indexOf(busyId)).toBeLessThan(ids.indexOf(quietId))
+        })
+
+        it('shows the stored count on lists and drops answered posts from unanswered', async () => {
+            const { token } = await setupUser()
+            const answeredId = (await createPost(token)).body.data.id
+            const openId = (await createPost(token, {
+                ...validPost,
+                title: 'Open post'
+            })).body.data.id
+            await addReply(token, answeredId)
+            await addReply(token, answeredId)
+
+            const all = await supertest(App)
+                .get(POSTS_URL)
+                .set('Cookie', [`accessToken=${token}`])
+            const unanswered = await supertest(App)
+                .get(POSTS_URL)
+                .query({ filter: 'unanswered' })
+                .set('Cookie', [`accessToken=${token}`])
+
+            const counts = Object.fromEntries(
+                all.body.data.items.map((p: { id: string; _count: { replies: number } }) =>
+                    [p.id, p._count.replies])
+            )
+            expect(counts[answeredId]).toBe(2)
+            expect(counts[openId]).toBe(0)
+            expect(unanswered.body.data.items.map((p: { id: string }) => p.id))
+                .toEqual([openId])
         })
     })
 

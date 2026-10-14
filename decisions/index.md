@@ -23,6 +23,8 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 09/10/2026 | A good check-in gets two insights: the baseline and a motivational one |
 | 09/10/2026 | Daily observation rotates through every pattern that applies |
 | 11/10/2026 | Check-in AI work moves to a DB job table; SQS and sockets come later |
+| 12/10/2026 | Prompts are classes extending one abstract `PromptBuilder` that always adds the language and output rules |
+| 13/10/2026 | Post views: one per profile per rolling 24h via a dedicated `/view` call, not a side effect of GET |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -33,6 +35,8 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | 12/08/2026 | Post title/body length cap; pgvector confirmed viable; embedding model/vector DB picked for RAG plan |
 | 10/10/2026 | Prod primary model: gpt-6.1-sol (supersedes archived 12/08 entry) |
 | 10/10/2026 | Fallback: gemini-3.1-flash-lite preferred over claude-sonnet-5-5; Anthropic dropped from the prod chain |
+| 11/10/2026 | Considering Bedrock Knowledge Bases instead of pgvector/Qdrant for RAG (not decided) |
+| 13/10/2026 | AI text sanitised in code (dashes, curly quotes); an invalid insight is regenerated once before the template |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
@@ -54,6 +58,11 @@ Indexing, pool/timeout and counter decisions for the Postgres layer, what was re
 | Date | Entry |
 |---|---|
 | 03/10/2026 | DB performance pass: trigram search, stored `replyCount`, per-session `statement_timeout`, slow-query log; toggle-transaction rejected; views counter + profile cache chosen next |
+| 13/10/2026 | Profile lookup cached in memory for 30 s (id and timezone only), invalidated on profile update |
+| 13/10/2026 | Reply totals read from stored `replyCount`; replies of pending-deletion authors count |
+| 13/10/2026 | Plain `User.deletedAt` index for the purge (no partial index); interaction id lists capped at 1000 |
+| 13/10/2026 | Cursor pagination is additive: optional `cursor` beside `page`, keyset on the item id |
+| 13/10/2026 | `pg_stat_statements` ships as a migration; RDS default parameter group already preloads it |
 
 ## Security & Privacy — [[decisions/security]]
 Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.

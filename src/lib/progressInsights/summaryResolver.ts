@@ -8,12 +8,13 @@ import type { TrendType } from '../../types/data/ProgressInsightType'
 import logger from '../../utils/logger'
 import {
     countSentences,
-    normalizeContent
+    normalizeContent,
+    sanitizeGeneratedText
 } from '../aiInsight/validation/validationHelpers'
+import { ProgressInsightPromptBuilder } from '../prompts/ProgressInsightPromptBuilder'
 
 import { generateFallbackSummary } from './fallbackSummaryGenerator'
 import type { PeriodMetrics } from './metricAggregator'
-import { buildProgressInsightPrompt } from './promptBuilder'
 
 const isValidSummary = (content: string): boolean => {
     const normalized = normalizeContent(content)
@@ -32,20 +33,24 @@ type SummaryResolution = {
 
 const generateAISummary = async (
     currentMetrics: PeriodMetrics,
-    previousMetrics: PeriodMetrics
+    previousMetrics: PeriodMetrics,
+    language?: string | null
 ): Promise<string> => {
     try {
-        const prompt = buildProgressInsightPrompt(
-            currentMetrics,
-            previousMetrics,
-            { improvements: [], regressions: [] }
+        const prompt = new ProgressInsightPromptBuilder().build(
+            {
+                current: currentMetrics,
+                previous: previousMetrics,
+                highlights: { improvements: [], regressions: [] }
+            },
+            language
         )
 
         const provider = createProvider()
         const result = await provider.generateContent({
             prompt
         })
-        const content = result.content.trim()
+        const content = sanitizeGeneratedText(result.content.trim())
 
         if (!isValidSummary(content)) {
             logger.warn(
@@ -73,11 +78,13 @@ const generateAISummary = async (
 export const resolveSummary = async (
     currentMetrics: PeriodMetrics,
     previousMetrics: PeriodMetrics,
-    trend: TrendType
+    trend: TrendType,
+    language?: string | null
 ): Promise<SummaryResolution> => {
     const aiSummary = await generateAISummary(
         currentMetrics,
-        previousMetrics
+        previousMetrics,
+        language
     )
 
     if (aiSummary && aiSummary.length > 0) {

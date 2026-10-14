@@ -17,8 +17,18 @@ const runJob = async (job: ClaimedCheckInAiJob): Promise<void> => {
     try {
         // Throws on infrastructure errors so the job is retried; an AI failure
         // never throws here, the insight service stores the template fallback.
-        await generateInsightForCheckIn(job.userId, job.checkInId)
-        await generateRecommendationsSafely(job.userId, job.checkInId)
+        const holdsClaim = () => jobModel.holdsClaim(job)
+
+        await generateInsightForCheckIn(
+            job.userId,
+            job.checkInId,
+            holdsClaim
+        )
+        await generateRecommendationsSafely(
+            job.userId,
+            job.checkInId,
+            holdsClaim
+        )
         await jobModel.markJobDone(job)
     } catch (err: unknown) {
         const loggable = toLoggableError(err)

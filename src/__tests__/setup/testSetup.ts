@@ -103,6 +103,7 @@ export const createMockPost = (
     updatedAt: undefined,
     tags: [],
     replies: [],
+    replyCount: 0,
     _count: { replies: 0, likes: 0 },
     ...overrides
 })

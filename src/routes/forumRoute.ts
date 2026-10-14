@@ -15,6 +15,7 @@ import {
     getUnknownTagAttempts,
     likePost,
     likeReply,
+    recordPostView,
     reportUnknownTag,
     savePost,
     sharePost,
@@ -27,7 +28,10 @@ import {
 } from '../middlewares/csrf'
 import { isAdmin } from '../middlewares/isAdmin'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
-import { sharePostRateLimiter } from '../middlewares/rateLimiting'
+import {
+    sharePostRateLimiter,
+    viewPostRateLimiter
+} from '../middlewares/rateLimiting'
 
 import recommendationsRoute from './recommendationsRoute'
 
@@ -53,6 +57,11 @@ const router = Router()
  *         schema:
  *           type: integer
  *         description: Page number
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *         description: Id of the last post already loaded (pagination.nextCursor); replaces page
  *       - in: query
  *         name: filter
  *         schema:
@@ -516,6 +525,46 @@ router
 
 /**
  * @swagger
+ * /forum/posts/{postId}/view:
+ *   post:
+ *     summary: Record that the current user opened a post
+ *     description: >
+ *       Counts one view per profile per post per rolling 24 hours.
+ *       The author's own views are not counted. Nothing about who
+ *       viewed is exposed.
+ *     tags: [Forum]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: View handled (counted or ignored)
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Already recorded for this post within the last hour
+ */
+router.route('/posts/:postId/view').post(
+    isAuthenticated,
+    extractCsrfToken,
+    csrfMiddleware,
+    viewPostRateLimiter,
+    recordPostView
+)
+
+/**
+ * @swagger
  * /forum/posts/{postId}/replies:
  *   get:
  *     summary: Get replies for a post with pagination
@@ -538,6 +587,11 @@ router
  *         schema:
  *           type: integer
  *         description: Page number (requires limit)
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *         description: Id of the last reply already loaded (pagination.nextCursor); replaces page
  *     responses:
  *       401:
  *         description: Not authenticated

@@ -25,6 +25,8 @@ import type {
     RecommendationSnapshot
 } from '../types/data/RecommendationType'
 import { PostFilter } from '../types/query'
+import type { WriteGuard } from '../types/writeGuard'
+import { alwaysWrite } from '../types/writeGuard'
 import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
@@ -147,7 +149,8 @@ const getEngagementNormRange = (
 
 export const generateRecommendations = async (
     userId: string,
-    checkInId: string
+    checkInId: string,
+    canWrite: WriteGuard = alwaysWrite
 ): Promise<void> => {
     try {
         const currentCheckIn = await checkInModel.findCheckInById(checkInId)
@@ -248,6 +251,14 @@ export const generateRecommendations = async (
             breakdown: s.breakdown
         }))
 
+        if (!await canWrite()) {
+            logger.warn('Recommendations dropped, job superseded', {
+                userId,
+                checkInId
+            })
+            return
+        }
+
         await recommendationsModel.saveSnapshot(
             userId,
             checkInId,
@@ -279,12 +290,17 @@ export const generateRecommendations = async (
 
 export const generateRecommendationsSafely = async (
     userId: string,
-    checkInId: string
+    checkInId: string,
+    canWrite: WriteGuard = alwaysWrite
 ): Promise<void> => {
     try {
         await recommendationsModel.setPendingGeneration(userId, checkInId)
 
-        await generateRecommendations(userId, checkInId)
+        await generateRecommendations(
+            userId,
+            checkInId,
+            canWrite
+        )
     } catch (err) {
         logger.error(
             'Recommendations service error',

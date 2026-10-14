@@ -1,6 +1,7 @@
 import type { Profile } from '../../prisma/generated/prisma/client'
 import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../constants/activityPreferences'
 import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
+import * as profileContextCache from '../lib/cache/profileContextCache'
 import Prisma from '../utils/prismaClient'
 
 type ProfileData = Partial<
@@ -33,14 +34,39 @@ export const getProfileByUserId = async (
     })
 }
 
+// Only the stable fields, read on almost every request. Never cache
+// anonymousParticipation here: it changes with every post or reply choice.
+export const findProfileContext = async (
+    userId: string
+): Promise<profileContextCache.ProfileContext | null> => {
+    const cached = profileContextCache.get(userId)
+
+    if (cached)
+        return cached
+
+    const profile = await Prisma.profile.findUnique({
+        where: { userId },
+        select: { id: true, timezone: true }
+    })
+
+    if (profile)
+        profileContextCache.set(userId, profile)
+
+    return profile
+}
+
 export const updateProfile = async (
     userId: string,
     data: ProfileData
 ): Promise<Profile> => {
-    return Prisma.profile.update({
+    const profile = await Prisma.profile.update({
         where: { userId },
         data
     })
+
+    profileContextCache.invalidate(userId)
+
+    return profile
 }
 
 export const getAvailableHealthInterests = () =>

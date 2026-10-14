@@ -30,3 +30,65 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 - **Smaller items** (list reply counts from `replyCount`, "unanswered" via `replyCount = 0`, cursor pagination, an index for the purge job, `pg_stat_statements`) are recorded as TODOs; the first two need a decision on hidden-author replies first.
 
 **How to apply:** check the RDS constraints before designing any DB change, ship indexes as their own migration, and verify on RDS read-only over SSM (recipe in the deep doc) once data exists. Do not wrap the toggle write path in a transaction.
+
+---
+
+## 13/10/2026 — Profile lookup cached in memory for 30 s, id and timezone only
+
+**Problem:** about 27 call sites read the profile row on every request just for its id (and timezone).
+
+**Decision (owner):** an in-process map `userId -> { id, timezone }` with a 30 s TTL (`PROFILE_CONTEXT_TTL_MS`) and a 10,000 entry cap. `updateProfile` invalidates the entry. Only `getProfileContext` and the two `getProfileIdForUser` use it; `getProfileByUserId` still reads the DB.
+
+**Why over alternatives:** the id never changes and the timezone rarely does, while `anonymousParticipation` changes with every post or reply choice and so stays uncached. The ASG can run 2 instances and invalidation reaches only the instance that handled the update, so the short TTL is what bounds staleness (a different timezone for at most 30 s). Putting the id in the JWT needs token reissue and a fallback for old tokens, for no gain over this.
+
+**How to apply:** never add a mutable field to the cached shape. Any new write to `Profile.timezone` must call `profileContextCache.invalidate`.
+
+---
+
+## 13/10/2026 — Reply totals read from `Post.replyCount`; replies of pending-deletion authors count
+
+**Problem:** every post list counted replies with a join against reply authors, to hide replies of deactivated (pending-deletion) accounts. The stored `replyCount` counts them.
+
+**Decision (owner, via the TODO):** use the stored counter everywhere (`_count.replies` is filled from it, the response shape is unchanged) and `replyCount = 0` for "unanswered". A reply of a pending-deletion author still counts, though it is hidden in the thread, so during the grace period the total can be one higher than the replies shown.
+
+**Why over alternatives:** keeping the exact count means a join per post on every list, or adjusting the counter on every deactivate and restore, which is a write path across many posts for a state that lasts days. The reply survives the purge anyway (as `deleted-user`), so the counter is the long-run truth. The only leak is a number, not content.
+
+**How to apply:** any new place that returns a post must go through `withReplyCount`. Create or delete a reply only inside the existing transaction that moves `replyCount`; a test that inserts replies straight into the table must seed `replyCount` too.
+
+---
+
+## 13/10/2026 — Plain `deletedAt` index for the purge, and a 1000 cap on interaction id lists
+
+**Problem:** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff` with no index, and `getProfileInteractions` (default branch) returned every liked/saved id a profile ever made.
+
+**Decision (owner, via the TODO):** `@@index([deletedAt])` on `User` and `take: 1000` (newest first) on the three id lists.
+
+**Why over alternatives:** a partial index (`WHERE active = false`) was the TODO's idea, but Prisma's schema has no partial-index syntax, so a hand-written one is reported as drift by every `migrate dev` and invites a drop. `deletedAt` is NULL for active users, so a range filter on it is selective anyway. The cap is far above realistic use (the full-post branch caps at 100); the cost of passing it is only that older likes show unmarked.
+
+**How to apply:** raise `MAX_PROFILE_INTERACTION_IDS` before the cap is a user-visible limit; never hand-write an index Prisma cannot model.
+
+---
+
+## 13/10/2026 — Cursor pagination is additive: optional `cursor` beside `page`, keyset on the item id
+
+**Problem:** list endpoints used `skip/offset`, which slows on deep pages, and the TODO assumed a breaking client contract change.
+
+**Decision (owner, via the TODO):** an optional `cursor` query param (the id of the last item) on `GET /forum/posts` and `GET /forum/posts/:postId/replies`, using Prisma's cursor with an `[ <sort field>, id ]` order. Responses add `pagination.nextCursor`. `page` is unchanged.
+
+**Why over alternatives:** replacing `page` would force the client and server to ship together and break old clients. Prisma's cursor on the id with a stable tie-break gives keyset behaviour with no hand-written SQL and works for all four sorts (newest, popular, hot, unanswered). `hasMore` in cursor mode is "the page was full", not an exact count, to avoid an extra row fetch or a position query; the cost is one empty page at the end.
+
+**Rules found in review:** `cursor` with `page` is a 400; `cursor` with `hot`/`popular` is a 400 (their sort keys, `replyCount` and `views`, change while the client scrolls, so a cursor could skip or repeat posts); a cursor id that does not exist gives 404 (Prisma would return an empty page that looks like the end of the list); saved posts take no cursor (they page over save rows). A composite `Post(createdAt desc, id desc)` index replaced the single `createdAt` one; composites for `views` and `replyCount` were skipped (write cost, tiny table).
+
+**How to apply:** new list endpoints should take `cursor` the same way and order by the sort field plus `id`, and only on immutable sort keys.
+
+---
+
+## 13/10/2026 — `pg_stat_statements` ships as a migration, not a manual prod change
+
+**Problem:** the TODO said "parameter group + `CREATE EXTENSION`", which would mean a custom parameter group and an RDS reboot.
+
+**Decision (owner):** a Prisma migration with `CREATE EXTENSION IF NOT EXISTS pg_stat_statements`, run as `pulse_admin` by the normal deploy, like `pg_trgm`. Checked read-only: `pulse-db` uses `default.postgres17`, whose `shared_preload_libraries` already lists `pg_stat_statements`, so nothing else is needed.
+
+**Why over alternatives:** running it by hand over SSM would be an unrecorded prod write; a custom parameter group adds a reboot and a thing to maintain for no gain.
+
+**How to apply:** if RDS is ever moved to a custom parameter group, keep `pg_stat_statements` in its `shared_preload_libraries`.

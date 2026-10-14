@@ -3,13 +3,17 @@ import type { Request, Response } from 'express'
 import { FORUM_PAGINATION } from '../constants/forum/pagination'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { errorFactory } from '../errors/factory/ErrorFactory'
+import { buildPagination } from '../lib/pagination'
 import { successResponse } from '../responses/success'
 import type { NewPostType } from '../schemas/forum/newPostSchema'
 import { newPostSchema } from '../schemas/forum/newPostSchema'
 import type { NewReplyType } from '../schemas/forum/newReplySchema'
 import { newReplySchema } from '../schemas/forum/newReplySchema'
 import type { PostQueryType } from '../schemas/forum/postQuerySchema'
-import { postQuerySchema } from '../schemas/forum/postQuerySchema'
+import {
+    postQuerySchema,
+    savedPostQuerySchema
+} from '../schemas/forum/postQuerySchema'
 import type { ReplyQueryType } from '../schemas/forum/replyQuerySchema'
 import { replyQuerySchema } from '../schemas/forum/replyQuerySchema'
 import type { TagQueryType } from '../schemas/forum/tagQuerySchema'
@@ -57,12 +61,13 @@ export const getPosts = async (
         res,
         {
             items: data,
-            pagination: {
-                total: count,
+            pagination: buildPagination(
+                data,
+                count,
                 page,
                 limit,
-                hasMore: page * limit < count
-            }
+                validatedQuery?.cursor
+            )
         },
         `${data.length} posts found`
     )
@@ -178,6 +183,22 @@ export const sharePost = async (
         `Post ${postId} shared`
     )
 }
+
+export const recordPostView = async (
+    req: Request,
+    res: Response
+) => {
+    const { postId } = req.params as { postId: string }
+    const userId = extractUserId(req)
+
+    await forumService.recordPostView(postId, userId)
+
+    return successResponse(
+        res,
+        null,
+        `View of post ${postId} recorded`
+    )
+}
 // endregion
 
 // region Replies
@@ -216,7 +237,11 @@ export const getReplies = async (
     const { postId } = req.params as {
         postId: string
     }
-    const { limit, page } = validateAndExtract<ReplyQueryType>(
+    const {
+        limit,
+        page,
+        cursor
+    } = validateAndExtract<ReplyQueryType>(
         replyQuerySchema,
         req.query
     )
@@ -228,7 +253,8 @@ export const getReplies = async (
         await forumService.getReplies(
             postId,
             resolvedLimit,
-            resolvedPage)
+            resolvedPage,
+            cursor)
 
     ) as ReplyType[]
 
@@ -238,12 +264,13 @@ export const getReplies = async (
         res,
         {
             items: data,
-            pagination: {
-                total: count,
-                page: resolvedPage,
-                limit: resolvedLimit,
-                hasMore: resolvedPage * resolvedLimit < count
-            }
+            pagination: buildPagination(
+                data,
+                count,
+                resolvedPage,
+                resolvedLimit,
+                cursor
+            )
         },
         `found ${data.length} replies for post ${postId}`
     )
@@ -377,7 +404,7 @@ export const getSavedPosts = async (
     const validatedQuery =
         req.query
         && validateAndExtract<PostQueryType>(
-            postQuerySchema,
+            savedPostQuerySchema,
             req.query
         )
 

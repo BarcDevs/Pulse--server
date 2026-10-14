@@ -1,9 +1,16 @@
 import { z } from 'zod'
 
-import { paginationFields } from '../utils/fields'
+import {
+    cursorField,
+    paginationFields
+} from '../utils/fields'
 
 export const replyQuerySchema = z.object({
-    ...paginationFields
-})
+    ...paginationFields,
+    cursor: cursorField
+}).refine(
+    (query) => !(query.cursor && query.page),
+    { message: 'cursor and page cannot be used together' }
+)
 
 export type ReplyQueryType = z.infer<typeof replyQuerySchema>

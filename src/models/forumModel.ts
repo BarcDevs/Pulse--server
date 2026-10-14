@@ -3,6 +3,7 @@ import {
     type Prisma as PrismaTypes
 } from '../../prisma/generated/prisma/client'
 import { FORUM_PAGINATION } from '../constants/forum/pagination'
+import { POST_VIEW_WINDOW_MS } from '../constants/forum/postViews'
 import type {
     NewPostType,
     PostType,
@@ -24,7 +25,8 @@ import {
     authorSelect,
     connectTags,
     postInclude,
-    postQueryBuilder
+    postQueryBuilder,
+    withReplyCount
 } from './queries/postQuery'
 
 type RawTag = {
@@ -63,7 +65,7 @@ const mapPostTags = <T extends {
 }>(
     post: T
 ): T => ({
-    ...post,
+    ...withReplyCount(post as T & { replyCount: number }),
     tags: post.tags?.map(mapTag) ?? [],
     ...(post.author !== undefined
         && { author: anonymizeAuthor(post.author as Parameters<typeof anonymizeAuthor>[0], post.isAnonymous) }),
@@ -82,11 +84,16 @@ export const getPosts = async (
 ): Promise<PostType[]> => {
     const postQuery = postQueryBuilder(query)
 
+    const limit = query?.limit || 10
+
     const posts = await Prisma.post.findMany({
-        take: query?.limit || 10,
-        skip:
-            (query?.page ? query.page - 1 : 0)
-            * (query?.limit || 10),
+        take: limit,
+        ...(query?.cursor
+            ? {
+                cursor: { id: query.cursor },
+                skip: 1
+            }
+            : { skip: (query?.page ? query.page - 1 : 0) * limit }),
         ...postQuery
     })
     if (!posts) {
@@ -94,6 +101,17 @@ export const getPosts = async (
     }
     return posts.map(mapPostTags) as unknown as PostType[]
 }
+
+export const postIdExists = async (
+    id: string
+): Promise<boolean> =>
+    await Prisma.post.count({ where: { id } }) > 0
+
+export const replyIdExists = async (
+    id: string,
+    postId: string
+): Promise<boolean> =>
+    await Prisma.reply.count({ where: { id, postId } }) > 0
 
 export const getPostsCount = async (
     query?: PostQuery
@@ -231,7 +249,8 @@ export const getReply = async (
 export const getReplies = async (
     postId: string,
     limit?: number,
-    page?: number
+    page?: number,
+    cursor?: string
 ): Promise<ReplyType[]> => {
     const replies = await Prisma.reply.findMany({
         where: {
@@ -246,16 +265,20 @@ export const getReplies = async (
                 select: { likes: true }
             }
         },
-        orderBy: {
-            createdAt: 'desc'
-        },
+        orderBy: [
+            { createdAt: 'desc' },
+            { id: 'desc' }
+        ],
         ...(limit !== undefined
             && { take: limit }),
-        ...(limit !== undefined
-            && page !== undefined
-            && {
-                skip: (page - 1) * limit
-            })
+        ...(cursor
+            ? {
+                cursor: { id: cursor },
+                skip: 1
+            }
+            : limit !== undefined
+                && page !== undefined
+                && { skip: (page - 1) * limit })
     })
 
     return replies.map((reply) => ({
@@ -464,6 +487,50 @@ export const getCategoryStats = async ():
     ]
 }
 
+export const recordPostView = async (
+    profileId: string,
+    postId: string
+): Promise<boolean> => {
+    const now = new Date()
+    const windowStart = new Date(
+        now.getTime() - POST_VIEW_WINDOW_MS
+    )
+
+    return Prisma.$transaction(async (tx) => {
+        const renewed = await tx.postView.updateMany({
+            where: {
+                profileId,
+                postId,
+                lastViewedAt: { lt: windowStart }
+            },
+            data: { lastViewedAt: now }
+        })
+
+        let counted = renewed.count > 0
+
+        if (!counted) {
+            const created = await tx.postView.createMany({
+                data: {
+                    profileId,
+                    postId,
+                    lastViewedAt: now
+                },
+                skipDuplicates: true
+            })
+            counted = created.count > 0
+        }
+
+        if (counted) {
+            await tx.post.update({
+                where: { id: postId },
+                data: { views: { increment: 1 } }
+            })
+        }
+
+        return counted
+    })
+}
+
 export const togglePostLike = async (
     profileId: string,
     postId: string
@@ -669,16 +736,19 @@ export const getProfileInteractions = async (
             Prisma.postLike.findMany({
                 where: { profileId },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { postId: true }
             }),
             Prisma.replyLike.findMany({
                 where: { profileId },
                 orderBy: { likedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { replyId: true }
             }),
             Prisma.savedPost.findMany({
                 where: { profileId },
                 orderBy: { savedAt: 'desc' },
+                take: FORUM_PAGINATION.MAX_PROFILE_INTERACTION_IDS,
                 select: { postId: true }
             })
         ])

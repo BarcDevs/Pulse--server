@@ -44,6 +44,7 @@ model User {
   profile Profile?
 
   @@index([username(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_username_trgm_idx")
+  @@index([deletedAt])
 }
 
 model Profile {
@@ -80,6 +81,7 @@ model Profile {
   checkIns      DailyCheckIn[]
   recoveryGoals RecoveryGoal[]
   postLikes     PostLike[]
+  postViews     PostView[]
   replyLikes    ReplyLike[]
   savedPosts    SavedPost[]
 
@@ -102,11 +104,12 @@ model Post {
   replies     Reply[]
   tags        Tag[]       @relation("PostToTag")
   likes       PostLike[]
+  viewedBy    PostView[]
   savedBy     SavedPost[]
 
   @@index([authorId])
   @@index([category])
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([views])
   @@index([replyCount])
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Post_title_trgm_idx")
@@ -266,6 +269,17 @@ model PostLike {
   likedAt   DateTime @default(now())
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, postId])
+  @@index([postId])
+}
+
+model PostView {
+  profileId    String
+  postId       String
+  lastViewedAt DateTime @default(now())
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@id([profileId, postId])
   @@index([postId])

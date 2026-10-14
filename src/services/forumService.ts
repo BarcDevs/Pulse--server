@@ -43,7 +43,19 @@ export const getPosts = async (
     id?: string
 ) => {
     if (id) return forumModel.getPost(id)
-    return forumModel.getPosts(query)
+
+    const posts = await forumModel.getPosts(query)
+
+    // An empty page after a cursor is the end of the list only if the cursor
+    // post still exists; otherwise the client would stop scrolling silently
+    if (
+        query?.cursor
+        && posts?.length === 0
+        && !await forumModel.postIdExists(query.cursor)
+    )
+        throw errorFactory.generic.notFound('Cursor')
+
+    return posts
 }
 
 export const getPost = async (
@@ -196,6 +208,33 @@ export const togglePostLike = async (
     return forumModel.togglePostLike(profile.id, postId)
 }
 
+export const recordPostView = async (
+    postId: string,
+    userId: string
+) => {
+    const post = await ensurePostExists(postId)
+
+    const profile = await profileModel
+        .getProfileByUserId(userId)
+
+    if (!profile)
+        throw errorFactory.generic.notFound('User profile')
+
+    if (post.authorId === profile.id) return
+
+    try {
+        await forumModel.recordPostView(profile.id, postId)
+    } catch (err: unknown) {
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError
+            && (err.code === 'P2003' || err.code === 'P2025')
+        ) {
+            throw errorFactory.generic.notFound('Post')
+        }
+        throw err
+    }
+}
+
 export const toggleReplyLike = async (
     postId: string,
     replyId: string,
@@ -276,14 +315,26 @@ export const createReply = async (
 export const getReplies = async (
     postId: string,
     limit?: number,
-    page?: number
+    page?: number,
+    cursor?: string
 ) => {
     await ensurePostExists(postId)
-    return forumModel.getReplies(
+
+    const replies = await forumModel.getReplies(
         postId,
         limit,
-        page
+        page,
+        cursor
     )
+
+    if (
+        cursor
+        && replies.length === 0
+        && !await forumModel.replyIdExists(cursor, postId)
+    )
+        throw errorFactory.generic.notFound('Cursor')
+
+    return replies
 }
 
 export const getRepliesCount = async (

@@ -1,4 +1,4 @@
-import { FEEDBACK_DETECTION } from '../../constants/feedback/detection'
+import { FeedbackPromptBuilder } from '../../lib/prompts/FeedbackPromptBuilder'
 import type {
     InterventionContext,
     InterventionIntent
@@ -18,9 +18,8 @@ export const renderWithAI = async (
     userLanguage: string
 ): Promise<MessageParts | null> => {
     try {
-        const prompt = buildAIPrompt(
-            intent,
-            context,
+        const prompt = new FeedbackPromptBuilder().build(
+            { intent, context },
             userLanguage
         )
         const provider = createProvider()
@@ -44,71 +43,6 @@ export const renderWithAI = async (
         
         return null
     }
-}
-
-const buildAIPrompt = (
-    intent: InterventionIntent,
-    context: InterventionContext,
-    userLanguage: string
-): string => {
-    const severityLabel = {
-        low: 'mild',
-        medium: 'moderate',
-        high: 'significant'
-    }[intent.severity]
-
-    const fullStructure = {
-        acknowledge: 'string',
-        normalize: 'string',
-        suggest: 'string'
-    }
-
-    const softStructure = {
-        acknowledge: 'string',
-        normalize: 'string'
-    }
-
-    const structure = intent.mode === 'FULL'
-        ? fullStructure
-        : softStructure
-    const structureJson = JSON.stringify(
-        structure,
-        null,
-        2
-    )
-
-    const reasonText = intent.primaryReason
-        .replace(/_/g, ' ')
-        .toLowerCase()
-
-    return `You are a compassionate health support assistant.
-    Generate a supportive message for a user 
-    experiencing a ${severityLabel} ${reasonText}.
-
-CONSTRAINTS:
-- Language: ${userLanguage}
-- Tone: supportive, non-clinical (no medical claims), concise, non-judgmental
-- Return ONLY valid JSON with this exact structure:
-${structureJson}
-
-CONTEXT:
-- Trend direction: ${context.trend.direction}
-  over ${context.trend.duration} day(s)
-- Recent patterns: ${context.highlights
-        .map(h => h.type)
-        .join(', ')
-    || 'stable'}${context.trend.gapDays >= FEEDBACK_DETECTION.TREND.GAP_DAYS_THRESHOLD
-        ? `\n- Note: ${context.trend.gapDays} day gap since a prior check-in, do not imply a continuous trend`
-        : ''}
-
-MESSAGE STRUCTURE:
-- acknowledge: Validate their experience (1 sentence)
-- normalize: Normalize their struggle as part of recovery (1 sentence)
-${intent.mode === 'FULL'
-        ? '- suggest: Offer gentle guidance (1 sentence, optional)'
-        : ''}
-
-Generate the message now:`
 }
 
 const parseAIResponse = (

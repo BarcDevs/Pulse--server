@@ -16,6 +16,12 @@ export const paginationFields = {
         .optional()
 }
 
+// The id of the last item the client has; replaces page for deep lists
+export const cursorField = z.string()
+    .min(1)
+    .max(100)
+    .optional()
+
 export const tagNameField = z.string()
     .min(1)
     .max(100)

@@ -11,6 +11,7 @@ export type PostQuery = {
     category?: string
     search?: string
     page?: number
+    cursor?: string
     limit?: number
 }
 

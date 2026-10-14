@@ -166,24 +166,27 @@ describe('reply visibility with purged authors', () => {
         })
     })
 
-    it('uses the reply-aware filter for the reply count and single-post replies', () => {
-        expect(postInclude('multiple')._count.select.replies.where)
-            .toBe(activeReplyAuthorWhere)
+    it('counts replies from the stored column, not a join, and filters single-post replies', () => {
+        expect(postInclude('multiple')._count.select)
+            .toEqual({ likes: true })
         expect(postInclude('single').replies).toMatchObject({
             where: activeReplyAuthorWhere
         })
     })
 
-    it('uses the reply-aware filter for the unanswered filter', () => {
+    it('uses the stored reply count for the unanswered filter', () => {
         const result = postQueryBuilder({ filter: PostFilter.UNANSWERED })
-        expect(result.where.replies).toEqual({ none: activeReplyAuthorWhere })
+        expect(result.where.replyCount).toBe(0)
     })
 })
 
 describe('hot sort', () => {
     it('orders by the stored reply count', () => {
         const result = postQueryBuilder({ filter: PostFilter.HOT })
-        expect(result.orderBy).toEqual({ replyCount: 'desc' })
+        expect(result.orderBy).toEqual([
+            { replyCount: 'desc' },
+            { id: 'desc' }
+        ])
     })
 })
 

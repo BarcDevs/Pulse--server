@@ -237,6 +237,25 @@ describe('InsightGenerationService', () => {
                 expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
             })
 
+            it('stores nothing once the job was superseded', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID, async () => false)
+
+                expect(aiInsightModel.createInsight).not.toHaveBeenCalled()
+            })
+
+            it('stops storing at the first write after the job is superseded', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([goodCheckIn] as never)
+                const canWrite = jest.fn<Promise<boolean>, []>()
+                    .mockResolvedValueOnce(true)
+                    .mockResolvedValue(false)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID, canWrite)
+
+                expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
+            })
+
             it('creates only the baseline insight for an ordinary check-in', async () => {
                 jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn()] as never)
 

@@ -14,97 +14,16 @@ None open.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
-- **A superseded check-in AI job can overwrite newer insights (found 11/10/2026 by the deep review of the job queue).**
-  When a check-in is re-submitted while its job is `RUNNING`, the row goes back to `PENDING` and a second worker
-  starts on the new answers while the first keeps running (generation cannot be cancelled). The first worker's
-  result is dropped from the job row (claim token), but its insight and recommendation upserts can still land after
-  the second worker's, leaving insights for the old answers marked `ready`. Window: an edit within ~95 s of the
-  first submit, roughly a coin flip on which upsert lands last. Fix: re-check the claim (`status = RUNNING` and
-  `lockedAt` equal to the token) right before each write in `insightGenerationService`, or make re-queue wait for the
-  running job instead of overwriting it.
+None open.
 
-- **`GoogleAIProvider` stores replies that ended with `finishReason=MAX_TOKENS`.**
-  Confirmed cause of the 79-character prod insight. Prod log, 10/10/2026 01:08 UTC: the stale Anthropic key
-  returned 401 (twice), the chain fell to `google-pro` (`gemini-3.1-pro-preview`), which finished with
-  `finishReason=MAX_TOKENS, tokens=1251` (thinking used the output budget), and `GoogleAIProvider` only logs
-  a warning for any finish reason other than `STOP`, so the cut-off reply was stored as a normal insight
-  (`contentLength` 79, `usedFallback` false). The prod chain no longer includes `google-pro`, and
-  `gemini-3.1-flash-lite` showed no cutoffs in the audit, but the provider is still unguarded. Add the same
-  guard `AnthropicProvider` and `OpenAIProvider` have (throw on `MAX_TOKENS`, log `thoughtsTokenCount`) plus a
-  test. Audit evidence: `gemini-3.8-flash` and `gemini-3.6-flash` were cut off in 26 of 36 calls.
-
-- **Modularise the prompt builders like `pantry` does, with one shared language-rules module.**
-  (Covers and replaces the narrower "`languageInstruction` is duplicated" item under AI PROMPT QUALITY.)
-  Today `languageInstruction` (no em/en dashes or typographic quotes, native phrasing, bare activity
-  nouns, the Hebrew term rules) exists as two separate copies in `src/lib/aiInsight/prompts/insightsPrompts.ts`
-  and `src/lib/dailyObservation/observationPrompt.ts`; the progress prompt
-  (`src/lib/progressInsights/promptBuilder.ts`) and the check-in feedback prompt
-  (`src/services/feedback/aiRenderer.ts`, private `buildAIPrompt`) have none, so their replies can contain
-  dashes, and the progress summary has no language directive at all (Hebrew users likely get English).
-  Target layout, as in `~/Claude/work/projects/pantry/src/lib/prompts/`: one file per prompt
-  (`build-<name>-prompt.ts`) plus separate shared-instruction modules (language rules, "output only the
-  final text / no reasoning" rule, the no-scores rule) imported by every prompt, each with a co-located test.
-  Export the feedback prompt builder so the audit imports it instead of the copy in
-  `scripts/eval-ai-models/scenarios.ts`. Afterwards update the audit scenarios and rules in the same change
-  (AI Eval Sync) and scope the dash rule in `scripts/eval-ai-models/rules.ts` to match
-  (`docs/AI-MODEL-AUDIT.md`, Caveats).
-
-## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, work starting soon)
+## DB PERFORMANCE FOLLOW-UPS (decided 03/10/2026, all done)
 
 Why, evidence and the RDS read-only verification recipe: `.claude/db-optimization.md` (local) and
-`decisions/database-and-performance.md`. Order is by value; the first two were chosen by the owner.
-
-- **Count post views (feature).** `Post.views` is never incremented anywhere, so the "popular" sort
-  (`postQuery.ts`, `orderBy views`) has been ordering by zero; the `Post[views]` index is unused until
-  this exists. Recommended design: a `PostView(postId, profileId)` table with a composite primary
-  key, written on `GET /forum/posts/:id` with `createMany({ skipDuplicates: true })`, incrementing
-  `Post.views` only when a row was inserted (unique viewers, no inflation by refresh). Skip the
-  author's own view. Never expose who viewed (anonymity). Add tests and `API.md`; the migration must
-  not backfill (no history exists).
-- **Cache the profile lookup.** About 33 call sites fetch the profile (`getProfileIdForUser`,
-  `getProfileContext`, `getProfileByUserId`) on every request just to get its id. Cache only stable
-  fields (`id`, `timezone`) in a small in-memory map with a short TTL and invalidate on profile
-  update; do NOT cache `anonymousParticipation` (changes on every post/reply choice) or serve it stale.
-  The ASG can run 2 instances, so keep the TTL short instead of relying on invalidation alone. The
-  alternative is putting the profile id in the JWT, which needs token reissue and a fallback.
-- **Show the stored `replyCount` on post lists, and use `replyCount = 0` for "unanswered".** Lists
-  still count replies per post with a join against reply authors (`postInclude` `_count`). The stored
-  counter also includes replies from deactivated (pending-deletion) authors, which are hidden today.
-  Decide first whether a hidden reply may still count, then switch.
-- **Cursor pagination for posts and replies.** Lists use skip/offset (`page`), which slows on deep
-  pages. Only matters with thousands of posts; needs a client contract change.
-- **Index for the purge job.** `deleteAccountsDeletedBefore` filters `active = false AND deletedAt <= cutoff`
-  with no index. Add a partial index (`WHERE active = false`) once the user table grows.
-- **Enable `pg_stat_statements` on RDS** (parameter group + `CREATE EXTENSION`) to see the slowest
-  queries once there is traffic; pairs with the `Slow database query` log.
-- **`getProfileInteractions` id lists** (default branch) are unbounded; cap them if a user can
-  accumulate thousands of likes.
-
-## FIRST ON SCALING
-
-- **Re-check DB performance once there is real forum data.** The DB-perf release was verified
-  on RDS on 03/10/2026 (all 7 migrations applied, `pg_trgm` and the new indexes present, the
-  old ones gone, `Post.replyCount` drift 0, the per-session `statement_timeout` enforced). Prod
-  held only 2 users and no posts, so speed was not measurable. Once there are posts: run
-  `EXPLAIN ANALYZE` on forum search (expect the trigram indexes, not a seq scan), watch the logs
-  for `Slow database query` warnings and any `57014` cancel, and if `Post.replyCount` is ever
-  suspect, reconcile it with
-  `UPDATE "Post" p SET "replyCount" = (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id) WHERE "replyCount" <> (SELECT count(*) FROM "Reply" r WHERE r."postId" = p.id);`
-- **Clean up accounts verified through the H6 bug (security audit H6, fixed 30/09).**
-  Until the fix, 5 wrong codes on `POST /auth/confirm-email` marked any email verified, and a
-  verified email lets a Google sign-in link into that account. The confirm-email code was never
-  actually sent, so no real user verified that way. Password reset and Google also set
-  `emailVerifiedAt`, so the data alone can't separate them. Candidates:
-  `SELECT id, email, "emailVerifiedAt" FROM "User" WHERE "emailVerifiedAt" IS NOT NULL AND "googleId" IS NULL;`
-  Safe remedy: clear `emailVerifiedAt` on those rows. A real user only loses Google-linking
-  until their next password reset.
-- **Real email verification at signup (security audit H1 scaling plan).** Send the confirm-email
-  code on signup (`sendConfirmEmailOTP` exists but is never called), add the client step, and
-  block posting until the email is verified.
+`decisions/database-and-performance.md`. Order was by value; the first two were chosen by the owner. All of them are done, see DONE.
 
 ## AI PROMPT QUALITY (found 09/10/2026 while generating demo feedback for the landing page)
 
-Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-quality`, not merged):
+Done (branch `fix/ai-prompt-quality`, merged into `development`):
 - All prompts tell the model to say `מצב הרוח` (never `המצב רוח`), to avoid em/en dashes and
   typographic quotes, and to write activity names without a leading `ה` (`הליכה`, not `ההליכה`).
 - The insight service now computes streak stats over all check-ins (`getCheckInDates` +
@@ -124,30 +43,75 @@ Done on branch `fix/ai-prompt-quality` (worktree `../pulse--server.wt/ai-prompt-
   when nothing specific applies).
 - Tests added for all of the above.
 
-Still open:
-- **`languageInstruction` is duplicated** in `observationPrompt.ts` and `insightsPrompts.ts`, so
-  every wording fix has to be made twice. Move it to one shared module.
-- **Sanitize the generated text** (replace em/en dashes and curly quotes) before it is stored,
-  because a prompt rule is not a guarantee.
-- **Validate weekly and motivational output the way the observation is validated** (length,
-  numbers allowed or not, retry on failure). In three samples of the same weekly prompt one had
-  a garbled Hebrew phrase, one said mood "rose to 8" when it was 8 the day before, and one said
-  "almost without a break" for an unbroken 18-day streak.
-
-## LOW PRIORITY (non-blocking)
-
-- **Evaluate Node 26 once it reaches LTS (reported 28/10/2026; check nodejs.org's schedule).** Node 26 (out 05/2026) adds
-  Temporal by default, V8 14.6, Undici 8 and removes some old APIs; nothing in it fixes a current problem, and Node 24
-  is Active LTS for years, so there is no urgency. Node is pinned in `Dockerfile` (builder and runner stages),
-  `.github/workflows/ci.yml` (two jobs), `engines` in `package.json` and `@types/node`. Do it in its own branch,
-  not together with another change: run the `stack-update-check` skill first, then bump all four and run typecheck,
-  lint, unit and integration tests. Watch the Prisma 7 CJS output, `rewriteRelativeImportExtensions`, Jest 30's
-  resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
+Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## DONE
 
+- **H6 account cleanup: nothing to clean** (checked 13/10/2026, read-only SSM as `pulse_app`). Prod has 2 users, none with
+  `emailVerifiedAt` set and no Google id (the only verified-looking path left is the 1 Google account), so no row needed its
+  `emailVerifiedAt` cleared. No prod write was made.
+- **`pg_stat_statements` enabled** (done 13/10/2026, branch `chore/pg-stat-statements`, applied to Neon dev, RDS gets it on
+  the next deploy). Migration `20261013180000_enable_pg_stat_statements` is `CREATE EXTENSION IF NOT EXISTS`. No parameter
+  group change and no reboot: RDS `default.postgres17` already preloads it (`shared_preload_libraries =
+  pg_stat_statements,pg_tle`, checked read-only 13/10/2026 on `pulse-db`). After the deploy, query it as `pulse_admin` or grant
+  `pg_read_all_stats` to a read role: `SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;`.
+- **Cursor pagination for posts and replies** (done 13/10/2026, branch `perf/cursor-pagination`; server side, additive).
+  `GET /forum/posts` and `GET /forum/posts/:postId/replies` accept an optional `cursor` (the id of the last item the client
+  has) that replaces `page`, and every paged response carries `pagination.nextCursor`. Sorting got a fixed `id` tie-break
+  so pages are stable, and `Post(createdAt desc, id desc)` replaced the single `createdAt` index (migration
+  `20261013160000_post_created_at_id_index`). `cursor` is rejected with `page` or with `hot`/`popular`, and a missing cursor is a 404. `page` still works, so nothing breaks and the client can adopt cursors whenever it likes (infinite
+  scroll); in cursor mode `hasMore` means "the page came back full". `total` is still counted. Contract in `docs/API.md`.
+- **AI output sanitised, and regenerated once when invalid** (done 13/10/2026, branch `fix/ai-output-sanitize`).
+  `sanitizeGeneratedText` (`validationHelpers.ts`) turns spaced em/en dashes into a comma, joining ones into a hyphen and
+  curly quotes into straight ones; it runs on every stored AI text (insights, daily observation, progress summary) before
+  validation. `generateInsight` now asks again once when a reply fails validation (length, sentence count, diagnostic
+  language) before using the template; the providers' own retry still covers API errors. Not done, on purpose: checking a
+  claim against the data ("mood rose to 8", "almost without a break" for an unbroken streak). That needs a per-claim parser
+  that does not exist, a numeric whitelist would reject legitimate streak and count mentions, and the prompt rule
+  (`NO_SCORES_RULE`, no scores) already removed the score quotes in the audit. A bad claim still reaches the user at a low
+  rate; the fix would be to stop sending free text for facts the server already knows.
+- **Purge job index and `getProfileInteractions` cap** (done 13/10/2026, branch `perf/db-small-followups`). Migration
+  `20261013140000_add_user_deleted_at_index` adds `User_deletedAt_idx` (a plain index, not partial: Prisma cannot express
+  a `WHERE` on an index, so a partial one would show as drift on every `migrate dev`; applied to Neon dev, RDS gets it on
+  the next `migrate deploy`, and it passes the redeploy gate). The default branch of `getProfileInteractions` now returns
+  the newest 1000 liked/saved ids (`MAX_PROFILE_INTERACTION_IDS`); a user past 1000 would see older likes unmarked.
+- **Reply totals come from the stored `replyCount`** (done 13/10/2026, branch `perf/post-list-reply-count`). Post lists,
+  the post detail and recommendations no longer join replies against their authors: `withReplyCount` (`postQuery.ts`)
+  fills `_count.replies` from `Post.replyCount`, and the `unanswered` filter is `replyCount = 0`. Decision: replies of
+  accounts pending deletion DO count (they stay in the thread only once the account is purged), so for the grace period
+  a post can show a total one higher than the replies visible. Response shape is unchanged, no client change.
+- **Profile lookup cached** (done 13/10/2026, branch `perf/cache-profile-lookup`). `profileModel.findProfileContext` keeps
+  `{ id, timezone }` per user in `lib/cache/profileContextCache.ts` for 30 s (cap 10,000 entries, misses never cached) and
+  `updateProfile` invalidates it. `getProfileContext` and both `getProfileIdForUser` use it. `getProfileByUserId` (the full
+  profile, with `anonymousParticipation`) is untouched. Another instance can serve an old timezone for up to 30 s.
+- **Post views counted** (done 13/10/2026, merged into `development`, not pushed). New `PostView(profileId, postId,
+  lastViewedAt)` table and `POST /forum/posts/:postId/view`: one counted view per profile per post per rolling 24h,
+  author skipped, `Post.views` incremented only when counted, no backfill. The client calls it on post detail mount
+  because it serves posts from the list cache and often makes no GET. Design and why: `decisions/feature-design.md`.
+- **Prompt builders modularised, one shared rules module** (done 12/10/2026, branch `rfc/prompt-builders`, not yet
+  merged). Every prompt now lives in `src/lib/prompts/` as `<Name>PromptBuilder.ts` class (mood drop, motivational, weekly
+  summary, observation, progress insight, check-in feedback). Each extends the abstract `PromptBuilder`, whose `build()`
+  always assembles role, language rules (`languageInstruction`), body and output rules, so a prompt cannot skip them; shared
+  pieces live in `sharedInstructions.ts`. Call sites use `new XPromptBuilder().build(input, language)`. The progress and feedback prompts now carry
+  the language and no-dashes rules, and the progress summary gets the user's language (`resolveSummary` takes it; before,
+  Hebrew users got English). The feedback prompt is exported and the audit imports it instead of the copy. Behaviour
+  change to know: the feedback prompt's `Language: he` line became the full language instruction. Still open: the
+  audit has not been rerun on the changed progress and feedback prompts.
+
+- **`GoogleAIProvider` stored replies that ended with `finishReason=MAX_TOKENS`** (fixed 12/10/2026, branch
+  `fix/google-max-tokens-guard`, merged into `development`). It now throws on `MAX_TOKENS` (logging `thoughtsTokenCount`), like the
+  Anthropic and OpenAI providers, so a cut-off fallback reply falls through to the template instead of being stored.
+  Google is only the fallback in prod, but a fallback runs exactly when the primary failed. Cause of the 79-character
+  prod insight on 10/10/2026: `google-pro` ended with `MAX_TOKENS` after thinking used the output budget.
+
+- **A superseded check-in AI job could overwrite newer insights** (fixed 12/10/2026, branch `fix/superseded-ai-job-writes`,
+  merged into `development`). The worker passes a `canWrite` guard (`jobModel.holdsClaim`: status `RUNNING` and `lockedAt` equal to
+  the claim token) into `generateInsightForCheckIn` and `generateRecommendationsSafely`, which check it right before each
+  insight, intervention and recommendation-snapshot write and drop the result with a warning when the claim is gone.
+  The check and the write are two statements, so a sliver of a race remains, but the old window was the whole AI call.
+
 - **Activity names reached the AI prompts as raw English slugs** (fixed 11/10/2026, branch `fix/localized-activity-names`,
-  not yet merged). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
+  merged into `development`). Hebrew feedback said `walking` instead of `הליכה`. `localizeActivity` (`src/lib/activityLabels.ts`)
   maps a slug to its label from a new `activities` map in `src/locales/en.json` and `he.json` (the client's
   `checkIn.activities.default` labels plus `yoga` and `medical`); custom activities pass through unchanged. Used by the
   insight prompts (recent and top activities) and the daily observation (prompt and template). The server keeps its
@@ -168,7 +132,7 @@ Still open:
   prod check on this alone. The prod log could not confirm the effect: the container (up since 09/10 22:07 UTC)
   had no progress-summary lines at all. After the redeploy, search the log for `AI progress summary failed validation`.
 - **`OpenAIProvider` stored replies cut off at the token limit** (fixed 10/10/2026, `afaf064`): it now throws on
-  `finish_reason=length`, like `AnthropicProvider`. The Google equivalent is still open (HIGH).
+  `finish_reason=length`, like `AnthropicProvider`. The Google equivalent was fixed 12/10/2026 (see below).
 - **Insights said "your mood is 8" / "your pain stays around 3"** (fixed 10/10/2026, `NO_SCORES_RULE` in
   `insightsPrompts.ts`, used by the mood-drop, motivational and weekly prompts). Checked by the audit session:
   8 runs per prompt on `claude-sonnet-5`, Hebrew, 0 of 24 replies quoted a score with the rule, against 7-8 of 8

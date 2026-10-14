@@ -70,6 +70,20 @@ export const claimNextJob = async (
     return job ?? null
 }
 
+// True while this worker's claim is intact. A re-submit (row back to PENDING)
+// or a takeover changes status or lockedAt, so a superseded worker sees false.
+export const holdsClaim = async (job: ClaimedCheckInAiJob): Promise<boolean> => {
+    const count = await Prisma.checkInAiJob.count({
+        where: {
+            id: job.id,
+            status: CheckInAiJobStatus.RUNNING,
+            lockedAt: job.lockedAt
+        }
+    })
+
+    return count === 1
+}
+
 // Only the worker that still holds the claim may finish the job. If the
 // check-in was re-submitted (row back to PENDING) or another worker took the
 // job over, the claim no longer matches and the result is dropped, so the

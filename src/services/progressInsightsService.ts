@@ -137,7 +137,8 @@ export const generateProgressInsight = async (
     } = await resolveSummary(
         currentMetrics,
         previousMetrics,
-        trend
+        trend,
+        userLanguage
     )
 
     const insight = buildProgressInsight({

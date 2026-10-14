@@ -488,7 +488,8 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 | Param      | Type   | Notes                                       |
 |------------|--------|---------------------------------------------|
 | `limit`    | number | Max 100                                     |
-| `page`     | number |                                             |
+| `page`     | number | Offset paging; slows on deep pages          |
+| `cursor`   | string | Id of the last post you have (`pagination.nextCursor`). Replaces `page` when set. Keyset paging, constant cost at any depth |
 | `filter`   | string | `newest` · `popular` (most views) · `hot` (most replies, from the stored `Post.replyCount`) · `unanswered` |
 | `search`   | string | Search title, body, category, tags, author name (case-insensitive) |
 | `tag`      | string | Filter by tag name                          |
@@ -498,21 +499,33 @@ The forum is for signed-in users only: every endpoint, reads included, needs a s
 ```json
 {
   "message": "N posts found",
-  "data": [
-    {
-      "id": "string",
-      "title": "string",
-      "body": "string",
-      "category": "string",
-      "views": 0,
-      "shareCount": 0,
-      "_count": { "replies": 0, "likes": 0 },
-      "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
-      "replies": []
-    }
-  ]
+  "data": {
+    "items": [
+      {
+        "id": "string",
+        "title": "string",
+        "body": "string",
+        "category": "string",
+        "views": 0,
+        "shareCount": 0,
+        "_count": { "replies": 0, "likes": 0 },
+        "tags": [{ "id": "string", "slug": "string", "label": { "en": "string", "he": "string | null" } }],
+        "replies": []
+      }
+    ],
+    "pagination": { "total": 0, "page": 1, "limit": 10, "hasMore": true, "nextCursor": "string | null" }
+  }
 }
 ```
+
+**Cursor paging.** Pass `nextCursor` back as `cursor` to get the next page. `nextCursor` is the id of the last item
+when `hasMore` is true, otherwise `null`. In cursor mode `hasMore` means the page came back full, so the last page can
+be followed by one empty page. Sorting has a fixed tie-break on `id`, so no post is skipped or repeated.
+
+Rules: `cursor` and `page` together → `400`; `cursor` with `filter=hot` or `filter=popular` → `400` (those sort by counters that
+change while scrolling, so they stay on `page`); a `cursor` that does not exist (for example the post was deleted) → `404`:
+the error has `code: "NOT_FOUND"` and `params: { resource: "Cursor" }` (match on those, not on the message text; a missing post is the same code with `resource: "Post"`), so restart from the first page. `GET /posts/saved` takes no cursor. `page` still works everywhere and
+also returns `nextCursor`.
 
 **Errors:** `404` no posts found
 
@@ -662,6 +675,27 @@ Increments a post's share count. Rate limited to 1 request per IP per post per h
 
 ---
 
+### `POST /posts/:postId/view`
+> Auth + CSRF required
+
+Records that the current user opened a post. Counts one view per profile per post per rolling 24 hours
+(`POST_VIEW_WINDOW_MS`), measured from the last counted view. The author's own views are not counted. A
+repeat inside the window is accepted and ignored, so the response never tells the caller whether it
+counted, and nothing about who viewed is stored beyond the profile/post pair or exposed anywhere.
+Fire it once when the post detail page opens; `GET /posts/:postId` does not count views.
+
+**Response `200`**
+```json
+{
+  "message": "View of post <id> recorded",
+  "data": null
+}
+```
+
+**Errors:** `401` not authenticated or invalid CSRF · `404` post not found · `429` more than one request for this post from this user within an hour (the first one is the one that counts)
+
+---
+
 ### `POST /posts/:postId/like`
 > Auth + CSRF required
 
@@ -727,20 +761,24 @@ Returns the current user's saved posts. Supports the same pagination query param
 |---------|--------|---------------------------------------|
 | `limit` | number | Replies per page. Default: 10         |
 | `page`  | number | Page number (requires `limit`)        |
+| `cursor` | string | Id of the last reply you have (`pagination.nextCursor`). Replaces `page` when set. Same rules as `GET /posts` |
 
 **Response `200`**
 ```json
 {
   "message": "N Replies for post <id> found",
-  "data": [
-    {
-      "id": "string",
-      "body": "string",
-      "author": { "id": "string", "username": "string" },
-      "createdAt": "ISO date",
-      "_count": { "likes": 0 }
-    }
-  ]
+  "data": {
+    "items": [
+      {
+        "id": "string",
+        "body": "string",
+        "author": { "id": "string", "username": "string" },
+        "createdAt": "ISO date",
+        "_count": { "likes": 0 }
+      }
+    ],
+    "pagination": { "total": 0, "page": 1, "limit": 10, "hasMore": true, "nextCursor": "string | null" }
+  }
 }
 ```
 

@@ -28,4 +28,44 @@ describe('GoogleAIProvider', () => {
         expect(url).not.toContain('key=')
         expect(init.headers['x-goog-api-key']).toBe(API_KEY)
     })
+
+    it('rejects a response cut off at the token limit', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                candidates: [{
+                    finishReason: 'MAX_TOKENS',
+                    content: { parts: [{ text: 'a message that stops mid' }] }
+                }],
+                usageMetadata: { totalTokenCount: 1251, thoughtsTokenCount: 1100 }
+            })
+        })
+        const provider = new GoogleAIProvider({
+            apiKey: API_KEY,
+            modelId: 'gemini-test'
+        })
+
+        await expect(
+            provider.generateContent({ prompt: 'hi' })
+        ).rejects.toThrow('cut off')
+    })
+
+    it('returns the text of a finished response', async () => {
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                candidates: [{
+                    finishReason: 'STOP',
+                    content: { parts: [{ text: 'a full message.' }] }
+                }]
+            })
+        })
+        const provider = new GoogleAIProvider({
+            apiKey: API_KEY,
+            modelId: 'gemini-test'
+        })
+
+        expect((await provider.generateContent({ prompt: 'hi' })).content)
+            .toBe('a full message.')
+    })
 })

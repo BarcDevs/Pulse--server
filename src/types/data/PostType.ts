@@ -24,6 +24,7 @@ export type PostType = {
     replies: ReplyType[]
     views: number
     shareCount: number
+    replyCount?: number
     category: string
     tags: PostTagType[]
     _count?: {

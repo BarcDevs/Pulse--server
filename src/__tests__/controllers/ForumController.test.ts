@@ -69,7 +69,8 @@ describe('ForumController', () => {
                             total: 2,
                             page: 1,
                             limit: 10,
-                            hasMore: false
+                            hasMore: false,
+                            nextCursor: null
                         }
                     }
                 })
@@ -450,7 +451,8 @@ describe('ForumController', () => {
             expect(forumService.getReplies).toHaveBeenCalledWith(
                 'test-post-id-123',
                 FORUM_PAGINATION.DEFAULT_REPLY_LIMIT,
-                1
+                1,
+                undefined
             )
             expect(res.status)
                 .toHaveBeenCalledWith(HttpStatusCodes.OK)
@@ -475,7 +477,8 @@ describe('ForumController', () => {
             expect(forumService.getReplies).toHaveBeenCalledWith(
                 'test-post-id-123',
                 10,
-                2
+                2,
+                undefined
             )
         })
 

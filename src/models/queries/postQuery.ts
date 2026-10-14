@@ -31,15 +31,25 @@ export const authorSelect = {
     }
 }
 
+// The client reads the reply total from _count.replies; it comes from the
+// stored Post.replyCount instead of a per-post join against reply authors.
+// Replies of accounts pending deletion are counted, though hidden in the thread.
+export const withReplyCount = <T extends { replyCount: number }>(
+    post: T
+) => ({
+    ...post,
+    _count: {
+        ...(post as { _count?: object })._count,
+        replies: post.replyCount
+    }
+})
+
 export const postInclude = (
     type: 'single' | 'multiple',
     options?: { replies?: number }
 ) => ({
     _count: {
         select: {
-            replies: {
-                where: activeReplyAuthorWhere
-            },
             likes: true
         }
     },
@@ -174,9 +184,7 @@ export const postQueryBuilder = (
 
             // filter by unanswered
             ...(query?.filter === PostFilter.UNANSWERED && {
-                replies: {
-                    none: activeReplyAuthorWhere
-                }
+                replyCount: 0
             }),
 
             // additional filter
@@ -185,15 +193,18 @@ export const postQueryBuilder = (
 
         include: postInclude('multiple'),
 
-        // sort by given sort method
-        orderBy: (
-            query?.filter === PostFilter.NEWEST
-                ? { createdAt: 'desc' }
-                : query?.filter === PostFilter.HOT
-                    ? { replyCount: 'desc' }
-                    : query?.filter === PostFilter.POPULAR
-                        ? { views: 'desc' }
-                        : { createdAt: 'desc' }
-        ) as PrismaTypes.PostOrderByWithRelationInput
+        // sort by given sort method; id breaks ties so pages and cursors are stable
+        orderBy: [
+            (
+                query?.filter === PostFilter.NEWEST
+                    ? { createdAt: 'desc' }
+                    : query?.filter === PostFilter.HOT
+                        ? { replyCount: 'desc' }
+                        : query?.filter === PostFilter.POPULAR
+                            ? { views: 'desc' }
+                            : { createdAt: 'desc' }
+            ),
+            { id: 'desc' }
+        ] as PrismaTypes.PostOrderByWithRelationInput[]
     }
 }

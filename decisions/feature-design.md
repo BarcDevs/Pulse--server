@@ -113,7 +113,7 @@ Follows the per-post anonymity entry above and changes its default.
 
 **Why over alternatives:** sending more than 7 check-ins costs tokens and changes what a "weekly" summary is about, while the stats are one line. Fixing the wording in the prompt (not in the saved text) keeps every future generation right.
 
-**How to apply:** `languageInstruction` still exists in two files (`observationPrompt.ts`, `insightsPrompts.ts`), so change both until it is deduplicated. The database returns check-ins newest first, so helpers pick "latest" and "recent N" by `checkInDate` (`getLatestMood`, `extractRecentActivities`, `extractRecentNotes`), never by array position.
+mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sharedInstructions.ts` since 12/10/2026 (it was two copies before). The database returns check-ins newest first, so helpers pick "latest" and "recent N" by `checkInDate` (`getLatestMood`, `extractRecentActivities`, `extractRecentNotes`), never by array position.
 
 ---
 
@@ -148,3 +148,27 @@ Follows the per-post anonymity entry above and changes its default.
 **Why over alternatives:** the job table is as durable as SQS with no new AWS infra, IAM or local-dev stub, and `SKIP LOCKED` keeps two ASG instances from running one job twice. SQS costs almost nothing in money (free tier covers 1M requests a month) but adds a queue, a dead-letter queue, a consumer and a local stub. A socket now would need a persistent connection through the Next.js rewrite and Cloudflare Tunnel plus pub/sub for two instances, too heavy for a 5-15 s wait.
 
 **How to apply:** keep job claiming behind one model function so the worker can later be swapped for an SQS consumer or a socket notification without touching the check-in flow. A retried job must upsert insights (unique per check-in and type), never insert.
+
+---
+
+## 12/10/2026 — Prompts are classes extending one abstract `PromptBuilder`
+
+**Problem:** the language rules existed as two copies and the progress and check-in feedback prompts had none, because each prompt was a free function that had to remember to call the shared pieces.
+
+**Decision (owner):** every AI prompt is a class in `src/lib/prompts/` extending the abstract `PromptBuilder<TInput>`. A subclass defines `role()` and `body()`; `build(input, language)` always assembles role, language rules, body and output rules, in that order. Plain-text prompts get the final-text rule by default; JSON prompts (observation, check-in feedback) override `outputRules()` to return nothing. Shared text lives in `sharedInstructions.ts`.
+
+**Why over alternatives:** plain functions (the first version, and the style elsewhere in `src/lib`) left the "remember to add the language rules" step to each author, which is exactly how two prompts missed them. A small `assemblePrompt` function would also work, but the owner preferred finishing the refactor with the class now over revisiting it later. Classes are otherwise used here only for the `AIProvider` hierarchy, so this is a deliberate exception to the function style.
+
+**How to apply:** a new AI pipeline adds `<Name>PromptBuilder.ts` extending `PromptBuilder`; never build the language or output rules by hand in a subclass. Call it as `new XPromptBuilder().build(input, language)`.
+
+---
+
+## 13/10/2026 — Post views: one per profile per rolling 24h, via a dedicated call
+
+**Problem:** `Post.views` was never incremented, so the "popular" sort and the recommendation score ran on zero.
+
+**Decision (owner):** a `PostView(profileId, postId, lastViewedAt)` row per pair. `POST /forum/posts/:postId/view` counts a view when the pair has no row, or its `lastViewedAt` is older than 24h, then resets `lastViewedAt`; `Post.views` goes up only when it counted. The author's own opens are skipped. The dedup key is the logged-in profile, not the IP, and no IP is stored. The client fires the call once when the post detail page mounts.
+
+**Why over alternatives:** counting inside `GET /forum/posts/:id` (the first draft) misses opens served from the client's list cache (`initialData`, 5 minute `staleTime`) and would make a read endpoint write. Unique viewers forever (never counting a return visit) and a raw counter were rejected: the first ignores returning readers, the second is inflated by refresh. Per profile beats per IP because a profile follows the person across devices and a shared IP does not collapse offices or mobile carriers into one view. One row per pair, not per day, so the table does not grow with time.
+
+**How to apply:** do not add side effects to `GET /posts/:postId` (recommendations and helpers call `forumModel.getPost`). Change the window only through `POST_VIEW_WINDOW_MS`. `/view` is also rate limited to one request per user per post per hour (`viewPostRateLimiter`): a counted view needs 24h anyway, so the limiter loses no views and only absorbs retries and repeated opens; the 24h window, not the limiter, is what prevents double counting. `migrate dev` wanted to reset the Neon dev database because old migrations were edited after being applied; the migration was written by hand and applied with `migrate deploy` instead.

@@ -8,7 +8,11 @@ import type {
 } from '../types/data/RecommendationType'
 import Prisma from '../utils/prismaClient'
 
-import { anonymizeAuthor, postInclude } from './queries/postQuery'
+import {
+    anonymizeAuthor,
+    postInclude,
+    withReplyCount
+} from './queries/postQuery'
 
 export const saveSnapshot = async (
     userId: string,
@@ -157,7 +161,7 @@ export const getCandidatePosts = async (
     })
 
     return posts.map((post) => ({
-        ...post,
+        ...withReplyCount(post),
         author: anonymizeAuthor(post.author, post.isAnonymous)
     })) as unknown as PostType[]
 }

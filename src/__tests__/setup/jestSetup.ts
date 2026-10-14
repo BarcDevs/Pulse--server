@@ -5,6 +5,7 @@ import {
 } from 'jest-mock-extended'
 
 import type { PrismaClient } from '../../../prisma/generated/prisma/client'
+import { clearCache as clearProfileContextCache } from '../../lib/cache/profileContextCache'
 import { getSessionState } from '../../models/sessionModel'
 
 // Create the mock instance that will be shared across all tests
@@ -43,6 +44,7 @@ jest.mock('../../middlewares/rateLimiting', () => ({
     passwordChangeRateLimiter: jest.fn((_req, _res, next) => next()),
     deleteAccountCodeRateLimiter: jest.fn((_req, _res, next) => next()),
     sharePostRateLimiter: jest.fn((_req, _res, next) => next()),
+    viewPostRateLimiter: jest.fn((_req, _res, next) => next()),
     supportRateLimiter: jest.fn((_req, _res, next) => next()),
     checkInMutationRateLimiter: jest.fn((_req, _res, next) => next())
 }))
@@ -50,6 +52,7 @@ jest.mock('../../middlewares/rateLimiting', () => ({
 // Reset mocks before each test
 beforeEach(() => {
     mockReset(prismaMock)
+    clearProfileContextCache()
 
     // Mock $transaction to execute callback with the mock
     prismaMock.$transaction.mockImplementation(

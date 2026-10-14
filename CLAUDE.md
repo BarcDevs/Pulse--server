@@ -51,9 +51,9 @@ New feature added → update server PRD, server README, AND client README same t
 
 ## AI Eval Sync
 Any change to AI provider logic, prompts, insight types, or generation config
-(`src/services/aiProviders/`, `src/lib/aiInsight/`, `aiInsightGeneratorService.ts`,
+(`src/services/aiProviders/`, `src/lib/aiInsight/`, `src/lib/prompts/`, `aiInsightGeneratorService.ts`,
 `config/default.ts` ai section) → check `scripts/eval-ai-models/` still reflects it:
-scenarios cover the current insight types, prompts match `insightsPrompts.ts`,
+scenarios cover the current insight types, prompts are imported from `src/lib/prompts/`,
 model ids match config defaults. Update the eval scripts in the same change if
 they've drifted — don't let them silently test stale prompts/models.
 
