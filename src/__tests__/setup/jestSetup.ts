@@ -31,24 +31,9 @@ jest.mock('../../utils/emailSender', () => ({
 
 
 // Mock rate limiters to prevent test requests from hitting limits
-jest.mock('../../middlewares/rateLimiting', () => ({
-    rateLimiter: jest.fn((_req, _res, next) => next()),
-    confirmEmailRateLimiter: jest.fn((_req, _res, next) => next()),
-    forgotPasswordRateLimiter: jest.fn((_req, _res, next) => next()),
-    verifyResetCodeRateLimiter: jest.fn((_req, _res, next) => next()),
-    resetPasswordRateLimiter: jest.fn((_req, _res, next) => next()),
-    changeEmailRateLimiter: jest.fn((_req, _res, next) => next()),
-    confirmEmailChangeRateLimiter: jest.fn((_req, _res, next) => next()),
-    loginRateLimiter: jest.fn((_req, _res, next) => next()),
-    signupRateLimiter: jest.fn((_req, _res, next) => next()),
-    passwordChangeRateLimiter: jest.fn((_req, _res, next) => next()),
-    deleteAccountCodeRateLimiter: jest.fn((_req, _res, next) => next()),
-    sharePostRateLimiter: jest.fn((_req, _res, next) => next()),
-    viewPostRateLimiter: jest.fn((_req, _res, next) => next()),
-    supportRateLimiter: jest.fn((_req, _res, next) => next()),
-    checkInMutationRateLimiter: jest.fn((_req, _res, next) => next()),
-    launchFunnelOpenRateLimiter: jest.fn((_req, _res, next) => next())
-}))
+jest.mock('../../middlewares/rateLimiting', () =>
+    require('./mockRateLimiting').createRateLimitingMock()
+)
 
 // Reset mocks before each test
 beforeEach(() => {
