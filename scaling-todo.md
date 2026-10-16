@@ -86,3 +86,5 @@ Post-launch / scale-up items, not launch blockers.
   not together with another change: run the `stack-update-check` skill first, then bump all four and run typecheck,
   lint, unit and integration tests. Watch the Prisma 7 CJS output, `rewriteRelativeImportExtensions`, Jest 30's
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
+
+- **Move migrations off the app host (decided 16/10/2026, not urgent).** `pulse-ec2-role` can read `pulse/rds/master-credentials` because `ec2-redeploy.sh` runs migrations on the server box, so a compromised app host could run DDL against RDS. Run the migrate step from CI (or a separate role used only for deploys) so the instance role keeps `pulse/rds/app-credentials` alone, then drop the master secret from `pulse-secret-read`. Needs a network path from the runner to the private RDS (SSM port forward or a one-off task in the VPC) to be designed first.
