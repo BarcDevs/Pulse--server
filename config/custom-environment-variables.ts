@@ -39,5 +39,8 @@ export default {
     },
     logging: {
         dir: 'LOG_DIR'
+    },
+    launchFunnel: {
+        secret: 'LAUNCH_FUNNEL_SECRET'
     }
 }

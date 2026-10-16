@@ -20,7 +20,8 @@ jest.mock('../../../middlewares/rateLimiting', () => ({
     sharePostRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     viewPostRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
     supportRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
-    checkInMutationRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next())
+    checkInMutationRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next()),
+    launchFunnelOpenRateLimiter: jest.fn((_req: unknown, _res: unknown, next: () => void) => next())
 }))
 
 afterEach(async () => {

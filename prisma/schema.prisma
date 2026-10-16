@@ -337,6 +337,14 @@ enum CheckInAiJobStatus {
   FAILED
 }
 
+// Launch Mailer funnel: opaque per-subscriber id from the launch email link.
+// Deliberately not linked to User, so the table holds no PII.
+model LaunchFunnelToken {
+  token        String    @id
+  openedAt     DateTime  @default(now())
+  registeredAt DateTime?
+}
+
 enum InsightType {
   MOOD_DROP_ALERT
   MOTIVATIONAL

@@ -15,6 +15,7 @@ import checkInRoute from '../checkInRoute'
 import devRoute from '../devRoute'
 import forumRoute from '../forumRoute'
 import insightRoute from '../insightRoute'
+import launchFunnelRoute from '../launchFunnelRoute'
 import profileRoute from '../profileRoute'
 import recoveryGoalRoute from '../recoveryGoalRoute'
 import supportRoute from '../supportRoute'
@@ -67,6 +68,7 @@ export const declareRoutes = (app: Express) => {
     app.use(baseRoute('check-in'), checkInRoute)
     app.use(baseRoute('forum'), forumRoute)
     app.use(baseRoute('insight'), insightRoute)
+    app.use(baseRoute('launch-funnel'), launchFunnelRoute)
     app.use(baseRoute('profile'), profileRoute)
     app.use(baseRoute('recovery-goals'), recoveryGoalRoute)
     app.use(baseRoute('support'), supportRoute)

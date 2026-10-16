@@ -481,6 +481,8 @@ Login keeps the older rule (8+ characters, a letter and a digit) so existing acc
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
 | `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Email a message to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required |
+| `POST` | `/api/{version}/launch-funnel/open` | None (no CSRF) | 30/hour | Record a Launch Mailer `lm` token as opened and set the `launch_token` cookie; signup (email or Google) then records it as registered |
+| `GET` | `/api/{version}/launch-funnel` | Bearer `LAUNCH_FUNNEL_SECRET` | - | `{ opened, registered }` distinct tokens for preflight; 401 without the secret |
 
 ### Recovery Goals *(protected)*
 
