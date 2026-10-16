@@ -15,7 +15,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | Server fixed private IP | `172.31.16.100` — a dedicated secondary ENI (`eni-0a923c09357bb745b`) the ASG instance attaches to itself at boot (`scripts/deploy/asg-boot.sh`), so this address survives instance replacement. The client's `/api` proxy is baked to this IP. |
 | RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t3.micro`, encrypted, deletion-protected, not publicly accessible |
 | Domain | `pulserehab.app` (Cloudflare, proxied) → Cloudflare Tunnel → client EC2 (`cloudflared` container, outbound-only; token in `pulse/client/CLOUDFLARE_TUNNEL_TOKEN`). The client SG has no public 80/443 ingress. The client's Elastic IP `52.58.214.220` (`eipalloc-000be881665f41959`) is no longer on the request path. Client is the public front door, proxying `/api/:path*` to the server's fixed private IP over the private VPC. |
-| EC2 security group (server) | `sg-0c263224f1d77df26` — SSH (22) restricted to operator's IP only, HTTP (80) from the client SG (`sg-02ad243011d768866`) only |
+| EC2 security group (server) | `sg-0c263224f1d77df26` — SSH (22) closed (shell access via SSM Session Manager), HTTP (80) from the client SG (`sg-02ad243011d768866`) only |
 | RDS security group | `sg-0d6e9cdd1a065d584` — Postgres (5432) restricted to the EC2 security group only, no public CIDR |
 | IAM role (EC2, server) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), ECR pull scoped to `pulse-server-app`, and `pulse-eni-attach` (attach/detach on the fixed ENI only, for the ASG boot script) |
 | IAM role (GitHub Actions) | `pulse-server-gh-deploy-role` — assumable only via OIDC by `repo:BarcDevs/HealEase--server:ref:refs/heads/main`; scoped to ECR push on `pulse-server-app` and `ssm:SendCommand` on the `AWS-RunShellScript` document plus any instance tagged `Name=pulse-server` (so the ASG replacing the instance doesn't need a workflow change). No static AWS keys in GitHub. |
@@ -49,10 +49,11 @@ or shell history on the box itself.
 
 ## DATABASE_URL format
 
-RDS enforces SSL by default. The connection string must include:
+RDS enforces SSL by default. Prod verifies the server certificate against the RDS global CA
+bundle (`certs/rds-global-bundle.pem`, copied into the images). The connection string must include:
 
 ```
-postgresql://<user>:<pass>@<rds-endpoint>:5432/pulse?uselibpqcompat=true&sslmode=require
+postgresql://<user>:<pass>@<rds-endpoint>:5432/pulse?uselibpqcompat=true&sslmode=verify-full&sslrootcert=/etc/ssl/rds-global-bundle.pem
 ```
 
 Omitting the query params fails with a misleading Prisma error
@@ -92,7 +93,7 @@ The server sits behind an ASG now, so its instance id and public IP can change o
 look it up first: `aws ec2 describe-instances --filters Name=tag:Name,Values=pulse-server
 Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[InstanceId,PublicIpAddress]'`.
 
-1. SSH in: `ssh -i ~/.ssh/pulse-ec2-key.pem ec2-user@<public-ip-from-above>`
+1. Open a shell with SSM (port 22 is closed): `aws ssm start-session --target <instance-id-from-above>`
 2. Pull the latest pushed images and run the redeploy script (already baked into the AMI at
    `/opt/pulse/redeploy.sh` — see `docs/ASG-MIGRATION.md`):
    ```bash
@@ -143,6 +144,13 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   the runner image's `npm ci --omit=dev` drops it, and migrations run from the
   `builder` target instead (full devDependencies), as a one-off step before rolling
   out the runner image.
+
+## Container hardening
+
+`ec2-redeploy.sh` runs the app container with `--cap-drop ALL`, `--security-opt no-new-privileges`
+and `--pids-limit 512`, on top of the Dockerfile's non-root `USER node`. No `--read-only`: the
+logger writes `error.log`/`warn.log` under the app dir. The candidate health gate (`/api/ready`)
+catches a capability-related boot failure before it replaces the live container.
 
 ## Not yet done
 
