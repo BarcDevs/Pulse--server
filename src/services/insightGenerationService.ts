@@ -167,7 +167,7 @@ const generateInterventionInsightInternal = async (
     userTimezone: string | null,
     userLanguage: string,
     canWrite: WriteGuard
-): Promise<void> => {
+): Promise<boolean> => {
     const current = recentCheckIns[0]
     const history = recentCheckIns.slice(1)
 
@@ -190,7 +190,7 @@ const generateInterventionInsightInternal = async (
     )
 
     if (!supportMessage) {
-        return
+        return false
     }
 
     const interventionTitle = getMessages(userLanguage)
@@ -201,7 +201,7 @@ const generateInterventionInsightInternal = async (
             userId,
             checkInId
         })
-        return
+        return false
     }
 
     // SILENT mode has empty message but still tracks intervention
@@ -225,6 +225,8 @@ const generateInterventionInsightInternal = async (
         aiEnhanced: supportMessage.aiEnhanced,
         fallbackUsed: supportMessage.metadata.fallbackUsed
     })
+
+    return true
 }
 
 export const generateInsightForCheckIn = async (
@@ -267,6 +269,8 @@ export const generateInsightForCheckIn = async (
         canWrite
     )
 
+    const producedTypes: InsightType[] = [baselineType]
+
     // A good check-in also gets encouragement, unless the baseline already is the motivational one
     if (
         isGoodCheckIn(recentCheckIns[0])
@@ -280,10 +284,11 @@ export const generateInsightForCheckIn = async (
             stats,
             canWrite
         )
+        producedTypes.push('MOTIVATIONAL')
     }
 
     if (!isFirstCheckIn(recentCheckIns.slice(1))) {
-        await generateInterventionInsightInternal(
+        const hasIntervention = await generateInterventionInsightInternal(
             userId,
             checkInId,
             checkInsForAI,
@@ -291,5 +296,16 @@ export const generateInsightForCheckIn = async (
             userLanguage,
             canWrite
         )
+
+        if (hasIntervention) {
+            producedTypes.push('BAD_DAY_SUPPORT')
+        }
     }
+
+    // Regenerating after an edit must not leave insights from the previous
+    // version of this check-in (e.g. an old bad-day message) next to the new ones.
+    // A superseded job wrote nothing, so it must not delete anything either
+    if (!await canWrite()) return
+
+    await aiInsightModel.deleteInsightsExceptTypes(checkInId, producedTypes)
 }

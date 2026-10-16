@@ -45,6 +45,18 @@ export const createInsight = async (
     })) as AIInsightType
 }
 
+export const deleteInsightsExceptTypes = async (
+    checkInId: string,
+    keepTypes: CreateAIInsightInput['insightType'][]
+): Promise<void> => {
+    await Prisma.aIInsight.deleteMany({
+        where: {
+            checkInId,
+            type: { notIn: keepTypes }
+        }
+    })
+}
+
 export const getInsightsByUserId = async (
     userId: string,
     limit = 10

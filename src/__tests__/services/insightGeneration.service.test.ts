@@ -195,6 +195,80 @@ describe('InsightGenerationService', () => {
             expect(aiInsightModel.createInsight).toHaveBeenCalledTimes(1)
         })
 
+        describe('replacing insights of an edited check-in', () => {
+            beforeEach(() => {
+                jest.spyOn(aiInsightGeneratorService, 'generateInsight').mockResolvedValue({
+                    title: 'T',
+                    content: 'C'
+                } as never)
+                jest.spyOn(InsightDecision, 'decideInsightType').mockReturnValue(
+                    { type: 'WEEKLY_SUMMARY', reason: 'enough data', metadata: {} } as never
+                )
+            })
+
+            it('keeps only the baseline type when nothing else was produced', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn(), makeCheckIn()] as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.deleteInsightsExceptTypes)
+                    .toHaveBeenCalledWith(CHECK_IN_ID, ['WEEKLY_SUMMARY'])
+            })
+
+            it('drops a previous bad-day insight when the intervention is no longer produced', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn(), makeCheckIn()] as never)
+                jest.spyOn(interventionOrchestrator, 'generateInterventionInsight').mockResolvedValue(null as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                const [, keepTypes] = jest.mocked(aiInsightModel.deleteInsightsExceptTypes).mock.calls[0]
+                expect(keepTypes).not.toContain('BAD_DAY_SUPPORT')
+            })
+
+            it('keeps the bad-day type when the intervention is produced', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn(), makeCheckIn()] as never)
+                jest.spyOn(interventionOrchestrator, 'generateInterventionInsight').mockResolvedValue({
+                    message: 'You are supported.',
+                    priority: 'high',
+                    aiEnhanced: true,
+                    metadata: { mode: 'FULL', primaryReason: 'mood_drop', fallbackUsed: false }
+                } as never)
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.deleteInsightsExceptTypes)
+                    .toHaveBeenCalledWith(CHECK_IN_ID, ['WEEKLY_SUMMARY', 'BAD_DAY_SUPPORT'])
+            })
+
+            it('keeps the motivational type added for a good check-in', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue(
+                    [makeCheckIn({ moodScore: 8, painLevel: 2 })] as never
+                )
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.deleteInsightsExceptTypes)
+                    .toHaveBeenCalledWith(CHECK_IN_ID, ['WEEKLY_SUMMARY', 'MOTIVATIONAL'])
+            })
+
+            it('deletes nothing when saving an insight fails', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([makeCheckIn()] as never)
+                jest.spyOn(aiInsightModel, 'createInsight').mockRejectedValue(new Error('db down'))
+
+                await expect(generateInsightForCheckIn(USER_ID, CHECK_IN_ID)).rejects.toThrow('db down')
+
+                expect(aiInsightModel.deleteInsightsExceptTypes).not.toHaveBeenCalled()
+            })
+
+            it('deletes nothing when there are no recent check-ins', async () => {
+                jest.spyOn(checkInModel, 'getCheckIns').mockResolvedValue([])
+
+                await generateInsightForCheckIn(USER_ID, CHECK_IN_ID)
+
+                expect(aiInsightModel.deleteInsightsExceptTypes).not.toHaveBeenCalled()
+            })
+        })
+
         describe('good check-in and streak stats', () => {
             const goodCheckIn = makeCheckIn({ moodScore: 8, painLevel: 2 })
             const day = (daysAgo: number) => {
@@ -243,6 +317,7 @@ describe('InsightGenerationService', () => {
                 await generateInsightForCheckIn(USER_ID, CHECK_IN_ID, async () => false)
 
                 expect(aiInsightModel.createInsight).not.toHaveBeenCalled()
+                expect(aiInsightModel.deleteInsightsExceptTypes).not.toHaveBeenCalled()
             })
 
             it('stops storing at the first write after the job is superseded', async () => {

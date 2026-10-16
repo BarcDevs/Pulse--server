@@ -86,3 +86,13 @@ Post-launch / scale-up items, not launch blockers.
   not together with another change: run the `stack-update-check` skill first, then bump all four and run typecheck,
   lint, unit and integration tests. Watch the Prisma 7 CJS output, `rewriteRelativeImportExtensions`, Jest 30's
   resolver mapping and tsx (the build gotchas in `CLAUDE.md`).
+
+- **Run the server on Kubernetes (decided 15/10/2026).** Today it runs as a Docker container on EC2 behind
+  `pulse-server-asg` (see `docs/ASG-MIGRATION.md`). Move it to Kubernetes (EKS or a lighter option such as k3s) to get
+  hands-on orchestration experience and a base for splitting services later. Before starting: compare cost against the
+  current ASG (EKS control plane is a fixed monthly fee), decide what stays outside the cluster (RDS stays), and plan how
+  the blue/green deploy over SSM maps to rolling updates. Not a launch item.
+
+- **Move migrations off the app host (decided 16/10/2026, not urgent).** `pulse-ec2-role` can read `pulse/rds/master-credentials` because `ec2-redeploy.sh` runs migrations on the server box, so a compromised app host could run DDL against RDS. Run the migrate step from CI (or a separate role used only for deploys) so the instance role keeps `pulse/rds/app-credentials` alone, then drop the master secret from `pulse-secret-read`. Needs a network path from the runner to the private RDS (SSM port forward or a one-off task in the VPC) to be designed first.
+
+- **Turn on Multi-AZ for `pulse-db` (decided 16/10/2026).** RDS is a single `db.t3.micro` in one availability zone, so a zone or host failure means downtime until AWS recovers it. Multi-AZ keeps a synchronous standby in another AZ with automatic failover in about 1-2 minutes (same endpoint) and shortens maintenance downtime. Roughly doubles the DB cost (about $15 to $30 a month), so enable it when uptime matters more than that cost. `aws rds modify-db-instance --multi-az --apply-immediately`.

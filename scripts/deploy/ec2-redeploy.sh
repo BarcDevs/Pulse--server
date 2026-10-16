@@ -55,7 +55,7 @@ docker pull "$ECR/$REPO:migrate-$IMAGE_TAG"
 DB_CREDS=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/rds/master-credentials --query SecretString --output text)
 DB_USER=$(echo "$DB_CREDS" | jq -r '.username | @uri')
 DB_PASS=$(echo "$DB_CREDS" | jq -r '.password | @uri')
-DB_HOST_URL="pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432/pulse?uselibpqcompat=true&sslmode=require"
+DB_HOST_URL="pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432/pulse?uselibpqcompat=true&sslmode=verify-full&sslrootcert=/etc/ssl/rds-global-bundle.pem"
 # Master user: migrations only (they need DDL)
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$DB_HOST_URL"
 
@@ -107,6 +107,9 @@ echo "Running migrations..."
 docker run --rm -e DATABASE_URL="$DATABASE_URL" "$ECR/$REPO:migrate-$IMAGE_TAG" npm run release
 
 RUN_ARGS=(
+    --cap-drop ALL
+    --security-opt no-new-privileges
+    --pids-limit 512
     -e NODE_ENV=production
     -e SERVER_API_VERSION="$API_VERSION"
     -e ORIGIN=https://pulserehab.app

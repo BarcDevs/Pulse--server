@@ -10,7 +10,7 @@ password reset (email -> code -> new password) worked end to end.
 
 ## CRITICAL
 
-None open.
+- **Replace the `bar-admin` IAM admin user (found 16/10/2026, owner handles it later, not a launch blocker).** It has AdministratorAccess and a long-lived access key (created 03/08/2026) stored on the dev machine, and the AWS CLI used by Claude sessions authenticates with it. Move admin access to IAM Identity Center (SSO, short-lived credentials), then delete the access key and the user. Keep root (MFA on, no keys) for emergencies and billing only. Deleting the user before SSO works would cut CLI access.
 
 ## HIGH (found 10/10/2026 by the model audit)
 
