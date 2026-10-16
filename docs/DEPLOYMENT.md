@@ -36,6 +36,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | `pulse/app/GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `pulse/app/GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `pulse/app/RESEND_API_KEY` | Resend API key (sending access), passed as `EMAIL_PASSWORD`; SMTP host/port/user/from live in `config/default.ts` |
+| `pulse/app/LAUNCH_FUNNEL_SECRET` | Raw shared secret (min 16 chars) preflight sends as `Authorization: Bearer` to `GET /launch-funnel`; must equal preflight's `PULSE_FUNNEL_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. The EC2 role needs `secretsmanager:GetSecretValue` on it |
 
 `GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
 var in `ec2-redeploy.sh`'s `RUN_ARGS`, built from `API_VERSION` (defaults to
