@@ -81,6 +81,11 @@ OPENAI_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret
 GOOGLE_CLIENT_ID=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_ID --query SecretString --output text)
 GOOGLE_CLIENT_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/GOOGLE_CLIENT_SECRET --query SecretString --output text)
 RESEND_API_KEY=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/RESEND_API_KEY --query SecretString --output text)
+# Optional: a missing secret leaves the launch-funnel endpoint closed (401) instead of blocking the deploy
+LAUNCH_FUNNEL_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/LAUNCH_FUNNEL_SECRET --query SecretString --output text 2>/dev/null || true)
+if [ -z "$LAUNCH_FUNNEL_SECRET" ]; then
+    echo "WARNING: pulse/app/LAUNCH_FUNNEL_SECRET not readable - the launch-funnel endpoint will reject every request." >&2
+fi
 
 # Expand/contract gate: destructive migrations (dropped/renamed columns or
 # tables) must ship in a separate release after the code that stops reading
@@ -122,6 +127,7 @@ RUN_ARGS=(
     -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID"
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
     -e EMAIL_PASSWORD="$RESEND_API_KEY"
+    -e LAUNCH_FUNNEL_SECRET="$LAUNCH_FUNNEL_SECRET"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 
