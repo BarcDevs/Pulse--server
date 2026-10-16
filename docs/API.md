@@ -370,6 +370,44 @@ No `accessToken` and no CSRF token required (same as login/signup). If a valid `
 
 **Errors:** `400` validation error (bad topic/message/email, or no `email` when logged out) · `429` rate limit exceeded · `500` email delivery failed
 
+---
+
+## Launch Funnel — `/api/{version}/launch-funnel`
+
+Attribution for the Launch Mailer (preflight) emails. Launch email links to the app carry `?lm=<token>`, an opaque random per-subscriber id. The table stores only that token, never a user id or email.
+
+---
+
+### `POST /open`
+> Public. Rate limited: 30 requests per hour per IP (prod)
+
+No `accessToken` and no CSRF token required (the visitor has no session yet). Records the token as opened and sets an httpOnly `launch_token` cookie (90 days, `SameSite=Lax`). The next signup, by email or by Google, records the same token as registered and clears the cookie.
+
+| Field   | Type   | Required | Notes                                          |
+|---------|--------|----------|------------------------------------------------|
+| `token` | string | yes      | the `lm` query param, 16-128 chars of `A-Za-z0-9_-` |
+
+**Response `204`** (no body)
+
+**Errors:** `400` token missing or malformed · `429` rate limit exceeded
+
+---
+
+### `GET /`
+> Server-to-server. Requires `Authorization: Bearer <LAUNCH_FUNNEL_SECRET>`
+
+**Response `200`** (bare JSON, no `message`/`data` envelope)
+```json
+{
+  "opened": ["<lm token>", "<lm token>"],
+  "registered": ["<lm token>"]
+}
+```
+
+Distinct tokens. Every registered token is also in `opened`.
+
+**Errors:** `401` secret missing or wrong, or `LAUNCH_FUNNEL_SECRET` unset or under 16 chars on the server (no data is returned)
+
 Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "error": "..." }] }`
 
 ---

@@ -9,6 +9,7 @@ import type {
     EmailConfig,
     EnvConfig,
     GoogleOAuthConfig,
+    LaunchFunnelConfig,
     LoggingConfig,
     ServerConfig
 } from '../src/types/configType'
@@ -120,6 +121,10 @@ const loggingConfig: LoggingConfig = {
     dir: config.get<string>('logging.dir')
 }
 
+const launchFunnelConfig: LaunchFunnelConfig = {
+    secret: config.get<string>('launchFunnel.secret')
+}
+
 export {
     aiConfig,
     aiFallbackOrder,
@@ -132,6 +137,7 @@ export {
     googleOAuthConfig,
     isDev,
     isProd,
+    launchFunnelConfig,
     loggingConfig,
     serverConfig
 }

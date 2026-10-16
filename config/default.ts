@@ -63,6 +63,9 @@ export default {
     },
     logging: {
         dir: 'logs'
+    },
+    launchFunnel: {
+        secret: ''
     }
 }
 

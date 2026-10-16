@@ -146,3 +146,11 @@ export const viewPostRateLimiter = rateLimit({
         return `${user}:${postId}`
     }
 })
+
+// Public, unauthenticated write: caps token spam from one IP
+export const launchFunnelOpenRateLimiter = rateLimit({
+    windowMs: hourInMs,
+    limit: isDev ? 100 : 30,
+    message:
+        'Too many requests from this IP, please try again in an hour'
+})

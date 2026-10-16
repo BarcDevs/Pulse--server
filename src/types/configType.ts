@@ -64,6 +64,10 @@ type AIGenerationConfig = {
     timeoutMs: number
 }
 
+type LaunchFunnelConfig = {
+    secret: string
+}
+
 type LoggingConfig = {
     dir: string
 }
@@ -77,6 +81,7 @@ export type {
     EmailConfig,
     EnvConfig,
     GoogleOAuthConfig,
+    LaunchFunnelConfig,
     LoggingConfig,
     ServerConfig
 }

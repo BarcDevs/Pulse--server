@@ -31,6 +31,7 @@ import {
     sendForgotPasswordOTP,
     verifyOTP
 } from '../lib/authOTP'
+import { trackLaunchRegistration } from '../lib/launchFunnelTracking'
 import { successResponse } from '../responses/success'
 import type { ChangeEmailType } from '../schemas/auth/changeEmailSchema'
 import { changeEmailSchema } from '../schemas/auth/changeEmailSchema'
@@ -57,6 +58,8 @@ import type {
 import { validateAndExtract } from '../utils/controllerHelpers'
 import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
+
+const newGoogleUserWindowMs = minuteInMs
 
 // region Login and Signup
 export const login = async (
@@ -124,6 +127,8 @@ export const signup = async (
                 userData.username
                 || generateRandomUsername()
         })
+
+    await trackLaunchRegistration(req, res)
 
     successResponse<{
         user: UserType
@@ -521,6 +526,11 @@ export const googleCallback = async (
             code,
             req.ip
         )
+
+    // Google sign-in creates and logs in through one path, so a user made
+    // moments ago is the registration
+    if (Date.now() - user.createdAt.getTime() < newGoogleUserWindowMs)
+        await trackLaunchRegistration(req, res)
 
     const token = createToken(user)
     const {

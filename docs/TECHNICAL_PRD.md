@@ -479,6 +479,14 @@ Cached 10 minutes per time window. Falls back to static template if AI fails.
 
 **POST /contact** — Public (optional auth, no CSRF), 5 req/15min/IP — `{ topic, message, email? }` → 200 `{ message: 'Support message sent' }`. `topic` is one of account/billing/technical/privacy/careTeam/feedback/other; `message` 1-2000 chars; `email` required when logged out (a signed-in user's account email is used instead). Delivered via `sendEmail` to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
 
+### Launch Funnel Endpoints — /api/{version}/launch-funnel
+
+Attribution for the Launch Mailer (preflight). Stores only the opaque `lm` token from the email link in `LaunchFunnelToken` (`openedAt`, `registeredAt`), with no link to `User`.
+
+**POST /open** — Public (no CSRF), 30 req/hour/IP — `{ token }` → 204. Upserts the token and sets the httpOnly `launch_token` cookie (90 days). `signup` and the Google callback read the cookie, record `registeredAt` and clear it; a recording failure never fails the signup.
+
+**GET /** — Bearer `LAUNCH_FUNNEL_SECRET` (min 16 chars, timing-safe compare, 401 when unset) → 200 `{ opened: string[], registered: string[] }`, distinct tokens, registered is a subset of opened.
+
 ### Users Endpoints — /api/{version}/users
 
 **PATCH /me** — Update identity fields (auth + CSRF)
