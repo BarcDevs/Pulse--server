@@ -2,6 +2,7 @@
 FROM node:24-bookworm-slim AS base
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+COPY certs/rds-global-bundle.pem /etc/ssl/rds-global-bundle.pem
 
 # ---- All dependencies (dev included) — for building and dev hot reload
 FROM base AS deps
@@ -36,6 +37,7 @@ RUN npx tsc --project tsconfig.json
 FROM node:24-bookworm-slim AS runner
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+COPY certs/rds-global-bundle.pem /etc/ssl/rds-global-bundle.pem
 COPY --from=deps-prod --chown=node:node /app/node_modules ./node_modules
 # Compiled app + config + prisma generated
 COPY --from=builder --chown=node:node /app/dist ./dist
