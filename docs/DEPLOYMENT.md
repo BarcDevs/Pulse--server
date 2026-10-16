@@ -144,6 +144,13 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   `builder` target instead (full devDependencies), as a one-off step before rolling
   out the runner image.
 
+## Container hardening
+
+`ec2-redeploy.sh` runs the app container with `--cap-drop ALL`, `--security-opt no-new-privileges`
+and `--pids-limit 512`, on top of the Dockerfile's non-root `USER node`. No `--read-only`: the
+logger writes `error.log`/`warn.log` under the app dir. The candidate health gate (`/api/ready`)
+catches a capability-related boot failure before it replaces the live container.
+
 ## Not yet done
 
 - `staging.pulserehab.app` — not yet configured.

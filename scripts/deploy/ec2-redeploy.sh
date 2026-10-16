@@ -107,6 +107,9 @@ echo "Running migrations..."
 docker run --rm -e DATABASE_URL="$DATABASE_URL" "$ECR/$REPO:migrate-$IMAGE_TAG" npm run release
 
 RUN_ARGS=(
+    --cap-drop ALL
+    --security-opt no-new-privileges
+    --pids-limit 512
     -e NODE_ENV=production
     -e SERVER_API_VERSION="$API_VERSION"
     -e ORIGIN=https://pulserehab.app
