@@ -24,7 +24,7 @@ const ICON_BY_TYPE: Record<string, string> = {
 }
 
 const BANNED_PUNCTUATION = /[—–“”„‘’]/
-const ALLOWED_COUNT_PHRASE = /\d+\s*(ימים|ימי|יום|דיווחים|דיווח|שבועות|שבוע)/g
+const ALLOWED_COUNT_PHRASE = /\d+\s*(ימים|ימי|יום|צ'ק אינים|צ'ק אין|שבועות|שבוע)/g
 const TERMINAL_PUNCTUATION = /[.!?]["')\]]*$/
 
 const hebrewShare = (text: string): number => {
