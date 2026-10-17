@@ -8,7 +8,7 @@ export const languageInstruction = (
     const base = `Respond entirely in ${lang}. Write naturally for native speakers of that language - do not translate word-for-word from English; use phrasing that feels native. Never use em dashes, en dashes or typographic quotes; use only plain keyboard punctuation. Write activity names as bare nouns, without a leading definite article.`
     const terminology =
         lang === 'he'
-            ? ` When referring to check-ins, use the term 'דיווח יומי'. Use the exact term 'מצב הרוח' for mood (never 'המצב רוח').`
+            ? ` When referring to check-ins, use the term "צ'ק אין". Use the exact term 'מצב הרוח' for mood (never 'המצב רוח').`
             : ''
     return base + terminology
 }
