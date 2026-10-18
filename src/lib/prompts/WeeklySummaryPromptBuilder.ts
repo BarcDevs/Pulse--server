@@ -1,3 +1,4 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import type { CheckInType } from '../../types/data/CheckInType'
 import type { InsightStats } from '../../types/insight'
 import {
@@ -8,7 +9,7 @@ import {
 } from '../aiInsight/prompts/insightsPromptHelpers'
 
 import { PromptBuilder } from './PromptBuilder'
-import { NO_SCORES_RULE } from './sharedInstructions'
+import { NO_SCORES_RULE, PLAIN_TONE_RULE } from './sharedInstructions'
 
 export type WeeklySummaryPromptInput = {
     checkIns: CheckInType[]
@@ -18,6 +19,10 @@ export type WeeklySummaryPromptInput = {
 }
 
 export class WeeklySummaryPromptBuilder extends PromptBuilder<WeeklySummaryPromptInput> {
+    protected kind(): GeneratedTextKind {
+        return GeneratedTextKind.WEEKLY_SUMMARY
+    }
+
     protected role(): string {
         return `You are a recovery support assistant for {{brandName}}.
 Your role is to summarize recovery check-in patterns in a supportive and practical way.`
@@ -55,13 +60,13 @@ ${statsLines}- Most common activities: ${topActivities || 'not enough activity d
 Write a weekly reflection for the user.
 
 Requirements:
-- 3 sentences maximum
 - Mention at least one real pattern from the data
 - Recognize consistency or effort without exaggeration
 - Offer one useful reflection, not vague inspiration
 - Keep the tone supportive, calm, and non-judgmental
 - Do not diagnose or make medical claims
 - Avoid generic phrasing that could apply to anyone
+${PLAIN_TONE_RULE}
 ${NO_SCORES_RULE}`
     }
 }

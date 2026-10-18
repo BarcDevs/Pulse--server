@@ -1,7 +1,9 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import type { Highlights } from '../progressInsights/highlightDetector'
 import type { PeriodMetrics } from '../progressInsights/metricAggregator'
 
 import { PromptBuilder } from './PromptBuilder'
+import { PLAIN_TONE_RULE } from './sharedInstructions'
 
 export type ProgressInsightPromptInput = {
     current: PeriodMetrics
@@ -10,8 +12,12 @@ export type ProgressInsightPromptInput = {
 }
 
 export class ProgressInsightPromptBuilder extends PromptBuilder<ProgressInsightPromptInput> {
+    protected kind(): GeneratedTextKind {
+        return GeneratedTextKind.PROGRESS_SUMMARY
+    }
+
     protected role(): string {
-        return `Generate a concise progress summary in 2 to 4 sentences
+        return `Generate a short progress summary
 that describes the week's overall trend direction and key changes.
 Reference the provided metrics. Do not provide medical advice.
 Do not invent data. Tone should be neutral and supportive.`
@@ -49,6 +55,11 @@ Do not invent data. Tone should be neutral and supportive.`
     pain ${painDelta >= 0 ? '+' : ''}${painDelta.toFixed(1)},
     activity ${activityDelta >= 0 ? '+' : ''}${(activityDelta * 100).toFixed(0)}%.`
 
-        return `${metricsText}\n\n${improvementsText}\n${regressionsText}`
+        return `${metricsText}
+
+${improvementsText}
+${regressionsText}
+
+${PLAIN_TONE_RULE}`
     }
 }

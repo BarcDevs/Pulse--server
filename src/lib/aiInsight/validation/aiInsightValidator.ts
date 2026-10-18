@@ -1,15 +1,12 @@
-import {
-    MAX_CONTENT_LENGTH,
-    MAX_SENTENCES,
-    MIN_CONTENT_LENGTH
-} from '../../../constants/aiInsight/validation'
+import type { GeneratedTextKind } from '../../../constants/aiInsight/textLimits'
+import { MIN_CONTENT_LENGTH } from '../../../constants/aiInsight/validation'
 import { getMessages } from '../../../locales'
 import type { InsightType } from '../../../types/insight'
 
+import { validateGeneratedText } from './generatedTextValidator'
 import {
     containsForbiddenMedicalContext,
     containsHardBlockPhrase,
-    countSentences,
     normalizeContent
 } from './validationHelpers'
 
@@ -39,7 +36,7 @@ const isContentPresent = (content: string): ValidationResult => {
     return { isValid: true }
 }
 
-const isContentLengthValid = (
+const isContentLongEnough = (
     content: string
 ): ValidationResult => {
     const normalized = normalizeContent(content)
@@ -48,13 +45,6 @@ const isContentLengthValid = (
         return {
             isValid: false,
             reason: `Content is too short (${normalized.length} < ${MIN_CONTENT_LENGTH})`
-        }
-    }
-
-    if (normalized.length > MAX_CONTENT_LENGTH) {
-        return {
-            isValid: false,
-            reason: `Content is too long (${normalized.length} > ${MAX_CONTENT_LENGTH})`
         }
     }
 
@@ -83,36 +73,22 @@ const isLanguageSafe = (
     return { isValid: true }
 }
 
-const isSentenceCountValid = (
-    content: string
-): ValidationResult => {
-    const normalized = normalizeContent(content)
-    const sentenceCount = countSentences(normalized)
-
-    if (sentenceCount > MAX_SENTENCES) {
-        return {
-            isValid: false,
-            reason: `Content has too many sentences (${sentenceCount} > ${MAX_SENTENCES})`
-        }
-    }
-
-    return { isValid: true }
-}
-
 // endregion
 
 // region Main Validator
 
 export const validateGeneratedInsight = (
+    kind: GeneratedTextKind,
+    language: string | null | undefined,
     title: string,
     content: string
 ): ValidationResult => {
     const checks = [
         () => isTitleValid(title),
         () => isContentPresent(content),
-        () => isContentLengthValid(content),
+        () => isContentLongEnough(content),
         () => isLanguageSafe(content),
-        () => isSentenceCountValid(content)
+        () => validateGeneratedText(kind, language, content)
     ]
 
     for (const check of checks) {

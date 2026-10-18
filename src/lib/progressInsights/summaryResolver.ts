@@ -1,13 +1,10 @@
-import {
-    MAX_CONTENT_LENGTH,
-    MAX_SENTENCES,
-    MIN_CONTENT_LENGTH
-} from '../../constants/aiInsight/validation'
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
+import { MIN_CONTENT_LENGTH } from '../../constants/aiInsight/validation'
 import { createProvider } from '../../services/aiProviders/ProviderFactory'
 import type { TrendType } from '../../types/data/ProgressInsightType'
 import logger from '../../utils/logger'
+import { validateGeneratedText } from '../aiInsight/validation/generatedTextValidator'
 import {
-    countSentences,
     normalizeContent,
     sanitizeGeneratedText
 } from '../aiInsight/validation/validationHelpers'
@@ -16,14 +13,20 @@ import { ProgressInsightPromptBuilder } from '../prompts/ProgressInsightPromptBu
 import { generateFallbackSummary } from './fallbackSummaryGenerator'
 import type { PeriodMetrics } from './metricAggregator'
 
-const isValidSummary = (content: string): boolean => {
-    const normalized = normalizeContent(content)
-    if (
-        normalized.length < MIN_CONTENT_LENGTH
-        || normalized.length > MAX_CONTENT_LENGTH
-    ) return false
+type ValidationResult = ReturnType<typeof validateGeneratedText>
 
-    return countSentences(normalized) <= MAX_SENTENCES
+const validateSummary = (
+    content: string,
+    language?: string | null
+): ValidationResult => {
+    if (normalizeContent(content).length < MIN_CONTENT_LENGTH)
+        return { isValid: false, reason: 'Summary is too short' }
+
+    return validateGeneratedText(
+        GeneratedTextKind.PROGRESS_SUMMARY,
+        language,
+        content
+    )
 }
 
 type SummaryResolution = {
@@ -52,10 +55,12 @@ const generateAISummary = async (
         })
         const content = sanitizeGeneratedText(result.content.trim())
 
-        if (!isValidSummary(content)) {
+        const validation = validateSummary(content, language)
+
+        if (!validation.isValid) {
             logger.warn(
                 'AI progress summary failed validation, using fallback',
-                { length: content.length }
+                { reason: validation.reason, length: content.length }
             )
             return ''
         }
