@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import { pathToFileURL } from 'url'
 
+import type { GeneratedTextKind } from '../../src/constants/aiInsight/textLimits'
 import type * as InsightsPrompts from '../../src/lib/aiInsight/prompts/insightsPrompts'
 import type * as FeedbackPrompt from '../../src/lib/prompts/FeedbackPromptBuilder'
 import type * as ObservationPrompt from '../../src/lib/prompts/ObservationPromptBuilder'
@@ -19,7 +20,7 @@ export type Scenario = {
     kind: ScenarioKind
     language: 'he' | 'en'
     prompt: string
-    maxSentences?: number
+    textKind?: GeneratedTextKind
     observationType?: ObservationType
     feedbackMode?: 'FULL' | 'SOFT'
 }
@@ -163,40 +164,41 @@ export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
         progress
     } = await loadPromptModules(srcRoot)
 
-    return [
+    const languages = ['he', 'en'] as const
+    const textScenarios = languages.flatMap((language): Scenario[] => [
         {
-            name: 'mood-drop-alert',
+            name: `mood-drop-alert-${language}`,
             kind: 'insight-text',
-            language: 'he',
-            maxSentences: 3,
+            language,
+            textKind: 'MOOD_DROP_ALERT' as GeneratedTextKind,
             prompt: insights.buildPromptByType(
                 'MOOD_DROP_ALERT',
                 decliningWeek,
-                'he',
+                language,
                 { moodTrend: [8, 7, 4] }
             )
         },
         {
-            name: 'motivational',
+            name: `motivational-${language}`,
             kind: 'insight-text',
-            language: 'he',
-            maxSentences: 2,
+            language,
+            textKind: 'MOTIVATIONAL' as GeneratedTextKind,
             prompt: insights.buildPromptByType(
                 'MOTIVATIONAL',
                 steadyWeek,
-                'he',
+                language,
                 { currentStreak: 7 }
             )
         },
         {
-            name: 'weekly-summary',
+            name: `weekly-summary-${language}`,
             kind: 'insight-text',
-            language: 'he',
-            maxSentences: 3,
+            language,
+            textKind: 'WEEKLY_SUMMARY' as GeneratedTextKind,
             prompt: insights.buildPromptByType(
                 'WEEKLY_SUMMARY',
                 steadyWeek,
-                'he',
+                language,
                 {
                     currentStreak: 7,
                     checkInCount: 7
@@ -204,19 +206,21 @@ export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
             )
         },
         {
-            name: 'daily-observation',
+            name: `daily-observation-${language}`,
             kind: 'observation-json',
-            language: 'he',
+            language,
+            textKind: 'DAILY_OBSERVATION' as GeneratedTextKind,
             observationType: 'activity_consistency',
             prompt: new observation.ObservationPromptBuilder().build(
                 { type: 'activity_consistency', topActivity: 'הליכה' },
-                'he'
+                language
             )
         },
         {
-            name: 'progress-summary',
+            name: `progress-summary-${language}`,
             kind: 'progress-text',
-            language: 'en',
+            language,
+            textKind: 'PROGRESS_SUMMARY' as GeneratedTextKind,
             prompt: new progress.ProgressInsightPromptBuilder().build(
                 {
                     current: {
@@ -234,9 +238,13 @@ export const buildScenarios = async (srcRoot: string): Promise<Scenario[]> => {
                         regressions: []
                     }
                 },
-                'en'
+                language
             )
-        },
+        }
+    ])
+
+    return [
+        ...textScenarios,
         {
             name: 'checkin-feedback',
             kind: 'feedback-json',
