@@ -1,3 +1,4 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import type { CheckInType } from '../../types/data/CheckInType'
 import {
     formatStreakLine,
@@ -5,7 +6,7 @@ import {
 } from '../aiInsight/prompts/insightsPromptHelpers'
 
 import { PromptBuilder } from './PromptBuilder'
-import { NO_SCORES_RULE } from './sharedInstructions'
+import { NO_SCORES_RULE, PLAIN_TONE_RULE } from './sharedInstructions'
 
 export type MotivationalPromptInput = {
     checkIns: CheckInType[]
@@ -14,6 +15,10 @@ export type MotivationalPromptInput = {
 }
 
 export class MotivationalPromptBuilder extends PromptBuilder<MotivationalPromptInput> {
+    protected kind(): GeneratedTextKind {
+        return GeneratedTextKind.MOTIVATIONAL
+    }
+
     protected role(): string {
         return `You are a recovery support assistant for {{brandName}}.
 Your role is to encourage consistency without sounding cheesy or exaggerated.`
@@ -34,12 +39,12 @@ Your role is to encourage consistency without sounding cheesy or exaggerated.`
 Write a short motivational insight for the user.
 
 Requirements:
-- 2 sentences maximum
 - Recognize the effort of checking in
 - Reinforce that consistent tracking helps users notice patterns in recovery
 - Keep the tone warm, grounded, and respectful
 - Avoid hype, clichés, and over-the-top praise
 - Do not sound generic
+${PLAIN_TONE_RULE}
 ${NO_SCORES_RULE}`
     }
 }

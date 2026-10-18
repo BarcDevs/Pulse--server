@@ -1,6 +1,8 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 
 import { PromptBuilder } from './PromptBuilder'
+import { lengthRule, PLAIN_TONE_RULE } from './sharedInstructions'
 
 export type ObservationPromptInput = {
     type: ObservationType
@@ -47,7 +49,10 @@ Your role is to write a calm, human observation that helps the user notice a mea
         return ''
     }
 
-    protected body({ type, topActivity }: ObservationPromptInput): string {
+    protected body(
+        { type, topActivity }: ObservationPromptInput,
+        language?: string | null
+    ): string {
         const hint = patternHint(type, topActivity)
 
         return `${hint}
@@ -69,7 +74,12 @@ FORBIDDEN in observation and supportiveDescription:
 observation must:
 - Describe the pattern, not the calculation
 - Feel personalized (use the activity name if one is given)
-- Be one sentence, maximum 120 characters
+${lengthRule(
+    GeneratedTextKind.DAILY_OBSERVATION,
+    language,
+    'observation'
+)}
+${PLAIN_TONE_RULE}
 
 supportiveDescription must:
 - Provide gentle context for the observation, grounded in the detected pattern only
@@ -78,7 +88,11 @@ supportiveDescription must:
 - Do NOT infer motivations, psychological states, or benefits ("you seem to find comfort", "this may help you feel grounded")
 - Avoid praise, advice, or instruction
 - Prefer observations about patterns and consistency
-- Be one sentence, maximum 140 characters
+${lengthRule(
+    GeneratedTextKind.DAILY_OBSERVATION_DESCRIPTION,
+    language,
+    'supportiveDescription'
+)}
 
 Examples of good supportiveDescription:
 - "Small routines often become easier to notice over time."
