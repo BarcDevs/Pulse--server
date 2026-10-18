@@ -47,6 +47,11 @@ Sanitising and output validation: done 13/10/2026 (see DONE).
 
 ## DONE
 
+- **Shorter, plainer AI texts** (done 18/10/2026, branch `feat/shorter-insights`). One `TEXT_LIMITS` table
+  (kind x language: words, chars, sentences) drives both the prompt length line and
+  `validateGeneratedText`; 2 words / 15 chars of tolerance; plain-tone rule in every prompt. Replaced
+  `MAX_CONTENT_LENGTH` / `MAX_SENTENCES`. Eval before/after: weekly summary 41-58 words -> 22-30 (he),
+  mood drop 39-55 -> 24-29, observation title 8 -> 5 words. See `decisions/feature-design.md` (18/10/2026).
 - **H6 account cleanup: nothing to clean** (checked 13/10/2026, read-only SSM as `pulse_app`). Prod has 2 users, none with
   `emailVerifiedAt` set and no Google id (the only verified-looking path left is the 1 Google account), so no row needed its
   `emailVerifiedAt` cleared. No prod write was made.

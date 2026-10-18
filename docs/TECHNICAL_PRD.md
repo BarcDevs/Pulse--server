@@ -190,6 +190,8 @@ Two distinct AI insight surfaces:
 - `motivational`: Streak < 2 days — encouragement for new or inconsistent users
 - `weekly_summary`: ≥ 5 check-ins AND streak ≥ 2 — progress summary for established habit
 
+**Text length** — AI texts are short and plain on purpose (users in rehabilitation have little energy to read). Each kind has a per-language word, character and sentence limit in one table (`TEXT_LIMITS`), used both to write the prompt and to validate the reply (2 words / 15 chars of tolerance; one regeneration, then the static fallback). Two sentences for insights and the progress summary; the daily observation title is at most 5 words (Hebrew) and its description 15 words.
+
 **Daily Observation** — cached AI-phrased observation, refreshed once per day:
 - `activity_consistency`: ≥ 3 of last 5 check-ins include at least one activity
 - `pain_improvement`: Average pain last 5 check-ins < average pain previous 5 check-ins

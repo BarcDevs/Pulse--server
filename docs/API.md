@@ -1914,8 +1914,8 @@ Returns today's AI-phrased observation about a detected pattern in the user's re
 |-------|------|-------|
 | `title` | string | Always `"Something noticed"` |
 | `type` | string | One of the six detection types above |
-| `observation` | string | AI-phrased observation (max ~140 chars) |
-| `supportiveDescription` | string | Supporting context sentence |
+| `observation` | string | AI-phrased title, short (max 5 words Hebrew, 7 English) |
+| `supportiveDescription` | string | One supporting sentence (max 15 words Hebrew, 20 English) |
 | `icon` | string | Emoji representing the type |
 
 **Behavior**
