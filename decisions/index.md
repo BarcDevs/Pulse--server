@@ -82,3 +82,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
 | 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |
 | 11/10/2026 | Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed, so quiet runs need no git writes |
+| 18/10/2026 | AWS error watcher files GitHub issues; a separate fixer routine publishes a plan, waits for the owner's `approved` label, then fixes |
