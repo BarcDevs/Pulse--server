@@ -213,7 +213,13 @@ const toCheckIns = (situation: Situation, language: Language): CheckInType[] =>
 const average = (values: number[]): number =>
     values.reduce((a, b) => a + b, 0) / values.length
 
-const metricsFor = (rows: Row[]): { averageMood: number, averagePain: number, activityConsistency: number } => ({
+type Metrics = {
+    averageMood: number
+    averagePain: number
+    activityConsistency: number
+}
+
+const metricsFor = (rows: Row[]): Metrics => ({
     averageMood: average(rows.map(r => r.mood)),
     averagePain: average(rows.map(r => r.pain)),
     activityConsistency: rows.filter(r => r.he.acts.length > 0).length / rows.length
@@ -249,8 +255,18 @@ const buildItems = async (beforeRoot: string): Promise<Item[]> => {
                     situation: situation.id,
                     description,
                     prompt: {
-                        before: before.insights.buildPromptByType(type, checkIns, language, metadataByKind[type]),
-                        after: after.insights.buildPromptByType(type, checkIns, language, metadataByKind[type])
+                        before: before.insights.buildPromptByType(
+                            type,
+                            checkIns,
+                            language,
+                            metadataByKind[type]
+                        ),
+                        after: after.insights.buildPromptByType(
+                            type,
+                            checkIns,
+                            language,
+                            metadataByKind[type]
+                        )
                     }
                 })
             }
@@ -317,12 +333,21 @@ const visibleText = (item: Item, text: string): string | null => {
     }
 }
 
-const generateAll = async (items: Item[], reps: number, outDir: string): Promise<Generation[]> => {
+type RunContext = {
+    items: Item[]
+    outDir: string
+}
+
+const generateAll = async ({ items, outDir }: RunContext, reps: number): Promise<Generation[]> => {
     const results: Generation[] = []
     for (const model of MODELS) {
         const tasks = items.flatMap(item => (['before', 'after'] as Version[]).flatMap(version =>
             Array.from({ length: reps }, (_, rep) => async (): Promise<void> => {
-                const result = await generate(model.vendor, model.id, item.prompt[version])
+                const result = await generate(
+                    model.vendor,
+                    model.id,
+                    item.prompt[version]
+                )
                 results.push({
                     key: item.key,
                     model: model.id,
@@ -335,7 +360,10 @@ const generateAll = async (items: Item[], reps: number, outDir: string): Promise
         await runPool(tasks, CONCURRENCY)
         console.info(`generated ${model.id}`)
     }
-    writeFileSync(join(outDir, 'generations.json'), JSON.stringify(results, null, 2))
+    writeFileSync(
+        join(outDir, 'generations.json'),
+        JSON.stringify(results, null, 2)
+    )
     return results
 }
 
@@ -347,7 +375,12 @@ const PURPOSE: Record<Kind, string> = {
     DAILY_OBSERVATION: 'a daily observation card: a short bold title and a gray supporting line under it'
 }
 
-const judgePrompt = (item: Item, first: string, second: string): string => `You are an impartial judge of short user-facing messages in Pulse, a recovery and rehabilitation wellness app. The readers are people recovering from injury or illness, often tired, with little energy to read.
+type Pair = {
+    first: string
+    second: string
+}
+
+const judgePrompt = (item: Item, { first, second }: Pair): string => `You are an impartial judge of short user-facing messages in Pulse, a recovery and rehabilitation wellness app. The readers are people recovering from injury or illness, often tired, with little energy to read.
 
 Message purpose: ${PURPOSE[item.kind]}.
 Language of the message: ${item.language === 'he' ? 'Hebrew (judge as a native Hebrew speaker; penalize translation-sounding or stiff phrasing and wrong gender forms)' : 'English'}.
@@ -392,7 +425,11 @@ const parseJudge = (text: string): JudgeReply | null => {
 const overall = (scores: Record<(typeof CRITERIA)[number], number>): number =>
     average(CRITERIA.map(c => scores[c]))
 
-const judgeAll = async (items: Item[], generations: Generation[], judgeId: string, outDir: string): Promise<Judgment[]> => {
+const judgeAll = async (
+    { items, outDir }: RunContext,
+    generations: Generation[],
+    judgeId: string
+): Promise<Judgment[]> => {
     const byKey = new Map(items.map(i => [i.key, i]))
     const judgments: Judgment[] = []
     const tasks: Array<() => Promise<void>> = []
@@ -408,18 +445,31 @@ const judgeAll = async (items: Item[], generations: Generation[], judgeId: strin
                     const beforeText = b && !b.error ? visibleText(item, b.text) : null
                     const afterText = a && !a.error ? visibleText(item, a.text) : null
                     if (!beforeText || !afterText) {
-                        judgments.push({ key: item.key, model: model.id, rep, error: 'missing or malformed output' })
+                        judgments.push({
+                            key: item.key,
+                            model: model.id,
+                            rep,
+                            error: 'missing or malformed output'
+                        })
                         return
                     }
                     const afterFirst = Math.random() < 0.5
                     const result = await generate(
                         'openai',
                         judgeId,
-                        judgePrompt(item, afterFirst ? afterText : beforeText, afterFirst ? beforeText : afterText)
+                        judgePrompt(item, {
+                            first: afterFirst ? afterText : beforeText,
+                            second: afterFirst ? beforeText : afterText
+                        })
                     )
                     const reply = result.error ? null : parseJudge(result.text)
                     if (!reply) {
-                        judgments.push({ key: item.key, model: model.id, rep, error: result.error ?? 'unparseable judge reply' })
+                        judgments.push({
+                            key: item.key,
+                            model: model.id,
+                            rep,
+                            error: result.error ?? 'unparseable judge reply'
+                        })
                         return
                     }
                     const first = overall(reply.message1)
@@ -436,7 +486,10 @@ const judgeAll = async (items: Item[], generations: Generation[], judgeId: strin
         }
     }
     await runPool(tasks, CONCURRENCY)
-    writeFileSync(join(outDir, 'judgments.json'), JSON.stringify(judgments, null, 2))
+    writeFileSync(
+        join(outDir, 'judgments.json'),
+        JSON.stringify(judgments, null, 2)
+    )
     return judgments
 }
 
@@ -446,7 +499,12 @@ const bootstrapInterval = (diffs: number[]): [number, number] => {
     return [means[Math.floor(BOOTSTRAP_ROUNDS * 0.025)], means[Math.floor(BOOTSTRAP_ROUNDS * 0.975)]]
 }
 
-const report = (items: Item[], generations: Generation[], judgments: Judgment[], outDir: string): void => {
+type Results = {
+    generations: Generation[]
+    judgments: Judgment[]
+}
+
+const report = ({ items, outDir }: RunContext, { generations, judgments }: Results): void => {
     const itemOf = new Map(items.map(i => [i.key, i]))
     const lines: string[] = ['| Group | n | before | after | diff (95% CI) | after wins / ties / before wins | malformed before / after |', '|---|---|---|---|---|---|---|']
     const groupOf = (j: Judgment): string => {
@@ -454,7 +512,7 @@ const report = (items: Item[], generations: Generation[], judgments: Judgment[],
         return `${item.kind} ${item.language} ${j.model}`
     }
     const groups = [...new Set(judgments.map(groupOf))].sort()
-    const section = (label: string, rows: Judgment[], gens: Generation[]): void => {
+    const section = (label: string, { rows, gens }: { rows: Judgment[], gens: Generation[] }): void => {
         const valid = rows.filter(r => r.before !== undefined && r.after !== undefined) as Required<Pick<Judgment, 'before' | 'after'>>[]
         const diffs = valid.map(r => r.after - r.before)
         const wins = diffs.filter(d => d > 0.25).length
@@ -475,16 +533,16 @@ const report = (items: Item[], generations: Generation[], judgments: Judgment[],
             const item = itemOf.get(g.key) as Item
             return item.kind === kind && item.language === language && g.model === model
         })
-        section(group, rows, gens)
+        section(group, { rows, gens })
     }
     for (const language of ['he', 'en']) {
         for (const model of MODELS) {
             const rows = judgments.filter(j => (itemOf.get(j.key) as Item).language === language && j.model === model.id)
             const gens = generations.filter(g => (itemOf.get(g.key) as Item).language === language && g.model === model.id)
-            section(`**ALL ${language} ${model.id}**`, rows, gens)
+            section(`**ALL ${language} ${model.id}**`, { rows, gens })
         }
     }
-    section('**ALL**', judgments, generations)
+    section('**ALL**', { rows: judgments, gens: generations })
     writeFileSync(join(outDir, 'report.md'), `${lines.join('\n')}\n`)
     console.info(lines.join('\n'))
 }
@@ -500,15 +558,19 @@ const run = async (): Promise<void> => {
 
     const only = readFlag('only')
     const items = (await buildItems(beforeRoot)).filter(item => !only || item.key.includes(only))
-    writeFileSync(join(outDir, 'items.json'), JSON.stringify(items, null, 2))
+    writeFileSync(
+        join(outDir, 'items.json'),
+        JSON.stringify(items, null, 2)
+    )
 
     const read = <T,>(name: string): T => JSON.parse(readFileSync(join(outDir, name), 'utf-8')) as T
-    const generations = phase === 'judge' || phase === 'report' ? read<Generation[]>('generations.json') : await generateAll(items, reps, outDir)
+    const context = { items, outDir }
+    const generations = phase === 'judge' || phase === 'report' ? read<Generation[]>('generations.json') : await generateAll(context, reps)
     if (phase === 'generate') return
     const judgments = phase === 'report' && existsSync(join(outDir, 'judgments.json'))
         ? read<Judgment[]>('judgments.json')
-        : await judgeAll(items, generations, judgeId, outDir)
-    report(items, generations, judgments, outDir)
+        : await judgeAll(context, generations, judgeId)
+    report(context, { generations, judgments })
 }
 
 run().catch((error) => {
