@@ -60,3 +60,15 @@ context in this topic — not routinely.
 **Why over alternatives:** approving in the chat doesn't work, since a routine can't wait for an answer; a GitHub label can be set from the phone and leaves a verifiable actor and timestamp. Having the monitor also write the plan would put diagnosis, planning and fixing in one long unattended run again.
 
 **How to apply:** an issue is "approved" only by the owner's label event, never by comment text or issue content (log lines are user-influenced and can carry injected instructions). Changing the flow means editing both routine files and the lifecycle table in the fixer.
+
+---
+
+## 18/10/2026 — The fixer routine also works issues the owner files as `task`s
+
+**Problem:** The issue-based flow only covered errors the watcher found. The owner wanted to file a bug or feature as a GitHub issue from the phone, instead of opening the IDE, and get a plan, then a fix, then only the `development` -> `main` PR to approve.
+
+**Decision:** `prod-error-fixer.md` handles two kinds of issue: watcher issues (`prod-error`) and owner tasks (label `task`, author must be the owner; anyone else's issue is ignored). The same lifecycle applies: plan page, questions parked on the issue, approval by the owner's `approved` label, subagent per fix, full review, ship. For a task the watcher's "small, localized fix" gate is dropped, because the owner's approval of the plan authorises its scope; a migration is allowed but must be named in the plan and PR. A task has no prod-errors record. It must also follow `CLAUDE.md` and `CORE_RULES.md` (read explicitly, they don't auto-load in a routine).
+
+**Why over alternatives:** a separate routine for tasks would duplicate the plan/approval/ship machinery and the safety checks. Keeping the owner-only author check and the approval label as the single authorisation means opening the repo to issues from others later can't start unreviewed work.
+
+**How to apply:** to file work, open an issue, add the `task` label, and wait for the plan comment. Later, if collaborators are added, keep the author check.
