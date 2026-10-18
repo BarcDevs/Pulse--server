@@ -516,6 +516,22 @@ Powered by **Google Gemini API** for personalized recovery insights.
 Per-check-in insight prompts include the user's recent check-in notes unless they turn off
 "use my notes for insights" in their privacy settings (`shareNotesWithAI` on the profile).
 
+### Text length limits
+
+Every AI text kind has a limit per language, defined once in `TEXT_LIMITS`
+(`src/constants/aiInsight/textLimits.ts`). The prompt states the limit from that table and
+`validateGeneratedText(kind, language, text)` enforces it, so the two cannot drift. A reply 2 words
+or 15 characters over still passes; anything longer is regenerated once, then the static fallback is
+used. Prompts also carry a plain-tone rule (everyday words, no statistics wording, one concrete point).
+
+| Kind | Hebrew (words / chars) | English (words / chars) | Sentences |
+|---|---|---|---|
+| `MOTIVATIONAL` | 30 / 190 | 40 / 250 | 2 |
+| `WEEKLY_SUMMARY`, `MOOD_DROP_ALERT`, `BAD_DAY_SUPPORT` | 35 / 220 | 45 / 280 | 2 |
+| `PROGRESS_SUMMARY` | 40 / 250 | 52 / 320 | 2 |
+| `DAILY_OBSERVATION` (title) | 5 / 33 | 7 / 45 | 1 |
+| `DAILY_OBSERVATION_DESCRIPTION` | 15 / 98 | 20 / 128 | 1 |
+
 ### Daily Observation (`GET /api/{version}/insight/observation`)
 
 A short AI-phrased observation surfacing one detected pattern from the user's recent check-ins.

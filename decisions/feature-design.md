@@ -172,3 +172,19 @@ mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sh
 **Why over alternatives:** counting inside `GET /forum/posts/:id` (the first draft) misses opens served from the client's list cache (`initialData`, 5 minute `staleTime`) and would make a read endpoint write. Unique viewers forever (never counting a return visit) and a raw counter were rejected: the first ignores returning readers, the second is inflated by refresh. Per profile beats per IP because a profile follows the person across devices and a shared IP does not collapse offices or mobile carriers into one view. One row per pair, not per day, so the table does not grow with time.
 
 **How to apply:** do not add side effects to `GET /posts/:postId` (recommendations and helpers call `forumModel.getPost`). Change the window only through `POST_VIEW_WINDOW_MS`. `/view` is also rate limited to one request per user per post per hour (`viewPostRateLimiter`): a counted view needs 24h anyway, so the limiter loses no views and only absorbs retries and repeated opens; the 24h window, not the limiter, is what prevents double counting. `migrate dev` wanted to reset the Neon dev database because old migrations were edited after being applied; the migration was written by hand and applied with `migrate deploy` instead.
+
+---
+
+## 18/10/2026 — AI texts: hard length limits per kind and language, from one table
+
+**Problem:** the insight texts read like a report (weekly summary 41 to 58 words), and people in rehabilitation have little energy to read. The only limits were `MAX_CONTENT_LENGTH = 500` and `MAX_SENTENCES = 4`, far above what the landing page promises, and the prompts and the validator each held their own numbers.
+
+**Decision (owner):** one `GeneratedTextKind` TS enum (not a Prisma enum, no migration) and one `TEXT_LIMITS: Record<kind, Record<'he'|'en', {minWords?, maxWords, maxChars, maxSentences}>>` in `src/constants/aiInsight/textLimits.ts`. `validateGeneratedText(kind, language, text)` enforces it; `PromptBuilder` writes its strict length line from the same table, so they cannot drift. 2 words and 15 chars over still pass. No fallback-shortening step; the existing one retry and static fallback stay. A plain-tone rule (everyday words, no statistics wording, one concrete point) joins every prompt. Numbers (he, words/chars): motivational 30/190, weekly/mood drop/bad day 35/220, progress 40/250, all 2 sentences; observation title 5 words, 1 sentence. English is about 30% looser and is a first try.
+
+**Daily observation:** the first plan (15 to 20 words) was the title and description of the landing card together (measured 17 to 21 words combined today). The owner then said the title is limited separately, 4 or 5 words in Hebrew. The description limit (15 words he, 20 en) is an inference from the 15 to 20 words for the whole card, not an owner number.
+
+**Why over alternatives:** a Prisma enum would need a migration for something never stored. Trimming an over-long reply in code would hide prompt problems and cut sentences badly. Separate constants per prompt is how they drifted.
+
+**Measured (gpt-6.1-sol + gemini-3.1-flash-lite, 5 reps each, `eval-output/audit-shorter-v2`):** weekly 22 to 30 words (he), mood drop 24 to 29, motivational 18 to 25, progress 9 to 25, observation title 4 to 5 words; English within its limits; one English mood drop reply of 3 sentences was rejected by the validator (goes to the retry).
+
+**How to apply:** change a limit only in `TEXT_LIMITS`; the prompt follows. A new AI text kind needs an enum member, a table row, and `kind()` on its `PromptBuilder`. After a prompt change run `scripts/eval-ai-models` (scenarios `*-he` / `*-en`) and read samples. Validation failures log the kind, size and reason (`Insight validation failed`, `AI progress summary failed validation`) so a prompt that overshoots shows up in the logs.

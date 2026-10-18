@@ -1,3 +1,4 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import type { CheckInType } from '../../types/data/CheckInType'
 import {
     extractRecentActivities,
@@ -6,7 +7,7 @@ import {
 } from '../aiInsight/prompts/insightsPromptHelpers'
 
 import { PromptBuilder } from './PromptBuilder'
-import { NO_SCORES_RULE } from './sharedInstructions'
+import { NO_SCORES_RULE, PLAIN_TONE_RULE } from './sharedInstructions'
 
 export type MoodDropPromptInput = {
     checkIns: CheckInType[]
@@ -14,6 +15,10 @@ export type MoodDropPromptInput = {
 }
 
 export class MoodDropPromptBuilder extends PromptBuilder<MoodDropPromptInput> {
+    protected kind(): GeneratedTextKind {
+        return GeneratedTextKind.MOOD_DROP_ALERT
+    }
+
     protected role(): string {
         return `You are a recovery support assistant for {{brandName}}.
 Your role is to help users reflect on recovery patterns in a calm, supportive, non-clinical way.`
@@ -40,13 +45,13 @@ Your role is to help users reflect on recovery patterns in a calm, supportive, n
 Write a short insight for the user.
 
 Requirements:
-- 2 to 3 sentences only
 - Acknowledge the downward mood pattern gently
 - Encourage reflection on what may have changed recently
 - Suggest one supportive next step, without sounding alarming
 - Do not diagnose, do not use medical language, and do not sound like a crisis warning
 - Avoid generic filler like "take it one day at a time" unless clearly relevant
 - Make it feel human, calm, and specific to a recovery journey
+${PLAIN_TONE_RULE}
 ${NO_SCORES_RULE}`
     }
 }

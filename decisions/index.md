@@ -25,6 +25,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 11/10/2026 | Check-in AI work moves to a DB job table; SQS and sockets come later |
 | 12/10/2026 | Prompts are classes extending one abstract `PromptBuilder` that always adds the language and output rules |
 | 13/10/2026 | Post views: one per profile per rolling 24h via a dedicated `/view` call, not a side effect of GET |
+| 18/10/2026 | AI texts get hard length limits per kind and language from one `TEXT_LIMITS` table (prompt and validator share it) |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -82,3 +83,6 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
 | 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |
 | 11/10/2026 | Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed, so quiet runs need no git writes |
+| 18/10/2026 | AWS error watcher files GitHub issues; a separate fixer routine publishes a plan, waits for the owner's `approved` label, then fixes |
+| 18/10/2026 | The fixer routine treats every issue the same, whoever filed it (owner-authored, no label needed); one plan/approval/fix path |
+| 18/10/2026 | Public repo: issues carry a short summary only, details stay local; others' issues only notify the owner, who hands one over with an `@claude` comment |

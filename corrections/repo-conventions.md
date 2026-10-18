@@ -180,3 +180,14 @@ After pushing `development` I opened PR #55 for "deploy" but stopped before merg
 The TODO pass reached "Real email verification at signup", which sat in a leftover "FIRST ON SCALING" section of `TODO.md`. I entered plan mode and started asking design questions. The user: "I said it is a feature for the scaling phase because it is a full feature I need to build, not some fix", then "Why are you planning it now? You should move it to Scaling to Do, and move on to the next". This repeats the 11/10/2026 correction: that section should never have been in `TODO.md`.
 
 **How to apply:** before working a TODO entry, check whether its section is scaling-phase (the entry says "scaling", "once there is traffic/data", or the audit calls it a scaling plan). Those belong in `scaling-todo.md` and are not part of a "do all the TODOs" pass. Do not start a feature or plan mode for an entry the owner has marked as a later phase; move it and go on.
+
+---
+
+## 18/10/2026 — Don't invent a separate path for the owner's own issues
+
+**What happened:** Asked to let the fixer also take issues the owner files, I added a second kind (`task` label, owner-only author check, a different gate and no record) beside the watcher issues.
+
+**Correction:** "An issue is an issue whether it is from the Cloudwatcher or from me. It doesn't matter. It should be picked the same and treated the same."
+
+**How to apply:** when extending a flow to a new source, widen the existing path instead of adding a parallel one. Let differences follow from the content (error vs feature), not from who filed it.
+

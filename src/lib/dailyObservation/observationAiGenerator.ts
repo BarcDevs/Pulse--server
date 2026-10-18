@@ -1,6 +1,8 @@
+import { GeneratedTextKind } from '../../constants/aiInsight/textLimits'
 import { createProvider } from '../../services/aiProviders/ProviderFactory'
 import type { ObservationType } from '../../types/data/DailyObservationType'
 import { retryAsync } from '../aiInsight/retry'
+import { validateGeneratedText } from '../aiInsight/validation/generatedTextValidator'
 import { sanitizeGeneratedText } from '../aiInsight/validation/validationHelpers'
 import { ObservationPromptBuilder } from '../prompts/ObservationPromptBuilder'
 
@@ -16,8 +18,6 @@ type GeneratorInput = {
     language?: string | null
 }
 
-const OBSERVATION_MAX = 120
-const DESCRIPTION_MAX = 140
 const ALLOWED_ICONS = new Set([
     'Activity',
     'CalendarCheck',
@@ -27,7 +27,10 @@ const ALLOWED_ICONS = new Set([
     'Zap'
 ])
 
-const validatePayload = (raw: unknown): ObservationPayload => {
+const validatePayload = (
+    raw: unknown,
+    language?: string | null
+): ObservationPayload => {
     if (typeof raw !== 'object' || raw === null)
         throw new Error('Invalid JSON structure')
 
@@ -45,11 +48,21 @@ const validatePayload = (raw: unknown): ObservationPayload => {
         || obj.icon.trim().length === 0
     ) throw new Error('Empty fields in response')
 
-    if (obj.observation.length > OBSERVATION_MAX)
-        throw new Error(`observation exceeds ${OBSERVATION_MAX} characters`)
+    const observationCheck = validateGeneratedText(
+        GeneratedTextKind.DAILY_OBSERVATION,
+        language,
+        sanitizeGeneratedText(obj.observation.trim())
+    )
+    if (!observationCheck.isValid)
+        throw new Error(observationCheck.reason)
 
-    if (obj.supportiveDescription.length > DESCRIPTION_MAX)
-        throw new Error(`supportiveDescription exceeds ${DESCRIPTION_MAX} characters`)
+    const descriptionCheck = validateGeneratedText(
+        GeneratedTextKind.DAILY_OBSERVATION_DESCRIPTION,
+        language,
+        sanitizeGeneratedText(obj.supportiveDescription.trim())
+    )
+    if (!descriptionCheck.isValid)
+        throw new Error(descriptionCheck.reason)
 
     const icon = obj.icon.trim()
     if (!ALLOWED_ICONS.has(icon))
@@ -79,5 +92,5 @@ export const generateObservation = async ({
     )
 
     const parsed = JSON.parse(result.content.trim())
-    return validatePayload(parsed)
+    return validatePayload(parsed, language)
 }

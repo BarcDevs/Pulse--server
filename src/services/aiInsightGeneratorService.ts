@@ -3,6 +3,7 @@ import {
     aiFallbackOrder,
     isProd
 } from '../../config'
+import { GeneratedTextKind } from '../constants/aiInsight/textLimits'
 import { INSIGHT_GENERATION_ATTEMPTS } from '../constants/aiInsight/validation'
 import {
     buildPromptByType,
@@ -69,7 +70,12 @@ export const generateInsight = async (
             break
 
         const content = sanitizeGeneratedText(generatedContent.trim())
-        const validation = validateGeneratedInsight(title, content)
+        const validation = validateGeneratedInsight(
+            GeneratedTextKind[decision.type],
+            language,
+            title,
+            content
+        )
 
         if (validation.isValid)
             return { title, content }
@@ -77,6 +83,7 @@ export const generateInsight = async (
         lastReason = validation.reason
         logger.warn('Insight validation failed', {
             reason: validation.reason,
+            length: content.length,
             insightType: decision.type,
             attempt
         })

@@ -32,11 +32,11 @@ One scenario per kind of AI request the server makes. Fixtures live in `scripts/
 
 | Scenario | Pipeline | Output kind |
 |---|---|---|
-| `mood-drop-alert` | insight `MOOD_DROP_ALERT` | text, max 3 sentences, no scores |
-| `motivational` | insight `MOTIVATIONAL` | text, max 2 sentences, no scores |
-| `weekly-summary` | insight `WEEKLY_SUMMARY` | text, max 3 sentences, no scores |
-| `daily-observation` | daily observation card | strict JSON, observation <=120 chars, description <=140, icon, no numbers |
-| `progress-summary` | progress insight summary | text, 2-4 sentences (prompt has no language directive, so replies are English) |
+| `mood-drop-alert-he` / `-en` | insight `MOOD_DROP_ALERT` | text, limits from `TEXT_LIMITS`, no scores |
+| `motivational-he` / `-en` | insight `MOTIVATIONAL` | text, limits from `TEXT_LIMITS`, no scores |
+| `weekly-summary-he` / `-en` | insight `WEEKLY_SUMMARY` | text, limits from `TEXT_LIMITS`, no scores |
+| `daily-observation-he` / `-en` | daily observation card | strict JSON, title and description limits from `TEXT_LIMITS`, icon, no numbers |
+| `progress-summary-he` / `-en` | progress insight summary | text, limits from `TEXT_LIMITS` |
 | `checkin-feedback` | check-in feedback message | JSON, one sentence per field |
 
 New pipeline? Follow `workflow/05-adding-ai-pipeline.md`. All prompts come from `src/lib/prompts/` (one `<Name>PromptBuilder.ts` class extending `PromptBuilder`
@@ -219,7 +219,7 @@ Not run: `gemini-3.8-live` (WebSocket-only, see Caveats). Prices as of 2026-10-1
 3. **Cutoffs: Gemini 3.8 Flash and 3.6 Flash.** Their hidden thinking uses about 950 of the 1000 token budget, so 11/18 and 15/18 replies stop at roughly 90 characters with `finishReason=MAX_TOKENS`. That matches the prod symptom (a stored insight cut at 79 characters). `GoogleAIProvider` only logs a warning for a non-`STOP` finish, so a cut-off reply is stored, unlike `AnthropicProvider` after commit 4c58c64. If either model is ever used, raise `AI_MAX_OUTPUT_TOKENS` well above 1000 or add a `thinkingConfig`/thinking budget, and guard on the finish reason. Untested here. claude-haiku-5-5 also cut off 2/18 (thinking).
 4. **Current Anthropic models.** claude-sonnet-5: judge 6.39, $2.85 per 1k, one call took 60 s (a prod timeout; it also drives the 60 s p95). claude-sonnet-4-6: 6.50, $3.73. Both are mid-pack and 20-26x the price of gpt-6-luna. claude-sonnet-5-5 has the best quality score but costs $6.44 per 1k (2.3x sonnet-5), p50 6.5 s, p95 19 s (1 call over 15 s), and about 520 output tokens per reply because of thinking.
 5. **Obedience.** Insight scenarios: the no-scores rule held for 13 of 15 models (zero score quotes in 117 replies); only the two broken Gemini flash models quoted one (3 replies). The em dash / typographic quote rule failed for gpt-5.4-nano (4), gpt-5.2 (3), claude-sonnet-4-6 (1) and claude-haiku-4-5 (1). Daily observation (strict JSON): claude-haiku-4-5 fails the strict parse on 3/3 (prod does `JSON.parse` with no fence stripping, so those would error), gpt-5.2 (3), gpt-5.4-mini (2) and gpt-5.4-nano (1) pick the wrong icon for the pattern. Check-in feedback: claude-sonnet-4-6 and claude-sonnet-5 wrap the JSON in markdown fences (prod extracts `{...}` with a regex, so this is tolerated).
-6. **Bug found outside the model choice:** `countSentences` splits on every ".", so a 3-sentence progress summary that quotes "6.9" or "(+0.8)" counts as 7 sentences. `summaryResolver.isValidSummary` uses it with `MAX_SENTENCES = 4`, so nearly every AI progress summary is rejected and replaced by the fallback text, whatever model runs. This audit counts real sentences for that scenario instead and leaves the prod validator out of it. Needs its own fix.
+6. **Bug found outside the model choice:** `countSentences` splits on every ".", so a 3-sentence progress summary that quotes "6.9" or "(+0.8)" counts as 7 sentences. `summaryResolver.isValidSummary` uses it with `MAX_SENTENCES = 4`, so nearly every AI progress summary is rejected and replaced by the fallback text, whatever model runs. This audit counts real sentences for that scenario instead and leaves the prod validator out of it. Needs its own fix. (Fixed since: `countSentences` ignores periods inside numbers, and the length rules now come from `TEXT_LIMITS`, see 18/10/2026 in `decisions/feature-design.md`.)
 
 Weigh the shortlist against your priorities: for lowest cost with good quality gpt-6-luna; for cheapest with zero reasoning overhead gemini-3.1-flash-lite; for best quality regardless of cost claude-sonnet-5-5 or gpt-5.6-terra. This audit does not pick the model: the production model is set in config.
 
