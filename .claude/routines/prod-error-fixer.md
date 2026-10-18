@@ -22,6 +22,9 @@ of the repo's `/resume` list). Design: `docs/plans/2026-09-28-prod-error-monitor
 | fix merged to `development`, issue closed | `fixed` | this routine (phase 1) |
 | no safe automatic fix, or the fix failed | `needs-human` | this routine |
 
+`bug`, `enhancement`, `task` and any other label are only for the owner's sorting on GitHub: they
+change nothing about how an issue is picked up or treated.
+
 The owner approves by adding the `approved` label (works on mobile). To ask for changes instead,
 comment on the issue; the next run revises and republishes the plan.
 
