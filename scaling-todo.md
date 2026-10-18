@@ -20,6 +20,14 @@ Post-launch / scale-up items, not launch blockers.
   too. Also need small admin app for staff to view/respond to incoming support mails
   (separate from main client app).
 
+- **Let Claude answer most support tickets (idea, 18/10/2026; do once the admin app exists).** Tickets are stored
+  in the database and Claude reads them through a read-only endpoint with its own credential (issue #66). The next
+  step is a routine that drafts a reply for each ticket and the admin app sends it, ideally with the owner approving
+  or editing the draft first, the same plan-then-approve shape as the error fixer. Only the simple, clearly in-scope
+  topics at first; billing, privacy and care-team messages stay human. Decide before starting: whether a reply may
+  go out without approval, what Claude may say about accounts and health data, retention, and how ticket text is
+  kept from steering the reply (it is untrusted user input). Not started: needs #66 and the admin app first.
+
 - **Investigate HTTP `QUERY` method for read-only endpoints.**
   Node 24 (`http.METHODS`), Express 5 and axios all support it. `QUERY` = safe + idempotent
   read with a body, so it only fits side-effect-free reads (never forgot-password / anything
