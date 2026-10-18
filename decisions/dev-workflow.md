@@ -72,3 +72,16 @@ context in this topic — not routinely.
 **Why over alternatives:** one path means one set of rules to keep correct. Differences in treatment belong to the content (error vs feature), not to who or what filed it.
 
 **How to apply:** file an issue and wait for the plan comment; no label needed. Every issue you author gets planned, so keep ideas you don't want worked on out of the issue tracker or label them `needs-human`.
+
+---
+
+## 18/10/2026 — Public repo: issues carry a short summary only; other people's issues only notify the owner
+
+**Problem:** `BarcDevs/Pulse--server` is public. The watcher's issues held stack traces, routes, root causes and log lines, and the fixer's plan comments the full plan, so a live production bug would be described to everyone before it was fixed. Strangers can also open issues and comment.
+
+**Decision:** The owner keeps the repo public. (1) Issues and comments are summaries: the monitor writes error class, affected feature in plain words, `count` and dates; the diagnosis stays in the local `docs/prod-errors/` record, and the fixer keeps plans, drafts and failure details in `.watchers/plans/issue-<n>/` plus the private plan artifact; PR bodies describe the change, not root cause or log data. (2) An issue not authored by the owner is never planned, labelled or commented on automatically: the routine sends the owner one push notification, and the owner replies with a comment containing `@claude` to hand it over, after which it follows the normal plan, approval and fix path. Only owner-authored comments are read on any issue.
+
+**Why over alternatives:** making the repo private would have fixed the exposure but the owner wants it public. Auto-handling strangers' issues, even only to plan them, lets anyone steer the routine or spend its usage, so the owner's own `@claude` comment is the opt-in.
+
+**How to apply:** if a diagnosis detail belongs on an issue, it goes in the local record instead. `@claude` here is read by this routine, not by a GitHub app: do not install one on the repo, or both would act. The approval for a fix is still the owner's `approved` label after the plan.
+

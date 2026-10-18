@@ -84,3 +84,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | 11/10/2026 | Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed, so quiet runs need no git writes |
 | 18/10/2026 | AWS error watcher files GitHub issues; a separate fixer routine publishes a plan, waits for the owner's `approved` label, then fixes |
 | 18/10/2026 | The fixer routine treats every issue the same, whoever filed it (owner-authored, no label needed); one plan/approval/fix path |
+| 18/10/2026 | Public repo: issues carry a short summary only, details stay local; others' issues only notify the owner, who hands one over with an `@claude` comment |
