@@ -68,3 +68,4 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 26/09/2026 | Planned an Elastic IP on the server without reading the topology (domain → client public IP; client → server private IP baked at build) |
 | 10/10/2026 | Credited the monitor agent to the owner and dated it today without checking git history |
 | 29/09/2026 | Model Selection in CLAUDE.md said Haiku for sub-agents (stale); Sonnet default, Opus via /opusplan |
+| 18/10/2026 | Added a separate `task` path for the owner's issues instead of treating every issue the same |

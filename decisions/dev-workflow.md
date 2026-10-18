@@ -63,12 +63,12 @@ context in this topic — not routinely.
 
 ---
 
-## 18/10/2026 — The fixer routine also works issues the owner files as `task`s
+## 18/10/2026 — The fixer routine treats every issue the same, whoever filed it
 
-**Problem:** The issue-based flow only covered errors the watcher found. The owner wanted to file a bug or feature as a GitHub issue from the phone, instead of opening the IDE, and get a plan, then a fix, then only the `development` -> `main` PR to approve.
+**Problem:** The first version of the fixer split issues into watcher issues (`prod-error`) and owner "tasks" (`task` label), with different gates and records for each. An issue is an issue; the owner files bugs and features from the phone exactly like the watcher files errors.
 
-**Decision:** `prod-error-fixer.md` handles two kinds of issue: watcher issues (`prod-error`) and owner tasks (label `task`, author must be the owner; anyone else's issue is ignored). The same lifecycle applies: plan page, questions parked on the issue, approval by the owner's `approved` label, subagent per fix, full review, ship. For a task the watcher's "small, localized fix" gate is dropped, because the owner's approval of the plan authorises its scope; a migration is allowed but must be named in the plan and PR. A task has no prod-errors record. It must also follow `CLAUDE.md` and `CORE_RULES.md` (read explicitly, they don't auto-load in a routine).
+**Decision:** `prod-error-fixer.md` picks up every open issue authored by the owner (the monitor files through the owner's `gh` login, so its issues qualify; anyone else's issue is ignored), with no label required to start. All of them go through the same lifecycle: plan page, questions parked on the issue, approval by the owner's `approved` label, subagent per fix, full review, ship, and the `development` -> `main` PR. One gate for all: the owner's approval of the plan authorises its scope, so there is no "small, localized" limit; infra/AWS/secrets work goes to `needs-human`, and a migration must be named in the plan and PR. If the issue has a prod-errors record the fixer updates it; otherwise verification goes in the issue and PR. The only thing that differs is what the issue is about: an error gets a reproduction test first, new behaviour gets tests written first.
 
-**Why over alternatives:** a separate routine for tasks would duplicate the plan/approval/ship machinery and the safety checks. Keeping the owner-only author check and the approval label as the single authorisation means opening the repo to issues from others later can't start unreviewed work.
+**Why over alternatives:** one path means one set of rules to keep correct. Differences in treatment belong to the content (error vs feature), not to who or what filed it.
 
-**How to apply:** to file work, open an issue, add the `task` label, and wait for the plan comment. Later, if collaborators are added, keep the author check.
+**How to apply:** file an issue and wait for the plan comment; no label needed. Every issue you author gets planned, so keep ideas you don't want worked on out of the issue tracker or label them `needs-human`.
