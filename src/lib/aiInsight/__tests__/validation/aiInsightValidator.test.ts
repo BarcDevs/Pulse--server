@@ -1,3 +1,4 @@
+import { GeneratedTextKind } from '../../../../constants/aiInsight/textLimits'
 import {
     getFallbackContent,
     validateGeneratedInsight
@@ -244,6 +245,8 @@ describe('validateGeneratedInsight', () => {
     describe('valid output', () => {
         it('should pass valid insight', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Test Title',
                 'This is a valid insight about your mood and progress.'
             )
@@ -254,6 +257,8 @@ describe('validateGeneratedInsight', () => {
         it('should pass insight with exactly min length', () => {
             const content = 'a'.repeat(20)
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 content
             )
@@ -261,8 +266,10 @@ describe('validateGeneratedInsight', () => {
         })
 
         it('should pass insight with exactly max length', () => {
-            const content = 'a'.repeat(500)
+            const content = 'a'.repeat(250)
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 content
             )
@@ -273,6 +280,8 @@ describe('validateGeneratedInsight', () => {
     describe('empty/missing content', () => {
         it('should reject empty title', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 '',
                 'Content here'
             )
@@ -282,6 +291,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject whitespace-only title', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 '   ',
                 'Content here'
             )
@@ -291,6 +302,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject empty content', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 ''
             )
@@ -302,6 +315,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject whitespace-only content', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 '   '
             )
@@ -315,6 +330,8 @@ describe('validateGeneratedInsight', () => {
     describe('length validation', () => {
         it('should reject content shorter than min', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'Too short'
             )
@@ -323,8 +340,10 @@ describe('validateGeneratedInsight', () => {
         })
 
         it('should reject content longer than max', () => {
-            const longContent = 'a'.repeat(501)
+            const longContent = 'a'.repeat(270)
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 longContent
             )
@@ -336,6 +355,8 @@ describe('validateGeneratedInsight', () => {
     describe('hard block phrases', () => {
         it('should reject "you may have"', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'You may have depression or anxiety'
             )
@@ -347,6 +368,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject "diagnosed with"', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'You have been diagnosed with a condition'
             )
@@ -355,6 +378,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject "treatment plan"', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'Here is your treatment plan for recovery'
             )
@@ -365,6 +390,8 @@ describe('validateGeneratedInsight', () => {
     describe('medical context phrases', () => {
         it('should reject "indicates depression"', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'Your low mood indicates depression and we recommend support'
             )
@@ -376,6 +403,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should reject "symptoms of anxiety disorder"', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'You are showing symptoms of anxiety disorder'
             )
@@ -384,6 +413,8 @@ describe('validateGeneratedInsight', () => {
 
         it('should pass "depression" without diagnostic phrase', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'Many people experience low mood during difficult times. It\'s normal to feel this way.'
             )
@@ -392,10 +423,12 @@ describe('validateGeneratedInsight', () => {
     })
 
     describe('sentence count validation', () => {
-        it('should reject content with > 4 sentences', () => {
+        it('should reject content with > 2 sentences', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
-                'First sentence. Second sentence. Third sentence. Fourth sentence. Fifth sentence.'
+                'First sentence. Second sentence. Third sentence.'
             )
             expect(result.isValid).toBe(false)
             expect(result.reason).toContain(
@@ -403,16 +436,20 @@ describe('validateGeneratedInsight', () => {
             )
         })
 
-        it('should allow exactly 4 sentences', () => {
+        it('should allow exactly 2 sentences', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
-                'First sentence. Second sentence. Third sentence. Fourth sentence.'
+                'First sentence. Second sentence.'
             )
             expect(result.isValid).toBe(true)
         })
 
-        it('should allow 1-3 sentences', () => {
+        it('should allow 1 sentence', () => {
             const result = validateGeneratedInsight(
+                GeneratedTextKind.MOTIVATIONAL,
+                'en',
                 'Title',
                 'Only one sentence here'
             )
@@ -426,38 +463,44 @@ describe('getFallbackContent', () => {
         const fallback = getFallbackContent('MOOD_DROP_ALERT', 'en')
         expect(fallback).toContain('lower recently')
         expect(fallback.length).toBeGreaterThan(20)
-        expect(fallback.length).toBeLessThanOrEqual(500)
+        expect(fallback.length).toBeLessThanOrEqual(250)
     })
 
     it('should return fallback for MOTIVATIONAL', () => {
         const fallback = getFallbackContent('MOTIVATIONAL', 'en')
         expect(fallback).toContain('Consistency')
         expect(fallback.length).toBeGreaterThan(20)
-        expect(fallback.length).toBeLessThanOrEqual(500)
+        expect(fallback.length).toBeLessThanOrEqual(250)
     })
 
     it('should return fallback for WEEKLY_SUMMARY', () => {
         const fallback = getFallbackContent('WEEKLY_SUMMARY', 'en')
         expect(fallback).toContain('week')
         expect(fallback.length).toBeGreaterThan(20)
-        expect(fallback.length).toBeLessThanOrEqual(500)
+        expect(fallback.length).toBeLessThanOrEqual(250)
     })
 
     it('all fallbacks should pass validation', () => {
         const types = [
             'MOOD_DROP_ALERT',
             'MOTIVATIONAL',
-            'WEEKLY_SUMMARY'
+            'WEEKLY_SUMMARY',
+            'BAD_DAY_SUPPORT'
         ] as const
 
         types.forEach((type) => {
-            const fallback = getFallbackContent(type, 'en')
-            const validation =
-                validateGeneratedInsight(
-                    'Test',
-                    fallback
-                )
-            expect(validation.isValid).toBe(true)
+            ['en', 'he'].forEach((language) => {
+                const fallback = getFallbackContent(type, language)
+                const validation =
+                    validateGeneratedInsight(
+                        GeneratedTextKind[type],
+                        language,
+                        'Test',
+                        fallback
+                    )
+                expect(validation.reason).toBeUndefined()
+                expect(validation.isValid).toBe(true)
+            })
         })
     })
 })
