@@ -190,7 +190,7 @@ graph TD
 
 ### Key Flows
 
-**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → the response returns at once and a database-backed job (`CheckInAiJob`, claimed with `FOR UPDATE SKIP LOCKED`, retried up to 3 times, restart-safe) runs the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → the client polls `GET /check-in?limit=1` until `insightsStatus` is `ready` and shows the result in the AI Insight Panel.
+**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → the response returns at once and a database-backed job (`CheckInAiJob`, claimed with `FOR UPDATE SKIP LOCKED`, two attempts 10 s apart, restart-safe) runs the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → the client polls `GET /check-in?limit=1` until `insightsStatus` is `ready` and shows the result in the AI Insight Panel.
 
 **Forum Engagement** — Authenticated request passes the JWT + RBAC guard → post/reply written to `posts/replies` → a `new reply` event fires through Socket.io → Redis broadcasts the update to all subscribed clients in real time.
 
