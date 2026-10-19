@@ -144,6 +144,23 @@ For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-hu
 findings, branch name left unmerged) in `$PLANS/failure.md` and in the notification. Never retry the same
 approved plan automatically.
 
+**Approval never ends the run without a fix.** The owner can approve while this run is still going:
+by adding the `approved` label on GitHub, or by saying so in the session (chat, or a comment on
+the plan page). Either way this routine must carry the fix through to the ship step, not report
+"approved, will be fixed next run". Concretely:
+- **Re-check before finishing.** After phase 2 and before the final notification, list open issues
+  again (`gh issue list --label approved`). Any issue now labelled `approved` and not `in-progress`,
+  `fixed` or `needs-human` goes through phase 1 (steps 1 to 7) in this same run.
+- **Approval given in the session.** If the owner says "approved" (or equivalent) for an issue in
+  chat, add the `approved` label yourself (it is recorded under the owner's `gh` login), then run
+  phase 1 for it immediately, in this session. A bare "ok" about something else is not approval; ask
+  which issue.
+- **Plan revisions during the run** (a comment or chat change to a plan) are folded in and the plan
+  page republished first (`plan-artifact` step 5a); if the owner then approves, fix it at once.
+- "No fixes are due this run" is only true after that re-check. Never end a run, or answer the owner,
+  with an approved issue unfixed unless step 1 (approval not from the owner / plan changed) or the
+  failure path applies, and say which.
+
 ## Phase 2: plan unplanned issues
 
 For each open issue with no `plan-ready`, `approved`, `fixed` or `needs-human` label
