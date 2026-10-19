@@ -119,6 +119,16 @@ For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-hu
    a clean review (or one whose own auto-fixes were applied and tests/typecheck still pass),
    after step 4 is done or honestly labelled unverified, counts as ready to merge. The owner's
    approval authorises attempting the fix; this review is the gate on whether it lands.
+   **LOW and MEDIUM findings are not dropped.** Any LOW/MEDIUM finding from any review agent
+   (including the deep review) that you do not fix in this change becomes a GitHub issue, so the
+   next run plans it like any other issue: one issue per finding (related ones may share), filed
+   with `gh issue create --repo $REPO` under the owner's login, title `[review] <short finding>`,
+   no label required. Body: short summary only, the file path and a one-line "found while fixing
+   #<n>" (the repo is public: no exploit path, log data or secrets; details go to
+   `$PLANS/issue-<new>/draft.md`). Skip findings that are pure taste (INFO, style) or that the
+   review itself calls acceptable; skip duplicates by checking open issues with the same file and
+   title first. List the new issue numbers in the final notification. These issues are never
+   fixed in the same run they were filed: they wait for the normal plan and approval.
 6. **Record the decisions.** Anything decided on this issue is written down in the fix worktree
    as its own `docs` commit (separate from the fix commit, per the repo's records exception in
    `CLAUDE.md`), so it merges with the fix:
