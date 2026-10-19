@@ -1,4 +1,4 @@
-<!-- checkpoint: 2026-10-09T17:12:28Z -->
+<!-- checkpoint: 2026-10-11T07:12:28Z -->
 
 # Production Errors
 
@@ -22,6 +22,8 @@ not re-diagnose). `|` inside a signature is written as `\|`.
 |-----------|-------------|------------|-----------|--------|
 | `Error: Unhandled error caught Unauthorized! please login first!` | 18 | 2026-09-30 | 2026-10-01 | [error-handler-log-level](error-handler-log-level.md) |
 | `Error: Unhandled error caught Route not found! please check your inputs and try again!` | 50 | 2026-10-01 | 2026-10-02 | [custom-error-name](custom-error-name.md) |
+| `Error: Anthropic API request failed: <n> - invalid x-api-key` | 2 | 2026-10-10 | 2026-10-10 | [anthropic-401-invalid-api-key](anthropic-401-invalid-api-key.md) |
+| `Error: AI generation failed for provider anthropic, trying next` | 1 | 2026-10-10 | 2026-10-10 | [anthropic-401-invalid-api-key](anthropic-401-invalid-api-key.md) |
 
 <!--
 Row template:
@@ -31,7 +33,9 @@ Row template:
 # <ERROR_TYPE>: <short description>
 - **Signature:** `<normalized signature>`
 - **First seen:** YYYY-MM-DD
-- **Root cause:** ...
+- **Investigated:** <one line: logs, files and greps checked>
+- **Root cause:** <evidence with file:line> | Hypothesis (unverified)
+- **Options:** <options + recommendation, one line>
 - **Fix:** <what changed> (<commit link>) | not auto-applied, notify only (see confidence gate) |
   blocked by review, branch <name> left unmerged
 -->
