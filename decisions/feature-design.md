@@ -188,3 +188,15 @@ mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sh
 **Measured (gpt-6.1-sol + gemini-3.1-flash-lite, 5 reps each, `eval-output/audit-shorter-v2`):** weekly 22 to 30 words (he), mood drop 24 to 29, motivational 18 to 25, progress 9 to 25, observation title 4 to 5 words; English within its limits; one English mood drop reply of 3 sentences was rejected by the validator (goes to the retry).
 
 **How to apply:** change a limit only in `TEXT_LIMITS`; the prompt follows. A new AI text kind needs an enum member, a table row, and `kind()` on its `PromptBuilder`. After a prompt change run `scripts/eval-ai-models` (scenarios `*-he` / `*-en`) and read samples. Validation failures log the kind, size and reason (`Insight validation failed`, `AI progress summary failed validation`) so a prompt that overshoots shows up in the logs.
+
+---
+
+## 19/10/2026 — Check-in AI jobs: two attempts, 10 s apart (issue #65)
+
+**Problem:** a failed job went straight back to `PENDING` and the same drain loop claimed it again, so every attempt could burn within seconds during a short outage.
+
+**Decision (owner):** at most 2 attempts (one initial, one retry), with a fixed 10 s delay stored in a new `CheckInAiJob.runAfter` column. `claimNextJob` takes a `PENDING` job only when `runAfter <= now()`; a re-submit resets `attempts` to 0 and `runAfter` to now, so changed data is processed at once. The owner rejected three attempts: the AI fallback model and the static template already run inside a single attempt, so a job retry only covers infrastructure errors.
+
+**Why over alternatives:** growing backoff (10 s, 30 s) was the first plan and was dropped with the third attempt. An in-memory delay in the worker loses the delay on restart and ignores other instances. The re-submit reset stays because the check-in rate limit (5 per user per day) already bounds it.
+
+**How to apply:** change the attempts or the delay only in `src/constants/checkInAiJob.ts`. The migration must run before the new code is deployed (the claim and enqueue queries use `runAfter`); otherwise check-ins submitted in between get no job. `runAfter` is written from the app clock and compared with the database `now()`, which is fine at 10 s on one NTP-synced fleet.
