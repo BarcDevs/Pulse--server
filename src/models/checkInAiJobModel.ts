@@ -33,7 +33,8 @@ export const enqueueJob = async (
 }
 
 // SKIP LOCKED lets several instances claim different jobs without waiting on
-// each other; a PENDING job waits for its runAfter (retry backoff); a RUNNING job past staleBefore is taken over (dead worker).
+// each other; a PENDING job waits for its runAfter (retry backoff);
+// a RUNNING job past staleBefore is taken over (dead worker).
 // A stale job that already used all its attempts is failed first, so a job
 // that keeps killing the process is not retried forever.
 export const claimNextJob = async (
