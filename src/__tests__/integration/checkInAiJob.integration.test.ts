@@ -3,9 +3,12 @@ import supertest from 'supertest'
 
 import { serverConfig } from '../../../config'
 import App from '../../app'
-import { CHECK_IN_AI_JOB_MAX_ATTEMPTS } from '../../constants/checkInAiJob'
+import {
+    CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+    CHECK_IN_AI_JOB_RETRY_DELAY_MS
+} from '../../constants/checkInAiJob'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
-import { minuteInMs } from '../../constants/time'
+import { minuteInMs, secondInMs } from '../../constants/time'
 import { createToken } from '../../lib/authCrypto'
 import * as jobModel from '../../models/checkInAiJobModel'
 import { drainJobs } from '../../services/checkInAiWorkerService'
@@ -82,6 +85,39 @@ describe('Check-in AI job — Integration', () => {
         expect(jobs).toHaveLength(1)
         expect(jobs[0].status).toBe('PENDING')
         expect(jobs[0].attempts).toBe(0)
+    })
+
+    it('does not hand out a retried job before its backoff passes', async () => {
+        await postCheckIn()
+        const claimed = await jobModel.claimNextJob(new Date(0))
+
+        await jobModel.markJobRetry(claimed!, 'Error')
+
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.status).toBe('PENDING')
+        expect(job.runAfter.getTime()).toBeGreaterThan(
+            Date.now() + CHECK_IN_AI_JOB_RETRY_DELAY_MS - secondInMs
+        )
+        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+
+        await Prisma.checkInAiJob.updateMany({
+            data: { runAfter: new Date(Date.now() - secondInMs) }
+        })
+
+        const retried = await jobModel.claimNextJob(new Date(0))
+        expect(retried!.attempts).toBe(2)
+    })
+
+    it('re-submitting a backing-off job makes it claimable at once', async () => {
+        const { res, userId } = await postCheckIn()
+        const claimed = await jobModel.claimNextJob(new Date(0))
+        await jobModel.markJobRetry(claimed!, 'Error')
+        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+
+        await jobModel.enqueueJob(res.body.data.id, userId)
+
+        const fresh = await jobModel.claimNextJob(new Date(0))
+        expect(fresh!.attempts).toBe(1)
     })
 
     it('two workers claiming at once run the job only once', async () => {
@@ -176,9 +212,18 @@ describe('Check-in AI job — Integration', () => {
 
         await drainJobs()
 
+        const retrying = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(retrying.status).toBe('PENDING')
+        expect(retrying.attempts).toBe(1)
+
+        await Prisma.checkInAiJob.updateMany({
+            data: { runAfter: new Date(Date.now() - secondInMs) }
+        })
+        await drainJobs()
+
         const job = await Prisma.checkInAiJob.findFirstOrThrow()
         expect(job.status).toBe('FAILED')
-        expect(job.attempts).toBe(3)
+        expect(job.attempts).toBe(CHECK_IN_AI_JOB_MAX_ATTEMPTS)
         expect(job.lastError).toBe('Error')
     })
 })

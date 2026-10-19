@@ -159,10 +159,11 @@ model CheckInAiJob {
   attempts  Int                @default(0)
   lockedAt  DateTime?
   lastError String?
+  runAfter  DateTime           @default(now())
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  @@index([status, createdAt])
+  @@index([status, runAfter, createdAt])
 }
 
 model PostRecommendation {

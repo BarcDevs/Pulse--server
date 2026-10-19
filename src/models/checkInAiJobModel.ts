@@ -1,6 +1,7 @@
 import { CheckInAiJobStatus } from '../../prisma/generated/prisma/enums'
 import {
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+    CHECK_IN_AI_JOB_RETRY_DELAY_MS,
     CHECK_IN_AI_JOB_STALE_ERROR
 } from '../constants/checkInAiJob'
 import Prisma from '../utils/prismaClient'
@@ -25,13 +26,14 @@ export const enqueueJob = async (
             status: CheckInAiJobStatus.PENDING,
             attempts: 0,
             lockedAt: null,
-            lastError: null
+            lastError: null,
+            runAfter: new Date()
         }
     })
 }
 
 // SKIP LOCKED lets several instances claim different jobs without waiting on
-// each other; a RUNNING job past staleBefore is taken over (dead worker).
+// each other; a PENDING job waits for its runAfter (retry backoff); a RUNNING job past staleBefore is taken over (dead worker).
 // A stale job that already used all its attempts is failed first, so a job
 // that keeps killing the process is not retried forever.
 export const claimNextJob = async (
@@ -58,7 +60,7 @@ export const claimNextJob = async (
             "updatedAt" = now()
         WHERE "id" = (
             SELECT "id" FROM "CheckInAiJob"
-            WHERE "status" = 'PENDING'
+            WHERE ("status" = 'PENDING' AND "runAfter" <= now())
                 OR ("status" = 'RUNNING' AND "lockedAt" < ${staleBefore})
             ORDER BY "createdAt"
             LIMIT 1
@@ -91,7 +93,8 @@ export const holdsClaim = async (job: ClaimedCheckInAiJob): Promise<boolean> => 
 const finishJob = async (
     job: ClaimedCheckInAiJob,
     status: CheckInAiJobStatus,
-    lastError: string | null
+    lastError: string | null,
+    extraData: { runAfter?: Date } = {}
 ): Promise<boolean> => {
     const { count } = await Prisma.checkInAiJob.updateMany({
         where: {
@@ -99,7 +102,12 @@ const finishJob = async (
             status: CheckInAiJobStatus.RUNNING,
             lockedAt: job.lockedAt
         },
-        data: { status, lockedAt: null, lastError }
+        data: {
+            status,
+            lockedAt: null,
+            lastError,
+            ...extraData
+        }
     })
 
     return count === 1
@@ -118,7 +126,8 @@ export const markJobRetry = (
 ) => finishJob(
     job,
     CheckInAiJobStatus.PENDING,
-    lastError
+    lastError,
+    { runAfter: new Date(Date.now() + CHECK_IN_AI_JOB_RETRY_DELAY_MS) }
 )
 
 export const markJobFailed = (

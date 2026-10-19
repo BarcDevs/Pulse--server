@@ -1072,7 +1072,7 @@ Returns pre-computed post recommendations based on the user's latest check-in.
 | Value | Meaning |
 |-------|---------|
 | `pending` | The job is queued or running; `insights` is empty or from an earlier submit. Poll `GET /?limit=1` (about every 3 s) until it is `ready`. |
-| `ready` | Nothing more will arrive: the job finished, gave up after 3 attempts (a failed AI call still stores the template fallback insight), or the check-in predates the queue. |
+| `ready` | Nothing more will arrive: the job finished, gave up after 2 attempts (a failed AI call still stores the template fallback insight), or the check-in predates the queue. |
 
 Re-submitting today's check-in re-queues the job and returns `pending` again; insights are replaced, never duplicated (one per check-in and type). A job interrupted by a restart is picked up again after 2 minutes.
 
