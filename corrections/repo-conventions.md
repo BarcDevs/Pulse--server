@@ -191,3 +191,13 @@ The TODO pass reached "Real email verification at signup", which sat in a leftov
 
 **How to apply:** when extending a flow to a new source, widen the existing path instead of adding a parallel one. Let differences follow from the content (error vs feature), not from who filed it.
 
+
+---
+
+## 20/10/2026 — Reply in English, even when the user writes in Hebrew
+
+**What happened:** The user asked a question in Hebrew and I answered in Hebrew.
+
+**Correction:** "You should write in English."
+
+**How to apply:** write every reply in English regardless of the language the user's message is in. Quote Hebrew only when it is the subject (UI text, prompts, user messages).

@@ -35,6 +35,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 11/10/2026 | Scaling follow-ups go in `scaling-todo.md`, not `TODO.md` |
 | 13/10/2026 | Started designing a scaling-phase feature from a leftover section in `TODO.md`; those entries belong in `scaling-todo.md` (repeat of 11/10) |
 | 11/10/2026 | "Deploy" = open the PR to `main` and merge it when CI is green, without asking again |
+| 20/10/2026 | Reply in English even when the user writes in Hebrew |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
