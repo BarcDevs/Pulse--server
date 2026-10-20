@@ -50,6 +50,12 @@ const postCheckIn = async (moodScore = 7) => {
     return { res, userId: dbUser!.id }
 }
 
+const readDatabaseNow = async () => {
+    const [{ now }] = await Prisma.$queryRaw<{ now: Date }[]>`SELECT now() AS now`
+
+    return now
+}
+
 // A cutoff in the future makes every RUNNING job count as stale
 const staleCutoff = () => new Date(Date.now() + minuteInMs)
 
@@ -109,8 +115,14 @@ describe('Check-in AI job — Integration', () => {
     })
 
     describe.each([
-        ['ahead of', hourInMs],
-        ['behind', -hourInMs]
+        [
+            'ahead of',
+            hourInMs
+        ],
+        [
+            'behind',
+            -hourInMs
+        ]
     ])('when the app clock is an hour %s the database clock', (_, skewMs) => {
         // Only Date is faked (both Date.now and new Date()), timers stay real
         const skewAppClock = () => {
@@ -139,11 +151,11 @@ describe('Check-in AI job — Integration', () => {
             await postCheckIn()
             const claimed = await jobModel.claimNextJob(new Date(0))
             skewAppClock()
-            const [{ now: before }] = await Prisma.$queryRaw<{ now: Date }[]>`SELECT now() AS now`
+            const before = await readDatabaseNow()
 
             expect(await jobModel.markJobRetry(claimed!, 'Error')).toBe(true)
 
-            const [{ now: after }] = await Prisma.$queryRaw<{ now: Date }[]>`SELECT now() AS now`
+            const after = await readDatabaseNow()
             const job = await Prisma.checkInAiJob.findFirstOrThrow()
             expect(job.runAfter.getTime()).toBeGreaterThanOrEqual(
                 before.getTime() + CHECK_IN_AI_JOB_RETRY_DELAY_MS - secondInMs
@@ -154,7 +166,7 @@ describe('Check-in AI job — Integration', () => {
             expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
         })
 
-        it('re-submitting a backing-off job makes it claimable at once', async () => {
+        it('re-submitting a backing-off job makes it claimable at once despite the skew', async () => {
             const { res, userId } = await postCheckIn()
             const claimed = await jobModel.claimNextJob(new Date(0))
             skewAppClock()
