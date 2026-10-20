@@ -2,6 +2,7 @@ import { CheckInAiJobStatus } from '../../prisma/generated/prisma/enums'
 import {
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
     CHECK_IN_AI_JOB_RETRY_DELAY_MS,
+    CHECK_IN_AI_JOB_RUN_IMMEDIATELY,
     CHECK_IN_AI_JOB_STALE_ERROR
 } from '../constants/checkInAiJob'
 import Prisma from '../utils/prismaClient'
@@ -27,7 +28,7 @@ export const enqueueJob = async (
             attempts: 0,
             lockedAt: null,
             lastError: null,
-            runAfter: new Date()
+            runAfter: CHECK_IN_AI_JOB_RUN_IMMEDIATELY
         }
     })
 }
@@ -94,8 +95,7 @@ export const holdsClaim = async (job: ClaimedCheckInAiJob): Promise<boolean> => 
 const finishJob = async (
     job: ClaimedCheckInAiJob,
     status: CheckInAiJobStatus,
-    lastError: string | null,
-    extraData: { runAfter?: Date } = {}
+    lastError: string | null
 ): Promise<boolean> => {
     const { count } = await Prisma.checkInAiJob.updateMany({
         where: {
@@ -106,8 +106,7 @@ const finishJob = async (
         data: {
             status,
             lockedAt: null,
-            lastError,
-            ...extraData
+            lastError
         }
     })
 
@@ -121,15 +120,27 @@ export const markJobDone = (job: ClaimedCheckInAiJob) =>
         null
     )
 
-export const markJobRetry = (
+// runAfter is written with the database clock, the one claimNextJob compares
+// it with, so app and database clock skew cannot shorten or stretch the delay.
+// Same claim guard as finishJob.
+export const markJobRetry = async (
     job: ClaimedCheckInAiJob,
     lastError: string
-) => finishJob(
-    job,
-    CheckInAiJobStatus.PENDING,
-    lastError,
-    { runAfter: new Date(Date.now() + CHECK_IN_AI_JOB_RETRY_DELAY_MS) }
-)
+): Promise<boolean> => {
+    const count = await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob"
+        SET "status" = 'PENDING',
+            "lockedAt" = NULL,
+            "lastError" = ${lastError},
+            "runAfter" = now() + ${CHECK_IN_AI_JOB_RETRY_DELAY_MS} * interval '1 millisecond',
+            "updatedAt" = now()
+        WHERE "id" = ${job.id}
+            AND "status" = 'RUNNING'
+            AND "lockedAt" = ${job.lockedAt}
+    `
+
+    return count === 1
+}
 
 export const markJobFailed = (
     job: ClaimedCheckInAiJob,
