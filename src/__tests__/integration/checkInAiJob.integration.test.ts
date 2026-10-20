@@ -8,7 +8,7 @@ import {
     CHECK_IN_AI_JOB_RETRY_DELAY_MS
 } from '../../constants/checkInAiJob'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
-import { minuteInMs, secondInMs } from '../../constants/time'
+import { hourInMs, minuteInMs, secondInMs } from '../../constants/time'
 import { createToken } from '../../lib/authCrypto'
 import * as jobModel from '../../models/checkInAiJobModel'
 import { drainJobs } from '../../services/checkInAiWorkerService'
@@ -106,6 +106,77 @@ describe('Check-in AI job — Integration', () => {
 
         const retried = await jobModel.claimNextJob(new Date(0))
         expect(retried!.attempts).toBe(2)
+    })
+
+    describe.each([
+        ['ahead of', hourInMs],
+        ['behind', -hourInMs]
+    ])('when the app clock is an hour %s the database clock', (_, skewMs) => {
+        // Only Date is faked (both Date.now and new Date()), timers stay real
+        const skewAppClock = () => {
+            jest.useFakeTimers({
+                now: Date.now() + skewMs,
+                doNotFake: [
+                    'hrtime',
+                    'nextTick',
+                    'performance',
+                    'queueMicrotask',
+                    'setImmediate',
+                    'clearImmediate',
+                    'setInterval',
+                    'clearInterval',
+                    'setTimeout',
+                    'clearTimeout'
+                ]
+            })
+        }
+
+        afterEach(() => {
+            jest.useRealTimers()
+        })
+
+        it('schedules the retry by the database clock', async () => {
+            await postCheckIn()
+            const claimed = await jobModel.claimNextJob(new Date(0))
+            skewAppClock()
+            const [{ now: before }] = await Prisma.$queryRaw<{ now: Date }[]>`SELECT now() AS now`
+
+            expect(await jobModel.markJobRetry(claimed!, 'Error')).toBe(true)
+
+            const [{ now: after }] = await Prisma.$queryRaw<{ now: Date }[]>`SELECT now() AS now`
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.runAfter.getTime()).toBeGreaterThanOrEqual(
+                before.getTime() + CHECK_IN_AI_JOB_RETRY_DELAY_MS - secondInMs
+            )
+            expect(job.runAfter.getTime()).toBeLessThanOrEqual(
+                after.getTime() + CHECK_IN_AI_JOB_RETRY_DELAY_MS + secondInMs
+            )
+            expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+        })
+
+        it('re-submitting a backing-off job makes it claimable at once', async () => {
+            const { res, userId } = await postCheckIn()
+            const claimed = await jobModel.claimNextJob(new Date(0))
+            skewAppClock()
+            await jobModel.markJobRetry(claimed!, 'Error')
+
+            await jobModel.enqueueJob(res.body.data.id, userId)
+
+            const fresh = await jobModel.claimNextJob(new Date(0))
+            expect(fresh!.attempts).toBe(1)
+        })
+    })
+
+    it('does not retry a job whose claim was lost', async () => {
+        const { res, userId } = await postCheckIn()
+        const claimed = await jobModel.claimNextJob(new Date(0))
+        await jobModel.enqueueJob(res.body.data.id, userId)
+
+        expect(await jobModel.markJobRetry(claimed!, 'Error')).toBe(false)
+
+        const job = await Prisma.checkInAiJob.findFirstOrThrow()
+        expect(job.attempts).toBe(0)
+        expect(job.lastError).toBeNull()
     })
 
     it('re-submitting a backing-off job makes it claimable at once', async () => {
