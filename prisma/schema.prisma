@@ -41,7 +41,8 @@ model User {
   deleteAccountExpiration DateTime?
   deleteAccountAttempts   Int       @default(0)
 
-  profile Profile?
+  profile        Profile?
+  supportTickets SupportTicket[]
 
   @@index([username(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_username_trgm_idx")
   @@index([deletedAt])
@@ -344,6 +345,44 @@ model LaunchFunnelToken {
   token        String    @id
   openedAt     DateTime  @default(now())
   registeredAt DateTime?
+}
+
+// Support messages from POST /support/contact. Holds personal data (sender
+// email, free text). userId is nulled when the account is purged (SetNull),
+// the ticket and its email stay until the retention job removes it.
+model SupportTicket {
+  id          String              @id @default(uuid())
+  topic       String
+  message     String
+  senderEmail String
+  userId      String?
+  user        User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status      SupportTicketStatus @default(NEW)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  closedAt    DateTime?
+
+  replies SupportTicketReply[]
+
+  @@index([status, createdAt])
+  @@index([userId])
+}
+
+model SupportTicketReply {
+  id           String        @id @default(uuid())
+  ticketId     String
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  body         String
+  sentByUserId String?
+  sentAt       DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+enum SupportTicketStatus {
+  NEW
+  ANSWERED
+  CLOSED
 }
 
 enum InsightType {

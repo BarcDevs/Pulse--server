@@ -11,7 +11,8 @@ import type {
     GoogleOAuthConfig,
     LaunchFunnelConfig,
     LoggingConfig,
-    ServerConfig
+    ServerConfig,
+    SupportReaderConfig
 } from '../src/types/configType'
 
 const env: EnvConfig = config.get<EnvConfig>('env')
@@ -125,6 +126,10 @@ const launchFunnelConfig: LaunchFunnelConfig = {
     secret: config.get<string>('launchFunnel.secret')
 }
 
+const supportReaderConfig: SupportReaderConfig = {
+    secret: config.get<string>('supportReader.secret')
+}
+
 export {
     aiConfig,
     aiFallbackOrder,
@@ -139,5 +144,6 @@ export {
     isProd,
     launchFunnelConfig,
     loggingConfig,
-    serverConfig
+    serverConfig,
+    supportReaderConfig
 }

@@ -42,5 +42,8 @@ export default {
     },
     launchFunnel: {
         secret: 'LAUNCH_FUNNEL_SECRET'
+    },
+    supportReader: {
+        secret: 'SUPPORT_READER_SECRET'
     }
 }

@@ -11,6 +11,7 @@ import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
 import { scheduleAccountPurge } from './services/accountDeletionService'
 import { startCheckInAiWorker } from './services/checkInAiWorkerService'
+import { scheduleSupportTicketRetention } from './services/supportTicketRetentionService'
 import { verifyEmailTransport } from './utils/emailSender'
 import logger from './utils/logger'
 import prisma from './utils/prismaClient'
@@ -51,6 +52,7 @@ if (env !== 'test') {
 
         verifyEmailTransport()
         scheduleAccountPurge()
+        scheduleSupportTicketRetention()
         stopCheckInAiWorker = startCheckInAiWorker()
     })
 

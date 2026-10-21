@@ -86,6 +86,11 @@ LAUNCH_FUNNEL_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --
 if [ -z "$LAUNCH_FUNNEL_SECRET" ]; then
     echo "WARNING: pulse/app/LAUNCH_FUNNEL_SECRET not readable - the launch-funnel endpoint will reject every request." >&2
 fi
+# Optional: a missing secret leaves the Claude support-ticket reader closed (401) instead of blocking the deploy
+SUPPORT_READER_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/SUPPORT_READER_SECRET --query SecretString --output text 2>/dev/null || true)
+if [ -z "$SUPPORT_READER_SECRET" ]; then
+    echo "WARNING: pulse/app/SUPPORT_READER_SECRET not readable - GET /support/claude/tickets will reject every request." >&2
+fi
 
 # Expand/contract gate: destructive migrations (dropped/renamed columns or
 # tables) must ship in a separate release after the code that stops reading
@@ -128,6 +133,7 @@ RUN_ARGS=(
     -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET"
     -e EMAIL_PASSWORD="$RESEND_API_KEY"
     -e LAUNCH_FUNNEL_SECRET="$LAUNCH_FUNNEL_SECRET"
+    -e SUPPORT_READER_SECRET="$SUPPORT_READER_SECRET"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 

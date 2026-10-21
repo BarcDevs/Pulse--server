@@ -66,6 +66,9 @@ export default {
     },
     launchFunnel: {
         secret: ''
+    },
+    supportReader: {
+        secret: ''
     }
 }
 

@@ -37,6 +37,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | `pulse/app/GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `pulse/app/RESEND_API_KEY` | Resend API key (sending access), passed as `EMAIL_PASSWORD`; SMTP host/port/user/from live in `config/default.ts` |
 | `pulse/app/LAUNCH_FUNNEL_SECRET` | Raw shared secret (min 16 chars) preflight sends as `Authorization: Bearer` to `GET /launch-funnel`; must equal preflight's `PULSE_FUNNEL_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. The EC2 role needs `secretsmanager:GetSecretValue` on it |
+| `pulse/app/SUPPORT_READER_SECRET` | Raw shared secret (min 16 chars) the Claude support-ticket reader sends as `Authorization: Bearer` to `GET /support/claude/tickets` (the only route that accepts it); passed as `SUPPORT_READER_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. **IAM:** add this secret's ARN to the `secretsmanager:GetSecretValue` resources of `pulse-ec2-role` before the first deploy that should serve it, or the redeploy script cannot read it. Create it with a fresh random value, for example `openssl rand -hex 32` |
 
 `GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
 var in `ec2-redeploy.sh`'s `RUN_ARGS`, built from `API_VERSION` (defaults to
@@ -119,6 +120,25 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   `pulse_app` needs no DDL rights.
 - Index-only migrations (`CREATE`/`DROP INDEX`) pass the redeploy destructive-migration gate,
   which only blocks `DROP`/`RENAME COLUMN|TABLE`.
+
+## Support tickets
+
+`POST /support/contact` stores each message in `SupportTicket` (the `20261021120000_support_tickets`
+migration) before it emails support. The tables are additive, so the redeploy gate lets the
+migration through, but `pulse_app` has no DDL: the migration runs as `pulse_admin` from the
+`migrate` image **before** the runner image starts, or the new code fails on the missing table.
+`pulse_app` gets DML on the new tables from the default privileges set by
+`scripts/security/create-app-db-user.sh`.
+
+- **Retention**: an in-process daily job (like the account purge) deletes `CLOSED` tickets 6
+  months after `closedAt` and never-closed tickets 24 months after `createdAt`. A purged
+  account's tickets keep their email (`userId` becomes null) until that point.
+- **First admin** (the ticket routes need `User.role = 'ADMIN'`, and no route grants it). Run
+  once, as `pulse_admin` over SSM, with the account's own email:
+  `UPDATE "User" SET role = 'ADMIN' WHERE email = '<admin email>';`
+- **Claude reader**: `GET /support/claude/tickets` uses `pulse/app/SUPPORT_READER_SECRET` (see the
+  secrets table above).
+- Tickets hold personal data (sender email, free text); the app never logs them, only ticket ids.
 
 ## Known build-time gotchas
 
