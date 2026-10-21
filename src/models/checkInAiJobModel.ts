@@ -1,6 +1,8 @@
 import { CheckInAiJobStatus } from '../../prisma/generated/prisma/enums'
 import {
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+    CHECK_IN_AI_JOB_RETRY_DELAY_MS,
+    CHECK_IN_AI_JOB_RUN_IMMEDIATELY,
     CHECK_IN_AI_JOB_STALE_ERROR
 } from '../constants/checkInAiJob'
 import Prisma from '../utils/prismaClient'
@@ -25,13 +27,15 @@ export const enqueueJob = async (
             status: CheckInAiJobStatus.PENDING,
             attempts: 0,
             lockedAt: null,
-            lastError: null
+            lastError: null,
+            runAfter: CHECK_IN_AI_JOB_RUN_IMMEDIATELY
         }
     })
 }
 
 // SKIP LOCKED lets several instances claim different jobs without waiting on
-// each other; a RUNNING job past staleBefore is taken over (dead worker).
+// each other; a PENDING job waits for its runAfter (retry backoff);
+// a RUNNING job past staleBefore is taken over (dead worker).
 // A stale job that already used all its attempts is failed first, so a job
 // that keeps killing the process is not retried forever.
 export const claimNextJob = async (
@@ -58,7 +62,7 @@ export const claimNextJob = async (
             "updatedAt" = now()
         WHERE "id" = (
             SELECT "id" FROM "CheckInAiJob"
-            WHERE "status" = 'PENDING'
+            WHERE ("status" = 'PENDING' AND "runAfter" <= now())
                 OR ("status" = 'RUNNING' AND "lockedAt" < ${staleBefore})
             ORDER BY "createdAt"
             LIMIT 1
@@ -99,7 +103,11 @@ const finishJob = async (
             status: CheckInAiJobStatus.RUNNING,
             lockedAt: job.lockedAt
         },
-        data: { status, lockedAt: null, lastError }
+        data: {
+            status,
+            lockedAt: null,
+            lastError
+        }
     })
 
     return count === 1
@@ -112,14 +120,27 @@ export const markJobDone = (job: ClaimedCheckInAiJob) =>
         null
     )
 
-export const markJobRetry = (
+// runAfter is written with the database clock, the one claimNextJob compares
+// it with, so app and database clock skew cannot shorten or stretch the delay.
+// Same claim guard as finishJob.
+export const markJobRetry = async (
     job: ClaimedCheckInAiJob,
     lastError: string
-) => finishJob(
-    job,
-    CheckInAiJobStatus.PENDING,
-    lastError
-)
+): Promise<boolean> => {
+    const count = await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob"
+        SET "status" = 'PENDING',
+            "lockedAt" = NULL,
+            "lastError" = ${lastError},
+            "runAfter" = now() + ${CHECK_IN_AI_JOB_RETRY_DELAY_MS} * interval '1 millisecond',
+            "updatedAt" = now()
+        WHERE "id" = ${job.id}
+            AND "status" = 'RUNNING'
+            AND "lockedAt" = ${job.lockedAt}
+    `
+
+    return count === 1
+}
 
 export const markJobFailed = (
     job: ClaimedCheckInAiJob,

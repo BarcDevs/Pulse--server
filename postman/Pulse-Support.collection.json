@@ -5,7 +5,9 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:4001" },
-    { "key": "apiVersion", "value": "v1" }
+    { "key": "apiVersion", "value": "v1" },
+    { "key": "supportReaderSecret", "value": "" },
+    { "key": "ticketId", "value": "" }
   ],
   "item": [
     {
@@ -116,6 +118,144 @@
             "body": {
               "mode": "raw",
               "raw": "{\"topic\": \"other\", \"message\": \"   \", \"email\": \"visitor@example.com\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets (admin, needs an ADMIN session cookie from Auth > Login)",
+      "item": [
+        {
+          "name": "List Tickets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200))",
+                  "pm.test('has items and nextCursor', () => {",
+                  "  const data = pm.response.json().data",
+                  "  pm.expect(data.items).to.be.an('array')",
+                  "  pm.expect(data).to.have.property('nextCursor')",
+                  "  if (data.items.length) pm.collectionVariables.set('ticketId', data.items[0].id)",
+                  "})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/tickets?status=NEW&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "tickets"],
+              "query": [
+                { "key": "status", "value": "NEW" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ticket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200))",
+                  "pm.test('has replies', () => pm.expect(pm.response.json().data.replies).to.be.an('array'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "tickets", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "List Tickets (invalid status)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', () => pm.response.to.have.status(400))"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/tickets?status=DONE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "tickets"],
+              "query": [{ "key": "status", "value": "DONE" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Claude Reader (Bearer SUPPORT_READER_SECRET)",
+      "item": [
+        {
+          "name": "List Tickets (reader)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200))",
+                  "pm.test('only allow-listed fields', () => {",
+                  "  const items = pm.response.json().data.items",
+                  "  items.forEach(t => pm.expect(Object.keys(t).sort()).to.eql(['createdAt', 'excerpt', 'id', 'senderEmail', 'status', 'topic']))",
+                  "})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supportReaderSecret}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/claude/tickets?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "claude", "tickets"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "List Tickets (reader, wrong secret)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 401', () => pm.response.to.have.status(401))"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer not-the-right-secret-at-all" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/support/claude/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "support", "claude", "tickets"]
             }
           }
         }

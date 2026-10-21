@@ -85,3 +85,15 @@ context in this topic — not routinely.
 
 **How to apply:** if a diagnosis detail belongs on an issue, it goes in the local record instead. `@claude` here is read by this routine, not by a GitHub app: do not install one on the repo, or both would act. The approval for a fix is still the owner's `approved` label after the plan.
 
+---
+
+## 21/10/2026 — One shared fixer routine with a profile per repo; the watchers only file issues; flagged fixes are held
+
+**Problem:** The fixer only knew the server repo. Client issues needed manual work, a feature spanning both repos had no link between its two issues, and the client Sentry watcher still fixed and merged on its own, racing any fixer on the same records branch and skipping the owner's approval.
+
+**Decision:** (1) One routine file, `prod-error-fixer.md`, with a profile per repo (`profiles/server.md`, `profiles/client.md`) holding paths, checks, rules files, lock and labels; two scheduled tasks, one per repo, so a slow or failing run in one never delays the other. (2) The client Sentry watcher becomes one client watcher that only files issues (Sentry issues as `sentry-error`, user feedback read from the support-ticket reader as `user-feedback`), like the AWS monitor; the fixer plans and fixes them after the owner's approval. (3) Both repos' records branches are guarded by a lock file per repo (`records.lock`, `client.lock`). (4) A server plan carries `flags` (`client-breaking`, `migration`); a flagged fix is held with `held-for-review`, never merged on its own, and ships only after the owner's `ship-ok` label, in the first run that starts inside 02:00 to 05:00 Asia/Jerusalem. (5) A server plan with a client impact files one linked client issue (label `cross-repo`, one-line public summary, the full change summary kept in `.watchers/plans/client/issue-<n>/server-change.md`) and triggers the client task; the server fix itself ships first and is additive. Phone pushes and the notified list prefix issue numbers with `S` or `C`.
+
+**Why over alternatives:** a tracking issue per feature was rejected in favour of a `cross-repo` label plus cross-links (no extra object to keep in sync). A single task for both repos was rejected so the repos cannot delay or break each other. Keeping the watcher merging fixes was rejected because it bypassed the owner's approval and raced the fixer on `monitor/records`. The production deploy approval (the `aws-production` environment reviewer) is untouched here; replacing it with ship rules is its own issue (#81).
+
+**How to apply:** new repo-specific behaviour goes in a profile, not in the routine body. Mark a plan `client-breaking` whenever an endpoint, response shape or field changes; the routine does not guess.
+

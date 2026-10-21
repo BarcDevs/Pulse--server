@@ -5,6 +5,7 @@ import App from '../../app'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { supportRateLimiter } from '../../middlewares/rateLimiting'
 import { sendEmail } from '../../utils/emailSender'
+import logger from '../../utils/logger'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthToken,
@@ -21,6 +22,97 @@ const validBody = {
 }
 
 describe(`POST ${endpoint}`, () => {
+    beforeEach(() => {
+        prismaMock.supportTicket.create
+            .mockResolvedValue({ id: 'ticket-1' } as never)
+    })
+
+    describe('ticket storage', () => {
+        it('stores the ticket before emailing support', async () => {
+            const response = await supertest(App)
+                .post(endpoint)
+                .send(validBody)
+
+            expect(response.status).toBe(HttpStatusCodes.OK)
+            expect(prismaMock.supportTicket.create).toHaveBeenCalledWith({
+                data: {
+                    topic: 'technical',
+                    message: 'The app will not load',
+                    senderEmail: 'visitor@test.com',
+                    userId: undefined
+                }
+            })
+            expect(
+                prismaMock.supportTicket.create.mock.invocationCallOrder[0]
+            ).toBeLessThan(
+                (sendEmail as jest.Mock).mock.invocationCallOrder[0]
+            )
+        })
+
+        it('links the ticket to the signed-in user and uses the account email', async () => {
+            const mockUser = createMockUser()
+            prismaMock.user.findUnique
+                .mockResolvedValue(mockUser as never)
+
+            await withBearerAuth(
+                supertest(App).post(endpoint),
+                createAuthToken(mockUser)
+            ).send(validBody)
+
+            expect(prismaMock.supportTicket.create).toHaveBeenCalledWith({
+                data: {
+                    topic: 'technical',
+                    message: 'The app will not load',
+                    senderEmail: mockUser.email,
+                    userId: mockUser.id
+                }
+            })
+        })
+
+        it('puts the ticket id in the support email', async () => {
+            await supertest(App).post(endpoint).send(validBody)
+
+            const text = (sendEmail as jest.Mock).mock.calls[0][2]
+            expect(text).toContain('Ticket: ticket-1')
+        })
+
+        it('keeps the ticket and reports 500 when the email fails', async () => {
+            ;(sendEmail as jest.Mock)
+                .mockRejectedValueOnce(new Error('smtp down'))
+
+            const response = await supertest(App)
+                .post(endpoint)
+                .send(validBody)
+
+            expect(response.status)
+                .toBe(HttpStatusCodes.INTERNAL_SERVER_ERROR)
+            expect(prismaMock.supportTicket.create).toHaveBeenCalledTimes(1)
+            expect(prismaMock.supportTicket.delete).not.toHaveBeenCalled()
+        })
+
+        it('logs the ticket id but never the email or the message', async () => {
+            const errorSpy = jest.spyOn(logger, 'error')
+            ;(sendEmail as jest.Mock)
+                .mockRejectedValueOnce(new Error('smtp down'))
+
+            await supertest(App).post(endpoint).send(validBody)
+
+            const logged = JSON.stringify(errorSpy.mock.calls)
+            expect(logged).toContain('ticket-1')
+            expect(logged).not.toContain('visitor@test.com')
+            expect(logged).not.toContain('The app will not load')
+            errorSpy.mockRestore()
+        })
+
+        it('stores nothing when validation fails', async () => {
+            await supertest(App)
+                .post(endpoint)
+                .send({ ...validBody, topic: 'nope' })
+
+            expect(prismaMock.supportTicket.create).not.toHaveBeenCalled()
+        })
+    })
+
     describe('validation', () => {
         it.each([
             ['missing topic', { message: 'hi', email: 'a@b.com' }],

@@ -75,3 +75,17 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 
 **How to apply:** any new reply query filters on the reply-aware active-author condition, never on `activeAuthorWhere` alone. Reply text is kept verbatim, so it can still contain what the user wrote about themselves.
 
+
+---
+
+## 21/10/2026 — Support tickets are stored: retention, purged accounts, and a service key for the Claude reader
+
+**Problem:** `POST /support/contact` only emailed support and stored nothing, so a future admin app had no data and a failed email lost the message. Tickets hold personal data (sender email, free text), so how long they live and who reads them needed an answer (issue #66).
+
+**Decision (owner):** (1) **Reader credential:** the Claude reader uses a service key (`SUPPORT_READER_SECRET`, a Bearer secret like `LAUNCH_FUNNEL_SECRET`), not an admin session. It is accepted on `GET /support/claude/tickets` only, has its own 30 per 15 min limiter and returns a masked sender email, a short excerpt and no user id. (2) **Retention:** `CLOSED` tickets are deleted 6 months after `closedAt`; tickets never closed are deleted 24 months after `createdAt`. (3) **Purged accounts:** the ticket is kept when its account is purged (`userId` becomes null, the email stays) until it is `CLOSED`; at retention time the email and user link are blanked.
+
+**Implementation choice:** the retention job deletes the whole row (and its replies) instead of nulling `senderEmail` and `userId` on a row that is kept. Deletion removes both fields at the same moment the decision wanted them blanked, and a ticket whose only purpose was that contact has no value left. `userId` is `ON DELETE SET NULL`, so the account purge needs no code. A never-closed ticket is identified by `closedAt` null, not by status. No route closes a ticket yet (the admin app will set `CLOSED` and `closedAt`), so until then only the 24-month cap runs.
+
+**Why over alternatives:** an admin session for the reader would hand an automation account a full admin login and the full emails and messages. A single shared retention period would either keep closed tickets too long or drop open ones a user is still waiting on.
+
+**How to apply:** never log a ticket email or message, only its id. Any new ticket read for automation maps through the allow-list in `src/lib/supportTicketReader.ts`. A new route that should accept `SUPPORT_READER_SECRET` needs the owner's say-so: the credential is deliberately accepted nowhere else.

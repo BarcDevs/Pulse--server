@@ -275,7 +275,7 @@ Google AI API (for insight generation)
 - **Server**: Express.js with middleware (auth, validation, error handling)
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: JWT in HTTP-only cookies + CSRF tokens
-- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`; SQS and socket push are planned for scale (`scaling-todo.md`)
+- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); SQS and socket push are planned for scale (`scaling-todo.md`)
 - **Caching**: Session/token caching via Redis (future optimization)
 
 ---
@@ -479,7 +479,15 @@ Cached 10 minutes per time window. Falls back to static template if AI fails.
 
 ### Support Endpoints — /api/{version}/support
 
-**POST /contact** — Public (optional auth, no CSRF), 5 req/15min/IP — `{ topic, message, email? }` → 200 `{ message: 'Support message sent' }`. `topic` is one of account/billing/technical/privacy/careTeam/feedback/other; `message` 1-2000 chars; `email` required when logged out (a signed-in user's account email is used instead). Delivered via `sendEmail` to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
+**POST /contact** — Public (optional auth, no CSRF), 5 req/15min/IP — `{ topic, message, email? }` → 200 `{ message: 'Support message sent' }`. `topic` is one of account/billing/technical/privacy/careTeam/feedback/other; `message` 1-2000 chars; `email` required when logged out (a signed-in user's account email is used instead). The message is first stored as a `SupportTicket` (`topic`, `message`, `senderEmail`, optional `userId` with `onDelete: SetNull`, `status` NEW/ANSWERED/CLOSED, `createdAt`, `updatedAt`, `closedAt`; replies in `SupportTicketReply`), then delivered via `sendEmail` to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender. A failed email keeps the ticket (the request still returns 500). Logs carry the ticket id only, never the email or message.
+
+**GET /tickets**, **GET /tickets/:ticketId** — Admin only (`isAuthenticated` + `isAdmin`). Cursor-paginated list (`status`, `limit` 1-100, `cursor`), newest first; the detail includes replies. For a future admin app; the first admin is set with one SQL statement (`docs/DEPLOYMENT.md`).
+
+**GET /claude/tickets** — Bearer `SUPPORT_READER_SECRET` (min 16 chars, timing-safe compare, 401 when unset, accepted on this route only), 30 req/15min/IP. Returns `{ id, topic, createdAt, status, excerpt (120 chars), senderEmail (masked) }`, no user id.
+
+`recordTicketReply(ticketId, adminId, body)` (service, no route yet) emails the sender, stores a `SupportTicketReply` and sets the ticket `ANSWERED`; a `CLOSED` ticket is refused.
+
+Retention: a daily in-process job deletes `CLOSED` tickets 6 months after `closedAt` and never-closed tickets 24 months after creation. Purging an account keeps its tickets (`userId` null, email kept) until then; deleting the ticket removes the email and replies.
 
 ### Launch Funnel Endpoints — /api/{version}/launch-funnel
 

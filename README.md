@@ -190,7 +190,7 @@ graph TD
 
 ### Key Flows
 
-**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → the response returns at once and a database-backed job (`CheckInAiJob`, claimed with `FOR UPDATE SKIP LOCKED`, retried up to 3 times, restart-safe) runs the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → the client polls `GET /check-in?limit=1` until `insightsStatus` is `ready` and shows the result in the AI Insight Panel.
+**Daily Check-in** — Patient submits a check-in → validated → saved to `check_ins` + `streaks` → the response returns at once and a database-backed job (`CheckInAiJob`, claimed with `FOR UPDATE SKIP LOCKED`, two attempts 10 s apart, restart-safe) runs the AI pipeline → Gemini generates a motivational message, trend alert, or weekly summary → the client polls `GET /check-in?limit=1` until `insightsStatus` is `ready` and shows the result in the AI Insight Panel.
 
 **Forum Engagement** — Authenticated request passes the JWT + RBAC guard → post/reply written to `posts/replies` → a `new reply` event fires through Socket.io → Redis broadcasts the update to all subscribed clients in real time.
 
@@ -480,7 +480,10 @@ Login keeps the older rule (8+ characters, a letter and a digit) so existing acc
 
 | Method | Endpoint | Auth | Rate Limit | Description |
 |---|---|---|---|---|
-| `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Email a message to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required |
+| `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Store the message as a support ticket, then email it to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required. Tickets are deleted 6 months after being closed (24 months if never closed) |
+| `GET` | `/api/{version}/support/tickets` | Cookie, `ADMIN` | - | Stored support tickets, newest first (`?status=`, `?limit=`, `?cursor=`) |
+| `GET` | `/api/{version}/support/tickets/:ticketId` | Cookie, `ADMIN` | - | One ticket with its replies |
+| `GET` | `/api/{version}/support/claude/tickets` | Bearer `SUPPORT_READER_SECRET` | 30/15min | Ticket summaries for the Claude reader: id, topic, createdAt, status, short excerpt, masked sender email, no user id |
 | `POST` | `/api/{version}/launch-funnel/open` | None (no CSRF) | 30/hour | Record a Launch Mailer `lm` token as opened and set the `launch_token` cookie; signup (email or Google) then records it as registered |
 | `GET` | `/api/{version}/launch-funnel` | Bearer `LAUNCH_FUNNEL_SECRET` | - | `{ opened, registered }` distinct tokens for preflight; 401 without the secret |
 

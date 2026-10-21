@@ -191,3 +191,54 @@ The TODO pass reached "Real email verification at signup", which sat in a leftov
 
 **How to apply:** when extending a flow to a new source, widen the existing path instead of adding a parallel one. Let differences follow from the content (error vs feature), not from who filed it.
 
+
+---
+
+## 20/10/2026 — Reply in English, even when the user writes in Hebrew
+
+**What happened:** The user asked a question in Hebrew and I answered in Hebrew.
+
+**Correction:** "You should write in English."
+
+**How to apply:** write every reply in English regardless of the language the user's message is in. Quote Hebrew only when it is the subject (UI text, prompts, user messages).
+
+
+---
+
+## 20/10/2026 — Write the test first, see it fail, then fix
+
+**What happened:** On issue #69 I wrote the fix and then the regression tests, and only proved the tests failed by stashing the fix afterwards.
+
+**Correction:** "Next time start with the tests BEFORE fixing."
+
+**How to apply:** for every fix, write the regression test (or the tests for new behaviour) first, run it on the unfixed code and see it fail with the reported error, then make the change and see it pass. `prod-error-fixer.md` steps 3 and 4 say so.
+
+---
+
+## 20/10/2026 — Don't ask before pushing `development` when the routine already says to
+
+**What happened:** After a clean fix and review I asked whether to push `development` and open the PR to `main`, although the fixer routine's ship step already does both for an approved issue.
+
+**Correction:** "Yes push, shouldn't ask me that!!!!!!!"
+
+**How to apply:** an approved issue that passed the gate goes through the whole ship step (merge, push `development` and tags, release PR) without asking. Ask only when a gate fails or the routine says to stop.
+
+---
+
+## 20/10/2026 — Edit files with the Edit tool, not ad-hoc Node scripts
+
+**What happened:** On issue #69 I changed source, test, doc and routine files with throwaway Node scripts (`node /tmp/...cjs` doing `String.replace`). Several replacements silently matched nothing and had to be redone, one script was never written because the command was blocked, and the permission classifier flagged the routine edit as instruction poisoning.
+
+**Correction:** "Why did u use a script for edit in the first place" (no reason was good enough; the Edit tool does multi-hunk edits and CRLF fine).
+
+**How to apply:** change tracked files with the Edit tool (or Write for a new file), one visible hunk at a time. No script that rewrites repo files, and no `sed -i` for content changes. A script is only for generating data, never for editing files by string replace.
+
+---
+
+## 20/10/2026 — Clean up after every run
+
+**What happened:** After shipping #69 I left removed worktrees' folders behind (three empty dirs under `pulse--server.wt/`), a half-edited worktree and branch, scratch scripts in `/tmp`, and a test Postgres container, until the user pointed at them.
+
+**Correction:** "You should always cleanup after u"
+
+**How to apply:** before the final report of any run, check and remove what the run created: worktrees (`git worktree list`, then remove, `git branch -d` once `git cherry` is clean, delete the folder if removal left it), the test Postgres compose project (`docker-compose -p <worktree-name> -f docker-compose.test.yml down`), temp scripts and logs, and the `records.lock` if it was written. Then list what is left and say so in the report.

@@ -68,6 +68,10 @@ type LaunchFunnelConfig = {
     secret: string
 }
 
+type SupportReaderConfig = {
+    secret: string
+}
+
 type LoggingConfig = {
     dir: string
 }
@@ -83,5 +87,6 @@ export type {
     GoogleOAuthConfig,
     LaunchFunnelConfig,
     LoggingConfig,
-    ServerConfig
+    ServerConfig,
+    SupportReaderConfig
 }

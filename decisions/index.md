@@ -26,6 +26,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 12/10/2026 | Prompts are classes extending one abstract `PromptBuilder` that always adds the language and output rules |
 | 13/10/2026 | Post views: one per profile per rolling 24h via a dedicated `/view` call, not a side effect of GET |
 | 18/10/2026 | AI texts get hard length limits per kind and language from one `TEXT_LIMITS` table (prompt and validator share it) |
+| 19/10/2026 | Check-in AI jobs: two attempts, 10 s apart via `runAfter` (written with the database clock); a re-submit retries at once |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).
@@ -74,6 +75,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 | 28/09/2026 | Account deletion = 30-day countdown + support for immediate; Google links only into verified local accounts |
 | 29/09/2026 | Remaining audit findings: M3 opt-out toggle, L9 image host allowlist, M6 basic headers + CSP report-only, overnight commit+merge-local authority |
 | 02/10/2026 | Account deletion keeps replies as `deleted-user` (nullable author, SET NULL); posts still deleted |
+| 21/10/2026 | Support tickets stored: service key for the Claude reader, 6-month (closed) and 24-month (never closed) retention, purged accounts keep tickets until retention |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.
@@ -86,3 +88,4 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 | 18/10/2026 | AWS error watcher files GitHub issues; a separate fixer routine publishes a plan, waits for the owner's `approved` label, then fixes |
 | 18/10/2026 | The fixer routine treats every issue the same, whoever filed it (owner-authored, no label needed); one plan/approval/fix path |
 | 18/10/2026 | Public repo: issues carry a short summary only, details stay local; others' issues only notify the owner, who hands one over with an `@claude` comment |
+| 21/10/2026 | One shared fixer routine with a profile per repo; watchers only file issues; client-breaking or migration fixes are held for the owner's `ship-ok`; cross-repo work uses a linked issue |

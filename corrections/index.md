@@ -35,6 +35,7 @@ Standing rules about how to work in this repo — file cleanup, config vs. src/c
 | 11/10/2026 | Scaling follow-ups go in `scaling-todo.md`, not `TODO.md` |
 | 13/10/2026 | Started designing a scaling-phase feature from a leftover section in `TODO.md`; those entries belong in `scaling-todo.md` (repeat of 11/10) |
 | 11/10/2026 | "Deploy" = open the PR to `main` and merge it when CI is green, without asking again |
+| 20/10/2026 | Reply in English even when the user writes in Hebrew |
 
 ## Infra Facts — [[corrections/infra-facts]]
 Stale/wrong claims about current infrastructure, corrected against what's actually running post-AWS-migration.
@@ -69,3 +70,6 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 10/10/2026 | Credited the monitor agent to the owner and dated it today without checking git history |
 | 29/09/2026 | Model Selection in CLAUDE.md said Haiku for sub-agents (stale); Sonnet default, Opus via /opusplan |
 | 18/10/2026 | Added a separate `task` path for the owner's issues instead of treating every issue the same |
+| 20/10/2026 | Wrote the fix before the regression test; tests come first, seen failing, then the fix |
+| 20/10/2026 | Asked before pushing `development` although the fixer routine's ship step already does it |
+| 20/10/2026 | Edited files with ad-hoc Node scripts (silent no-op replaces, blocked run); use the Edit tool |
