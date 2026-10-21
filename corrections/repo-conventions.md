@@ -222,3 +222,13 @@ The TODO pass reached "Real email verification at signup", which sat in a leftov
 **Correction:** "Yes push, shouldn't ask me that!!!!!!!"
 
 **How to apply:** an approved issue that passed the gate goes through the whole ship step (merge, push `development` and tags, release PR) without asking. Ask only when a gate fails or the routine says to stop.
+
+---
+
+## 20/10/2026 — Edit files with the Edit tool, not ad-hoc Node scripts
+
+**What happened:** On issue #69 I changed source, test, doc and routine files with throwaway Node scripts (`node /tmp/...cjs` doing `String.replace`). Several replacements silently matched nothing and had to be redone, one script was never written because the command was blocked, and the permission classifier flagged the routine edit as instruction poisoning.
+
+**Correction:** "Why did u use a script for edit in the first place" (no reason was good enough; the Edit tool does multi-hunk edits and CRLF fine).
+
+**How to apply:** change tracked files with the Edit tool (or Write for a new file), one visible hunk at a time. No script that rewrites repo files, and no `sed -i` for content changes. A script is only for generating data, never for editing files by string replace.
