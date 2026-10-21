@@ -201,3 +201,24 @@ The TODO pass reached "Real email verification at signup", which sat in a leftov
 **Correction:** "You should write in English."
 
 **How to apply:** write every reply in English regardless of the language the user's message is in. Quote Hebrew only when it is the subject (UI text, prompts, user messages).
+
+
+---
+
+## 20/10/2026 — Write the test first, see it fail, then fix
+
+**What happened:** On issue #69 I wrote the fix and then the regression tests, and only proved the tests failed by stashing the fix afterwards.
+
+**Correction:** "Next time start with the tests BEFORE fixing."
+
+**How to apply:** for every fix, write the regression test (or the tests for new behaviour) first, run it on the unfixed code and see it fail with the reported error, then make the change and see it pass. `prod-error-fixer.md` steps 3 and 4 say so.
+
+---
+
+## 20/10/2026 — Don't ask before pushing `development` when the routine already says to
+
+**What happened:** After a clean fix and review I asked whether to push `development` and open the PR to `main`, although the fixer routine's ship step already does both for an approved issue.
+
+**Correction:** "Yes push, shouldn't ask me that!!!!!!!"
+
+**How to apply:** an approved issue that passed the gate goes through the whole ship step (merge, push `development` and tags, release PR) without asking. Ask only when a gate fails or the routine says to stop.
