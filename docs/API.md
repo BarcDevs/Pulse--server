@@ -344,7 +344,7 @@ Step 2 of the reset flow: checks the code without consuming it, so the client ca
 ### `POST /contact`
 > Public. Rate limited: 5 requests per 15 minutes per IP
 
-No `accessToken` and no CSRF token required (same as login/signup). If a valid `accessToken` cookie is present, the signed-in user's account email is used as the sender and the body `email` is ignored. Email is sent to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender.
+No `accessToken` and no CSRF token required (same as login/signup). If a valid `accessToken` cookie is present, the signed-in user's account email is used as the sender and the body `email` is ignored. The message is first stored as a `SupportTicket` (status `NEW`, linked to the signed-in user when there is one), then emailed to `SUPPORT_EMAIL` (default `support@pulserehab.app`) with `Reply-To` set to the sender and the ticket id in the body. If the email fails the ticket is kept and the request returns `500`.
 
 | Field     | Type   | Required        | Notes                                                                       |
 |-----------|--------|-----------------|-----------------------------------------------------------------------------|
@@ -368,7 +368,91 @@ No `accessToken` and no CSRF token required (same as login/signup). If a valid `
 }
 ```
 
-**Errors:** `400` validation error (bad topic/message/email, or no `email` when logged out) · `429` rate limit exceeded · `500` email delivery failed
+**Errors:** `400` validation error (bad topic/message/email, or no `email` when logged out) · `429` rate limit exceeded · `500` email delivery failed (the ticket is still stored)
+
+---
+
+### `GET /tickets`
+> Auth required, `ADMIN` role only. No CSRF (read)
+
+Newest first, cursor paginated. Tickets hold personal data (sender email, message), so only admins read them.
+
+| Query    | Type    | Notes                                                    |
+|----------|---------|----------------------------------------------------------|
+| `status` | string  | optional, `NEW` `ANSWERED` `CLOSED`                      |
+| `limit`  | integer | optional, 1-100, default 20                              |
+| `cursor` | string  | optional, the `nextCursor` of the previous page          |
+
+**Response `200`**
+```json
+{
+  "message": "Support tickets fetched",
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "topic": "technical",
+        "message": "The dashboard will not load",
+        "senderEmail": "visitor@example.com",
+        "userId": "uuid or null",
+        "status": "NEW",
+        "createdAt": "2026-10-21T10:00:00.000Z",
+        "updatedAt": "2026-10-21T10:00:00.000Z",
+        "closedAt": null
+      }
+    ],
+    "nextCursor": "uuid or null"
+  }
+}
+```
+
+`nextCursor` is `null` on the last page. `userId` is `null` for visitors who were not signed in and for accounts that were purged.
+
+**Errors:** `400` invalid `status`, `limit` or `cursor` · `401` not signed in · `403` not an admin · `404` unknown `cursor`
+
+---
+
+### `GET /tickets/:ticketId`
+> Auth required, `ADMIN` role only
+
+Returns the ticket as above plus `replies` (oldest first): `{ id, ticketId, body, sentByUserId, sentAt }`.
+
+**Errors:** `401` not signed in · `403` not an admin · `404` ticket not found
+
+---
+
+### `GET /claude/tickets`
+> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 requests per 15 minutes per IP
+
+For the Claude support-ticket reader. The credential is accepted on this route only, and no other credential works here. Same `status`, `limit` and `cursor` query as `GET /tickets`.
+
+**Response `200`**
+```json
+{
+  "message": "Support tickets fetched",
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "topic": "technical",
+        "createdAt": "2026-10-21T10:00:00.000Z",
+        "status": "NEW",
+        "excerpt": "The first 120 characters of the message, then ...",
+        "senderEmail": "v***@example.com"
+      }
+    ],
+    "nextCursor": "uuid or null"
+  }
+}
+```
+
+No user id, no full message and no full email are returned.
+
+**Errors:** `400` invalid query · `401` secret missing or wrong, or `SUPPORT_READER_SECRET` unset or under 16 chars on the server · `429` rate limit exceeded
+
+---
+
+**Retention:** a daily job deletes `CLOSED` tickets 6 months after `closedAt` and tickets never closed 24 months after `createdAt` (replies go with the ticket). An account purge keeps its tickets with `userId` null until then.
 
 ---
 
