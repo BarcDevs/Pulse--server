@@ -10,7 +10,7 @@ jest.mock('../../../middlewares/rateLimiting', () =>
 )
 
 afterEach(async () => {
-    await Prisma.$executeRaw`TRUNCATE TABLE "User", "Tag", "UnknownTagAttempt" CASCADE`
+    await Prisma.$executeRaw`TRUNCATE TABLE "User", "Tag", "UnknownTagAttempt", "SupportTicket" CASCADE`
 })
 
 afterAll(async () => {
