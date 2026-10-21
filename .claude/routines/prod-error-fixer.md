@@ -286,9 +286,6 @@ none.` The repo is public and ntfy is a third party: never put issue titles, pla
 or links in it. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
 mention it in the final notification and carry on; never retry in a loop.
 
-**Reminders.** From 2026-11-18 until 2026-11-25, add `Before leaving 25 Nov: PC awake, auto-start,
-gh + AWS tokens refreshed` to that push, even on a quiet run. Delete this paragraph after 25 Nov.
-
 ## Guardrails
 
 - The repo is public: nothing on an issue or PR beyond a short summary and the plan link, details
