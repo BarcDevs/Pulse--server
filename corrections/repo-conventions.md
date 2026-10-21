@@ -232,3 +232,13 @@ The TODO pass reached "Real email verification at signup", which sat in a leftov
 **Correction:** "Why did u use a script for edit in the first place" (no reason was good enough; the Edit tool does multi-hunk edits and CRLF fine).
 
 **How to apply:** change tracked files with the Edit tool (or Write for a new file), one visible hunk at a time. No script that rewrites repo files, and no `sed -i` for content changes. A script is only for generating data, never for editing files by string replace.
+
+---
+
+## 20/10/2026 — Clean up after every run
+
+**What happened:** After shipping #69 I left removed worktrees' folders behind (three empty dirs under `pulse--server.wt/`), a half-edited worktree and branch, scratch scripts in `/tmp`, and a test Postgres container, until the user pointed at them.
+
+**Correction:** "You should always cleanup after u"
+
+**How to apply:** before the final report of any run, check and remove what the run created: worktrees (`git worktree list`, then remove, `git branch -d` once `git cherry` is clean, delete the folder if removal left it), the test Postgres compose project (`docker-compose -p <worktree-name> -f docker-compose.test.yml down`), temp scripts and logs, and the `records.lock` if it was written. Then list what is left and say so in the report.
