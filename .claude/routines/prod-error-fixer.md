@@ -69,7 +69,7 @@ git writes).
 approved issue first (cheap, serial). Then launch one subagent per verified issue in a single
 message (Agent tool, always `model: sonnet`), each told: its issue number, the approved plan text,
 the slug, "work ONLY in your own worktree `monitor-fix-<slug>`; never touch `$MAIN`, `$WT`, another
-worktree, labels, PRs or `development`; do steps 3 and 4 and return the branch name, commit sha,
+worktree, labels, PRs or `development`; do steps 3 and 4 (test first, see it fail, then fix) and return the branch name, commit sha,
 test/typecheck output and the `Verification:` line, or a failure with the exact output". Pass it
 the plan's "Respects:" entries (the decision and correction files it cites) and tell it to read
 them before editing. Issue
@@ -93,7 +93,7 @@ For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-hu
    `git -C "$MAIN" worktree add "$MAIN/../pulse--server.wt/monitor-fix-<slug>" -b <type>/<slug> development` (`<type>` is `fix` or `feat` by the kind of change, per the
    repo's branch naming),
    then `cd` into it for everything below (tests, review and commit act on the current
-   directory). Make the change per the plan (the planned scope, including the docs sync and AI-eval sync rules in `CLAUDE.md`). Run `npm test` and `npm run typecheck`; if
+   directory). **Tests first:** before touching production code, write the regression test (or the tests for new behaviour) from step 4, run it and see it fail with the logged error. Only then make the change per the plan (the planned scope, including the docs sync and AI-eval sync rules in `CLAUDE.md`). Run `npm test` and `npm run typecheck`; if
    either fails, go to the failure path. Commit per `GIT_RULES.md`.
 4. **Verify the fix fixes it** (after the fix commit, before the review). Passing typecheck and
    existing tests only shows nothing else broke.
@@ -101,8 +101,8 @@ For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-hu
       Write tests for the new behaviour first, see them fail, then pass, and record
       `Verification: tests <path>`. Skip 1 to 3 below except the one-line record.
    1. Reproduce: write the smallest failing test or request against the route/service with the
-      logged input from the issue. In the fix worktree run it WITHOUT the fix: it must fail with
-      the same error. Then with the fix: it must pass. Commit the test with the fix as a
+      logged input from the issue. This happens BEFORE the fix (step 3): run it on the unfixed
+      code and it must fail with the same error. Then make the fix: it must pass. Commit the test with the fix as a
       regression test. Also run the tests next to the changed files. Still failing with the fix:
       the fix does not fix it, failure path.
    2. If the error cannot be reproduced locally (needs prod data, a real browser or
