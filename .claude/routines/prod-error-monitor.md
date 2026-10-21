@@ -141,8 +141,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    (records worktree cannot update, `N>1`, pull failed, checkpoint corrupted, no AWS credentials, no
    instance), also run
    `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/ntfy.sh "Pulse AWS watcher" "<short reason, no log data>"`.
-   Same when the run opened or reopened issues: counts and issue numbers only (public repo, third
-   party). Quiet runs send nothing. A failing script is ignored.
+   Same when the run opened or reopened issues: counts and issue numbers only, each number
+   prefixed `S#` (the client watcher uses `C#`; public repo, third party). Quiet runs send nothing. A failing script is ignored.
 10. **Final notification** (the second of the run) with a summary: N Known Fixes rows bumped, N new
    404-pattern hits, N new errors, with the GitHub issue link for each (opened, commented or
    reopened) and its `count` trend. Flag any issue open for 2+ runs with no `approved` label as
