@@ -19,7 +19,7 @@ export const toTicketExcerpt = (message: string): string =>
         ? `${message.slice(0, supportTicketExcerptMaxLength).trimEnd()}...`
         : message
 
-// Allow-list on purpose: no user id, no full message, no full email
+// Allow-list on purpose: no user id, no full message, no full sender email. The excerpt is what the user typed, so it can hold personal details
 export const toReaderTicket = ({
     id,
     topic,
