@@ -353,8 +353,8 @@ Send it when at least one of these is true, and not otherwise:
   open `development` -> `main` PR;
 - the run did something (shipped a fix, published a plan, hit a failure).
 The message is counts and issue numbers only, each number prefixed with the profile's `$PREFIX`,
-e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none.` The repo is public and ntfy is a third party: never put issue titles, plan text, log lines
-or links in it. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
+e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
+in it; the script adds the public GitHub issue-list links itself. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
 mention it in the final notification and carry on; never retry in a loop.
 
 ## Guardrails
