@@ -60,8 +60,8 @@ number,title,labels,updatedAt,author`, drop issues labelled `fixed` or `needs-hu
   (a plain untracked list) so it is notified only once. Never quote its body in the notification.
 
 `<slug>` below is `<n>-<short-title>`. No candidates with `approved`, no unplanned ones, and no
-plan-ready ones with new comments, and nothing new to notify: stop silently (no notification, no
-git writes).
+plan-ready ones with new comments, and nothing new to notify: no git writes and no
+`PushNotification`; go straight to the phone push, which still reports anything waiting on the owner.
 
 ## Phase 1: fix approved issues (do this first)
 
@@ -270,6 +270,24 @@ everything on `development` not yet on `main`." If the push or `gh` fails, notif
 
 Only if the run did anything: fixes shipped (issue, merge commit), plans published (issue, link),
 issues sent to `needs-human` (why), approvals ignored, and the `development` -> `main` PR link.
+
+## Phone push (every run, last step)
+
+`PushNotification` often cannot reach the phone from a scheduled run (Remote Control is inactive
+there), so the last step of EVERY run, quiet or not, is one push through ntfy:
+`bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/ntfy.sh "<title>" "<message>"`.
+Send it when at least one of these is true, and not otherwise:
+- something is **waiting on the owner**: issues with `plan-ready` and no `approved` (owner to
+  approve), `awaiting-answer` (owner to answer), `needs-human`, or an open `development` -> `main`
+  PR;
+- the run did something (shipped a fix, published a plan, hit a failure).
+The message is counts and issue numbers only, e.g. `Plan waiting: #69. Questions: #66 #70. Shipped:
+none.` The repo is public and ntfy is a third party: never put issue titles, plan text, log lines
+or links in it. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
+mention it in the final notification and carry on; never retry in a loop.
+
+**Reminders.** From 2026-11-18 until 2026-11-25, add `Before leaving 25 Nov: PC awake, auto-start,
+gh + AWS tokens refreshed` to that push, even on a quiet run. Delete this paragraph after 25 Nov.
 
 ## Guardrails
 

@@ -136,7 +136,14 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 8. **Nothing is shipped from here.** This routine merges and pushes nothing, and opens no PR.
    The records stay on `monitor/records`; the fixer routine merges them into `development`
    together with the fix they describe.
-9. **Final notification** (the second of the run) with a summary: N Known Fixes rows bumped, N new
+9. **Phone push for a stuck run.** `PushNotification` often cannot reach the phone from a scheduled
+   run (Remote Control inactive). Whenever this routine stops early or notifies about a failure
+   (records worktree cannot update, `N>1`, pull failed, checkpoint corrupted, no AWS credentials, no
+   instance), also run
+   `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/ntfy.sh "Pulse AWS watcher" "<short reason, no log data>"`.
+   Same when the run opened or reopened issues: counts and issue numbers only (public repo, third
+   party). Quiet runs send nothing. A failing script is ignored.
+10. **Final notification** (the second of the run) with a summary: N Known Fixes rows bumped, N new
    404-pattern hits, N new errors, with the GitHub issue link for each (opened, commented or
    reopened) and its `count` trend. Flag any issue open for 2+ runs with no `approved` label as
    "waiting on you", and quote the new records.
