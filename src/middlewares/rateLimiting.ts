@@ -154,3 +154,27 @@ export const launchFunnelOpenRateLimiter = rateLimit({
     message:
         'Too many requests from this IP, please try again in an hour'
 })
+
+const supportReaderRateLimitMessage =
+    'Too many support ticket reads, please try again after 15 minutes'
+
+// Own bucket for the Claude reader credential, separate from the public
+// contact form limiter so neither can exhaust the other
+export const supportReaderRateLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: isDev ? 100 : 30,
+    handler: (_req, res) => {
+        res
+            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
+            .json({
+                message: supportReaderRateLimitMessage,
+                error: [
+                    {
+                        statusType: 'Too Many Requests',
+                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
+                        error: supportReaderRateLimitMessage
+                    }
+                ]
+            })
+    }
+})
