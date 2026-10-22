@@ -42,21 +42,6 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pulse_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -66,6 +51,27 @@ jobs:
         with:
           node-version: 24
           cache: npm
+
+      - name: Start Postgres
+        run: |
+          pulled=
+          for image in public.ecr.aws/docker/library/postgres:16-alpine mirror.gcr.io/library/postgres:16-alpine postgres:16-alpine; do
+            for attempt in 1 2 3; do
+              if docker pull "$image"; then pulled=$image; break 2; fi
+              sleep $((attempt * 10))
+            done
+          done
+          if [ -z "$pulled" ]; then
+            echo "::error::could not pull a postgres image from any registry"
+            exit 1
+          fi
+          docker run -d --name pg -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=pulse_test "$pulled"
+          for i in $(seq 1 30); do
+            if docker exec pg pg_isready -U postgres; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::postgres did not become ready"
+          exit 1
 
       - name: Install dependencies
         run: npm ci
