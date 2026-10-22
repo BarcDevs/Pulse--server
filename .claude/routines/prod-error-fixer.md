@@ -43,7 +43,7 @@ comment on the issue; the next run revises and republishes the plan.
 
 ## Setup
 
-**First command of every run:** `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/require-bot.sh`. It confirms `gh` is the watcher bot
+**First command of every run:** `bash $WT/scripts/monitor/require-bot.sh`. It confirms `gh` is the watcher bot
 (`Claude-watcher-agent`), not the owner's own login. If it exits 1, stop the run at once: no
 comments, labels, pushes or locks (it already sent the push).
 
@@ -405,7 +405,7 @@ issues sent to `needs-human` (why), approvals ignored, and the `development` -> 
 
 `PushNotification` often cannot reach the phone from a scheduled run (Remote Control is inactive
 there), so the last step of EVERY run, quiet or not, is one push through ntfy:
-`bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/ntfy.sh "<title>" "<message>"`.
+`bash $WT/scripts/monitor/ntfy.sh "<title>" "<message>"`.
 Send it when at least one of these is true, and not otherwise:
 - something is **waiting on the owner**: issues with `plan-ready` and no `approved` (owner to
   approve), `awaiting-answer` (owner to answer), `needs-human`, `held-for-review` (owner to review), or an
