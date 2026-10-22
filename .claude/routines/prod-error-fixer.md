@@ -289,11 +289,10 @@ need a record update wait for the next run) and say so in the notification; othe
 lock before touching `$WT` and delete it at the end of the run, also on failure.
 
 Update records only in `$WT`, never in the fix worktree and never in `$MAIN`:
-`git -C "$WT" add $RECORDS`, then `git commit --amend --no-edit` (or
-`git commit -m "docs(<records dir name>): monitor records"` when `development..monitor/records` is empty).
-Keep `monitor/records` at exactly one commit on top of `development`; if
-`git -C "$WT" rev-list --count development..monitor/records` is above 1, notify and stop without
-touching it. The untracked checkpoint file is the watcher's; never edit it here.
+`git -C "$WT" add $RECORDS`, then
+`git commit -m "docs(<records dir name>): monitor records"`. Always a new commit, never an amend,
+and there is no limit on how many commits `monitor/records` is ahead of `development`: the Ship
+step merges whatever is ahead. The untracked checkpoint file is the watcher's; never edit it here.
 
 ## Ship (only after a fix passed phase 1)
 
@@ -311,7 +310,7 @@ first `pull --ff-only origin development` (GIT_RULES.md: always pull before push
 fast-forward, merge nothing and notify), then `merge --no-ff` each passing fix branch one at a time (on a conflict: `merge --abort`, keep
 that issue `approved` + `in-progress`, add a note on it; the next run rebases the branch onto
 `development` and re-runs tests and review before trying again), then, if
-`git -C "$MAIN" rev-list --count development..monitor/records` is above 0,
+`git -C "$MAIN" rev-list --count development..monitor/records` is above 0 (any number of commits),
 `merge --no-ff monitor/records -m "Merge branch 'monitor/records' into development"`, then
 `git push origin development`. Remove each merged fix worktree and delete its branch. Then open the
 PR to `main`: if `gh pr list --base main --head development --state open` shows one, comment on it
