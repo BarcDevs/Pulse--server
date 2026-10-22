@@ -173,7 +173,7 @@ describe('Check-in AI job — Integration', () => {
 
             await postCheckIn()
 
-            const claimed = await jobModel.claimNextJob(new Date(0))
+            const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
             expect(claimed!.attempts).toBe(1)
         })
 
