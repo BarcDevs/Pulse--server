@@ -318,8 +318,7 @@ request, revise the plan to address it):
 Dependabot's own PRs (author `app/dependabot`, head branch `dependabot/...`) are merged into
 `development` by this routine without a plan or an `approved` label; the owner's standing decision
 is that a dependabot bump with green CI needs no review, major versions included. The deploy
-approval is still the gate. Never into `main`, and only dependabot-authored PRs: a PR from anyone
-else is never touched here.
+approval is the gate. Only dependabot-authored PRs: a PR from anyone else is never touched here.
 
 1. **List:** `gh pr list --repo $REPO --state open --author "app/dependabot" --json
    number,title,baseRefName,headRefName,files,statusCheckRollup`. Read `$MAIN/decisions/index.md`
@@ -482,8 +481,6 @@ mention it in the final notification and carry on; never retry in a loop.
 - Implement the approved plan and nothing more; a plan that no longer matches reality is
   revised, not improvised.
 - Never ask for permission to ship a fix that passed the gate (merge, push `development` and tags, release PR); the owner's approval already covers it.
-- Never push `main`, never force-push, never enable auto-merge. The only branch
-  pushed is `development`, and the only PR opened is `development` -> `main`.
 - Merging the release PR is not this routine's job, and it must not try, ask, or hand it back as a
   to-do. The owner's interactive session always merges it; the owner then only approves the deploy.
   Open the PR, report its link, stop.
