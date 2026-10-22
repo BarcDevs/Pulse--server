@@ -44,7 +44,7 @@ comment on the issue; the next run revises and republishes the plan.
 
 ## Setup
 
-**First command of every run:** `bash $WT/scripts/monitor/require-bot.sh`. It confirms `gh` is the watcher bot
+**First command of every run:** `bash $WT/scripts/monitor/require-bot.sh "$PROFILE fixer"` (the profile name, e.g. `server fixer`; it names the run in the push). It confirms `gh` is the watcher bot
 (`Claude-watcher-agent`), not the owner's own login. If it exits 1, stop the run at once: no
 comments, labels, pushes or locks (it already sent the push).
 
