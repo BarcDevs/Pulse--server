@@ -81,7 +81,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       following `$MAIN/GIT_RULES.md` and `CORE_RULES.md`, and commit as `fix(ci): <what>`. Then all
       three checks must pass. Ship like the fixer's Ship step, minus the PR: `pull --ff-only origin
       development`, `merge --no-ff` the branch, `git push origin development`, `git push origin
-      --tags`, remove the worktree and delete the branch. Never push `main`, never force-push. Any small change or tweak is fixed here, however many lines, as long as it
+      --tags`, remove the worktree and delete the branch. Never push `main`, never force-push. Then comment on the open `development` -> `main` PR (open it if none is) with
+      one line saying what this push contains. Any small change or tweak is fixed here, however many lines, as long as it
       stays local to the failure. If the failure needs an overall change in the code instead (a
       wide refactor or redesign across many files or layers, or a behaviour, API, schema or
       migration change), do not attempt it: that is **serious**. The same if the checks still fail

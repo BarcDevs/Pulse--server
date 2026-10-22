@@ -339,10 +339,9 @@ else is never touched here.
    <short title> (#<n>)"` one at a time (a conflict: `merge --abort`, skip it). Dependabot PRs that
    change nothing but Actions pins need no test run; a manifest or lockfile bump runs the
    profile's checks first and is skipped if any fails.
-5. **Do not push, and do not open the release PR, from a run that only merged dependabot
-   branches.** The merges ride along with the next fix's push (the Ship step) or the owner's own
-   push, and GitHub then closes each PR as merged. If the same run also ships a fix, the Ship step
-   pushes them together with it.
+5. **Push `development` (and `--tags`) and report it on the release PR**, exactly as the Ship step
+   does for a fix, even when the run merged nothing but dependabot branches. GitHub then closes
+   each dependabot PR as merged. If the same run also ships a fix, do it once for both.
 
 ## Records worktree
 
@@ -385,7 +384,9 @@ that issue `approved` + `in-progress`, add a note on it; the next run rebases th
 `merge --no-ff monitor/records -m "Merge branch 'monitor/records' into development"`, then
 `git push origin development`. Remove each merged fix worktree and delete its branch. Then open the
 PR to `main`: if `gh pr list --base main --head development --state open` shows one, comment on it
-listing the new fixes; otherwise `gh pr create --base main --head development` with a title in the
+listing what this push added (every push gets its own comment, whatever it carried: fixes,
+dependabot bumps, records; one line each, so the owner can see what is in it when reviewing);
+otherwise `gh pr create --base main --head development` with a title in the
 repo's commit convention and a body listing each fix (issue link, one or two lines of what changed, typecheck/test results,
 verification result, review result; no root-cause or exploit detail, no log data: the PR is public) plus "This PR carries
 everything on `development` not yet on `main`." If the push or `gh` fails, notify with the error
