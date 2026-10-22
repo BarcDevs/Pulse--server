@@ -64,7 +64,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       - **Infra flake** (no test, type or lint output: image pull or `toomanyrequests` rate limit,
         runner or network error): `gh run rerun <databaseId> --failed`, once per run id (record
         the id in `C:/Users/66bar/Claude/work/projects/pulse/.watchers/ci-rerun.txt`). No fix, no
-        issue. A run already re-run once that fails again is **serious** (item 4).
+        issue. A run already re-run once that fails again is not retried again: only push
+        `ntfy.sh "Pulse AWS watcher" "CI infra failure persists on <branch>"`. Not a ticket.
       - **Code failure** (typecheck, lint, unit or integration test) on `development`: fix it in
         place (item 3). A failure on `main` comes from `development`, so it is fixed there, the
         same way; it is not serious by itself.
@@ -77,16 +78,18 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       three checks must pass. Ship like the fixer's Ship step, minus the PR: `pull --ff-only origin
       development`, `merge --no-ff` the branch, `git push origin development`, `git push origin
       --tags`, remove the worktree and delete the branch. Never push `main`, never force-push, never
-      open or merge a PR. Not fixable that way (needs a behaviour, API, schema or migration change,
-      or the checks still fail after one attempt): leave the branch unmerged and treat it as
-      **serious**.
-   4. **Serious = urgent ticket.** Serious means the red CI is **blocking**: the fixer
-      refuses to ship any fix while the last CI run on `development` is red, so every later fix
-      waits. That holds for a failed deploy workflow, a second failed re-run, a code failure that item 3 could not fix, the same CI red for 3 runs in
-      a row, or anything security related in the log. Open one issue: `gh issue create` titled
+      open or merge a PR. Any small change or tweak is fixed here, however many lines, as long as it
+      stays local to the failure. If the failure needs an overall change in the code instead (a
+      wide refactor or redesign across many files or layers, or a behaviour, API, schema or
+      migration change), do not attempt it: that is **serious**. The same if the checks still fail
+      after one attempt: leave that branch unmerged.
+   4. **Serious = urgent ticket.** Serious means exactly one thing: the failure needs an overall
+      change in the code, not a small tweak. Nothing else is serious. It is blocking, because the
+      fixer refuses to ship any fix while the last CI run on `development` is red, so every later
+      fix waits. Open one issue: `gh issue create` titled
       `[urgent] CI failing on <branch>`, labels `urgent`, `ci-failure` and `needs-human` (create
       any missing label first; `needs-human` keeps the fixer away from it). Public repo, so the body
-      is only the branch, the run link, the failing job name and "no safe automatic fix", never log
+      is only the branch, the run link, the failing job name and "needs an overall code change", never log
       text. If an open `ci-failure` issue already exists, comment on it instead. Also push
       `ntfy.sh "Pulse AWS watcher" "URGENT: CI failing on <branch>"`.
 2. **Get the checkpoint** and note the run start: `CHECKPOINT=$(npx tsx
