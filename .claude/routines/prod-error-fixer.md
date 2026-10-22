@@ -26,6 +26,7 @@ path, command or label.
 |-------|-------|--------|
 | filed | none required (`$WATCHER_LABELS` on watcher issues) | a watcher or the owner |
 | plan needs the owner's answers first | `awaiting-answer` | this routine (phase 2) |
+| owner has a follow-up question on an issue | `follow-up` | **the owner only**; this routine removes it once answered |
 | plan published, waiting for the owner | `plan-ready` | this routine (phase 2) |
 | owner approved the plan | `approved` | **the owner only**, from the GitHub app or web |
 | fix being made | `in-progress` | this routine (phase 1) |
@@ -187,6 +188,15 @@ the plan page). Either way this routine must carry the fix through to the ship s
 
 ## Phase 2: plan unplanned issues
 
+First, answer follow-ups: for each open issue with the `follow-up` label (any other label allowed),
+read the owner's newest comment (`author.login` is `$OWNER`); it is a question, not an answer or an
+approval, so never treat it as one and never change the plan or labels because of it. Answer it from
+the code, the draft and the plan. The repo is public: put the full answer on the issue's private page
+(the `questions.html` or `plan.html`, republished to the same `file_path` with a "Follow-up" section
+added) and `gh issue comment` only `**Follow-up on #<n> answered**` plus that page link. Then remove
+`follow-up`. If it cannot be answered, say so in one line on the issue and remove the label. The
+`awaiting-answer` / `plan-ready` state stays exactly as it was.
+
 For each open issue with no `plan-ready`, `approved`, `fixed` or `needs-human` label
 (an `awaiting-answer` issue is included only to ask its parked questions again, step 4)
 (and each `plan-ready` issue with an owner comment newer than its plan comment: that is a change
@@ -225,9 +235,15 @@ request, revise the plan to address it):
    where the fix goes, behaviour change) is an open question. No open questions: skip to 5.
    Otherwise do NOT ask yet:
    1. Park the issue: write the draft plan so far and each question with its options and your
-      recommendation to `$PLANS/draft.md`, `gh issue comment` only `**Plan draft for #<n>:
-      awaiting your answers**`, add label `awaiting-answer`, and move on to the next issue. If
-      `$PLANS/draft.md` already exists (a previous run), start from it instead of re-deriving.
+      recommendation to `$PLANS/draft.md`. Publish the questions with the `plan-artifact` skill
+      as a private page (`.watchers/plans/issue-<n>/questions.html`, stable `file_path`; each
+      question a numbered block with lettered options, none of them marked or pre-selected;
+      the recommendations go in one separate "Fixer recommends (not selected)" block, and a line
+      "Answer by commenting on the issue, e.g. `1: B, 2: A`"). `gh issue comment` only
+      `**Plan draft for #<n>: awaiting your answers**` plus that page link (no question text on
+      the issue: the repo is public), add label `awaiting-answer`, and move on to the next issue.
+      If `$PLANS/draft.md` already exists (a previous run), start from it instead of re-deriving;
+      republish the page to the same `file_path` if the questions changed.
    2. After ALL other work in this run is finished (phase 1, every other plan, the final
       notification), take the parked issues one by one: send a `PushNotification` ("Question on
       #<n>: <signature>"), then ask with `AskUserQuestion` (recommended option first). Only
@@ -236,7 +252,8 @@ request, revise the plan to address it):
       `awaiting-answer`, continue with 5. Unanswered (the session ends or is cut off): leave the
       note and label as they are. The next run reads the note and asks again; an
       `awaiting-answer` issue is never fixed or planned further until its questions are answered.
-      The owner can also answer by commenting on the issue; the next run treats a comment whose
+      The owner can also answer by commenting on the issue (from the phone, using the question
+      numbers and option letters from the page); the next run treats a comment whose
       `author.login` is `$OWNER` as the answer.
    Never guess an answer and never publish a plan that still has open questions on it.
 5. **Present the finished plan** with the `plan-artifact` skill (its step 1 is already done by
@@ -353,8 +370,8 @@ Send it when at least one of these is true, and not otherwise:
   open `development` -> `main` PR;
 - the run did something (shipped a fix, published a plan, hit a failure).
 The message is counts and issue numbers only, each number prefixed with the profile's `$PREFIX`,
-e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none.` The repo is public and ntfy is a third party: never put issue titles, plan text, log lines
-or links in it. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
+e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
+in it; the script adds the public GitHub issue-list links itself. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
 mention it in the final notification and carry on; never retry in a loop.
 
 ## Guardrails
