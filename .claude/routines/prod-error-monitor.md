@@ -72,6 +72,10 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    3. **Fix in place.** `$MAIN` must be free (clean tree, on `development`, no merge in progress);
       otherwise skip and retry next run. Worktree `$WTDIR/ci-fix-<run number>` on branch
       `fix/ci-<run number>` from `development` (`$WTDIR` is `C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt`).
+      Before changing anything, read `$MAIN/decisions/index.md` and `$MAIN/corrections/index.md`
+      (via `git -C "$MAIN" show development:<path>`) and open the topic files that touch the failing
+      area: the fix must not undo a recorded decision or repeat a corrected mistake. A fix that
+      would contradict one is **serious** (item 4), not a tweak.
       Reproduce the failing check (`npm test`, `npm run typecheck`, `npm run lint:check`; integration
       tests need the test Postgres), make the smallest change that fixes it and nothing else,
       following `$MAIN/GIT_RULES.md` and `CORE_RULES.md`, and commit as `fix(ci): <what>`. Then all
