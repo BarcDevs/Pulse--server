@@ -329,10 +329,8 @@ else is never touched here.
    development` (branch policy: only `development` is merged into `main`). Dependabot then rebases
    it; leave it for the next run instead of waiting for the new CI.
 3. **Qualify** each PR based on `development`: all of its checks `SUCCESS` (none pending, none
-   failed), it changes only `.github/workflows/*` (`uses:` pins and their version comments) or the
-   package manifest and lockfile the PR title names, and its head is not already contained in
-   `development` (`git -C "$MAIN" merge-base --is-ancestor origin/<head> development` after
-   `git -C "$MAIN" fetch origin <head>`). A failed check, any other changed file, or a conflict:
+   failed) and its head is not already contained in `development` (`git -C "$MAIN" merge-base --is-ancestor origin/<head> development` after
+   `git -C "$MAIN" fetch origin <head>`). A failed check or a conflict:
    leave it, and mention it once in the notification and the phone push (no issue, no comment
    unless the PR gained a new failure since the last run).
 4. **Merge locally, like a fix.** Same guard as the Ship step (`ListAgents`, `git status`; busy or
