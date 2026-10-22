@@ -200,10 +200,9 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 ## Guardrails
 
 - This routine is read-only for code, with one exception: the failing-CI fix in step 1b. For the
-  production errors it writes no fix, creates no fix branch or fix worktree, and never merges,
-  pushes or opens a PR. Its outward writes are GitHub issues and issue comments/labels (step 5b),
+  production errors it writes no fix, creates no fix branch or fix worktree. Its outward writes are GitHub issues and issue comments/labels (step 5b),
   the urgent CI ticket and CI re-runs (step 1b), and the local records branch. The CI exception may
-  merge into and push `development` (and tags) only, never `main`, never force, never a PR.
+  merge into and push `development` (and tags) only, never `main`, never force.
 - Never commit records on `development` directly (the fixer merges `monitor/records`) and never
   push `monitor/records`. It may be any number of commits ahead of `development`; never amend.
 - Recording is not handling. Every error must end a run as an issue backed by an actual
