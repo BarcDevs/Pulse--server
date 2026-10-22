@@ -2,10 +2,9 @@ import {
     supportTicketClosedRetentionMs,
     supportTicketOpenRetentionMs
 } from '../constants/support/supportTickets'
-import { dayInMs } from '../constants/time'
 import { deleteTicketsExpiredBefore } from '../models/supportTicketModel'
-import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
+import { scheduleDailyJob } from '../utils/scheduleDailyJob'
 
 // A CLOSED ticket goes 6 months after it was closed, a ticket never closed
 // 24 months after it was created. Deleting the row drops the sender email and
@@ -24,17 +23,8 @@ export const purgeExpiredSupportTickets = async (): Promise<number> => {
     return count
 }
 
-// Runs at startup and then daily, like the account purge
-export const scheduleSupportTicketRetention = () => {
-    const run = () =>
-        purgeExpiredSupportTickets().catch((error: unknown) =>
-            logger.error(
-                'Support ticket retention failed',
-                toLoggableError(error)
-            )
-        )
-
-    void run()
-
-    setInterval(run, dayInMs).unref()
-}
+export const scheduleSupportTicketRetention = () =>
+    scheduleDailyJob(
+        'Support ticket retention failed',
+        purgeExpiredSupportTickets
+    )
