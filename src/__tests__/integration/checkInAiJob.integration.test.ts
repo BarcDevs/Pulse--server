@@ -166,6 +166,15 @@ describe('Check-in AI job — Integration', () => {
             expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
         })
 
+        it('makes a first job claimable at once despite the skew', async () => {
+            skewAppClock()
+
+            await postCheckIn()
+
+            const claimed = await jobModel.claimNextJob(new Date(0))
+            expect(claimed!.attempts).toBe(1)
+        })
+
         it('re-submitting a backing-off job makes it claimable at once despite the skew', async () => {
             const { res, userId } = await postCheckIn()
             const claimed = await jobModel.claimNextJob(new Date(0))

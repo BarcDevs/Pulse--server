@@ -22,7 +22,11 @@ export const enqueueJob = async (
 ): Promise<void> => {
     await Prisma.checkInAiJob.upsert({
         where: { checkInId },
-        create: { checkInId, userId },
+        create: {
+            checkInId,
+            userId,
+            runAfter: CHECK_IN_AI_JOB_RUN_IMMEDIATELY
+        },
         update: {
             status: CheckInAiJobStatus.PENDING,
             attempts: 0,
