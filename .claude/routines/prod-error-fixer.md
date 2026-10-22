@@ -274,6 +274,8 @@ request, revise the plan to address it):
 5. **Present the finished plan** with the `plan-artifact` skill (its step 1 is already done by
    step 4 above). Publish privately with a stable `file_path` per issue
    (`.watchers/plans/issue-<n>/plan.html`) so a revision keeps the same URL.
+   Every page's JSON (questions and plan) carries `"issue": {"label": "GitHub issue #<n>", "url":
+   "<issue url>"}`; the template shows it as a link under the goal.
 6. **Comment on the issue** (`gh issue comment`): `**Plan for #<n>**`, the artifact link, one line
    of goal, and "Add the `approved` label to have this fixed. Comment to request changes." Keep
    the full plan in `$PLANS/plan.json` (it is the approved record, read by phase 1), never on the
