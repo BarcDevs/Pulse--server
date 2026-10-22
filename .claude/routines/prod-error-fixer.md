@@ -75,7 +75,7 @@ number,title,labels,updatedAt,author`, drop issues labelled `fixed` or `needs-hu
   entry carries its prefix) so it is notified only once. Never quote its body in the notification.
 
 `<slug>` below is `<n>-<short-title>`. No candidates with `approved`, no unplanned ones, and no
-plan-ready ones with new comments, and nothing new to notify: no git writes and no
+plan-ready ones with new comments, no open dependabot PRs, and nothing new to notify: no git writes and no
 `PushNotification`; go straight to the phone push, which still reports anything waiting on the owner.
 
 ## Phase 1: fix approved issues (do this first)
@@ -313,6 +313,39 @@ request, revise the plan to address it):
    issue. Add label `plan-ready`.
 7. **Notify** (`PushNotification`): issue number, signature, one-line plan goal, artifact link.
 
+## Dependabot PRs (after phase 2, every run)
+
+Dependabot's own PRs (author `app/dependabot`, head branch `dependabot/...`) are merged into
+`development` by this routine without a plan or an `approved` label; the owner's standing decision
+is that a dependabot bump with green CI needs no review, major versions included. The deploy
+approval is still the gate. Never into `main`, and only dependabot-authored PRs: a PR from anyone
+else is never touched here.
+
+1. **List:** `gh pr list --repo $REPO --state open --author "app/dependabot" --json
+   number,title,baseRefName,headRefName,files,statusCheckRollup`. Read `$MAIN/decisions/index.md`
+   and `$MAIN/corrections/index.md` first; a bump that contradicts a recorded decision (a pinned
+   version, a refused upgrade) is skipped with a short comment on the PR.
+2. **Retarget:** a PR whose `baseRefName` is `main` gets `gh pr edit <n> --repo $REPO --base
+   development` (branch policy: only `development` is merged into `main`). Dependabot then rebases
+   it; leave it for the next run instead of waiting for the new CI.
+3. **Qualify** each PR based on `development`: all of its checks `SUCCESS` (none pending, none
+   failed), it changes only `.github/workflows/*` (`uses:` pins and their version comments) or the
+   package manifest and lockfile the PR title names, and its head is not already contained in
+   `development` (`git -C "$MAIN" merge-base --is-ancestor origin/<head> development` after
+   `git -C "$MAIN" fetch origin <head>`). A failed check, any other changed file, or a conflict:
+   leave it, and mention it once in the notification and the phone push (no issue, no comment
+   unless the PR gained a new failure since the last run).
+4. **Merge locally, like a fix.** Same guard as the Ship step (`ListAgents`, `git status`; busy or
+   dirty: skip and say "dependabot merge blocked: checkout busy"). On `development`:
+   `pull --ff-only origin development`, then `merge --no-ff origin/<head> -m "Merge dependabot
+   <short title> (#<n>)"` one at a time (a conflict: `merge --abort`, skip it). Dependabot PRs that
+   change nothing but Actions pins need no test run; a manifest or lockfile bump runs the
+   profile's checks first and is skipped if any fails.
+5. **Do not push, and do not open the release PR, from a run that only merged dependabot
+   branches.** The merges ride along with the next fix's push (the Ship step) or the owner's own
+   push, and GitHub then closes each PR as merged. If the same run also ships a fix, the Ship step
+   pushes them together with it.
+
 ## Records worktree
 
 The records branch is shared with the repo's watcher (the AWS monitor on the server, the client
@@ -410,7 +443,8 @@ A client run (client profile) never edits server code. If a cross-repo client is
 
 ## Final notification
 
-Only if the run did anything: fixes shipped (issue, merge commit), plans published (issue, link),
+Only if the run did anything: fixes shipped (issue, merge commit), dependabot PRs merged or
+retargeted (PR numbers), plans published (issue, link),
 issues sent to `needs-human` (why), approvals ignored, and the `development` -> `main` PR link.
 
 ## Phone push (every run, last step)
@@ -424,7 +458,7 @@ Send it when at least one of these is true, and not otherwise:
   open `development` -> `main` PR;
 - the run did something (shipped a fix, published a plan, hit a failure).
 The message is counts and issue numbers only, each number prefixed with the profile's `$PREFIX`,
-e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
+e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none. Deps merged: PR59.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
 in it; the script adds the public GitHub issue-list links itself. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
 mention it in the final notification and carry on; never retry in a loop.
 
@@ -449,7 +483,8 @@ mention it in the final notification and carry on; never retry in a loop.
 - Implement the approved plan and nothing more; a plan that no longer matches reality is
   revised, not improvised.
 - Never ask for permission to ship a fix that passed the gate (merge, push `development` and tags, release PR); the owner's approval already covers it.
-- Never push `main`, never force-push, never merge a PR, never enable auto-merge. The only branch
+- Never push `main`, never force-push, never merge a PR (the one exception is a dependabot PR,
+  merged locally into `development`, see "Dependabot PRs"), never enable auto-merge. The only branch
   pushed is `development`, and the only PR opened is `development` -> `main`.
 - Merging the release PR is not this routine's job, and it must not try, ask, or hand it back as a
   to-do. The owner's interactive session always merges it; the owner then only approves the deploy.
