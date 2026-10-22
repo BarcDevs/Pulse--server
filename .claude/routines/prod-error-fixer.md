@@ -43,6 +43,10 @@ comment on the issue; the next run revises and republishes the plan.
 
 ## Setup
 
+**First command of every run:** `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/require-bot.sh`. It confirms `gh` is the watcher bot
+(`Claude-watcher-agent`), not the owner's own login. If it exits 1, stop the run at once: no
+comments, labels, pushes or locks (it already sent the push).
+
 Paths and names come from the profile. Never rely on the current directory; every git command
 takes `-C`. Read `$MAIN/GIT_RULES.md` before committing, and before planning or fixing read the
 rules files the profile lists (the repo's `CLAUDE.md` does not auto-load from here), and tell every

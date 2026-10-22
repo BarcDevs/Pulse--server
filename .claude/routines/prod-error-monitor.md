@@ -41,6 +41,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 
 ## Steps
 
+0. **Bot check, before anything else:** `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/require-bot.sh`. If it exits 1, stop the run: no locks, issues,
+   comments or pushes (it already sent the push).
 1. **Prepare the records worktree.** The fixer routine shares it: if
    `C:/Users/66bar/Claude/work/projects/pulse/.watchers/records.lock` exists and is younger than
    2h, stop silently (the fixer is updating records). Otherwise write that file now and delete
