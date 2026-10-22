@@ -9,7 +9,7 @@ set -euo pipefail
 # Exit codes: 0 gh is the bot; 1 it is not (a push is sent) or the check failed.
 
 BOT_LOGIN="Claude-watcher-agent"
-NTFY="C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/ntfy.sh"
+NTFY="$(dirname "$0")/ntfy.sh"
 
 LOGIN=$(gh api user --jq .login 2>/dev/null || true)
 
