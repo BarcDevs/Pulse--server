@@ -237,7 +237,8 @@ request, revise the plan to address it):
    1. Park the issue: write the draft plan so far and each question with its options and your
       recommendation to `$PLANS/draft.md`. Publish the questions with the `plan-artifact` skill
       as a private page (`.watchers/plans/issue-<n>/questions.html`, stable `file_path`; each
-      question a numbered block with lettered options, the recommended one marked, and a line
+      question a numbered block with lettered options, none of them marked or pre-selected;
+      the recommendations go in one separate "Fixer recommends (not selected)" block, and a line
       "Answer by commenting on the issue, e.g. `1: B, 2: A`"). `gh issue comment` only
       `**Plan draft for #<n>: awaiting your answers**` plus that page link (no question text on
       the issue: the repo is public), add label `awaiting-answer`, and move on to the next issue.
