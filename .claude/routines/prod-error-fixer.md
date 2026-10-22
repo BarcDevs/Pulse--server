@@ -481,8 +481,7 @@ mention it in the final notification and carry on; never retry in a loop.
 - Implement the approved plan and nothing more; a plan that no longer matches reality is
   revised, not improvised.
 - Never ask for permission to ship a fix that passed the gate (merge, push `development` and tags, release PR); the owner's approval already covers it.
-- Never push `main`, never force-push, never merge a PR (the one exception is a dependabot PR,
-  merged locally into `development`, see "Dependabot PRs"), never enable auto-merge. The only branch
+- Never push `main`, never force-push, never enable auto-merge. The only branch
   pushed is `development`, and the only PR opened is `development` -> `main`.
 - Merging the release PR is not this routine's job, and it must not try, ask, or hand it back as a
   to-do. The owner's interactive session always merges it; the owner then only approves the deploy.
