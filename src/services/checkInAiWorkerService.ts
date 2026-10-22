@@ -59,9 +59,7 @@ export const drainJobs = async (
     let processed = 0
 
     while (!shouldStop()) {
-        const job = await jobModel.claimNextJob(
-            new Date(Date.now() - CHECK_IN_AI_JOB_STALE_MS)
-        )
+        const job = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
 
         if (!job) return processed
 
