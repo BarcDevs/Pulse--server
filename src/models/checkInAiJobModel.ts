@@ -35,24 +35,23 @@ export const enqueueJob = async (
 
 // SKIP LOCKED lets several instances claim different jobs without waiting on
 // each other; a PENDING job waits for its runAfter (retry backoff);
-// a RUNNING job past staleBefore is taken over (dead worker).
+// a RUNNING job locked longer than staleMs is taken over (dead worker).
+// lockedAt is written with the database clock, so the cutoff is computed in
+// SQL with the same clock and app clock skew cannot make a live job look dead.
 // A stale job that already used all its attempts is failed first, so a job
 // that keeps killing the process is not retried forever.
 export const claimNextJob = async (
-    staleBefore: Date
+    staleMs: number
 ): Promise<ClaimedCheckInAiJob | null> => {
-    await Prisma.checkInAiJob.updateMany({
-        where: {
-            status: CheckInAiJobStatus.RUNNING,
-            lockedAt: { lt: staleBefore },
-            attempts: { gte: CHECK_IN_AI_JOB_MAX_ATTEMPTS }
-        },
-        data: {
-            status: CheckInAiJobStatus.FAILED,
-            lockedAt: null,
-            lastError: CHECK_IN_AI_JOB_STALE_ERROR
-        }
-    })
+    await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob"
+        SET "status" = 'FAILED',
+            "lockedAt" = NULL,
+            "lastError" = ${CHECK_IN_AI_JOB_STALE_ERROR}
+        WHERE "status" = 'RUNNING'
+            AND "attempts" >= ${CHECK_IN_AI_JOB_MAX_ATTEMPTS}
+            AND "lockedAt" < now() - ${staleMs} * interval '1 millisecond'
+    `
 
     const [job] = await Prisma.$queryRaw<ClaimedCheckInAiJob[]>`
         UPDATE "CheckInAiJob"
@@ -63,7 +62,10 @@ export const claimNextJob = async (
         WHERE "id" = (
             SELECT "id" FROM "CheckInAiJob"
             WHERE ("status" = 'PENDING' AND "runAfter" <= now())
-                OR ("status" = 'RUNNING' AND "lockedAt" < ${staleBefore})
+                OR (
+                    "status" = 'RUNNING'
+                    AND "lockedAt" < now() - ${staleMs} * interval '1 millisecond'
+                )
             ORDER BY "createdAt"
             LIMIT 1
             FOR UPDATE SKIP LOCKED

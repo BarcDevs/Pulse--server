@@ -5,7 +5,8 @@ import { serverConfig } from '../../../config'
 import App from '../../app'
 import {
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
-    CHECK_IN_AI_JOB_RETRY_DELAY_MS
+    CHECK_IN_AI_JOB_RETRY_DELAY_MS,
+    CHECK_IN_AI_JOB_STALE_MS
 } from '../../constants/checkInAiJob'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { hourInMs, minuteInMs, secondInMs } from '../../constants/time'
@@ -56,11 +57,12 @@ const readDatabaseNow = async () => {
     return now
 }
 
-// A cutoff in the future makes every RUNNING job count as stale
-const staleCutoff = () => new Date(Date.now() + minuteInMs)
+// A negative window puts the cutoff in the future, so every RUNNING job counts as stale
+const ALL_STALE_MS = -minuteInMs
 
 describe('Check-in AI job — Integration', () => {
     beforeEach(() => {
+        jest.clearAllMocks()
         jest.spyOn(insightGenerationService, 'generateInsightForCheckIn')
             .mockResolvedValue(undefined)
         jest.spyOn(recommendationsService, 'generateRecommendationsSafely')
@@ -95,7 +97,7 @@ describe('Check-in AI job — Integration', () => {
 
     it('does not hand out a retried job before its backoff passes', async () => {
         await postCheckIn()
-        const claimed = await jobModel.claimNextJob(new Date(0))
+        const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
 
         await jobModel.markJobRetry(claimed!, 'Error')
 
@@ -104,13 +106,13 @@ describe('Check-in AI job — Integration', () => {
         expect(job.runAfter.getTime()).toBeGreaterThan(
             Date.now() + CHECK_IN_AI_JOB_RETRY_DELAY_MS - secondInMs
         )
-        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+        expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)).toBeNull()
 
         await Prisma.checkInAiJob.updateMany({
             data: { runAfter: new Date(Date.now() - secondInMs) }
         })
 
-        const retried = await jobModel.claimNextJob(new Date(0))
+        const retried = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         expect(retried!.attempts).toBe(2)
     })
 
@@ -149,7 +151,7 @@ describe('Check-in AI job — Integration', () => {
 
         it('schedules the retry by the database clock', async () => {
             await postCheckIn()
-            const claimed = await jobModel.claimNextJob(new Date(0))
+            const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
             skewAppClock()
             const before = await readDatabaseNow()
 
@@ -163,25 +165,81 @@ describe('Check-in AI job — Integration', () => {
             expect(job.runAfter.getTime()).toBeLessThanOrEqual(
                 after.getTime() + CHECK_IN_AI_JOB_RETRY_DELAY_MS + secondInMs
             )
-            expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+            expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)).toBeNull()
         })
 
         it('re-submitting a backing-off job makes it claimable at once despite the skew', async () => {
             const { res, userId } = await postCheckIn()
-            const claimed = await jobModel.claimNextJob(new Date(0))
+            const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
             skewAppClock()
             await jobModel.markJobRetry(claimed!, 'Error')
 
             await jobModel.enqueueJob(res.body.data.id, userId)
 
-            const fresh = await jobModel.claimNextJob(new Date(0))
+            const fresh = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
             expect(fresh!.attempts).toBe(1)
+        })
+
+        it('does not take over a fresh RUNNING job', async () => {
+            await postCheckIn()
+            await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
+            skewAppClock()
+
+            expect(await drainJobs()).toBe(0)
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('RUNNING')
+            expect(job.attempts).toBe(1)
+        })
+
+        it('takes over a RUNNING job locked past the stale window', async () => {
+            await postCheckIn()
+            await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
+            await Prisma.checkInAiJob.updateMany({
+                data: {
+                    lockedAt: new Date(
+                        Date.now() - CHECK_IN_AI_JOB_STALE_MS - minuteInMs
+                    )
+                }
+            })
+            skewAppClock()
+
+            expect(await drainJobs()).toBe(1)
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('DONE')
+            expect(job.attempts).toBe(2)
+        })
+
+        it('fails an exhausted stale job only once it is past the window', async () => {
+            await postCheckIn()
+            await Prisma.checkInAiJob.updateMany({
+                data: {
+                    status: 'RUNNING',
+                    attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+                    lockedAt: new Date()
+                }
+            })
+            skewAppClock()
+
+            await drainJobs()
+            expect((await Prisma.checkInAiJob.findFirstOrThrow()).status)
+                .toBe('RUNNING')
+
+            await Prisma.$executeRaw`
+                UPDATE "CheckInAiJob"
+                SET "lockedAt" = now() - interval '3 minutes'
+            `
+            await drainJobs()
+
+            expect((await Prisma.checkInAiJob.findFirstOrThrow()).status)
+                .toBe('FAILED')
         })
     })
 
     it('does not retry a job whose claim was lost', async () => {
         const { res, userId } = await postCheckIn()
-        const claimed = await jobModel.claimNextJob(new Date(0))
+        const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         await jobModel.enqueueJob(res.body.data.id, userId)
 
         expect(await jobModel.markJobRetry(claimed!, 'Error')).toBe(false)
@@ -193,13 +251,13 @@ describe('Check-in AI job — Integration', () => {
 
     it('re-submitting a backing-off job makes it claimable at once', async () => {
         const { res, userId } = await postCheckIn()
-        const claimed = await jobModel.claimNextJob(new Date(0))
+        const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         await jobModel.markJobRetry(claimed!, 'Error')
-        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+        expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)).toBeNull()
 
         await jobModel.enqueueJob(res.body.data.id, userId)
 
-        const fresh = await jobModel.claimNextJob(new Date(0))
+        const fresh = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         expect(fresh!.attempts).toBe(1)
     })
 
@@ -207,8 +265,8 @@ describe('Check-in AI job — Integration', () => {
         await postCheckIn()
 
         const claims = await Promise.all([
-            jobModel.claimNextJob(new Date(0)),
-            jobModel.claimNextJob(new Date(0))
+            jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS),
+            jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         ])
 
         expect(claims.filter(Boolean)).toHaveLength(1)
@@ -217,17 +275,17 @@ describe('Check-in AI job — Integration', () => {
 
     it('takes over a RUNNING job whose worker died, but not a fresh one', async () => {
         await postCheckIn()
-        await jobModel.claimNextJob(new Date(0))
+        await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
 
-        expect(await jobModel.claimNextJob(new Date(0))).toBeNull()
+        expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)).toBeNull()
 
-        const taken = await jobModel.claimNextJob(staleCutoff())
+        const taken = await jobModel.claimNextJob(ALL_STALE_MS)
         expect(taken!.attempts).toBe(2)
     })
 
     it('drops the result of a worker whose job was re-submitted meanwhile', async () => {
         const { res, userId } = await postCheckIn()
-        const claimed = await jobModel.claimNextJob(new Date(0))
+        const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
 
         await jobModel.enqueueJob(res.body.data.id, userId)
 
@@ -238,8 +296,8 @@ describe('Check-in AI job — Integration', () => {
 
     it('drops the result of a worker whose job another worker took over', async () => {
         await postCheckIn()
-        const first = await jobModel.claimNextJob(new Date(0))
-        const second = await jobModel.claimNextJob(staleCutoff())
+        const first = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
+        const second = await jobModel.claimNextJob(ALL_STALE_MS)
 
         expect(await jobModel.markJobDone(first!)).toBe(false)
         expect(await jobModel.markJobDone(second!)).toBe(true)
@@ -247,17 +305,17 @@ describe('Check-in AI job — Integration', () => {
 
     it('reports the claim as held until the job is re-submitted or taken over', async () => {
         const { res, userId } = await postCheckIn()
-        const first = await jobModel.claimNextJob(new Date(0))
+        const first = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
 
         expect(await jobModel.holdsClaim(first!)).toBe(true)
 
         await jobModel.enqueueJob(res.body.data.id, userId)
         expect(await jobModel.holdsClaim(first!)).toBe(false)
 
-        const second = await jobModel.claimNextJob(new Date(0))
+        const second = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
         expect(await jobModel.holdsClaim(second!)).toBe(true)
 
-        await jobModel.claimNextJob(staleCutoff())
+        await jobModel.claimNextJob(ALL_STALE_MS)
         expect(await jobModel.holdsClaim(second!)).toBe(false)
     })
 
@@ -271,7 +329,7 @@ describe('Check-in AI job — Integration', () => {
             }
         })
 
-        expect(await jobModel.claimNextJob(staleCutoff())).toBeNull()
+        expect(await jobModel.claimNextJob(ALL_STALE_MS)).toBeNull()
 
         const job = await Prisma.checkInAiJob.findFirstOrThrow()
         expect(job.status).toBe('FAILED')
