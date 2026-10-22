@@ -66,7 +66,8 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
         the id in `C:/Users/66bar/Claude/work/projects/pulse/.watchers/ci-rerun.txt`). No fix, no
         issue. A run already re-run once that fails again is **serious** (item 4).
       - **Code failure** (typecheck, lint, unit or integration test) on `development`: fix it in
-        place (item 3). A failure on `main` is always **serious**.
+        place (item 3). A failure on `main` comes from `development`, so it is fixed there, the
+        same way; it is not serious by itself.
    3. **Fix in place.** `$MAIN` must be free (clean tree, on `development`, no merge in progress);
       otherwise skip and retry next run. Worktree `$WTDIR/ci-fix-<run number>` on branch
       `fix/ci-<run number>` from `development` (`$WTDIR` is `C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt`).
@@ -79,8 +80,9 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
       open or merge a PR. Not fixable that way (needs a behaviour, API, schema or migration change,
       or the checks still fail after one attempt): leave the branch unmerged and treat it as
       **serious**.
-   4. **Serious = urgent ticket.** Serious is: any failure on `main`, a failed deploy workflow, a
-      second failed re-run, a code failure that item 3 could not fix, the same CI red for 3 runs in
+   4. **Serious = urgent ticket.** Serious means the red CI is **blocking**: the fixer
+      refuses to ship any fix while the last CI run on `development` is red, so every later fix
+      waits. That holds for a failed deploy workflow, a second failed re-run, a code failure that item 3 could not fix, the same CI red for 3 runs in
       a row, or anything security related in the log. Open one issue: `gh issue create` titled
       `[urgent] CI failing on <branch>`, labels `urgent`, `ci-failure` and `needs-human` (create
       any missing label first; `needs-human` keeps the fixer away from it). Public repo, so the body

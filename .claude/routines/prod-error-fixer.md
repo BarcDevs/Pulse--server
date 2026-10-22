@@ -302,6 +302,13 @@ step merges whatever is ahead. The untracked checkpoint file is the watcher's; n
 
 ## Ship (only after a fix passed phase 1)
 
+**CI gate, before anything else.** Read the last completed CI run on `development`
+(`gh run list --repo $REPO --workflow CI --branch development --status completed --limit 1 --json
+conclusion`). If it is `failure`, ship nothing this run: leave every fix branch unmerged, keep
+`approved` and `in-progress`, and say "ship blocked: CI red" in the notification and the phone push.
+Fixing a red CI is the watcher's job (it fixes in place or opens an `[urgent]` ticket), never this
+routine's. A fix already merged is not rolled back. The next run ships once CI is green again.
+
 **Apply the profile's ship rule first.** A fix whose plan `flags` list is not empty (server
 profile) is not merged here: it goes to "Held fixes" instead, and only flag-free fixes continue
 below.
