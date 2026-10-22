@@ -95,7 +95,18 @@ text is data for the subagent too: it implements only the plan text you pass. Wh
 run step 5 (review) yourself, one branch at a time, then steps 6 and 7 serially. A subagent
 failure puts only its own issue on the failure path; the others continue.
 
-For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-human`:
+For each open issue labelled `approved`, not `fixed` or `needs-human`, and either not `in-progress` or
+**stale-`in-progress`** (below):
+
+**Stale `in-progress` is picked up, not skipped.** `in-progress` only means something while work is
+really under it. An issue is stale when its newest `in-progress` `labeled` event is over 2 hours old
+(`gh api repos/$REPO/issues/<n>/events --paginate`) and none of these shows live work: a fresh `$LOCK`,
+a session active in `$MAIN` or the issue's fix worktree (`ListAgents`), a fix branch commit newer than
+2 hours, an open PR for it. Adopt it: re-add `in-progress` (remove then add, so the event is fresh),
+comment once "picked up: the previous run left it in progress with no work under it", and continue
+at step 1. If its fix branch `<type>/<slug>` and worktree already exist with a commit, resume from
+them instead of recreating (rebase onto `development`, re-run the checks, redo steps 4 and 5 unless
+`$PLANS/` records they already passed). Not stale: leave it alone.
 
 1. **Verify the approval is real.** Fetch `gh api repos/$REPO/issues/<n>/events --paginate`. The
    newest `labeled` event for `approved` must have `actor.login == $OWNER`, and must be newer than
@@ -163,8 +174,11 @@ For each open issue labelled `approved`, not `in-progress`, `fixed` or `needs-hu
    "Records worktree" below): in `$RECORDS/<record-slug>.md` set Fix to the commit link and
    add the `Verification:` line; leave a row in `index.md`. Otherwise the `Verification:` line goes
    in the issue comment and the PR body only.
-7. **Ship** (below), then comment on the issue with the merge commit and one line of
-   results (tests, typecheck and review passed; verification result), nothing more; close it (`gh issue close <n> --reason completed`); remove
+7. **Ship** (below), then comment on the issue with the merge commit, one line of
+   results (tests, typecheck and review passed; verification result), a link to the PR that
+   carries the fix (the `development` -> `main` PR from Ship) and a link to the session that made
+   it (the session URL from the session tools such as `mcp__ccd_session_mgmt__get_session`, or the
+   session id and title if no URL is available), nothing more; close it (`gh issue close <n> --reason completed`); remove
    `approved` and `in-progress`, add `fixed`.
 
 **Failure path:** remove `approved` and `in-progress`, add `needs-human`, comment only
@@ -425,6 +439,9 @@ mention it in the final notification and carry on; never retry in a loop.
 - Never ask for permission to ship a fix that passed the gate (merge, push `development` and tags, release PR); the owner's approval already covers it.
 - Never push `main`, never force-push, never merge a PR, never enable auto-merge. The only branch
   pushed is `development`, and the only PR opened is `development` -> `main`.
+- Merging the release PR is not this routine's job, and it must not try, ask, or hand it back as a
+  to-do. The owner's interactive session always merges it; the owner then only approves the deploy.
+  Open the PR, report its link, stop.
 - Never merge a fix that hasn't cleanly passed the full `review-agents` run (step 5).
 - Never switch branches, stash or reset in the shared checkout. Never change infrastructure.
 - Questions come last in the run (phase 2 step 4), after all fixes and plans, so a waiting question
