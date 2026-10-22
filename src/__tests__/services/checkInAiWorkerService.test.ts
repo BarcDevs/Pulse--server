@@ -1,4 +1,7 @@
-import { CHECK_IN_AI_JOB_MAX_ATTEMPTS } from '../../constants/checkInAiJob'
+import {
+    CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+    CHECK_IN_AI_JOB_STALE_MS
+} from '../../constants/checkInAiJob'
 import * as jobModel from '../../models/checkInAiJobModel'
 import { drainJobs, startCheckInAiWorker } from '../../services/checkInAiWorkerService'
 import * as insightGenerationService from '../../services/insightGenerationService'
@@ -42,6 +45,15 @@ describe('checkInAiWorker', () => {
         expect(recommendationsService.generateRecommendationsSafely)
             .toHaveBeenCalledWith('user-1', 'check-in-1', expect.any(Function))
         expect(jobModel.markJobDone).toHaveBeenCalledWith(job())
+    })
+
+    it('passes the stale window to the claim, leaving the cutoff to the database clock', async () => {
+        jest.spyOn(jobModel, 'claimNextJob').mockResolvedValue(null)
+
+        await drainJobs()
+
+        expect(jobModel.claimNextJob)
+            .toHaveBeenCalledWith(CHECK_IN_AI_JOB_STALE_MS)
     })
 
     it('lets the generators ask whether the job still holds its claim', async () => {
