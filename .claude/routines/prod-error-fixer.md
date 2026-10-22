@@ -225,9 +225,14 @@ request, revise the plan to address it):
    where the fix goes, behaviour change) is an open question. No open questions: skip to 5.
    Otherwise do NOT ask yet:
    1. Park the issue: write the draft plan so far and each question with its options and your
-      recommendation to `$PLANS/draft.md`, `gh issue comment` only `**Plan draft for #<n>:
-      awaiting your answers**`, add label `awaiting-answer`, and move on to the next issue. If
-      `$PLANS/draft.md` already exists (a previous run), start from it instead of re-deriving.
+      recommendation to `$PLANS/draft.md`. Publish the questions with the `plan-artifact` skill
+      as a private page (`.watchers/plans/issue-<n>/questions.html`, stable `file_path`; each
+      question a numbered block with lettered options, the recommended one marked, and a line
+      "Answer by commenting on the issue, e.g. `1: B, 2: A`"). `gh issue comment` only
+      `**Plan draft for #<n>: awaiting your answers**` plus that page link (no question text on
+      the issue: the repo is public), add label `awaiting-answer`, and move on to the next issue.
+      If `$PLANS/draft.md` already exists (a previous run), start from it instead of re-deriving;
+      republish the page to the same `file_path` if the questions changed.
    2. After ALL other work in this run is finished (phase 1, every other plan, the final
       notification), take the parked issues one by one: send a `PushNotification` ("Question on
       #<n>: <signature>"), then ask with `AskUserQuestion` (recommended option first). Only
@@ -236,7 +241,8 @@ request, revise the plan to address it):
       `awaiting-answer`, continue with 5. Unanswered (the session ends or is cut off): leave the
       note and label as they are. The next run reads the note and asks again; an
       `awaiting-answer` issue is never fixed or planned further until its questions are answered.
-      The owner can also answer by commenting on the issue; the next run treats a comment whose
+      The owner can also answer by commenting on the issue (from the phone, using the question
+      numbers and option letters from the page); the next run treats a comment whose
       `author.login` is `$OWNER` as the answer.
    Never guess an answer and never publish a plan that still has open questions on it.
 5. **Present the finished plan** with the `plan-artifact` skill (its step 1 is already done by
