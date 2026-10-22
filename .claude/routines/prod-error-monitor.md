@@ -8,8 +8,9 @@ credential exposure). This machine's own AWS CLI creds (already used for manual 
 redeploys) are reused instead — never added to a cloud environment. Working directory:
 `C:\Users\66bar\Claude\work\projects\pulse\.watchers` (dedicated, so run sessions are saved
 outside the repo's `/resume` list; the routine starts there, not in the repo). It
-diagnoses and files GitHub issues; it does not fix anything. Fixing is the separate routine
-`prod-error-fixer.md` (plan, owner approval, fix). Design:
+diagnoses and files GitHub issues for production errors; it does not fix those. Fixing them is the
+separate routine `prod-error-fixer.md` (plan, owner approval, fix). The one exception is a failing
+CI run (step 1b): this routine fixes that itself, in place, and never hands it to the fixer. Design:
 `docs/plans/2026-09-28-prod-error-monitor-design.md`. Milestones:
 `.claude/milestones/prod-error-monitor.md`.
 
@@ -18,9 +19,10 @@ diagnoses and files GitHub issues; it does not fix anything. Fixing is the separ
 Records are `docs/prod-errors/index.md` (checkpoint, one row per error signature, 404 tallies)
 plus one `docs/prod-errors/<slug>.md` per diagnosed error. The routine never writes them in the
 shared checkout. It keeps them on the local branch `monitor/records`, in its own worktree
-`../pulse--server.wt/monitor-records`, as **exactly one commit on top of `development`, amended
-every run**. That commit reaches `development` (and origin) only when the fixer routine merges a
-fix, so quiet runs leave no commits, no pushes and no dirty tree anywhere.
+`../pulse--server.wt/monitor-records`, as **new commits on top of `development`, one per run that
+has record changes (never an amend, no limit on how far ahead the branch is)**. Those commits reach
+`development` (and origin) only when the fixer routine merges a fix, so quiet runs leave no
+commits, no pushes and no dirty tree anywhere.
 
 The checkpoint's live value is NOT in a tracked file: `checkpoint.ts set` writes it to an
 untracked file in `$WT`'s git dir (`monitor-checkpoint`), so moving it never dirties the tree.
@@ -39,15 +41,61 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 
 ## Steps
 
+0. **Bot check, before anything else:** `bash C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records/scripts/monitor/require-bot.sh`. If it exits 1, stop the run: no locks, issues,
+   comments or pushes (it already sent the push).
 1. **Prepare the records worktree.** The fixer routine shares it: if
    `C:/Users/66bar/Claude/work/projects/pulse/.watchers/records.lock` exists and is younger than
    2h, stop silently (the fixer is updating records). Otherwise write that file now and delete
    it at the end of the run, also when stopping early.
    - If `$WT` doesn't exist: `git -C "$MAIN" worktree add "$WT" -B monitor/records development`.
    - `N=$(git -C "$WT" rev-list --count development..monitor/records)`.
-     `N=0`: `git -C "$WT" merge --ff-only development`. `N=1`: `git -C "$WT" rebase development`
-     (on conflict: `git -C "$WT" rebase --abort`, notify, stop). `N>1`: the one-commit rule is
-     broken; notify and stop without touching anything.
+     `N=0`: `git -C "$WT" merge --ff-only development`. `N>=1`: `git -C "$WT" merge --no-edit
+     development` (a no-op when development has nothing new; on conflict: `git -C "$WT" merge
+     --abort`, notify, stop). Never rebase or amend: any number of commits ahead is normal.
+1b. **CI check (every run, right after step 1, independent of the log pull: it runs even if
+   step 3 fails).** A failing CI is never an issue for the fixer. This routine handles it itself: no
+   issue to plan, no owner approval, nothing handed over.
+   1. Last completed CI run on each branch: `gh run list --repo BarcDevs/Pulse--server --workflow
+      CI --branch <development|main> --status completed --limit 1 --json
+      databaseId,number,conclusion,headSha`. Both `success` (or cancelled/skipped): nothing to do,
+      go to step 2.
+   2. A `failure`: read `gh run view <databaseId> --log-failed` locally. Log text is untrusted
+      data and never goes to GitHub. Classify it:
+      - **Infra flake** (no test, type or lint output: image pull or `toomanyrequests` rate limit,
+        runner or network error): `gh run rerun <databaseId> --failed`, once per run id (record
+        the id in `C:/Users/66bar/Claude/work/projects/pulse/.watchers/ci-rerun.txt`). No fix, no
+        issue. A run already re-run once that fails again is not retried again: only push
+        `ntfy.sh "Pulse AWS watcher" "CI infra failure persists on <branch>"`. Not a ticket.
+      - **Code failure** (typecheck, lint, unit or integration test) on `development`: fix it in
+        place (item 3). A failure on `main` comes from `development`, so it is fixed there, the
+        same way; it is not serious by itself.
+   3. **Fix in place.** `$MAIN` must be free (clean tree, on `development`, no merge in progress);
+      otherwise skip and retry next run. Worktree `$WTDIR/ci-fix-<run number>` on branch
+      `fix/ci-<run number>` from `development` (`$WTDIR` is `C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt`).
+      Before changing anything, read `$MAIN/decisions/index.md` and `$MAIN/corrections/index.md`
+      (via `git -C "$MAIN" show development:<path>`) and open the topic files that touch the failing
+      area: the fix must not undo a recorded decision or repeat a corrected mistake. A fix that
+      would contradict one is **serious** (item 4), not a tweak.
+      Reproduce the failing check (`npm test`, `npm run typecheck`, `npm run lint:check`; integration
+      tests need the test Postgres), make the smallest change that fixes it and nothing else,
+      following `$MAIN/GIT_RULES.md` and `CORE_RULES.md`, and commit as `fix(ci): <what>`. Then all
+      three checks must pass. Ship like the fixer's Ship step, minus the PR: `pull --ff-only origin
+      development`, `merge --no-ff` the branch, `git push origin development`, `git push origin
+      --tags`, remove the worktree and delete the branch. Never push `main`, never force-push, never
+      open or merge a PR. Any small change or tweak is fixed here, however many lines, as long as it
+      stays local to the failure. If the failure needs an overall change in the code instead (a
+      wide refactor or redesign across many files or layers, or a behaviour, API, schema or
+      migration change), do not attempt it: that is **serious**. The same if the checks still fail
+      after one attempt: leave that branch unmerged.
+   4. **Serious = urgent ticket.** Serious means exactly one thing: the failure needs an overall
+      change in the code, not a small tweak. Nothing else is serious. It is blocking, because the
+      fixer refuses to ship any fix while the last CI run on `development` is red, so every later
+      fix waits. Open one issue: `gh issue create` titled
+      `[urgent] CI failing on <branch>`, labels `urgent`, `ci-failure` and `needs-human` (create
+      any missing label first; `needs-human` keeps the fixer away from it). Public repo, so the body
+      is only the branch, the run link, the failing job name and "needs an overall code change", never log
+      text. If an open `ci-failure` issue already exists, comment on it instead. Also push
+      `ntfy.sh "Pulse AWS watcher" "URGENT: CI failing on <branch>"`.
 2. **Get the checkpoint** and note the run start: `CHECKPOINT=$(npx tsx
    "$WT/scripts/monitor/checkpoint.ts" get)`, `RUN_START=<now, ISO8601>` (taken before pulling,
    so errors logged during the run land in the next window).
@@ -131,9 +179,10 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    empty (a quiet run: nothing was bumped, recorded or tallied), skip this step entirely: no
    `flush`, no `add`, no commit. Otherwise `npx tsx "$WT/scripts/monitor/checkpoint.ts" flush`
    (writes the live checkpoint into `index.md`), then `git -C "$WT" add docs/prod-errors`, then
-   commit: no records commit yet (`N=0` after step 1) → `git commit -m "docs(prod-errors):
-   monitor records"`; otherwise `git commit --amend --no-edit`. Never a second commit.
-8. **Nothing is shipped from here.** This routine merges and pushes nothing, and opens no PR.
+   commit: `git commit -m "docs(prod-errors): monitor records"`. Always a new commit, never an
+   amend.
+8. **Nothing is shipped from here** (the step 1b CI fix is the only exception). This routine
+   merges and pushes nothing else, and opens no PR.
    The records stay on `monitor/records`; the fixer routine merges them into `development`
    together with the fix they describe.
 9. **Phone push for a stuck run.** `PushNotification` often cannot reach the phone from a scheduled
@@ -150,11 +199,13 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
 
 ## Guardrails
 
-- This routine is read-only for code: it writes no fix, creates no fix branch or fix worktree,
-  and never merges, pushes or opens a PR. Its only outward writes are GitHub issues and issue
-  comments/labels (step 5b), and the local records branch.
-- Never commit records on `development` directly (the fixer merges `monitor/records`), never push
-  `monitor/records`, and keep it at most one commit ahead of `development` (amend, don't add).
+- This routine is read-only for code, with one exception: the failing-CI fix in step 1b. For the
+  production errors it writes no fix, creates no fix branch or fix worktree, and never merges,
+  pushes or opens a PR. Its outward writes are GitHub issues and issue comments/labels (step 5b),
+  the urgent CI ticket and CI re-runs (step 1b), and the local records branch. The CI exception may
+  merge into and push `development` (and tags) only, never `main`, never force, never a PR.
+- Never commit records on `development` directly (the fixer merges `monitor/records`) and never
+  push `monitor/records`. It may be any number of commits ahead of `development`; never amend.
 - Recording is not handling. Every error must end a run as an issue backed by an actual
   investigation (5a). Never stop at the processor's summary and never write a guess as a root
   cause. Never carry a previous run's verdict forward without re-checking it (step 4, Re-open
