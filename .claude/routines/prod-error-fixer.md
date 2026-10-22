@@ -151,7 +151,7 @@ them instead of recreating (rebase onto `development`, re-run the checks, redo s
    **LOW and MEDIUM findings are not dropped.** Any LOW/MEDIUM finding from any review agent
    (including the deep review) that you do not fix in this change becomes a GitHub issue, so the
    next run plans it like any other issue: one issue per finding (related ones may share), filed
-   with `gh issue create --repo $REPO` under the owner's login, title `[review] <short finding>`,
+   with `gh issue create --repo $REPO` as `$BOT` (the run's own gh login), title `[review] <short finding>`,
    no label required. Body: short summary only, the file path and a one-line "found while fixing
    #<n>" (the repo is public: no exploit path, log data or secrets; details go to
    `$PLANS/issue-<new>/draft.md`). Skip findings that are pure taste (INFO, style) or that the
@@ -375,7 +375,7 @@ merge and push:
 1. **Idempotent.** If `$PLANS/client-issue.txt` exists, stop: the client issue is already filed.
    Otherwise search `gh issue list --repo BarcDevs/Pulse--client --state all --search "server
    #<n> in:title"`; found: write its number to `$PLANS/client-issue.txt` and stop.
-2. **File one linked client issue** under the owner's login: `gh issue create --repo
+2. **File one linked client issue** as `$BOT` (the run's own gh login): `gh issue create --repo
    BarcDevs/Pulse--client --label cross-repo --title "<short summary> (server #<n>)"` with a body
    of one line of summary, `Server issue: https://github.com/BarcDevs/Pulse--server/issues/<n>`
    and the merge commit link. The repo is public: no endpoint or schema detail beyond that line.
