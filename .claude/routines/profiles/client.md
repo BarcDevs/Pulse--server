@@ -9,6 +9,7 @@ this profile live in the server repo; the client repo is the one this profile wo
 | `PREFIX` | `C` (phone pushes and the notified list name issues `C#<n>`) |
 | `REPO` | `BarcDevs/Pulse--client` |
 | `OWNER` | `BarcDevs` |
+| `BOT` | `Claude-watcher-agent` (the account the scheduled runs use; never the owner) |
 | `MAIN` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--client` |
 | `WT` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--client.wt/monitor-records` |
 | `WTDIR` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--client.wt` |

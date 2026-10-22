@@ -9,6 +9,7 @@ needs that differs per repo lives here; the routine itself names the variables.
 | `PREFIX` | `S` (phone pushes and the notified list name issues `S#<n>`) |
 | `REPO` | `BarcDevs/Pulse--server` |
 | `OWNER` | `BarcDevs` |
+| `BOT` | `Claude-watcher-agent` (the account the scheduled runs use; never the owner) |
 | `MAIN` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--server` |
 | `WT` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt/monitor-records` |
 | `WTDIR` | `C:/Users/66bar/Claude/work/projects/pulse/pulse--server.wt` (fix worktrees `monitor-fix-<slug>` go here) |
