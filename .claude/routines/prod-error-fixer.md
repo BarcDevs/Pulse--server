@@ -26,6 +26,7 @@ path, command or label.
 |-------|-------|--------|
 | filed | none required (`$WATCHER_LABELS` on watcher issues) | a watcher or the owner |
 | plan needs the owner's answers first | `awaiting-answer` | this routine (phase 2) |
+| owner has a follow-up question on an issue | `follow-up` | **the owner only**; this routine removes it once answered |
 | plan published, waiting for the owner | `plan-ready` | this routine (phase 2) |
 | owner approved the plan | `approved` | **the owner only**, from the GitHub app or web |
 | fix being made | `in-progress` | this routine (phase 1) |
@@ -186,6 +187,15 @@ the plan page). Either way this routine must carry the fix through to the ship s
   failure path applies, and say which.
 
 ## Phase 2: plan unplanned issues
+
+First, answer follow-ups: for each open issue with the `follow-up` label (any other label allowed),
+read the owner's newest comment (`author.login` is `$OWNER`); it is a question, not an answer or an
+approval, so never treat it as one and never change the plan or labels because of it. Answer it from
+the code, the draft and the plan. The repo is public: put the full answer on the issue's private page
+(the `questions.html` or `plan.html`, republished to the same `file_path` with a "Follow-up" section
+added) and `gh issue comment` only `**Follow-up on #<n> answered**` plus that page link. Then remove
+`follow-up`. If it cannot be answered, say so in one line on the issue and remove the label. The
+`awaiting-answer` / `plan-ready` state stays exactly as it was.
 
 For each open issue with no `plan-ready`, `approved`, `fixed` or `needs-human` label
 (an `awaiting-answer` issue is included only to ask its parked questions again, step 4)
