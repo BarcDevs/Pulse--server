@@ -1,3 +1,4 @@
+import { Prisma as PrismaNamespace } from '../../prisma/generated/prisma/client'
 import { CheckInAiJobStatus } from '../../prisma/generated/prisma/enums'
 import {
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
@@ -37,6 +38,9 @@ export const enqueueJob = async (
     })
 }
 
+const staleCutoff = (staleMs: number) =>
+    PrismaNamespace.sql`now() - ${staleMs} * interval '1 millisecond'`
+
 // SKIP LOCKED lets several instances claim different jobs without waiting on
 // each other; a PENDING job waits for its runAfter (retry backoff);
 // a RUNNING job locked longer than staleMs is taken over (dead worker).
@@ -54,7 +58,7 @@ export const claimNextJob = async (
             "lastError" = ${CHECK_IN_AI_JOB_STALE_ERROR}
         WHERE "status" = 'RUNNING'
             AND "attempts" >= ${CHECK_IN_AI_JOB_MAX_ATTEMPTS}
-            AND "lockedAt" < now() - ${staleMs} * interval '1 millisecond'
+            AND "lockedAt" < ${staleCutoff(staleMs)}
     `
 
     const [job] = await Prisma.$queryRaw<ClaimedCheckInAiJob[]>`
@@ -68,7 +72,7 @@ export const claimNextJob = async (
             WHERE ("status" = 'PENDING' AND "runAfter" <= now())
                 OR (
                     "status" = 'RUNNING'
-                    AND "lockedAt" < now() - ${staleMs} * interval '1 millisecond'
+                    AND "lockedAt" < ${staleCutoff(staleMs)}
                 )
             ORDER BY "createdAt"
             LIMIT 1
