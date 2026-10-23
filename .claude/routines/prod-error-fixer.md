@@ -350,19 +350,21 @@ Dependabot's own PRs (author `app/dependabot`, head branch `dependabot/...`) are
 `development` by this routine without a plan or an `approved` label; the owner's standing decision
 is that a dependabot bump with green CI needs no review, major versions included. The deploy
 approval is the gate. Only dependabot-authored PRs: a PR from anyone else is never touched here.
+Do every step below that you can; a blocked step is left to the owner and reported (see "Blocked
+steps"), never forced or worked around.
 
 1. **List:** `gh pr list --repo $REPO --state open --author "app/dependabot" --json
    number,title,baseRefName,headRefName,files,statusCheckRollup`. Read `$MAIN/decisions/index.md`
    and `$MAIN/corrections/index.md` first; a bump that contradicts a recorded decision (a pinned
    version, a refused upgrade) is skipped with a short comment on the PR.
 2. **Retarget:** a PR whose `baseRefName` is `main` gets `gh pr edit <n> --repo $REPO --base
-   development` (branch policy: only `development` is merged into `main`). Dependabot then rebases
-   it; leave it for the next run instead of waiting for the new CI.
+   development`. If that fails (token scopes, or "part of a stack"), do not retry or work around
+   it: that PR is blocked and left to the owner (closing it makes dependabot reopen it on
+   `development`).
 3. **Qualify** each PR based on `development`: all of its checks `SUCCESS` (none pending, none
    failed) and its head is not already contained in `development` (`git -C "$MAIN" merge-base --is-ancestor origin/<head> development` after
    `git -C "$MAIN" fetch origin <head>`). A failed check or a conflict:
-   leave it, and mention it once in the notification and the phone push (no issue, no comment
-   unless the PR gained a new failure since the last run).
+   leave it, and mention it once in the notification and the phone push.
 4. **Merge locally, like a fix.** Same guard as the Ship step (`ListAgents`, `git status`; busy or
    dirty: skip and say "dependabot merge blocked: checkout busy"). On `development`:
    `pull --ff-only origin development`, then `merge --no-ff origin/<head> -m "Merge dependabot
@@ -372,6 +374,14 @@ approval is the gate. Only dependabot-authored PRs: a PR from anyone else is nev
 5. **Push `development` (and `--tags`) and report it on the release PR**, exactly as the Ship step
    does for a fix, even when the run merged nothing but dependabot branches. GitHub then closes
    each dependabot PR as merged. If the same run also ships a fix, do it once for both.
+
+**Blocked steps.** The bot token has no `workflow` scope, and the owner decided not to grant it
+(it would let an unattended run change CI and deploy), so a push containing a bump that edits
+`.github/workflows/` is rejected. When that push is rejected: leave the merges on local
+`development` (do not reset, retry or push another way) and report **Dependabot push waiting:
+<PR numbers>** in the final notification and the phone push, so the owner pushes `development`.
+A later run opens or comments on the release PR as usual once it is pushed. A bump the owner
+merged on GitHub is simply gone from the list.
 
 ## Records worktree
 
@@ -472,8 +482,8 @@ A client run (client profile) never edits server code. If a cross-repo client is
 
 ## Final notification
 
-Only if the run did anything: fixes shipped (issue, merge commit), dependabot PRs merged or
-retargeted (PR numbers), plans published (issue, link),
+Only if the run did anything: fixes shipped (issue, merge commit), dependabot PRs merged or retargeted (PR numbers), dependabot pushes waiting
+(PR numbers), plans published (issue, link),
 issues sent to `needs-human` (why), approvals ignored, and the `development` -> `main` PR link.
 
 ## Phone push (every run, last step)
@@ -482,12 +492,12 @@ issues sent to `needs-human` (why), approvals ignored, and the `development` -> 
 there), so the last step of EVERY run, quiet or not, is one push through ntfy:
 `bash $WT/scripts/monitor/ntfy.sh "<title>" "<message>"`.
 Send it when at least one of these is true, and not otherwise:
-- something is **waiting on the owner**: issues with `plan-ready` and no `approved` (owner to
+- something is **waiting on the owner**: a dependabot push blocked by the token scope, issues with `plan-ready` and no `approved` (owner to
   approve), `awaiting-answer` (owner to answer), `needs-human`, `held-for-review` (owner to review), or an
   open `development` -> `main` PR;
 - the run did something (shipped a fix, published a plan, hit a failure).
 The message is counts and issue numbers only, each number prefixed with the profile's `$PREFIX`,
-e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none. Deps merged: PR59.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
+e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none. Dependabot push waiting: PR59.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
 in it; the script adds the public GitHub issue-list links itself. A run with nothing waiting and nothing done sends nothing. If the script exits 1,
 mention it in the final notification and carry on; never retry in a loop.
 
