@@ -254,14 +254,14 @@ repos/$REPO/issues/<n>/events --paginate`) has `actor.login == $OWNER` and is ne
 questions comment; otherwise remove it and ignore it. Collect the owner's answers as above and plan
 from them now, without asking again. A question still unanswered takes the recommendation shown on the
 page, and the plan's "Decided" list says so. Then remove `awaiting-answer` and `answered` and set
-`plan-ready` as usual.
+`plan-ready` as usual. An `approved` label on an issue that has no plan yet is removed as before, and
+the one-line comment says to add `answered` once the questions are answered, then approve the plan.
 
 **Stray `answered`.** An `answered` label on an open issue that has no `awaiting-answer` but has a
 routine questions comment and no `plan-ready`, `approved`, `fixed` or `needs-human` label (the owner
 swapped the labels instead of adding `answered` next to `awaiting-answer`) is treated as a valid
 `answered` when its newest `labeled` event has `actor.login == $OWNER` and is newer than the
-routine's questions comment: plan from the owner's answers as above. Otherwise remove it and ignore it. An `approved` label on an issue that has no plan yet is removed as before, and
-the one-line comment says to add `answered` once the questions are answered, then approve the plan.
+routine's questions comment: plan from the owner's answers as above. Otherwise remove it and ignore it.
 
 For each open issue with no `plan-ready`, `approved`, `fixed` or `needs-human` label
 (an `awaiting-answer` issue is included only to ask its parked questions again, step 4, unless it carries a valid `answered`, which plans it now)
