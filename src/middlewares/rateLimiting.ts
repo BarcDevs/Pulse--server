@@ -1,12 +1,12 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
-import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import {
     dayInMs,
     hourInMs,
     minuteInMs
 } from '../constants/time'
+import { createTooManyRequestsHandler } from '../utils/tooManyRequestsHandler'
 
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
@@ -82,20 +82,7 @@ const supportRateLimitMessage =
 export const supportRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 5,
-    handler: (_req, res) => {
-        res
-            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
-            .json({
-                message: supportRateLimitMessage,
-                error: [
-                    {
-                        statusType: 'Too Many Requests',
-                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
-                        error: supportRateLimitMessage
-                    }
-                ]
-            })
-    }
+    handler: createTooManyRequestsHandler(supportRateLimitMessage)
 })
 
 const checkInMutationRateLimitMessage =
@@ -105,20 +92,7 @@ export const checkInMutationRateLimiter = rateLimit({
     windowMs: dayInMs,
     limit: isDev ? 100 : 5,
     keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
-    handler: (_req, res) => {
-        res
-            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
-            .json({
-                message: checkInMutationRateLimitMessage,
-                error: [
-                    {
-                        statusType: 'Too Many Requests',
-                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
-                        error: checkInMutationRateLimitMessage
-                    }
-                ]
-            })
-    }
+    handler: createTooManyRequestsHandler(checkInMutationRateLimitMessage)
 })
 
 export const sharePostRateLimiter = rateLimit({
@@ -163,18 +137,5 @@ const supportReaderRateLimitMessage =
 export const supportReaderRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 30,
-    handler: (_req, res) => {
-        res
-            .status(HttpStatusCodes.TOO_MANY_REQUESTS)
-            .json({
-                message: supportReaderRateLimitMessage,
-                error: [
-                    {
-                        statusType: 'Too Many Requests',
-                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
-                        error: supportReaderRateLimitMessage
-                    }
-                ]
-            })
-    }
+    handler: createTooManyRequestsHandler(supportReaderRateLimitMessage)
 })
