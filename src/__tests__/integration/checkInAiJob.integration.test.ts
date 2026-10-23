@@ -225,10 +225,13 @@ describe('Check-in AI job — Integration', () => {
             await Prisma.checkInAiJob.updateMany({
                 data: {
                     status: 'RUNNING',
-                    attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS,
-                    lockedAt: new Date()
+                    attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS
                 }
             })
+            await Prisma.$executeRaw`
+                UPDATE "CheckInAiJob"
+                SET "lockedAt" = now()
+            `
             skewAppClock()
 
             await drainJobs()
@@ -237,7 +240,7 @@ describe('Check-in AI job — Integration', () => {
 
             await Prisma.$executeRaw`
                 UPDATE "CheckInAiJob"
-                SET "lockedAt" = now() - interval '3 minutes'
+                SET "lockedAt" = now() - ${CHECK_IN_AI_JOB_STALE_MS + minuteInMs} * interval '1 millisecond'
             `
             await drainJobs()
 
