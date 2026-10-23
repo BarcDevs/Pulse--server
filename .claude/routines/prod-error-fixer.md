@@ -224,12 +224,18 @@ the plan page). Either way this routine must carry the fix through to the ship s
 
 First, answer follow-ups: for each open issue with the `follow-up` label or an owner-mention call
 (see "Owner mentions" above; any other label allowed),
-read the owner's newest comment (`author.login` is `$OWNER`); it is a question, not an answer or an
-approval, so never treat it as one and never change the plan or labels because of it. Answer it from
+read the owner's newest comment (`author.login` is `$OWNER`) on the issue **and the owner's comment
+threads on the issue's questions or plan page** (page link and `ArtifactComments` as in the next
+paragraph). The `follow-up` label itself is the owner's signal that such a comment exists, usually
+on the page: read the page threads for every `follow-up` issue, and answer the unhandled ones
+(not in `$PLANS/handled-threads.txt`) whether or not the comment mentions `@claude` or `@$BOT`, is
+marked "activated for Claude", or is newer than the routine's last comment. Do not wait for a
+mention. Each is a question, not an answer or an approval, so never treat it as one and never change the plan or labels because of it. Answer it from
 the code, the draft and the plan. The repo is public: put the full answer on the issue's private page
 (the `questions.html` or `plan.html`, republished to the same `file_path` with a "Follow-up" section
 added) and `gh issue comment` only `**Follow-up on #<n> answered**` plus that page link. Then remove
-`follow-up`. If it cannot be answered, say so in one line on the issue and remove the label. The
+`follow-up` once every unhandled comment is answered (append each answered thread id to
+`$PLANS/handled-threads.txt`). If it cannot be answered, say so in one line on the issue and remove the label. The
 `awaiting-answer` / `plan-ready` state stays exactly as it was.
 
 Then read the owner's comments on the pages. For each open issue with `awaiting-answer` or
