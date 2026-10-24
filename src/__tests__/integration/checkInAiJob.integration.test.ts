@@ -59,8 +59,7 @@ const readDatabaseNow = async () => {
     return now
 }
 
-
-const ageCheckIn = (checkInId: string, ageMs: number) => Prisma.$executeRaw`
+const ageCheckIn =(checkInId: string, ageMs: number) => Prisma.$executeRaw`
     UPDATE "DailyCheckIn"
     SET "createdAt" = now() - ${ageMs} * interval '1 millisecond'
     WHERE "id" = ${checkInId}
