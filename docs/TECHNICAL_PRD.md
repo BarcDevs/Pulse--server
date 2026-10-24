@@ -275,7 +275,7 @@ Google AI API (for insight generation)
 - **Server**: Express.js with middleware (auth, validation, error handling)
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: JWT in HTTP-only cookies + CSRF tokens
-- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); SQS and socket push are planned for scale (`scaling-todo.md`)
+- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); a sweep every 5 minutes re-queues check-ins of the last 24 h that have no job or a job `FAILED` for over 5 minutes; SQS and socket push are planned for scale (`scaling-todo.md`)
 - **Caching**: Session/token caching via Redis (future optimization)
 
 ---
