@@ -55,7 +55,8 @@ export const claimNextJob = async (
         UPDATE "CheckInAiJob"
         SET "status" = 'FAILED',
             "lockedAt" = NULL,
-            "lastError" = ${CHECK_IN_AI_JOB_STALE_ERROR}
+            "lastError" = ${CHECK_IN_AI_JOB_STALE_ERROR},
+            "updatedAt" = now()
         WHERE "status" = 'RUNNING'
             AND "attempts" >= ${CHECK_IN_AI_JOB_MAX_ATTEMPTS}
             AND "lockedAt" < ${staleCutoff(staleMs)}
@@ -160,3 +161,48 @@ export const markJobFailed = (
     CheckInAiJobStatus.FAILED,
     lastError
 )
+
+// Safety net for check-ins that never got insights: the job insert failed
+// after the check-in was saved (e.g. the app started before the migration),
+// or the job exhausted its attempts. Only check-ins created within lookbackMs
+// are considered. FAILED jobs are re-queued once their updatedAt is older than
+// failedAfterMs; PENDING, RUNNING and DONE jobs are left alone (a stale
+// RUNNING job is taken over by claimNextJob). Both cutoffs use the database
+// clock, the one every job timestamp is written with.
+export const requeueMissedJobs = async (
+    lookbackMs: number,
+    failedAfterMs: number
+): Promise<void> => {
+    const lookbackCutoff = staleCutoff(lookbackMs)
+
+    await Prisma.$executeRaw`
+        INSERT INTO "CheckInAiJob" (
+            "id", "checkInId", "userId", "status", "attempts",
+            "runAfter", "createdAt", "updatedAt"
+        )
+        SELECT
+            gen_random_uuid(), c."id", p."userId", 'PENDING', 0,
+            to_timestamp(0), now(), now()
+        FROM "DailyCheckIn" c
+        JOIN "Profile" p ON p."id" = c."profileId"
+        LEFT JOIN "CheckInAiJob" j ON j."checkInId" = c."id"
+        WHERE j."id" IS NULL
+            AND c."createdAt" > ${lookbackCutoff}
+        ON CONFLICT ("checkInId") DO NOTHING
+    `
+
+    await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob" j
+        SET "status" = 'PENDING',
+            "attempts" = 0,
+            "lockedAt" = NULL,
+            "lastError" = NULL,
+            "runAfter" = to_timestamp(0),
+            "updatedAt" = now()
+        FROM "DailyCheckIn" c
+        WHERE c."id" = j."checkInId"
+            AND j."status" = 'FAILED'
+            AND j."updatedAt" < ${staleCutoff(failedAfterMs)}
+            AND c."createdAt" > ${lookbackCutoff}
+    `
+}

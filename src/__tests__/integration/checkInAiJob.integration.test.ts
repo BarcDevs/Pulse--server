@@ -4,9 +4,11 @@ import supertest from 'supertest'
 import { serverConfig } from '../../../config'
 import App from '../../app'
 import {
+    CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS,
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
     CHECK_IN_AI_JOB_RETRY_DELAY_MS,
-    CHECK_IN_AI_JOB_STALE_MS
+    CHECK_IN_AI_JOB_STALE_MS,
+    CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS
 } from '../../constants/checkInAiJob'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { hourInMs, minuteInMs, secondInMs } from '../../constants/time'
@@ -56,6 +58,38 @@ const readDatabaseNow = async () => {
 
     return now
 }
+
+
+const ageCheckIn = (checkInId: string, ageMs: number) => Prisma.$executeRaw`
+    UPDATE "DailyCheckIn"
+    SET "createdAt" = now() - ${ageMs} * interval '1 millisecond'
+    WHERE "id" = ${checkInId}
+`
+
+const ageJobUpdate = (checkInId: string, ageMs: number) => Prisma.$executeRaw`
+    UPDATE "CheckInAiJob"
+    SET "updatedAt" = now() - ${ageMs} * interval '1 millisecond'
+    WHERE "checkInId" = ${checkInId}
+`
+
+const failJob = async (checkInId: string, updatedAgoMs: number) => {
+    await Prisma.checkInAiJob.update({
+        where: { checkInId },
+        data: {
+            status: 'FAILED',
+            attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+            lastError: 'Error'
+        }
+    })
+    await ageJobUpdate(checkInId, updatedAgoMs)
+}
+
+const sweep = () => jobModel.requeueMissedJobs(
+    CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS,
+    CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS
+)
+
+const PAST_RETRY_WINDOW_MS = CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS + minuteInMs
 
 // A negative window puts the cutoff in the future, so every RUNNING job counts as stale
 const ALL_STALE_MS = -minuteInMs
@@ -378,5 +412,117 @@ describe('Check-in AI job — Integration', () => {
         expect(job.status).toBe('FAILED')
         expect(job.attempts).toBe(CHECK_IN_AI_JOB_MAX_ATTEMPTS)
         expect(job.lastError).toBe('Error')
+    })
+
+    describe('requeueMissedJobs', () => {
+        it('inserts a pending job for a recent check-in that has none', async () => {
+            const { res, userId } = await postCheckIn()
+            await Prisma.checkInAiJob.deleteMany()
+
+            await sweep()
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.checkInId).toBe(res.body.data.id)
+            expect(job.userId).toBe(userId)
+            expect(job.status).toBe('PENDING')
+            expect(job.attempts).toBe(0)
+            expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS))
+                .not.toBeNull()
+        })
+
+        it('does not add a second job for a check-in that has one', async () => {
+            await postCheckIn()
+
+            await sweep()
+            await sweep()
+
+            expect(await Prisma.checkInAiJob.count()).toBe(1)
+        })
+
+        it('re-queues a failed job whose last update is past the retry window', async () => {
+            const { res } = await postCheckIn()
+            await failJob(res.body.data.id, PAST_RETRY_WINDOW_MS)
+
+            await sweep()
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('PENDING')
+            expect(job.attempts).toBe(0)
+            expect(job.lockedAt).toBeNull()
+            expect(job.lastError).toBeNull()
+            expect((await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS))!.attempts)
+                .toBe(1)
+        })
+
+        it('leaves a failed job alone while it is inside the retry window', async () => {
+            const { res } = await postCheckIn()
+            await failJob(res.body.data.id, minuteInMs)
+
+            await sweep()
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('FAILED')
+            expect(job.attempts).toBe(CHECK_IN_AI_JOB_MAX_ATTEMPTS)
+        })
+
+        it.each([
+            'PENDING',
+            'RUNNING',
+            'DONE'
+        ] as const)('leaves a %s job untouched', async (status) => {
+            const { res } = await postCheckIn()
+            await Prisma.checkInAiJob.update({
+                where: { checkInId: res.body.data.id },
+                data: { status, attempts: 1 }
+            })
+            await ageJobUpdate(res.body.data.id, PAST_RETRY_WINDOW_MS)
+
+            await sweep()
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe(status)
+            expect(job.attempts).toBe(1)
+        })
+
+        it('ignores a check-in older than the lookback, with or without a job', async () => {
+            const { res } = await postCheckIn()
+            await ageCheckIn(
+                res.body.data.id,
+                CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS + hourInMs
+            )
+            await failJob(res.body.data.id, PAST_RETRY_WINDOW_MS)
+
+            await sweep()
+            expect((await Prisma.checkInAiJob.findFirstOrThrow()).status)
+                .toBe('FAILED')
+
+            await Prisma.checkInAiJob.deleteMany()
+            await sweep()
+            expect(await Prisma.checkInAiJob.count()).toBe(0)
+        })
+
+        it('stamps a job failed as stale so the retry window starts then', async () => {
+            await postCheckIn()
+            await Prisma.checkInAiJob.updateMany({
+                data: {
+                    status: 'RUNNING',
+                    attempts: CHECK_IN_AI_JOB_MAX_ATTEMPTS,
+                    lockedAt: new Date(0)
+                }
+            })
+            await Prisma.$executeRaw`
+                UPDATE "CheckInAiJob"
+                SET "updatedAt" = now() - ${PAST_RETRY_WINDOW_MS} * interval '1 millisecond'
+            `
+
+            await jobModel.claimNextJob(ALL_STALE_MS)
+            await sweep()
+
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('FAILED')
+            expect(job.lastError).toBe('Stale')
+            expect(Date.now() - job.updatedAt.getTime())
+                .toBeLessThan(CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS)
+        })
     })
 })
