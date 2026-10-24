@@ -202,6 +202,25 @@ describe('Check-in AI job — Integration', () => {
             expect(await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)).toBeNull()
         })
 
+        it('stamps updatedAt with the database clock when a job is finished', async () => {
+            await postCheckIn()
+            const claimed = await jobModel.claimNextJob(CHECK_IN_AI_JOB_STALE_MS)
+            skewAppClock()
+            const before = await readDatabaseNow()
+
+            expect(await jobModel.markJobFailed(claimed!, 'Error')).toBe(true)
+
+            const after = await readDatabaseNow()
+            const job = await Prisma.checkInAiJob.findFirstOrThrow()
+            expect(job.status).toBe('FAILED')
+            expect(job.updatedAt.getTime()).toBeGreaterThanOrEqual(
+                before.getTime() - secondInMs
+            )
+            expect(job.updatedAt.getTime()).toBeLessThanOrEqual(
+                after.getTime() + secondInMs
+            )
+        })
+
         it('makes a first job claimable at once despite the skew', async () => {
             skewAppClock()
 

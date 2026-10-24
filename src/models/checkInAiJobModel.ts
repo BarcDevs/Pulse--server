@@ -103,23 +103,23 @@ export const holdsClaim = async (job: ClaimedCheckInAiJob): Promise<boolean> => 
 // check-in was re-submitted (row back to PENDING) or another worker took the
 // job over, the claim no longer matches and the result is dropped, so the
 // newer data is processed instead of being marked done.
+// updatedAt is written with the database clock, the one requeueMissedJobs
+// compares it with, so app clock skew cannot shift the retry window.
 const finishJob = async (
     job: ClaimedCheckInAiJob,
     status: CheckInAiJobStatus,
     lastError: string | null
 ): Promise<boolean> => {
-    const { count } = await Prisma.checkInAiJob.updateMany({
-        where: {
-            id: job.id,
-            status: CheckInAiJobStatus.RUNNING,
-            lockedAt: job.lockedAt
-        },
-        data: {
-            status,
-            lockedAt: null,
-            lastError
-        }
-    })
+    const count = await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob"
+        SET "status" = ${status}::"CheckInAiJobStatus",
+            "lockedAt" = NULL,
+            "lastError" = ${lastError},
+            "updatedAt" = now()
+        WHERE "id" = ${job.id}
+            AND "status" = 'RUNNING'
+            AND "lockedAt" = ${job.lockedAt}
+    `
 
     return count === 1
 }
