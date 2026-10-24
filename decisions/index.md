@@ -27,6 +27,7 @@ Behavioral/algorithmic design choices inside app features — intervention logic
 | 13/10/2026 | Post views: one per profile per rolling 24h via a dedicated `/view` call, not a side effect of GET |
 | 18/10/2026 | AI texts get hard length limits per kind and language from one `TEXT_LIMITS` table (prompt and validator share it) |
 | 19/10/2026 | Check-in AI jobs: two attempts, 10 s apart via `runAfter` (written with the database clock); a re-submit retries at once |
+| 24/10/2026 | Check-in AI jobs: a 5 minute sweep re-queues check-ins with no job and failed jobs (last 24 h, database clock, no new column) |
 
 ## AI Providers & RAG — [[decisions/ai-and-rag]]
 Whether/where to use RAG or embeddings, AI provider fallback strategy, and the infra picked to support them (pgvector, embedding model).

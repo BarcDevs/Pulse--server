@@ -201,3 +201,18 @@ mmit/co**How to apply:** `languageInstruction` lives once in `src/lib/prompts/sh
 
 **How to apply:** change the attempts or the delay only in `src/constants/checkInAiJob.ts`. The migration must run before the new code is deployed (the claim and enqueue queries use `runAfter`); otherwise check-ins submitted in between get no job. `markJobRetry` writes `runAfter` with the database clock (`now() + delay` in SQL, issue #69) and a re-submit uses the epoch constant, so app and database clock skew cannot shorten or stretch the retry delay. Keep any new update of `runAfter` in SQL or on the epoch constant. The first-time insert in `enqueueJob` also sets the epoch constant explicitly, because Prisma fills `@default(now())` on the client with the app clock (issue #71).
 **Follow-up 22/10/2026 (issue #72):** the stale takeover cutoff is also database-clock only. `claimNextJob(staleMs)` takes the window in ms and compares `lockedAt < now() - staleMs * interval '1 millisecond'` in SQL (both the pass that fails exhausted stale jobs and the takeover subselect), because `lockedAt` is written by the database clock; the worker no longer builds a `Date` from the app clock.
+
+---
+
+## 24/10/2026 — Check-in AI jobs: a periodic sweep re-queues missed and failed jobs (issue #70)
+
+**Problem:** if the app starts before the `CheckInAiJob` migration, the job insert fails but the check-in is saved, so it never gets insights unless it is re-submitted. A job that used all its attempts is marked `FAILED` and was never retried.
+
+**Decision (owner):** the worker runs a sweep at startup and every 5 minutes (`CHECK_IN_AI_JOB_SWEEP_MS`), `requeueMissedJobs` in `checkInAiJobModel.ts`. For check-ins created in the last 24 hours (`CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS`) it inserts a `PENDING` job where none exists (`ON CONFLICT ("checkInId") DO NOTHING`), and resets `FAILED` jobs whose `updatedAt` is older than 5 minutes (`CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS`) to `PENDING` with `attempts` 0. `PENDING`, `RUNNING` and `DONE` jobs are untouched (a stale `RUNNING` job is already taken over by `claimNextJob` after 2 minutes). The job row timestamp decides, so there is no new column and no migration. `claimNextJob`'s stale-to-`FAILED` update and `finishJob` (used by `markJobFailed` and `markJobDone`) now write `updatedAt = now()` in SQL, so the 5 minute window starts when the job failed and app clock skew cannot shift it.
+
+**Why over alternatives:** a periodic sweep also covers check-ins whose insert failed for any reason, not only the migration ordering; a one-off backfill at startup would not.
+
+**Risks accepted:** a check-in whose job always fails is retried every 5 minutes for 24 hours; check-ins from before the migration within 24 hours get one job; one cheap query pair every 5 minutes per instance.
+
+**How to apply:** change the interval, lookback or retry window only in `src/constants/checkInAiJob.ts`. All cutoffs are computed in SQL with the database clock, like the stale takeover (issue #72). Every path that sets a job to `FAILED` (`finishJob` behind `markJobFailed`, and the stale update in `claimNextJob`) writes `updatedAt` with `now()` in SQL, not through Prisma `@updatedAt`, which uses the app clock; any new such path must do the same.
+
