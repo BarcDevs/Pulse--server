@@ -11,6 +11,7 @@ import { isAuthenticated } from '../middlewares/isAuthenticated'
 import { optionalAuthentication } from '../middlewares/optionalAuthentication'
 import {
     supportRateLimiter,
+    supportReaderFailedAuthLimiter,
     supportReaderRateLimiter
 } from '../middlewares/rateLimiting'
 import { supportReaderAuth } from '../middlewares/supportReaderAuth'
@@ -174,7 +175,8 @@ router.route('/tickets/:ticketId').get(
  *       Server-to-server. Requires `Authorization Bearer` with
  *       SUPPORT_READER_SECRET (min 16 chars), accepted on this route only.
  *       Returns id, topic, createdAt, status, a short excerpt and a masked
- *       sender email. No user id. Rate limited to 30 requests per 15 minutes
+ *       sender email. No user id. Valid reads are limited to 30 per 15
+ *       minutes in total; failed attempts are limited to 10 per 15 minutes
  *       per IP.
  *     tags: [Support]
  *     parameters:
@@ -210,15 +212,16 @@ router.route('/tickets/:ticketId').get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       429:
- *         description: Too many reads from this IP
+ *         description: Too many valid reads, or too many failed attempts from this IP
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/claude/tickets').get(
-    supportReaderRateLimiter,
+    supportReaderFailedAuthLimiter,
     supportReaderAuth,
+    supportReaderRateLimiter,
     getTicketsForReader
 )
 
