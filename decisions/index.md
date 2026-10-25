@@ -77,6 +77,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 | 29/09/2026 | Remaining audit findings: M3 opt-out toggle, L9 image host allowlist, M6 basic headers + CSP report-only, overnight commit+merge-local authority |
 | 02/10/2026 | Account deletion keeps replies as `deleted-user` (nullable author, SET NULL); posts still deleted |
 | 21/10/2026 | Support tickets stored: service key for the Claude reader, 6-month (closed) and 24-month (never closed) retention, purged accounts keep tickets until retention |
+| 25/10/2026 | Support reader limiter: failed-auth limiter per IP (10 / 15 min) before auth, one shared valid-read bucket (30 / 15 min) after it |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

@@ -89,3 +89,15 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 **Why over alternatives:** an admin session for the reader would hand an automation account a full admin login and the full emails and messages. A single shared retention period would either keep closed tickets too long or drop open ones a user is still waiting on.
 
 **How to apply:** never log a ticket email or message, only its id. Any new ticket read for automation maps through the allow-list in `src/lib/supportTicketReader.ts`. A new route that should accept `SUPPORT_READER_SECRET` needs the owner's say-so: the credential is deliberately accepted nowhere else.
+
+---
+
+## 25/10/2026 — Support reader limiter: failed attempts and valid reads get separate buckets
+
+**Problem:** the reader limiter ran before `supportReaderAuth` and was keyed by IP, so junk requests from the reader's IP burned its 30-read budget and the real reader got 429s (issue #76).
+
+**Decision:** two limiters. `supportReaderFailedAuthLimiter` runs first, per IP, counts only failed requests (`skipSuccessfulRequests`), 10 per 15 min (100 in dev). Then `supportReaderAuth`, then `supportReaderRateLimiter`: one shared key for the single reader credential, 30 valid reads per 15 min (100 in dev). The service key decision of 21/10/2026 is unchanged.
+
+**Why over alternatives:** a single limiter after auth would let an attacker guess the secret without any throttle. A single limiter before auth keyed by IP is the bug. Keying the valid-read bucket by IP adds nothing, since only one credential holder can reach it.
+
+**How to apply:** keep the order failed-auth, auth, reader limiter. Limiters are per process, so each instance keeps its own counts. A cap this low locks a misconfigured reader out for 15 minutes.
