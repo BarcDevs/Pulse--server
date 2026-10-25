@@ -149,6 +149,7 @@ model DailyCheckIn {
   aiJob           CheckInAiJob?
 
   @@unique([profileId, checkInDate])
+  @@index([createdAt])
 }
 
 model CheckInAiJob {
