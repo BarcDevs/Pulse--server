@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
+import { supportReaderRateLimitKey } from '../constants/support/supportTickets'
 import {
     dayInMs,
     hourInMs,
@@ -141,10 +142,24 @@ export const launchFunnelOpenRateLimiter = rateLimit({
 const supportReaderRateLimitMessage =
     'Too many support ticket reads, please try again after 15 minutes'
 
-// Own bucket for the Claude reader credential, separate from the public
+const supportReaderFailedAuthMessage =
+    'Too many failed support reader attempts, please try again after 15 minutes'
+
+// Runs before supportReaderAuth and counts only its failures (401), per IP,
+// so junk requests are throttled without touching the reader's bucket
+export const supportReaderFailedAuthLimiter = rateLimit({
+    windowMs: 15 * minuteInMs,
+    limit: isDev ? 100 : 10,
+    skipSuccessfulRequests: true,
+    handler: createTooManyRequestsHandler(supportReaderFailedAuthMessage)
+})
+
+// One shared bucket for the single Claude reader credential, behind
+// supportReaderAuth so only valid reads spend it. Separate from the public
 // contact form limiter so neither can exhaust the other
 export const supportReaderRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 30,
+    keyGenerator: () => supportReaderRateLimitKey,
     handler: createTooManyRequestsHandler(supportReaderRateLimitMessage)
 })
