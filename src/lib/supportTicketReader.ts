@@ -1,5 +1,13 @@
 import type { SupportTicket } from '../../prisma/generated/prisma/client'
-import { supportTicketExcerptMaxLength } from '../constants/support/supportTickets'
+import {
+    emailRedactionPattern,
+    linkRedactionPattern,
+    numberRedactionPattern,
+    redactedEmailPlaceholder,
+    redactedLinkPlaceholder,
+    redactedNumberPlaceholder,
+    supportTicketExcerptMaxLength
+} from '../constants/support/supportTickets'
 
 const maskedLocalSuffix = '***'
 
@@ -14,12 +22,23 @@ export const maskEmail = (email: string): string => {
     return `${email[0]}${maskedLocalSuffix}${email.slice(atIndex)}`
 }
 
-export const toTicketExcerpt = (message: string): string =>
-    message.length > supportTicketExcerptMaxLength
-        ? `${message.slice(0, supportTicketExcerptMaxLength).trimEnd()}...`
-        : message
+// best effort: names and addresses are not caught
+export const redactPersonalDetails = (message: string): string =>
+    message
+        .replace(linkRedactionPattern, redactedLinkPlaceholder)
+        .replace(emailRedactionPattern, redactedEmailPlaceholder)
+        .replace(numberRedactionPattern, redactedNumberPlaceholder)
 
-// Allow-list on purpose: no user id, no full message, no full sender email. The excerpt is what the user typed, so it can hold personal details
+// redact the full message before slicing, so a pattern cut by the limit is never partly leaked
+export const toTicketExcerpt = (message: string): string => {
+    const redacted = redactPersonalDetails(message)
+
+    return redacted.length > supportTicketExcerptMaxLength
+        ? `${redacted.slice(0, supportTicketExcerptMaxLength).trimEnd()}...`
+        : redacted
+}
+
+// Allow-list on purpose: no user id, no full message, no full sender email. The excerpt is what the user typed: emails, phones, long numbers and links are redacted, but names and addresses are not caught (best effort)
 export const toReaderTicket = ({
     id,
     topic,
