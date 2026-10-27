@@ -1,9 +1,12 @@
 import {
     CHECK_IN_AI_JOB_CONCURRENCY,
+    CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS,
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
     CHECK_IN_AI_JOB_POLL_MS,
     CHECK_IN_AI_JOB_SHUTDOWN_WAIT_MS,
-    CHECK_IN_AI_JOB_STALE_MS
+    CHECK_IN_AI_JOB_STALE_MS,
+    CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS,
+    CHECK_IN_AI_JOB_SWEEP_MS
 } from '../constants/checkInAiJob'
 import type { ClaimedCheckInAiJob } from '../models/checkInAiJobModel'
 import * as jobModel from '../models/checkInAiJobModel'
@@ -80,6 +83,17 @@ export const drainJobs = async (
     return processed
 }
 
+const sweepMissedJobs = async (): Promise<void> => {
+    try {
+        await jobModel.requeueMissedJobs(
+            CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS,
+            CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS
+        )
+    } catch (err: unknown) {
+        logger.error('Check-in AI sweep failed', toLoggableError(err))
+    }
+}
+
 // Several instances may run this; claiming is atomic, so each job runs once.
 // The returned stop function ends polling and resolves once the jobs in
 // flight finish (or after the shutdown wait), so the caller can disconnect
@@ -114,13 +128,17 @@ export const startCheckInAiWorker = (): (() => Promise<void>) => {
             })
     }
 
+    sweepMissedJobs()
+
     tick()
 
     const timer = setInterval(tick, CHECK_IN_AI_JOB_POLL_MS)
+    const sweepTimer = setInterval(sweepMissedJobs, CHECK_IN_AI_JOB_SWEEP_MS)
 
     return async () => {
         stopped = true
         clearInterval(timer)
+        clearInterval(sweepTimer)
 
         await Promise.race([
             inFlight,

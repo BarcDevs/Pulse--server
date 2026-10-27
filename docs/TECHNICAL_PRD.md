@@ -275,7 +275,7 @@ Google AI API (for insight generation)
 - **Server**: Express.js with middleware (auth, validation, error handling)
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: JWT in HTTP-only cookies + CSRF tokens
-- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); SQS and socket push are planned for scale (`scaling-todo.md`)
+- **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); a sweep every 5 minutes re-queues check-ins of the last 24 h that have no job or a job `FAILED` for over 5 minutes; SQS and socket push are planned for scale (`scaling-todo.md`)
 - **Caching**: Session/token caching via Redis (future optimization)
 
 ---
@@ -483,7 +483,7 @@ Cached 10 minutes per time window. Falls back to static template if AI fails.
 
 **GET /tickets**, **GET /tickets/:ticketId** — Admin only (`isAuthenticated` + `isAdmin`). Cursor-paginated list (`status`, `limit` 1-100, `cursor`), newest first; the detail includes replies. For a future admin app; the first admin is set with one SQL statement (`docs/DEPLOYMENT.md`).
 
-**GET /claude/tickets** — Bearer `SUPPORT_READER_SECRET` (min 16 chars, timing-safe compare, 401 when unset, accepted on this route only), 30 req/15min/IP. Returns `{ id, topic, createdAt, status, excerpt (120 chars), senderEmail (masked) }`, no user id.
+**GET /claude/tickets** — Bearer `SUPPORT_READER_SECRET` (min 16 chars, timing-safe compare, 401 when unset, accepted on this route only), 30 req/15min/IP. Returns `{ id, topic, createdAt, status, excerpt (120 chars, emails/phones/long numbers/links redacted), senderEmail (masked) }`, no user id.
 
 `recordTicketReply(ticketId, adminId, body)` (service, no route yet) emails the sender, stores a `SupportTicketReply` and sets the ticket `ANSWERED`; a `CLOSED` ticket is refused.
 

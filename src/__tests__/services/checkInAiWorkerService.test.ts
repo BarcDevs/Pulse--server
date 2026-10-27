@@ -1,11 +1,15 @@
 import {
+    CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS,
     CHECK_IN_AI_JOB_MAX_ATTEMPTS,
-    CHECK_IN_AI_JOB_STALE_MS
+    CHECK_IN_AI_JOB_STALE_MS,
+    CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS,
+    CHECK_IN_AI_JOB_SWEEP_MS
 } from '../../constants/checkInAiJob'
 import * as jobModel from '../../models/checkInAiJobModel'
 import { drainJobs, startCheckInAiWorker } from '../../services/checkInAiWorkerService'
 import * as insightGenerationService from '../../services/insightGenerationService'
 import * as recommendationsService from '../../services/recommendationsService'
+import logger from '../../utils/logger'
 
 jest.mock('../../models/checkInAiJobModel')
 jest.mock('../../services/insightGenerationService')
@@ -169,6 +173,46 @@ describe('checkInAiWorker', () => {
             expect(stopped).toBe(true)
             expect(jobModel.markJobDone).toHaveBeenCalledTimes(1)
             expect(jobModel.claimNextJob).toHaveBeenCalledTimes(2)
+        })
+
+        it('sweeps for missed jobs at startup and then every sweep interval', async () => {
+            jest.spyOn(jobModel, 'claimNextJob').mockResolvedValue(null)
+
+            const stop = startCheckInAiWorker()
+            await jest.advanceTimersByTimeAsync(0)
+
+            expect(jobModel.requeueMissedJobs).toHaveBeenCalledTimes(1)
+            expect(jobModel.requeueMissedJobs).toHaveBeenCalledWith(
+                CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS,
+                CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS
+            )
+
+            await jest.advanceTimersByTimeAsync(CHECK_IN_AI_JOB_SWEEP_MS)
+            expect(jobModel.requeueMissedJobs).toHaveBeenCalledTimes(2)
+
+            await stop()
+            await jest.advanceTimersByTimeAsync(CHECK_IN_AI_JOB_SWEEP_MS * 2)
+            expect(jobModel.requeueMissedJobs).toHaveBeenCalledTimes(2)
+        })
+
+        it('logs a failed sweep and keeps sweeping', async () => {
+            jest.spyOn(jobModel, 'claimNextJob').mockResolvedValue(null)
+            jest.spyOn(jobModel, 'requeueMissedJobs')
+                .mockRejectedValueOnce(new Error('db down'))
+                .mockResolvedValue(undefined)
+
+            const stop = startCheckInAiWorker()
+            await jest.advanceTimersByTimeAsync(0)
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Check-in AI sweep failed',
+                expect.anything()
+            )
+
+            await jest.advanceTimersByTimeAsync(CHECK_IN_AI_JOB_SWEEP_MS)
+            expect(jobModel.requeueMissedJobs).toHaveBeenCalledTimes(2)
+
+            await stop()
         })
     })
 })

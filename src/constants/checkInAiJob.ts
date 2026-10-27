@@ -1,4 +1,4 @@
-import { minuteInMs, secondInMs } from './time'
+import { dayInMs, minuteInMs, secondInMs } from './time'
 
 export const CHECK_IN_AI_JOB_POLL_MS = 3 * secondInMs
 export const CHECK_IN_AI_JOB_CONCURRENCY = 2
@@ -13,3 +13,9 @@ export const CHECK_IN_AI_JOB_STALE_MS = 2 * minuteInMs
 export const CHECK_IN_AI_JOB_SHUTDOWN_WAIT_MS = 8 * secondInMs
 // lastError of a job that stayed RUNNING past the stale timeout with no attempts left
 export const CHECK_IN_AI_JOB_STALE_ERROR = 'Stale'
+// How often the worker looks for check-ins whose job is missing or failed
+export const CHECK_IN_AI_JOB_SWEEP_MS = 5 * minuteInMs
+// The sweep only looks at check-ins created this recently
+export const CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS = dayInMs
+// A failed job is re-queued once its last update is older than this
+export const CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS = 5 * minuteInMs
