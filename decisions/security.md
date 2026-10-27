@@ -113,3 +113,15 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 **Why over alternatives:** a single limiter after auth would let an attacker guess the secret without any throttle. A single limiter before auth keyed by IP is the bug. Keying the valid-read bucket by IP adds nothing, since only one credential holder can reach it.
 
 **How to apply:** keep the order failed-auth, auth, reader limiter. Limiters are per process, so each instance keeps its own counts. A request with the valid secret skips the failed-auth limiter, so junk from the reader's shared IP can't lock it out (review finding, 28/10/2026), and the reader's own 400/500 responses never count. A misconfigured reader (wrong secret) can still lock itself out for 15 minutes.
+
+## 27/10/2026 — Reader ticket detail returns the full message, redacted, links cut not replaced
+
+**Problem:** the reader only saw a 120 character excerpt per ticket and had no single-ticket endpoint, so long messages reached the watcher truncated (issue #92).
+
+**Decision:** `GET /support/claude/tickets/:ticketId` (same rate limiter and secret as the list) returns id, topic, status, createdAt, the full message and the masked sender email. No replies, no user id, no raw email. The message goes through the #77 redaction (emails `[email]`, phone-like and 9+ digit runs `[number]`), but links are cut to domain plus first path segment instead of becoming `[link]`.
+
+**Why over alternatives:** `[link]` hides which page the user meant, which the watcher needs to file a good issue. Domain plus first path segment keeps that and drops query strings, fragments, credentials and deeper paths, where tokens and ids usually sit. Replies stay out because they are admin-written and not needed to file an issue.
+
+**Risks:** names and addresses are not caught, and the first path segment can still hold personal data. A pattern the regexes miss reaches the reader in full here, not just in 120 characters.
+
+**How to apply:** any new field on the detail response goes through `src/lib/supportTicketReader.ts` and the allow-list. Keep the list excerpt on `[link]`; only the detail view shortens links.
