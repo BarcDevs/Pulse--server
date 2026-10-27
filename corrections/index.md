@@ -73,3 +73,17 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 20/10/2026 | Wrote the fix before the regression test; tests come first, seen failing, then the fix |
 | 20/10/2026 | Asked before pushing `development` although the fixer routine's ship step already does it |
 | 20/10/2026 | Edited files with ad-hoc Node scripts (silent no-op replaces, blocked run); use the Edit tool |
+
+## Dev Workflow — [[corrections/dev-workflow]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 27/10/2026 | Check issue labels before advising on unmerged issue branches |
+
+## Working Style — [[corrections/working-style]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 27/10/2026 | Check issue labels before judging branch merge readiness |
