@@ -22,7 +22,6 @@ export const maskEmail = (email: string): string => {
     return `${email[0]}${maskedLocalSuffix}${email.slice(atIndex)}`
 }
 
-// best effort: names and addresses are not caught
 export const redactPersonalDetails = (message: string): string =>
     message
         .replace(linkRedactionPattern, redactedLinkPlaceholder)
@@ -38,7 +37,8 @@ export const toTicketExcerpt = (message: string): string => {
         : redacted
 }
 
-// Allow-list on purpose: no user id, no full message, no full sender email. The excerpt is what the user typed: emails, phones, long numbers and links are redacted, but names and addresses are not caught (best effort)
+// Allow-list on purpose: no user id, no full message, no full sender email.
+// The excerpt is redacted (emails, phones, long numbers, links); names and addresses are not caught (best effort)
 export const toReaderTicket = ({
     id,
     topic,
