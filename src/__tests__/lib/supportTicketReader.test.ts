@@ -53,6 +53,8 @@ describe('toTicketExcerpt redaction', () => {
         ['an email', 'write me at jane.doe@test.com now', 'write me at [email] now'],
         ['a local phone', 'call 052-123-4567 please', 'call [number] please'],
         ['an international phone', 'call +972 52 123 4567 please', 'call [number] please'],
+        ['a phone with parentheses', 'call (052) 123-4567 please', 'call [number] please'],
+        ['a phone with spaced dashes', 'call 052 - 123 - 4567 please', 'call [number] please'],
         ['a long digit run', 'card 1234567890123 ok', 'card [number] ok'],
         ['an http url', 'see https://example.com/a?b=1 ok', 'see [link] ok'],
         ['a www url', 'see www.example.com/page ok', 'see [link] ok']
