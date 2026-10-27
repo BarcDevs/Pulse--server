@@ -398,3 +398,92 @@ describe(`GET ${readerUrl}`, () => {
         expect(supportReaderRateLimiter).not.toHaveBeenCalled()
     })
 })
+
+describe(`GET ${readerUrl}/:ticketId`, () => {
+    const originalSecret = supportReaderConfig.secret
+    const detailUrl = `${readerUrl}/ticket-1`
+
+    beforeEach(() => {
+        supportReaderConfig.secret = secret
+    })
+
+    afterAll(() => {
+        supportReaderConfig.secret = originalSecret
+    })
+
+    it.each([
+        ['no Authorization header', undefined],
+        ['a wrong secret', 'Bearer not-the-right-secret-at-all']
+    ])('returns 401 and no data for %s', async (_name, header) => {
+        const request = supertest(App).get(detailUrl)
+        const response = await (header
+            ? request.set('Authorization', header)
+            : request)
+
+        expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        expect(response.body.data).toBeUndefined()
+        expect(prismaMock.supportTicket.findUnique).not.toHaveBeenCalled()
+    })
+
+    it('does not accept an admin session', async () => {
+        const response = await asAdmin(supertest(App).get(detailUrl))
+
+        expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+    })
+
+    it('returns 404 for an unknown ticket', async () => {
+        prismaMock.supportTicket.findUnique.mockResolvedValue(null)
+
+        const response = await supertest(App)
+            .get(detailUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(response.status).toBe(HttpStatusCodes.NOT_FOUND)
+    })
+
+    it('returns the redacted full message with no replies or user id', async () => {
+        const longMessage = `${'x'.repeat(supportTicketExcerptMaxLength + 50)} write to me@test.com`
+        prismaMock.supportTicket.findUnique.mockResolvedValue({
+            ...createTicket({ message: longMessage }),
+            replies: [{
+                id: 'reply-1',
+                ticketId: 'ticket-1',
+                body: 'private reply',
+                sentByUserId: 'admin-1',
+                sentAt: new Date('2026-10-02T10:00:00Z')
+            }]
+        } as never)
+
+        const response = await supertest(App)
+            .get(detailUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(response.status).toBe(HttpStatusCodes.OK)
+        expect(Object.keys(response.body.data).sort()).toEqual([
+            'createdAt',
+            'id',
+            'message',
+            'senderEmail',
+            'status',
+            'topic'
+        ])
+        expect(response.body.data.message)
+            .toBe(`${'x'.repeat(supportTicketExcerptMaxLength + 50)} write to [email]`)
+        expect(response.body.data.senderEmail).toBe('v***@test.com')
+        expect(JSON.stringify(response.body)).not.toContain('user-1')
+        expect(JSON.stringify(response.body)).not.toContain('private reply')
+        expect(JSON.stringify(response.body)).not.toContain('visitor@test.com')
+        expect(JSON.stringify(response.body)).not.toContain('me@test.com')
+    })
+
+    it('runs the reader limiter', async () => {
+        prismaMock.supportTicket.findUnique.mockResolvedValue(null)
+
+        await supertest(App)
+            .get(detailUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(supportReaderRateLimiter).toHaveBeenCalled()
+        expect(supportRateLimiter).not.toHaveBeenCalled()
+    })
+})

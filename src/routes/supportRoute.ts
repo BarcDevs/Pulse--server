@@ -4,6 +4,7 @@ import {
     contactSupport,
     getSupportTicketById,
     getSupportTickets,
+    getTicketForReader,
     getTicketsForReader
 } from '../controllers/supportController'
 import { isAdmin } from '../middlewares/isAdmin'
@@ -223,6 +224,53 @@ router.route('/claude/tickets').get(
     supportReaderAuth,
     supportReaderRateLimiter,
     getTicketsForReader
+)
+
+/**
+ * @swagger
+ * /support/claude/tickets/{ticketId}:
+ *   get:
+ *     summary: Get one support ticket for the Claude reader
+ *     description: >
+ *       Server-to-server. Requires `Authorization Bearer` with
+ *       SUPPORT_READER_SECRET (min 16 chars), accepted on this route only.
+ *       Returns id, topic, createdAt, status, the full message and a masked
+ *       sender email. Emails, phones and long numbers in the message are
+ *       replaced, and links are cut to domain and first path segment. No
+ *       replies, no user id. Rate limited like the list.
+ *     tags: [Support]
+ *     parameters:
+ *       - in: path
+ *         name: ticketId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The redacted ticket
+ *       401:
+ *         description: Missing or wrong secret
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Ticket not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Too many reads from this IP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.route('/claude/tickets/:ticketId').get(
+    supportReaderRateLimiter,
+    supportReaderAuth,
+    getTicketForReader
 )
 
 export default router
