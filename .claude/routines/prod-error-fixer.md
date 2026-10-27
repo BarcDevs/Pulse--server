@@ -7,8 +7,8 @@ own repo, so a slow or failing run in one never delays the other. It works GitHu
 issue is an issue: one a watcher filed (label `prod-error` on the server, `sentry-error` or
 `user-feedback` on the client) and one the owner files by hand (a bug or a feature, instead of
 opening an IDE) are picked up and treated exactly the same. It plans, waits for the owner's
-approval, fixes, and ships to `development` plus the `development` -> `main` PR the owner approves
-at the end. Nothing here ever fixes an issue on its own initiative. Working directory:
+approval, fixes, and ships to `development`, merges the `development` -> `main` PR when its checks are green,
+and leaves only the deploy approval to the owner. Nothing here ever fixes an issue on its own initiative. Working directory:
 `C:\Users\66bar\Claude\work\projects\pulse\.watchers` (same as the monitors, so run sessions
 stay out of the repo's `/resume` list). Design: `docs/plans/2026-09-28-prod-error-monitor-design.md`.
 
@@ -416,7 +416,7 @@ routine's. A fix already merged is not rolled back. The next run ships once CI i
 profile) is not merged here: it goes to "Held fixes" instead, and only flag-free fixes continue
 below.
 
-Merge into `development`, push it (and the tags), then open the release PR; never merge that PR. This is pre-authorised by the owner's approval of the plan: never ask whether to push or open the PR, just do it once the gate has passed. Ask only when a gate fails or this section says to stop. In the shared
+Merge into `development`, push it (and the tags), then open the release PR and merge it once its checks are green ("Release PR" below). This is pre-authorised by the owner's approval of the plan: never ask whether to push or open the PR, just do it once the gate has passed. Ask only when a gate fails or this section says to stop. In the shared
 checkout (`$MAIN`): first run `ListAgents` and `git status`. If another session is active there
 or the tree is dirty, don't merge: leave the fix branch and the records unmerged, keep `approved`
 and `in-progress`, and say "merge blocked: checkout busy" in the notification; the next run retries
@@ -438,6 +438,20 @@ verification result, review result; no root-cause or exploit detail, no log data
 everything on `development` not yet on `main`." If the push or `gh` fails, notify with the error
 (the fixes stay merged on `development`). Last, for each issue that just shipped, run "Cross-repo
 tasks" below.
+
+### Release PR: merge it, do not leave it open
+
+A shipped fix is not shipped until it is on `main`, so this routine merges the release PR itself (the
+owner's `open pr` rule: open it and merge it if every check is green). After opening or commenting on it, wait for its checks
+(`gh pr checks <n> --repo $REPO --watch`, at most 15 minutes; do not poll in a loop). All checks passed:
+`gh pr merge <n> --repo $REPO --merge`, then confirm `state` is `MERGED`. Any check failed or still pending after the wait,
+or the PR is not mergeable: do not merge, say "release PR not merged: <why>" in the notification and the phone push; the next
+run retries. Merging only queues the Deploy workflow, which still waits for the owner's approval click on the
+`aws-production` environment: never approve it, and never touch an older waiting Deploy run. After the merge, find the Deploy run it queued
+(`gh run list --repo $REPO --workflow Deploy --branch main --limit 5 --json databaseId,status,headSha`, matching the merge
+commit; allow a few minutes for CI to finish first, one re-check at most) and the push below says it is waiting for approval. The PR carries only what is on
+`development`, so held fixes (`held-for-review`, `needs-human`) are never in it. An open release PR from an earlier run is handled the
+same way at the start of the Ship step, so a PR left open is picked up on the next run.
 
 ## Held fixes
 
@@ -490,7 +504,7 @@ A client run (client profile) never edits server code. If a cross-repo client is
 
 Only if the run did anything: fixes shipped (issue, merge commit), dependabot PRs merged or retargeted (PR numbers), dependabot pushes waiting
 (PR numbers), plans published (issue, link),
-issues sent to `needs-human` (why), approvals ignored, and the `development` -> `main` PR link.
+issues sent to `needs-human` (why), approvals ignored, and the `development` -> `main` PR link with whether it was merged.
 
 ## Phone push (every run, last step)
 
@@ -498,9 +512,12 @@ issues sent to `needs-human` (why), approvals ignored, and the `development` -> 
 there), so the last step of EVERY run, quiet or not, is one push through ntfy:
 `bash $WT/scripts/monitor/ntfy.sh "<title>" "<message>"`.
 Send it when at least one of these is true, and not otherwise:
+- a **Deploy run is waiting for the owner's approval**, every run, not only the one that merged: `gh run list --repo $REPO
+  --workflow Deploy --status waiting --json databaseId,createdAt`. Say `Deploy waiting: <PREFIX>run <id>` for each, and
+  mark any older than 24h as `stale`, so a forgotten approval keeps nagging until the owner acts;
 - something is **waiting on the owner**: a dependabot push blocked by the token scope, issues with `plan-ready` and no `approved` (owner to
-  approve), `awaiting-answer` (owner to answer), `needs-human`, `held-for-review` (owner to review), or an
-  open `development` -> `main` PR;
+  approve), `awaiting-answer` (owner to answer), `needs-human`, `held-for-review` (owner to review), or a
+  `development` -> `main` PR that is open and unmerged (checks failed or pending), or a merged one waiting on the deploy approval;
 - the run did something (shipped a fix, published a plan, hit a failure).
 The message is counts and issue numbers only, each number prefixed with the profile's `$PREFIX`,
 e.g. `Plan waiting: S#69. Questions: S#66 S#70. Held: S#71. Shipped: none. Dependabot push waiting: PR59.` The repo is public and ntfy is a third party: never put issue titles, plan text or log lines
@@ -528,9 +545,8 @@ mention it in the final notification and carry on; never retry in a loop.
 - Implement the approved plan and nothing more; a plan that no longer matches reality is
   revised, not improvised.
 - Never ask for permission to ship a fix that passed the gate (merge, push `development` and tags, release PR); the owner's approval already covers it.
-- Merging the release PR is not this routine's job, and it must not try, ask, or hand it back as a
-  to-do. The owner's interactive session always merges it; the owner then only approves the deploy.
-  Open the PR, report its link, stop.
+- Merge the release PR yourself once every check is green ("Release PR"); never leave it open for the owner or hand
+  the merge back as a to-do. The owner only approves the deploy. Never approve a deploy, never merge a red or pending PR.
 - Never merge a fix that hasn't cleanly passed the full `review-agents` run (step 5).
 - Never switch branches, stash or reset in the shared checkout. Never change infrastructure.
 - Questions come last in the run (phase 2 step 4), after all fixes and plans, so a waiting question
