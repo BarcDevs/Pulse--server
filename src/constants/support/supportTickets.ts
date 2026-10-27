@@ -26,3 +26,8 @@ export const emailRedactionPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/g
 
 // 9 or more digits, allowing up to 3 separators (space . - parentheses) between digits: phones and long ids
 export const numberRedactionPattern = /\+?\(?\d(?:[\s().-]{0,3}\d){8,}/g
+
+// host and first path segment of a link, dropping credentials, the rest of the path, query and fragment
+export const linkShortenPattern = /^(?:https?:\/\/)?(?:[^/?#@]*@)?([^/?#]+)(?:\/([^/?#]*))?/i
+
+export const linkTrailingPunctuationPattern = /[.,;:!?)\]'"]+$/

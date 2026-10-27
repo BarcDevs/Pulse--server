@@ -1,6 +1,7 @@
 import { supportTicketExcerptMaxLength } from '../../constants/support/supportTickets'
 import {
     maskEmail,
+    toReaderTicketDetail,
     toTicketExcerpt
 } from '../../lib/supportTicketReader'
 
@@ -81,5 +82,81 @@ describe('toTicketExcerpt redaction', () => {
         const message = 'I have 3 posts and 12 followers since 2024'
 
         expect(toTicketExcerpt(message)).toBe(message)
+    })
+})
+
+describe('toReaderTicketDetail', () => {
+    const createTicket = (message: string) => ({
+        id: 'ticket-1',
+        topic: 'technical',
+        message,
+        senderEmail: 'visitor@test.com',
+        userId: 'user-1',
+        status: 'NEW' as const,
+        createdAt: new Date('2026-10-01T10:00:00Z'),
+        updatedAt: new Date('2026-10-02T10:00:00Z'),
+        closedAt: null
+    })
+
+    it('returns only the allow-listed fields with a masked email', () => {
+        const detail = toReaderTicketDetail(createTicket('hello'))
+
+        expect(Object.keys(detail).sort()).toEqual([
+            'createdAt',
+            'id',
+            'message',
+            'senderEmail',
+            'status',
+            'topic'
+        ])
+        expect(detail.senderEmail).toBe('v***@test.com')
+    })
+
+    it('keeps a long message whole, with no cut', () => {
+        const message = 'word '.repeat(200).trim()
+
+        expect(toReaderTicketDetail(createTicket(message)).message)
+            .toBe(message)
+    })
+
+    it('redacts emails, phones and long numbers', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'mail me at a@b.com or call 050-123-4567, id 1234567890123'
+        ))
+
+        expect(message)
+            .toBe('mail me at [email] or call [number], id [number]')
+    })
+
+    it('cuts a url to its domain and first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'see https://app.example.com/goals/abc/def?token=secret#x now'
+        ))
+
+        expect(message).toBe('see app.example.com/goals now')
+    })
+
+    it('keeps only the domain for a url with no path', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'go to www.example.com?session=1, thanks'
+        ))
+
+        expect(message).toBe('go to www.example.com, thanks')
+    })
+
+    it('drops credentials and the query from a url', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'https://user:pw@example.com/path?e=a@b.com'
+        ))
+
+        expect(message).toBe('example.com/path')
+    })
+
+    it('redacts a long number left in the first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'https://example.com/1234567890123/x'
+        ))
+
+        expect(message).toBe('example.com/[number]')
     })
 })
