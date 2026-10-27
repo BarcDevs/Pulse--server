@@ -89,3 +89,15 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 **Why over alternatives:** an admin session for the reader would hand an automation account a full admin login and the full emails and messages. A single shared retention period would either keep closed tickets too long or drop open ones a user is still waiting on.
 
 **How to apply:** never log a ticket email or message, only its id. Any new ticket read for automation maps through the allow-list in `src/lib/supportTicketReader.ts`. A new route that should accept `SUPPORT_READER_SECRET` needs the owner's say-so: the credential is deliberately accepted nowhere else.
+
+## 27/10/2026 — Reader excerpts redact emails, phones, long numbers and links
+
+**Problem:** the Claude reader gets the first 120 characters of each support ticket message, and personal details a user typed reached it unmasked (issue #77).
+
+**Decision:** regex redaction in `toTicketExcerpt`: emails become `[email]`, phone-like or 9+ digit runs become `[number]`, URLs become `[link]`. Names and addresses are not caught (best effort).
+
+**Implementation choice:** the full message is redacted first and sliced to 120 characters after, so a pattern cut by the limit is never partly leaked. Regexes and placeholders live in `src/constants/support/supportTickets.ts`.
+
+**Why over alternatives:** slicing first could leave the start of an email or number in the excerpt. A name or address detector needs NLP and would still miss cases, which is not worth it for a 120 character excerpt.
+
+**How to apply:** any new free-text field added to the reader allow-list in `src/lib/supportTicketReader.ts` goes through `redactPersonalDetails` before it is cut.

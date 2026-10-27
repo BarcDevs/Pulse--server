@@ -437,7 +437,7 @@ For the Claude support-ticket reader. The credential is accepted on this route o
         "topic": "technical",
         "createdAt": "2026-10-21T10:00:00.000Z",
         "status": "NEW",
-        "excerpt": "The first 120 characters of the message, then ...",
+        "excerpt": "The first 120 characters of the message with emails, phones, long numbers and links redacted, then ...",
         "senderEmail": "v***@example.com"
       }
     ],
