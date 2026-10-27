@@ -155,3 +155,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over Origin CA + Caddy/nginx on 443 with Full (strict):** that option still needs a public 443, plus a hand-maintained allow-list of Cloudflare IP ranges to stop direct-origin access, plus a cert and key to store and renew. The tunnel closes the origin entirely and has no cert to manage. Both are free.
 
 **How to apply:** rollout order matters. If the loopback-bound deploy goes out before the tunnel is live, the site goes down. The order is: create the tunnel, store the token and IAM → start `cloudflared` once via SSM → swap DNS (delete the apex A record, add the tunnel public hostname) → merge the client PR → remove SG 80/443 → set SSL mode to Full (strict) and Always Use HTTPS. The EIP stays attached for now (outbound, SSH) but is no longer on the request path.
+
+## 27/10/2026 — Watcher fixer merges release PR on green checks
+
+**Decision:** The fixer routine now merges the development to main release PR itself when every check is green, and pushes to the owner whenever a Deploy run waits for approval. The owner only approves the deploy. held-for-review stays as the review gate until the owner replaces it with rules.
+
+**Why over alternatives:** Watchers only reached development and never main, so fixes never shipped until an interactive session merged the PR. The old rule had the owner's session merge the PR, but nothing prompted it. Merging is safe because held and needs-human fixes are not on development.
+
+**Rejected:** Keeping the merge with the owner's interactive session: nothing triggers it, so fixes stalled on development.
+
+**Source:** User, pulse-server session 2026-10-27
