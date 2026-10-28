@@ -159,4 +159,36 @@ describe('toReaderTicketDetail', () => {
 
         expect(message).toBe('example.com/[number]')
     })
+
+    it('does not leak credentials left with nothing after them', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://admin:hunter2@ now'
+        ))
+
+        expect(message).toBe('try [link] now')
+    })
+
+    it('keeps only the text after the last @ in the authority', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://u:p@ss@host.com/x now'
+        ))
+
+        expect(message).toBe('try host.com/x now')
+    })
+
+    it('shortens a link with an uppercase scheme', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'see HTTPS://Example.com/Path/Deep?t=1'
+        ))
+
+        expect(message).toBe('see Example.com/Path')
+    })
+
+    it('puts back the punctuation that ended the sentence', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            '(see https://example.com/a/b?x=1).'
+        ))
+
+        expect(message).toBe('(see example.com/a).')
+    })
 })
