@@ -155,3 +155,47 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over Origin CA + Caddy/nginx on 443 with Full (strict):** that option still needs a public 443, plus a hand-maintained allow-list of Cloudflare IP ranges to stop direct-origin access, plus a cert and key to store and renew. The tunnel closes the origin entirely and has no cert to manage. Both are free.
 
 **How to apply:** rollout order matters. If the loopback-bound deploy goes out before the tunnel is live, the site goes down. The order is: create the tunnel, store the token and IAM → start `cloudflared` once via SSM → swap DNS (delete the apex A record, add the tunnel public hostname) → merge the client PR → remove SG 80/443 → set SSL mode to Full (strict) and Always Use HTTPS. The EIP stays attached for now (outbound, SSH) but is no longer on the request path.
+
+## 27/10/2026 — Watcher fixer merges release PR on green checks
+
+**Decision:** The fixer routine now merges the development to main release PR itself when every check is green, and pushes to the owner whenever a Deploy run waits for approval. The owner only approves the deploy. held-for-review stays as the review gate until the owner replaces it with rules.
+
+**Why over alternatives:** Watchers only reached development and never main, so fixes never shipped until an interactive session merged the PR. The old rule had the owner's session merge the PR, but nothing prompted it. Merging is safe because held and needs-human fixes are not on development.
+
+**Rejected:** Keeping the merge with the owner's interactive session: nothing triggers it, so fixes stalled on development.
+
+**Source:** User, pulse-server session 2026-10-27
+
+## 28/10/2026 — Fixer holds on Client-Impact and times out unreviewed releases
+
+**Decision:** The fixer routine also holds any fix whose Client-Impact is not none, refining the existing client-breaking hold rule. A held release that the owner never reviews times out. Branch policy for aws-production is main only. The scope of the always-held changes is delegated to an Opus agent and is not yet decided.
+
+**Source:** user, auto-recorded: "The user answered: 'Q1: Which changes must always be held for your review (never auto-ship)?'='Send an Opus agent to go and give up its own thoughts On what should be held and what is okay to ship ', "
+
+## 28/10/2026 — Risky releases held by a needs-review label at the PR phase
+
+**Decision:** For #81, a release that matches the hold rules is held at the PR phase, before ship, with a `needs-review` label. Ship refuses anything carrying it until the owner clears it. No release is held at the deploy approval step, so none can slip through by accident and none can time out.
+
+**Why over alternatives:** Owner, on #81: 'better: hold needs-review shipping on the pr phase before ship, so no ship slip through by accident and also no timed-out ones'. Replaces the earlier answer to Q3 (held release times out).
+
+**Rejected:** Hold at the aws-production approval with a wait (30 days) or a timeout: a held release can slip through at the click, or expire and be dropped.
+
+**Source:** user, auto-recorded: "recorded by the session"
+
+## 28/10/2026 — Held needs-review PRs carry a what-changed summary
+
+**Decision:** A PR held with `needs-review` under the #81 ship rules gets a summary of what changed and what is new (changed areas, the hold rule that matched, new behaviour, client impact) so the owner can review it quickly.
+
+**Why over alternatives:** Owner, on #81: 'So the PR gets a summary of what changed and what new, so I can easily review it.' Holding at the PR phase only helps if the review is cheap.
+
+**Source:** user, auto-recorded: "recorded by the session"
+
+## 28/10/2026 — Instance metadata hop limit 2 so the container reads the instance role
+
+**Decision:** The pulse-server launch template (default v7) and the running instance use IMDS hop limit 2 with tokens still required (IMDSv2 only). The app container needs the instance role credentials to write error logs to CloudWatch (#83). This reverses the hop limit 1 set in v5 on 16/10/2026.
+
+**Why over alternatives:** With hop limit 1 a container cannot reach the metadata service, so the winston CloudWatch transport gets no credentials. Owner approved the change in the session ('Just get it', then ran the commands by hand after the tool permission check blocked them). The role stays scoped: secrets read for the app plus write to /pulse/server-errors only.
+
+**Rejected:** Static write-only IAM keys in Secrets Manager (long-lived key to rotate, new secret in the deploy path); a host-side shipper tailing docker logs (new moving part on the instance).
+
+**Source:** user, auto-recorded: "recorded by the session"

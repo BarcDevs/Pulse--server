@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.7",
+  "version": "1.29.14",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -16,6 +16,9 @@
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
     "dev": "tsx scripts/dev.ts",
     "release": "npx prisma migrate deploy --schema=prisma/schema.prisma",
+    "pretypecheck": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
+    "pretest": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
+    "pretest:integration": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
     "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --coverage",
     "test:integration": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.ts --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -37,15 +40,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "3.1151.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.7.4",
-    "config": "^4.4.1",
+    "config": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csrf": "^3.1.0",
-    "dotenv": "^16.4.4",
+    "dotenv": "^18.0.9",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "geoip-lite": "^2.0.2",
@@ -60,6 +64,7 @@
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.11.0",
+    "winston-transport": "^4.9.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

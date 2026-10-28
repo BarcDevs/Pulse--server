@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
 
 import { serverConfig } from '../../../config'
+import { ErrorCodes } from '../../constants/errorCodes'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { errorHandler } from '../../middlewares/errorHandler'
 import {
     checkInMutationRateLimiter,
     loginRateLimiter,
@@ -121,10 +123,12 @@ describe('Rate Limiting Middleware', () => {
             await run('view-user-2', 'view-post-2')
             const { res, next } = await run('view-user-2', 'view-post-2')
 
-            expect(next).not.toHaveBeenCalled()
-            expect(res.status).toHaveBeenCalledWith(
-                HttpStatusCodes.TOO_MANY_REQUESTS
+            expect(next).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                })
             )
+            expect(res.status).not.toHaveBeenCalled()
         })
 
         it('does not block another user or another post', async () => {
@@ -327,8 +331,12 @@ describe('Rate Limiting Middleware', () => {
                 next
             )
 
-            expect(next).not.toHaveBeenCalled()
-            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
+            expect(next).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                })
+            )
+            expect(res.status).not.toHaveBeenCalled()
         })
     })
 
@@ -419,8 +427,12 @@ describe('Rate Limiting Middleware', () => {
                 next
             )
 
-            expect(next).not.toHaveBeenCalled()
-            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
+            expect(next).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                })
+            )
+            expect(res.status).not.toHaveBeenCalled()
         })
     })
 
@@ -472,8 +484,12 @@ describe('Rate Limiting Middleware', () => {
             const next = createMockNext()
             await realSharePostRateLimiter(req, res, next)
 
-            expect(next).not.toHaveBeenCalled()
-            expect(res.status).toHaveBeenCalledWith(429)
+            expect(next).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                })
+            )
+            expect(res.status).not.toHaveBeenCalled()
         })
 
         it('should rate limit independently per post for the same IP', async () => {
@@ -496,5 +512,88 @@ describe('Rate Limiting Middleware', () => {
             expect(next).toHaveBeenCalled()
             expect(res.status).not.toHaveBeenCalled()
         })
+    })
+
+    describe('429 body of every limiter (real implementation)', () => {
+        const actualLimiters = Object.entries(
+            jest.requireActual('../../middlewares/rateLimiting')
+        ) as [string, (...args: unknown[]) => Promise<void>][]
+
+        const createResponse = () => {
+            const headers: Record<string, unknown> = {}
+            return {
+                // 401 so the failed-auth limiter, which counts only 401s, is exhausted too
+                statusCode: HttpStatusCodes.UNAUTHORIZED,
+                once: jest.fn((_event: string, onFinish: () => void) => onFinish()),
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+                send: jest.fn().mockReturnThis(),
+                setHeader: jest.fn((key: string, value: unknown) => {
+                    headers[key] = value
+                }),
+                getHeader: jest.fn((key: string) => headers[key]),
+                removeHeader: jest.fn((key: string) => {
+                    delete headers[key]
+                }),
+                headersSent: false
+            } as unknown as Response
+        }
+
+        const maxRequestsToBlock = 301
+
+        const exhaust = async (
+            limiter: (...args: unknown[]) => Promise<void>,
+            ip: string
+        ) => {
+            for (let i = 0; i < maxRequestsToBlock; i++) {
+                const req = Object.assign(createMockRequest({
+                    ip,
+                    userId: `body-user-${ip}`,
+                    body: { email: 'body-test@test.com' },
+                    params: { postId: 'body-post' }
+                }), { headers: {} }) as Request
+                const res = createResponse()
+                const next = jest.fn()
+                await limiter(req, res, next)
+
+                if (next.mock.calls[0]?.[0] || (res.status as jest.Mock).mock.calls.length) {
+                    return { req, res, next }
+                }
+            }
+            throw new Error('limiter never blocked')
+        }
+
+        it('covers all 18 limiters', () => {
+            expect(actualLimiters).toHaveLength(18)
+        })
+
+        it.each(actualLimiters)(
+            '%s answers 429 with message and error list',
+            async (_name, limiter) => {
+                const ip = `10.9.${actualLimiters.findIndex(
+                    ([name]) => name === _name
+                )}.1`
+                const { req, next } = await exhaust(limiter, ip)
+                const error = next.mock.calls[0][0]
+                const res = createResponse()
+
+                errorHandler(error, req, res, jest.fn())
+
+                expect(res.status).toHaveBeenCalledWith(
+                    HttpStatusCodes.TOO_MANY_REQUESTS
+                )
+                expect(res.json).toHaveBeenCalledWith({
+                    message: expect.any(String),
+                    error: [
+                        {
+                            statusType: 'Too Many Requests',
+                            statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
+                            code: ErrorCodes.TOO_MANY_REQUESTS,
+                            error: expect.any(String)
+                        }
+                    ]
+                })
+            }
+        )
     })
 })

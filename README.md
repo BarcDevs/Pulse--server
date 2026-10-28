@@ -350,6 +350,7 @@ graph TD
    npx prisma generate
    npm run migrate
    ```
+   `npm run typecheck`, `npm test` and `npm run test:integration` run `prisma generate` first (with a dummy `DEV_DATABASE_URL` when none is set), so a fresh clone needs no manual generate to check or test.
 
 4. **Start the development server**
    ```bash
@@ -682,7 +683,7 @@ Frontend staging build: see [client README](https://github.com/BarcDevs/Pulse--c
 | Concern | Solution |
 |---|---|
 | Error tracking | Sentry integration |
-| Logging | Console in dev · structured JSON in production |
+| Logging | Console in dev · structured JSON in production · error-level lines also shipped to CloudWatch Logs `/pulse/server-errors` (production only) |
 | Health check | `GET /health` |
 
 ---
@@ -719,7 +720,7 @@ fix/*       # bug fixes
 **Database connection fails**
 - Verify `DATABASE_URL` is correct in `.env`
 - Confirm the Neon project is active and not paused
-- Check that `npx prisma generate` has been run after schema changes
+- Check that `npx prisma generate` has been run after schema changes (`typecheck` and `test` do it for you)
 
 **AI feedback not generating**
 - Confirm `GEMINI_API_KEY` is valid and has quota remaining
