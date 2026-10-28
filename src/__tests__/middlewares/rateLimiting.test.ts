@@ -522,6 +522,9 @@ describe('Rate Limiting Middleware', () => {
         const createResponse = () => {
             const headers: Record<string, unknown> = {}
             return {
+                // 401 so the failed-auth limiter, which counts only 401s, is exhausted too
+                statusCode: HttpStatusCodes.UNAUTHORIZED,
+                once: jest.fn((_event: string, onFinish: () => void) => onFinish()),
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
                 send: jest.fn().mockReturnThis(),
@@ -543,12 +546,12 @@ describe('Rate Limiting Middleware', () => {
             ip: string
         ) => {
             for (let i = 0; i < maxRequestsToBlock; i++) {
-                const req = createMockRequest({
+                const req = Object.assign(createMockRequest({
                     ip,
                     userId: `body-user-${ip}`,
                     body: { email: 'body-test@test.com' },
                     params: { postId: 'body-post' }
-                }) as Request
+                }), { headers: {} }) as Request
                 const res = createResponse()
                 const next = jest.fn()
                 await limiter(req, res, next)
@@ -560,8 +563,8 @@ describe('Rate Limiting Middleware', () => {
             throw new Error('limiter never blocked')
         }
 
-        it('covers all 17 limiters', () => {
-            expect(actualLimiters).toHaveLength(17)
+        it('covers all 18 limiters', () => {
+            expect(actualLimiters).toHaveLength(18)
         })
 
         it.each(actualLimiters)(
