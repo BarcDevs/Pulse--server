@@ -118,10 +118,10 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 
 **Problem:** the reader only saw a 120 character excerpt per ticket and had no single-ticket endpoint, so long messages reached the watcher truncated (issue #92).
 
-**Decision:** `GET /support/claude/tickets/:ticketId` (same rate limiter and secret as the list) returns id, topic, status, createdAt, the full message and the masked sender email. No replies, no user id, no raw email. The message goes through the #77 redaction (emails `[email]`, phone-like and 9+ digit runs `[number]`), but links are cut to domain plus first path segment instead of becoming `[link]`.
+**Decision:** `GET /support/claude/tickets/:ticketId` (same rate limiter and secret as the list) returns id, topic, status, createdAt, the full message and the masked sender email. No replies, no user id, no raw email. The message goes through the #77 redaction (emails `[email]`, phone-like and 9+ digit runs `[number]`), but links are cut to domain plus first path segment instead of becoming `[link]`. A link is `http(s)://`, `www.`, or (owner, 28/10/2026, after review) a bare domain followed by a path, query or fragment such as `app.example.com/reset?token=abc`; credentials in the authority are dropped (only the text after the last `@` is kept, `[link]` when nothing is left).
 
 **Why over alternatives:** `[link]` hides which page the user meant, which the watcher needs to file a good issue. Domain plus first path segment keeps that and drops query strings, fragments, credentials and deeper paths, where tokens and ids usually sit. Replies stay out because they are admin-written and not needed to file an issue.
 
-**Risks:** names and addresses are not caught, and the first path segment can still hold personal data. A pattern the regexes miss reaches the reader in full here, not just in 120 characters.
+**Risks:** names and addresses are not caught, and the first path segment can still hold personal data. A bare domain with no path or query (`example.com`) is not treated as a link. A pattern the regexes miss reaches the reader in full here, not just in 120 characters.
 
 **How to apply:** any new field on the detail response goes through `src/lib/supportTicketReader.ts` and the allow-list. Keep the list excerpt on `[link]`; only the detail view shortens links.
