@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.11",
+  "version": "1.29.12",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -48,7 +48,7 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csrf": "^3.1.0",
-    "dotenv": "^16.4.4",
+    "dotenv": "^18.0.9",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "geoip-lite": "^2.0.2",
