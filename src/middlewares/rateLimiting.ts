@@ -11,8 +11,9 @@ import { createTooManyRequestsHandler } from '../utils/tooManyRequestsHandler'
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: 300, // Limit each IP to 300 requests per 15 minutes (~20 req/sec)
-    message:
-        'Too many requests from this IP, please try again after 15 minutes',
+    handler: createTooManyRequestsHandler(
+        'Too many requests from this IP, please try again after 15 minutes'
+    ),
     skip: (req) => {
         // Exempt auth infrastructure endpoints from rate limiting
         return req.path === `/api/${serverConfig.apiVersion}/auth/me`
@@ -26,8 +27,9 @@ export const rateLimiter = rateLimit({
 const createOtpRateLimiter = () => rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 5,
-    message:
+    handler: createTooManyRequestsHandler(
         'Too many OTP requests from this IP, please try again after 15 minutes'
+    )
 })
 
 export const confirmEmailRateLimiter = createOtpRateLimiter()
@@ -41,8 +43,9 @@ export const confirmEmailChangeRateLimiter = createOtpRateLimiter()
 export const signupRateLimiter = rateLimit({
     windowMs: hourInMs,
     limit: isDev ? 100 : 5,
-    message:
+    handler: createTooManyRequestsHandler(
         'Too many sign-up attempts from this IP, please try again in an hour'
+    )
 })
 
 // Keyed by user so a stolen session can't brute-force the current password
@@ -51,8 +54,9 @@ export const passwordChangeRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 5,
     keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
-    message:
+    handler: createTooManyRequestsHandler(
         'Too many password change attempts, please try again after 15 minutes'
+    )
 })
 
 // Each request emails a code, so cap it per user
@@ -60,15 +64,17 @@ export const deleteAccountCodeRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 5,
     keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? ''),
-    message:
+    handler: createTooManyRequestsHandler(
         'Too many account deletion codes requested, please try again after 15 minutes'
+    )
 })
 
 export const loginRateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 10,
-    message:
-        'Too many login attempts, please try again after 15 minutes',
+    handler: createTooManyRequestsHandler(
+        'Too many login attempts, please try again after 15 minutes'
+    ),
     keyGenerator: (req) => {
         const ip = ipKeyGenerator(req.ip ?? '')
         const email = String(req.body?.email ?? '').toLowerCase()
@@ -98,8 +104,9 @@ export const checkInMutationRateLimiter = rateLimit({
 export const sharePostRateLimiter = rateLimit({
     windowMs: hourInMs,
     limit: 1,
-    message:
-        'You can only share this post once per hour',
+    handler: createTooManyRequestsHandler(
+        'You can only share this post once per hour'
+    ),
     keyGenerator: (req) => {
         const ip = ipKeyGenerator(req.ip ?? '')
         const postId = req.params.postId
@@ -112,8 +119,9 @@ export const sharePostRateLimiter = rateLimit({
 export const viewPostRateLimiter = rateLimit({
     windowMs: hourInMs,
     limit: 1,
-    message:
-        'This view was already recorded',
+    handler: createTooManyRequestsHandler(
+        'This view was already recorded'
+    ),
     keyGenerator: (req) => {
         const user = req.userId ?? ipKeyGenerator(req.ip ?? '')
         const postId = req.params.postId
@@ -125,8 +133,9 @@ export const viewPostRateLimiter = rateLimit({
 export const launchFunnelOpenRateLimiter = rateLimit({
     windowMs: hourInMs,
     limit: isDev ? 100 : 30,
-    message:
+    handler: createTooManyRequestsHandler(
         'Too many requests from this IP, please try again in an hour'
+    )
 })
 
 const supportReaderRateLimitMessage =
