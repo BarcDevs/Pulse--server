@@ -80,6 +80,7 @@ Auto-recorded corrections.
 | Date | Entry |
 |---|---|
 | 27/10/2026 | Check issue labels before advising on unmerged issue branches |
+| 28/10/2026 | Watcher asks mid-fix design questions in an artifact, not needs-human |
 
 ## Working Style — [[corrections/working-style]]
 Auto-recorded corrections.
