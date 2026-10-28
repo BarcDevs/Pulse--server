@@ -1,6 +1,7 @@
 import { supportTicketExcerptMaxLength } from '../../constants/support/supportTickets'
 import {
     maskEmail,
+    toReaderTicketDetail,
     toTicketExcerpt
 } from '../../lib/supportTicketReader'
 
@@ -57,7 +58,17 @@ describe('toTicketExcerpt redaction', () => {
         ['a phone with spaced dashes', 'call 052 - 123 - 4567 please', 'call [number] please'],
         ['a long digit run', 'card 1234567890123 ok', 'card [number] ok'],
         ['an http url', 'see https://example.com/a?b=1 ok', 'see [link] ok'],
-        ['a www url', 'see www.example.com/page ok', 'see [link] ok']
+        ['a www url', 'see www.example.com/page ok', 'see [link] ok'],
+        ['a bare domain link with a path', 'see app.example.com/reset?t=1 ok', 'see [link] ok'],
+        ['a bare domain link with a query', 'see example.com?token=abc ok', 'see [link] ok'],
+        ['a bare domain link with a port', 'see example.com:8080/reset?t=abc ok', 'see [link] ok'],
+        ['a bare ip link', 'see 192.168.1.5/admin?t=abc ok', 'see [link] ok'],
+        ['a non-ascii domain link', 'see пример.рф/reset?token=abc ok', 'see [link] ok'],
+        ['another scheme', 'get ftp://user:pw@host/f now', 'get [link] now'],
+        ['a bare domain right after an ellipsis', 'see...example.com/t0k3n123 ok', 'see...[link] ok'],
+        ['a bare domain after a dash', 'see -example.com/tok1 ok', 'see [link] ok'],
+        ['a backslash scheme', 'see https:\\\\evil.com\\tok123 ok', 'see [link] ok'],
+        ['a bare domain with a backslash path', 'see evil.com\\tok1 ok', 'see [link] ok']
     ])('redacts %s', (_name, message, expected) => {
         expect(toTicketExcerpt(message)).toBe(expected)
     })
@@ -81,5 +92,189 @@ describe('toTicketExcerpt redaction', () => {
         const message = 'I have 3 posts and 12 followers since 2024'
 
         expect(toTicketExcerpt(message)).toBe(message)
+    })
+})
+
+describe('toReaderTicketDetail', () => {
+    const createTicket = (message: string) => ({
+        id: 'ticket-1',
+        topic: 'technical',
+        message,
+        senderEmail: 'visitor@test.com',
+        userId: 'user-1',
+        status: 'NEW' as const,
+        createdAt: new Date('2026-10-01T10:00:00Z'),
+        updatedAt: new Date('2026-10-02T10:00:00Z'),
+        closedAt: null
+    })
+
+    it('returns only the allow-listed fields with a masked email', () => {
+        const detail = toReaderTicketDetail(createTicket('hello'))
+
+        expect(Object.keys(detail).sort()).toEqual([
+            'createdAt',
+            'id',
+            'message',
+            'senderEmail',
+            'status',
+            'topic'
+        ])
+        expect(detail.senderEmail).toBe('v***@test.com')
+    })
+
+    it('keeps a long message whole, with no cut', () => {
+        const message = 'word '.repeat(200).trim()
+
+        expect(toReaderTicketDetail(createTicket(message)).message)
+            .toBe(message)
+    })
+
+    it('redacts emails, phones and long numbers', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'mail me at a@b.com or call 050-123-4567, id 1234567890123'
+        ))
+
+        expect(message)
+            .toBe('mail me at [email] or call [number], id [number]')
+    })
+
+    it('cuts a url to its domain and first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'see https://app.example.com/goals/abc/def?token=secret#x now'
+        ))
+
+        expect(message).toBe('see app.example.com/goals now')
+    })
+
+    it.each([
+        ['a handle', 'https://instagram.com/john.smith.real', 'instagram.com'],
+        ['a token', 'https://app.io/aB3dEf9Xk2QqZ?x=1', 'app.io'],
+        ['a mixed-case name', 'https://t.me/JohnSmith', 't.me'],
+        ['a number-bearing id', 'https://example.com/user123/x', 'example.com'],
+        ['an overlong segment', `https://example.com/${'a'.repeat(31)}`, 'example.com']
+    ])('drops a first path segment that is %s', (_name, link, expected) => {
+        const { message } = toReaderTicketDetail(createTicket(`see ${link} now`))
+
+        expect(message).toBe(`see ${expected} now`)
+    })
+
+    it.each([
+        ['goals'],
+        ['reset-password'],
+        ['settings']
+    ])('keeps a page-name segment: %s', (segment) => {
+        const { message } = toReaderTicketDetail(createTicket(
+            `see https://app.example.com/${segment}/x?t=1 now`
+        ))
+
+        expect(message).toBe(`see app.example.com/${segment} now`)
+    })
+
+    it('keeps only the domain for a url with no path', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'go to www.example.com?session=1, thanks'
+        ))
+
+        expect(message).toBe('go to www.example.com, thanks')
+    })
+
+    it('drops credentials and the query from a url', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'https://user:pw@example.com/path?e=a@b.com'
+        ))
+
+        expect(message).toBe('example.com/path')
+    })
+
+    it('drops a long number sitting in the first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'https://example.com/1234567890123/x'
+        ))
+
+        expect(message).toBe('example.com')
+    })
+
+    it('cuts a bare domain link to its domain and first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'open app.example.com/reset/abc?token=secret now'
+        ))
+
+        expect(message).toBe('open app.example.com/reset now')
+    })
+
+    it.each([
+        ['a file name', 'open notes.txt now'],
+        ['a version', 'running v1.2.3 now'],
+        ['a path with no dot', 'open the dashboard/settings page']
+    ])('leaves %s unchanged', (_name, text) => {
+        expect(toReaderTicketDetail(createTicket(text)).message)
+            .toBe(text)
+    })
+
+    it('still redacts an email followed by a path as an email', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'mail a@b.com/x now'
+        ))
+
+        expect(message).toBe('mail [email] now')
+    })
+
+    it.each([
+        ['a ? inside the credentials', 'try https://user:pa?ss@host.com/x now'],
+        ['a # inside the credentials', 'try https://user:pa#ss@host.com/x now']
+    ])('does not leak a partial password for %s', (_name, text) => {
+        const { message } = toReaderTicketDetail(createTicket(text))
+
+        expect(message).not.toContain('user')
+        expect(message).not.toContain('pa')
+        expect(message).toBe('try [link] now')
+    })
+
+    it('stops the host at a backslash', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://a.com\\secrettoken now'
+        ))
+
+        expect(message).toBe('try a.com now')
+    })
+
+    it('cuts a link with a port to host:port and the first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'open example.com:8080/reset/abc?t=1 now'
+        ))
+
+        expect(message).toBe('open example.com:8080/reset now')
+    })
+
+    it('does not leak credentials left with nothing after them', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://admin:hunter2@ now'
+        ))
+
+        expect(message).toBe('try [link] now')
+    })
+
+    it('keeps only the text after the last @ in the authority', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://u:p@ss@host.com/x now'
+        ))
+
+        expect(message).toBe('try host.com/x now')
+    })
+
+    it('shortens a link with an uppercase scheme', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'see HTTPS://Example.com/path/Deep?t=1'
+        ))
+
+        expect(message).toBe('see Example.com/path')
+    })
+
+    it('puts back the punctuation that ended the sentence', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            '(see https://example.com/a/b?x=1).'
+        ))
+
+        expect(message).toBe('(see example.com/a).')
     })
 })

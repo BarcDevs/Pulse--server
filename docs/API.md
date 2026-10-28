@@ -452,6 +452,32 @@ No user id, no full message and no full email are returned.
 
 ---
 
+### `GET /claude/tickets/:ticketId`
+> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Same rate limit as `GET /claude/tickets`
+
+One ticket for the Claude reader, with the full message instead of an excerpt. The credential is accepted on this route only.
+
+**Response `200`**
+```json
+{
+  "message": "Support ticket fetched",
+  "data": {
+    "id": "uuid",
+    "topic": "technical",
+    "createdAt": "2026-10-21T10:00:00.000Z",
+    "status": "NEW",
+    "message": "The full message with emails, phones and long numbers redacted; links cut to domain and the first path segment when it reads as a page name",
+    "senderEmail": "v***@example.com"
+  }
+}
+```
+
+Emails become `[email]`, phone-like and 9+ digit runs become `[number]`. A link such as `https://app.example.com/goals/abc?token=x` becomes `app.example.com/goals`. Names and addresses are not caught. No replies, no user id and no full email are returned.
+
+**Errors:** `401` secret missing or wrong, or `SUPPORT_READER_SECRET` unset or under 16 chars on the server · `404` ticket not found · `429` rate limit exceeded
+
+---
+
 **Retention:** a daily job deletes `CLOSED` tickets 6 months after `closedAt` and tickets never closed 24 months after `createdAt` (replies go with the ticket). An account purge keeps its tickets with `userId` null until then.
 
 ---
