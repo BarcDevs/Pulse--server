@@ -176,8 +176,8 @@ router.route('/tickets/:ticketId').get(
  *       SUPPORT_READER_SECRET (min 16 chars), accepted on this route only.
  *       Returns id, topic, createdAt, status, a short excerpt and a masked
  *       sender email. No user id. Valid reads are limited to 30 per 15
- *       minutes in total; failed attempts are limited to 10 per 15 minutes
- *       per IP.
+ *       minutes in total; failed (401) attempts are limited to 10 per 15
+ *       minutes per IP; requests with a valid secret are never counted.
  *     tags: [Support]
  *     parameters:
  *       - in: query

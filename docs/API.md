@@ -422,7 +422,7 @@ Returns the ticket as above plus `replies` (oldest first): `{ id, ticketId, body
 ---
 
 ### `GET /claude/tickets`
-> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 valid reads per 15 minutes in total, and 10 failed attempts per 15 minutes per IP
+> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 valid reads per 15 minutes in total, and 10 failed (401) attempts per 15 minutes per IP (requests with a valid secret are never counted)
 
 For the Claude support-ticket reader. The credential is accepted on this route only, and no other credential works here. Same `status`, `limit` and `cursor` query as `GET /tickets`.
 
