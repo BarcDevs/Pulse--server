@@ -4,8 +4,10 @@ Runs every 5h as a **Local** routine ("Pulse AWS Error Watch" at claude.ai/code/
 not a Cloud routine. Deliberate: a cloud routine's AWS credentials are shared with every
 session/routine using that cloud environment, which is explicitly not wanted here (same
 reasoning as not using a third-party service like Sentry — no external/shared-scope
-credential exposure). This machine's own AWS CLI creds (already used for manual SSM
-redeploys) are reused instead — never added to a cloud environment. Working directory:
+credential exposure). The watcher reads logs with the read-only `pulse-log-reader` keys in
+`.watchers/aws-log-reader.env` (CloudWatch read on one log group, no shell on prod, no SSM);
+the machine's admin AWS CLI creds are not used for the pull, and the keys are never added to a
+cloud environment. Working directory:
 `C:\Users\66bar\Claude\work\projects\pulse\.watchers` (dedicated, so run sessions are saved
 outside the repo's `/resume` list; the routine starts there, not in the repo). It
 diagnoses and files GitHub issues for production errors; it does not fix those. Fixing them is the
