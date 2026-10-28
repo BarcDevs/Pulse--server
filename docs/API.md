@@ -492,7 +492,7 @@ Distinct tokens. Every registered token is also in `opened`.
 
 **Errors:** `401` secret missing or wrong, or `LAUNCH_FUNNEL_SECRET` unset or under 16 chars on the server (no data is returned)
 
-Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "error": "..." }] }`
+Rate limit error shape (every rate-limited endpoint): `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "code": "TOO_MANY_REQUESTS", "error": "..." }] }`
 
 ---
 

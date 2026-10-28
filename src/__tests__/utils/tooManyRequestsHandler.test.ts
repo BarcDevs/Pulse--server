@@ -1,4 +1,5 @@
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { CustomError } from '../../errors/CustomError'
 import { createTooManyRequestsHandler } from '../../utils/tooManyRequestsHandler'
 
 const message = 'Too many things, please try again later'
@@ -6,34 +7,30 @@ const message = 'Too many things, please try again later'
 const callHandler = () => {
     const json = jest.fn()
     const status = jest.fn().mockReturnValue({ json })
+    const next = jest.fn()
     const handler = createTooManyRequestsHandler(message)
 
-    handler({} as never, { status } as never, jest.fn(), {} as never)
+    handler({} as never, { status } as never, next, {} as never)
 
-    return { status, json }
+    return { status, json, next }
 }
 
 describe('createTooManyRequestsHandler', () => {
-    it('responds with status 429', () => {
-        const { status } = callHandler()
+    it('forwards a 429 CustomError with the message to next', () => {
+        const { next } = callHandler()
 
-        expect(status).toHaveBeenCalledWith(
-            HttpStatusCodes.TOO_MANY_REQUESTS
-        )
+        expect(next).toHaveBeenCalledTimes(1)
+        const error = next.mock.calls[0][0]
+        expect(error).toBeInstanceOf(CustomError)
+        expect(error.statusCode)
+            .toBe(HttpStatusCodes.TOO_MANY_REQUESTS)
+        expect(error.message).toBe(message)
     })
 
-    it('responds with the message and error array', () => {
-        const { json } = callHandler()
+    it('leaves the response to errorHandler', () => {
+        const { status, json } = callHandler()
 
-        expect(json).toHaveBeenCalledWith({
-            message,
-            error: [
-                {
-                    statusType: 'Too Many Requests',
-                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
-                    error: message
-                }
-            ]
-        })
+        expect(status).not.toHaveBeenCalled()
+        expect(json).not.toHaveBeenCalled()
     })
 })
