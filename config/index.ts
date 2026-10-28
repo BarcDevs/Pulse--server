@@ -119,7 +119,9 @@ const aiGenerationConfig: AIGenerationConfig = {
 }
 
 const loggingConfig: LoggingConfig = {
-    dir: config.get<string>('logging.dir')
+    dir: config.get<string>('logging.dir'),
+    cloudWatchErrorLogGroup: config.get<string>('logging.cloudWatchErrorLogGroup'),
+    cloudWatchRegion: config.get<string>('logging.cloudWatchRegion')
 }
 
 const launchFunnelConfig: LaunchFunnelConfig = {

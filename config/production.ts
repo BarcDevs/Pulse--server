@@ -13,5 +13,8 @@ export default {
     ai: {
         provider: 'openai',
         fallbackOrder: 'google'
+    },
+    logging: {
+        cloudWatchErrorLogGroup: '/pulse/server-errors'
     }
 }

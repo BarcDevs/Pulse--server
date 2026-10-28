@@ -74,6 +74,8 @@ type SupportReaderConfig = {
 
 type LoggingConfig = {
     dir: string
+    cloudWatchErrorLogGroup: string
+    cloudWatchRegion: string
 }
 
 export type {

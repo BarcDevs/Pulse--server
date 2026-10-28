@@ -6,6 +6,8 @@ export const supportTicketExcerptMaxLength = 120
 
 export const supportReaderSecretMinLength = 16
 
+export const supportReaderRateLimitKey = 'support-reader'
+
 export const supportTicketClosedRetentionMs = 6 * monthInMs
 
 export const supportTicketOpenRetentionMs = 24 * monthInMs

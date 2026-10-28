@@ -101,3 +101,15 @@ Supersedes the M2 bullet of the entry above ("owner to choose").
 **Why over alternatives:** slicing first could leave the start of an email or number in the excerpt. A name or address detector needs NLP and would still miss cases, which is not worth it for a 120 character excerpt.
 
 **How to apply:** any new free-text field added to the reader allow-list in `src/lib/supportTicketReader.ts` goes through `redactPersonalDetails` before it is cut.
+
+---
+
+## 25/10/2026 — Support reader limiter: failed attempts and valid reads get separate buckets
+
+**Problem:** the reader limiter ran before `supportReaderAuth` and was keyed by IP, so junk requests from the reader's IP burned its 30-read budget and the real reader got 429s (issue #76).
+
+**Decision:** two limiters. `supportReaderFailedAuthLimiter` runs first, per IP, counts only 401 responses (`skipSuccessfulRequests` with a 401-only `requestWasSuccessful`), skips any request carrying the valid reader secret, 10 per 15 min (100 in dev). Then `supportReaderAuth`, then `supportReaderRateLimiter`: one shared key for the single reader credential, 30 valid reads per 15 min (100 in dev). The service key decision of 21/10/2026 is unchanged.
+
+**Why over alternatives:** a single limiter after auth would let an attacker guess the secret without any throttle. A single limiter before auth keyed by IP is the bug. Keying the valid-read bucket by IP adds nothing, since only one credential holder can reach it.
+
+**How to apply:** keep the order failed-auth, auth, reader limiter. Limiters are per process, so each instance keeps its own counts. A request with the valid secret skips the failed-auth limiter, so junk from the reader's shared IP can't lock it out (review finding, 28/10/2026), and the reader's own 400/500 responses never count. A misconfigured reader (wrong secret) can still lock itself out for 15 minutes.

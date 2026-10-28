@@ -683,7 +683,7 @@ Frontend staging build: see [client README](https://github.com/BarcDevs/Pulse--c
 | Concern | Solution |
 |---|---|
 | Error tracking | Sentry integration |
-| Logging | Console in dev · structured JSON in production |
+| Logging | Console in dev · structured JSON in production · error-level lines also shipped to CloudWatch Logs `/pulse/server-errors` (production only) |
 | Health check | `GET /health` |
 
 ---

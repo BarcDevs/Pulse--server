@@ -3,6 +3,8 @@ import winston from 'winston'
 
 import { isDev, loggingConfig } from '../../config'
 
+import { CloudWatchErrorTransport } from './cloudWatchErrorTransport'
+
 const logDir = path.isAbsolute(loggingConfig.dir)
     ? loggingConfig.dir
     : path.resolve(process.cwd(), loggingConfig.dir)
@@ -36,6 +38,15 @@ const transports: winston.transport[] = [
         level: 'warn'
     })
 ]
+
+if (loggingConfig.cloudWatchErrorLogGroup) {
+    transports.push(
+        new CloudWatchErrorTransport({
+            logGroupName: loggingConfig.cloudWatchErrorLogGroup,
+            region: loggingConfig.cloudWatchRegion
+        })
+    )
+}
 
 transports.push(
     new winston.transports.Console({

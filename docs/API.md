@@ -422,7 +422,7 @@ Returns the ticket as above plus `replies` (oldest first): `{ id, ticketId, body
 ---
 
 ### `GET /claude/tickets`
-> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 requests per 15 minutes per IP
+> Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 valid reads per 15 minutes in total, and 10 failed (401) attempts per 15 minutes per IP (requests with a valid secret are never counted)
 
 For the Claude support-ticket reader. The credential is accepted on this route only, and no other credential works here. Same `status`, `limit` and `cursor` query as `GET /tickets`.
 
@@ -492,7 +492,7 @@ Distinct tokens. Every registered token is also in `opened`.
 
 **Errors:** `401` secret missing or wrong, or `LAUNCH_FUNNEL_SECRET` unset or under 16 chars on the server (no data is returned)
 
-Rate limit error shape: `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "error": "..." }] }`
+Rate limit error shape (every rate-limited endpoint): `{ "message": "...", "error": [{ "statusType": "Too Many Requests", "statusCode": 429, "code": "TOO_MANY_REQUESTS", "error": "..." }] }`
 
 ---
 

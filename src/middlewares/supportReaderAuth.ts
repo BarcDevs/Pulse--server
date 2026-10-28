@@ -9,6 +9,13 @@ import { supportReaderSecretMinLength } from '../constants/support/supportTicket
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { isBearerSecretValid } from '../utils/bearerSecret'
 
+export const hasValidSupportReaderSecret = (req: Request) =>
+    isBearerSecretValid(
+        req.headers.authorization,
+        supportReaderConfig.secret,
+        supportReaderSecretMinLength
+    )
+
 // Credential for the Claude support-ticket reader. Accepted only by the
 // routes that list it; fails closed while the secret is unset or too short
 export const supportReaderAuth = (
@@ -16,13 +23,7 @@ export const supportReaderAuth = (
     _res: Response,
     next: NextFunction
 ) => {
-    const isSecretValid = isBearerSecretValid(
-        req.headers.authorization,
-        supportReaderConfig.secret,
-        supportReaderSecretMinLength
-    )
-
-    if (!isSecretValid)
+    if (!hasValidSupportReaderSecret(req))
         throw errorFactory.auth.unauthorized()
 
     return next()

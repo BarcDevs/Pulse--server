@@ -100,11 +100,10 @@ write `$WT`'s records. Before committing anything, read `$MAIN/GIT_RULES.md` (th
    "$WT/scripts/monitor/checkpoint.ts" get)`, `RUN_START=<now, ISO8601>` (taken before pulling,
    so errors logged during the run land in the next window).
 3. **Pull new errors:** `bash "$WT/scripts/monitor/pull-prod-logs.sh" "$CHECKPOINT" > <temp
-   file outside the repo>`. It resolves the EC2 instance live by tag (`Name=pulse-server`); never
-   pass or hardcode an instance id (the server sits behind an ASG).
+   file outside the repo>`. It reads the CloudWatch log group `/pulse/server-errors` with the
+   read-only `pulse-log-reader` keys from `.watchers/aws-log-reader.env` (no shell on prod, no
+   instance lookup, no output cap, and logs survive deploys).
    - Exit 0: `NEXT_CHECKPOINT=$RUN_START`.
-   - Exit 3 (SSM output cap hit, only the oldest new errors came back):
-     `NEXT_CHECKPOINT=<timestamp of the last line in the file>`; the next run picks up the rest.
    - Any other exit: notify with the error and **stop without moving the checkpoint**. An empty
      result from a failed pull must never be recorded as "no errors".
 4. **Process:** `npx tsx "$WT/scripts/monitor/processLogs.ts" < <temp file>`. It bumps matching

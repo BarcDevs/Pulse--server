@@ -6,7 +6,9 @@ import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { supportTicketExcerptMaxLength } from '../../constants/support/supportTickets'
 import {
     supportRateLimiter,
-    supportReaderRateLimiter } from '../../middlewares/rateLimiting'
+    supportReaderFailedAuthLimiter,
+    supportReaderRateLimiter
+} from '../../middlewares/rateLimiting'
 import { prismaMock } from '../setup/jestSetup'
 import {
     createAuthToken,
@@ -367,5 +369,32 @@ describe(`GET ${readerUrl}`, () => {
 
         expect(supportReaderRateLimiter).toHaveBeenCalled()
         expect(supportRateLimiter).not.toHaveBeenCalled()
+    })
+
+    it('runs the failed-auth limiter, then auth, then the reader limiter', async () => {
+        prismaMock.supportTicket.findMany.mockResolvedValue([])
+
+        await supertest(App)
+            .get(readerUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(supportReaderFailedAuthLimiter).toHaveBeenCalled()
+        expect(
+            jest.mocked(supportReaderFailedAuthLimiter)
+                .mock.invocationCallOrder[0]
+        ).toBeLessThan(
+            jest.mocked(supportReaderRateLimiter)
+                .mock.invocationCallOrder[0]
+        )
+    })
+
+    it('does not spend the reader bucket on a bad secret', async () => {
+        const res = await supertest(App)
+            .get(readerUrl)
+            .set('Authorization', 'Bearer wrong-secret-wrong-secret')
+
+        expect(res.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        expect(supportReaderFailedAuthLimiter).toHaveBeenCalled()
+        expect(supportReaderRateLimiter).not.toHaveBeenCalled()
     })
 })

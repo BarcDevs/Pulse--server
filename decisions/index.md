@@ -55,6 +55,10 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
 | 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
 | 27/10/2026 | Watcher fixer merges release PR on green checks |
+| 28/10/2026 | Fixer holds on Client-Impact and times out unreviewed releases |
+| 28/10/2026 | Risky releases held by a needs-review label at the PR phase |
+| 28/10/2026 | Held needs-review PRs carry a what-changed summary |
+| 28/10/2026 | Instance metadata hop limit 2 so the container reads the instance role |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
@@ -79,6 +83,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 | 02/10/2026 | Account deletion keeps replies as `deleted-user` (nullable author, SET NULL); posts still deleted |
 | 21/10/2026 | Support tickets stored: service key for the Claude reader, 6-month (closed) and 24-month (never closed) retention, purged accounts keep tickets until retention |
 | 27/10/2026 | Reader excerpts redact emails, phones, long numbers (9+ digits) and links before the 120-char cut; names and addresses not caught |
+| 25/10/2026 | Support reader limiter: failed-auth limiter per IP (10 / 15 min) before auth, one shared valid-read bucket (30 / 15 min) after it |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

@@ -62,7 +62,9 @@ export default {
         timeoutMs: 15000
     },
     logging: {
-        dir: 'logs'
+        dir: 'logs',
+        cloudWatchErrorLogGroup: '',
+        cloudWatchRegion: 'eu-central-1'
     },
     launchFunnel: {
         secret: ''
