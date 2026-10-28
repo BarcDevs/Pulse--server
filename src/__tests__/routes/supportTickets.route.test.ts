@@ -486,4 +486,31 @@ describe(`GET ${readerUrl}/:ticketId`, () => {
         expect(supportReaderRateLimiter).toHaveBeenCalled()
         expect(supportRateLimiter).not.toHaveBeenCalled()
     })
+
+    it('runs the failed-auth limiter, then auth, then the reader limiter', async () => {
+        prismaMock.supportTicket.findUnique.mockResolvedValue(null)
+
+        await supertest(App)
+            .get(detailUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(supportReaderFailedAuthLimiter).toHaveBeenCalled()
+        expect(
+            jest.mocked(supportReaderFailedAuthLimiter)
+                .mock.invocationCallOrder[0]
+        ).toBeLessThan(
+            jest.mocked(supportReaderRateLimiter)
+                .mock.invocationCallOrder[0]
+        )
+    })
+
+    it('does not spend the reader bucket on a bad secret', async () => {
+        const response = await supertest(App)
+            .get(detailUrl)
+            .set('Authorization', 'Bearer wrong-secret-wrong-secret')
+
+        expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
+        expect(supportReaderFailedAuthLimiter).toHaveBeenCalled()
+        expect(supportReaderRateLimiter).not.toHaveBeenCalled()
+    })
 })

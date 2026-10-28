@@ -60,7 +60,11 @@ describe('toTicketExcerpt redaction', () => {
         ['an http url', 'see https://example.com/a?b=1 ok', 'see [link] ok'],
         ['a www url', 'see www.example.com/page ok', 'see [link] ok'],
         ['a bare domain link with a path', 'see app.example.com/reset?t=1 ok', 'see [link] ok'],
-        ['a bare domain link with a query', 'see example.com?token=abc ok', 'see [link] ok']
+        ['a bare domain link with a query', 'see example.com?token=abc ok', 'see [link] ok'],
+        ['a bare domain link with a port', 'see example.com:8080/reset?t=abc ok', 'see [link] ok'],
+        ['a bare ip link', 'see 192.168.1.5/admin?t=abc ok', 'see [link] ok'],
+        ['a non-ascii domain link', 'see пример.рф/reset?token=abc ok', 'see [link] ok'],
+        ['another scheme', 'get ftp://user:pw@host/f now', 'get [link] now']
     ])('redacts %s', (_name, message, expected) => {
         expect(toTicketExcerpt(message)).toBe(expected)
     })
@@ -185,6 +189,33 @@ describe('toReaderTicketDetail', () => {
         ))
 
         expect(message).toBe('mail [email] now')
+    })
+
+    it.each([
+        ['a ? inside the credentials', 'try https://user:pa?ss@host.com/x now'],
+        ['a # inside the credentials', 'try https://user:pa#ss@host.com/x now']
+    ])('does not leak a partial password for %s', (_name, text) => {
+        const { message } = toReaderTicketDetail(createTicket(text))
+
+        expect(message).not.toContain('user')
+        expect(message).not.toContain('pa')
+        expect(message).toBe('try [link] now')
+    })
+
+    it('stops the host at a backslash', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'try https://a.com\\secrettoken now'
+        ))
+
+        expect(message).toBe('try a.com now')
+    })
+
+    it('cuts a link with a port to host:port and the first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'open example.com:8080/reset/abc?t=1 now'
+        ))
+
+        expect(message).toBe('open example.com:8080/reset now')
     })
 
     it('does not leak credentials left with nothing after them', () => {

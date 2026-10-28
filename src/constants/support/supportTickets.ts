@@ -20,8 +20,9 @@ export const redactedNumberPlaceholder = '[number]'
 
 export const redactedLinkPlaceholder = '[link]'
 
-// a link with a scheme, a www. link, or a bare domain followed by a path, query or fragment (not preceded by an @, so an email is left to the email rule)
-export const linkRedactionPattern = /(?:https?:\/\/|www\.|(?<![\w@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?=[/?#]))\S+/gi
+// a link with any scheme, a www. link, or a bare domain or IPv4 (optional port) followed by a path, query or fragment;
+// not preceded by an @, so an email is left to the email rule
+export const linkRedactionPattern = /(?:[a-z][a-z0-9+.-]*:\/\/|www\.|(?<![\p{L}\p{N}@.-])(?:(?:[\p{L}\p{N}-]+\.)+\p{L}{2,}|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?(?=[/?#]))\S+/giu
 
 export const emailRedactionPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/g
 
@@ -29,6 +30,6 @@ export const emailRedactionPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/g
 export const numberRedactionPattern = /\+?\(?\d(?:[\s().-]{0,3}\d){8,}/g
 
 // authority (may still hold credentials) and first path segment of a link, dropping the rest of the path, query and fragment
-export const linkShortenPattern = /^(?:https?:\/\/)?([^/?#]*)(?:\/([^/?#]*))?/i
+export const linkShortenPattern = /^(?:[a-z][a-z0-9+.-]*:\/\/)?([^/?#\\]*)(?:\/([^/?#\\]*))?/i
 
 export const linkTrailingPunctuationPattern = /[.,;:!?)\]'"]+$/

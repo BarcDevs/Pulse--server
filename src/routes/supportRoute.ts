@@ -268,8 +268,9 @@ router.route('/claude/tickets').get(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/claude/tickets/:ticketId').get(
-    supportReaderRateLimiter,
+    supportReaderFailedAuthLimiter,
     supportReaderAuth,
+    supportReaderRateLimiter,
     getTicketForReader
 )
 
