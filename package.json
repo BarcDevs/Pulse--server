@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.19",
+  "version": "1.29.20",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [

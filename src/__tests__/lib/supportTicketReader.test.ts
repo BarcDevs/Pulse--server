@@ -64,7 +64,11 @@ describe('toTicketExcerpt redaction', () => {
         ['a bare domain link with a port', 'see example.com:8080/reset?t=abc ok', 'see [link] ok'],
         ['a bare ip link', 'see 192.168.1.5/admin?t=abc ok', 'see [link] ok'],
         ['a non-ascii domain link', 'see пример.рф/reset?token=abc ok', 'see [link] ok'],
-        ['another scheme', 'get ftp://user:pw@host/f now', 'get [link] now']
+        ['another scheme', 'get ftp://user:pw@host/f now', 'get [link] now'],
+        ['a bare domain right after an ellipsis', 'see...example.com/t0k3n123 ok', 'see...[link] ok'],
+        ['a bare domain after a dash', 'see -example.com/tok1 ok', 'see [link] ok'],
+        ['a backslash scheme', 'see https:\\\\evil.com\\tok123 ok', 'see [link] ok'],
+        ['a bare domain with a backslash path', 'see evil.com\\tok1 ok', 'see [link] ok']
     ])('redacts %s', (_name, message, expected) => {
         expect(toTicketExcerpt(message)).toBe(expected)
     })
