@@ -41,8 +41,10 @@ const shortenLink = (link: string): string => {
     const body = link.slice(0, link.length - trailing.length)
     const [, authority = '', firstSegment] = body.match(linkShortenPattern) ?? []
     const host = authority.slice(authority.lastIndexOf('@') + 1)
+    // an @ after the authority means a ? # or backslash cut the credentials short: drop the whole link
+    const isCredentialCut = !authority.includes('@') && body.includes('@')
 
-    if (!host)
+    if (!host || isCredentialCut)
         return redactedLinkPlaceholder
 
     return `${host}${firstSegment ? `/${firstSegment}` : ''}${trailing}`
