@@ -32,4 +32,9 @@ export const numberRedactionPattern = /\+?\(?\d(?:[\s().-]{0,3}\d){8,}/g
 // authority (may still hold credentials) and first path segment of a link, dropping the rest of the path, query and fragment
 export const linkShortenPattern = /^(?:[a-z][a-z0-9+.-]*:\/\/)?([^/?#\\]*)(?:\/([^/?#\\]*))?/i
 
+// a first path segment that reads as a page name (goals, reset-password), not a handle, token or id
+export const linkPageNameSegmentPattern = /^[a-z]+(?:-[a-z]+)*$/
+
+export const linkPageNameSegmentMaxLength = 30
+
 export const linkTrailingPunctuationPattern = /[.,;:!?)\]'"]+$/

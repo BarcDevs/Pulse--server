@@ -466,7 +466,7 @@ One ticket for the Claude reader, with the full message instead of an excerpt. T
     "topic": "technical",
     "createdAt": "2026-10-21T10:00:00.000Z",
     "status": "NEW",
-    "message": "The full message with emails, phones and long numbers redacted; links cut to domain and first path segment",
+    "message": "The full message with emails, phones and long numbers redacted; links cut to domain and the first path segment when it reads as a page name",
     "senderEmail": "v***@example.com"
   }
 }
