@@ -21,8 +21,10 @@ const logError = (
     {
         level: 'error',
         message,
-        metadata: { code: 1 },
-        timestamp: '2026-10-28T10:00:00.000Z'
+        metadata: {
+            code: 1,
+            timestamp: '2026-10-28T09:59:59.000Z'
+        }
     },
     jest.fn()
 )
@@ -33,6 +35,7 @@ const sentInputs = (send: jest.Mock) =>
 describe('CloudWatchErrorTransport', () => {
     beforeEach(() => {
         jest.useFakeTimers()
+        jest.setSystemTime(new Date('2026-10-28T10:00:00.000Z'))
     })
 
     afterEach(() => {
@@ -59,7 +62,10 @@ describe('CloudWatchErrorTransport', () => {
             .toEqual({
                 level: 'error',
                 message: 'first',
-                metadata: { code: 1 },
+                metadata: {
+                    code: 1,
+                    timestamp: '2026-10-28T09:59:59.000Z'
+                },
                 timestamp: '2026-10-28T10:00:00.000Z'
             })
 
