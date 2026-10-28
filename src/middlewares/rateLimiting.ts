@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
+import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { supportReaderRateLimitKey } from '../constants/support/supportTickets'
 import {
     dayInMs,
@@ -8,6 +9,8 @@ import {
     minuteInMs
 } from '../constants/time'
 import { createTooManyRequestsHandler } from '../utils/tooManyRequestsHandler'
+
+import { hasValidSupportReaderSecret } from './supportReaderAuth'
 
 export const rateLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
@@ -146,11 +149,16 @@ const supportReaderFailedAuthMessage =
     'Too many failed support reader attempts, please try again after 15 minutes'
 
 // Runs before supportReaderAuth and counts only its failures (401), per IP,
-// so junk requests are throttled without touching the reader's bucket
+// so junk requests are throttled without touching the reader's bucket.
+// A valid secret skips it, so junk from the reader's shared IP can't lock the
+// reader out, and the reader's own 400/500 responses never count
 export const supportReaderFailedAuthLimiter = rateLimit({
     windowMs: 15 * minuteInMs,
     limit: isDev ? 100 : 10,
+    skip: hasValidSupportReaderSecret,
     skipSuccessfulRequests: true,
+    requestWasSuccessful: (_req, res) =>
+        res.statusCode !== HttpStatusCodes.UNAUTHORIZED,
     handler: createTooManyRequestsHandler(supportReaderFailedAuthMessage)
 })
 
