@@ -181,3 +181,11 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Hold at the aws-production approval with a wait (30 days) or a timeout: a held release can slip through at the click, or expire and be dropped.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 28/10/2026 — Held needs-review PRs carry a what-changed summary
+
+**Decision:** A PR held with `needs-review` under the #81 ship rules gets a summary of what changed and what is new (changed areas, the hold rule that matched, new behaviour, client impact) so the owner can review it quickly.
+
+**Why over alternatives:** Owner, on #81: 'So the PR gets a summary of what changed and what new, so I can easily review it.' Holding at the PR phase only helps if the review is cheap.
+
+**Source:** user, auto-recorded: "recorded by the session"
