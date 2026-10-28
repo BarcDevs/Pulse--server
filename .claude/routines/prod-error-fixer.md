@@ -34,6 +34,7 @@ path, command or label.
 | fix verified but held for the owner's review (server flags) | `held-for-review` (with `approved` + `in-progress`) | this routine (ship step) |
 | owner reviewed a held fix, ship it in the quiet window | `ship-ok` | **the owner only** |
 | held fix with a valid `ship-ok`, waiting for the quiet window | `awaiting-window` | this routine (held fixes) |
+| a fixer run died on the usage limit while this issue was waiting on work | `limit-hit` | the StopFailure hook (`scripts/monitor/limit-hit.sh`); this routine removes it once it has handled the issue |
 | fix merged to `development`, issue closed | `fixed` | this routine (phase 1) |
 | no safe automatic fix, or the fix failed | `needs-human` | this routine |
 
@@ -90,6 +91,15 @@ plan-ready ones with new comments, no owner-mention calls, no open issues labell
 `PushNotification`; go straight to the phone push, which still reports anything waiting on the owner.
 
 ## Phase 1: fix approved issues (do this first)
+
+**Limit-hit issues first.** A run that dies on the usage limit cannot label anything, so the
+StopFailure hook labels `limit-hit` on every open issue then waiting on the fixer (`in-progress`,
+`approved`, `follow-up`, `answered`). In every run, right after `require-bot.sh`: list issues
+labelled `limit-hit` and work them before everything else, in this order: follow-ups and answers,
+then fixes. A `limit-hit` + `in-progress` issue is stale at once (skip the 2 hour wait; check the
+fix branch and worktree, resume from them if they exist). Remove `limit-hit` from an issue as soon
+as this run has handled it (answered, planned, fixed, shipped, or found nothing to do), and put its
+number in the final notification. Never remove it for an issue this run did not get to.
 
 **Follow-ups before fixes.** Before the held fixes and before any fix, do the follow-up step at the
 top of Phase 2 ("First, answer follow-ups"): every `follow-up` issue and owner-mention call. It is
