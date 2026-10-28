@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.12",
+  "version": "1.29.14",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -40,6 +40,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "3.1151.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "bcrypt": "^6.0.0",
@@ -63,6 +64,7 @@
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.11.0",
+    "winston-transport": "^4.9.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
