@@ -27,7 +27,7 @@ const createRateLimitMockResponse = () => {
 }
 
 describe('supportReaderRateLimiter (real implementation)', () => {
-    it('allows 30 requests then returns 429 in the standard error shape', async () => {
+    it('allows 30 requests then forwards a 429 error to the error handler', async () => {
         const req = createMockRequest({
             ip: '10.2.0.1'
         }) as Request
@@ -46,19 +46,12 @@ describe('supportReaderRateLimiter (real implementation)', () => {
         const next = createMockNext()
         await supportReaderRateLimiter(req, res, next)
 
-        expect(next).not.toHaveBeenCalled()
-        expect(res.status)
-            .toHaveBeenCalledWith(HttpStatusCodes.TOO_MANY_REQUESTS)
-        expect(res.json).toHaveBeenCalledWith({
-            message: expect.any(String),
-            error: [
-                {
-                    statusType: 'Too Many Requests',
-                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS,
-                    error: expect.any(String)
-                }
-            ]
-        })
+        expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+                statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+            })
+        )
+        expect(res.status).not.toHaveBeenCalled()
     })
 
     it('limits each IP independently', async () => {
