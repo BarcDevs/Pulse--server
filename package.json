@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.7",
+  "version": "1.29.9",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -16,6 +16,9 @@
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
     "dev": "tsx scripts/dev.ts",
     "release": "npx prisma migrate deploy --schema=prisma/schema.prisma",
+    "pretypecheck": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
+    "pretest": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
+    "pretest:integration": "DEV_DATABASE_URL=${DEV_DATABASE_URL:-postgresql://dummy:dummy@localhost:5432/dummy} prisma generate --schema=prisma/schema.prisma",
     "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --coverage",
     "test:integration": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.ts --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\"",
