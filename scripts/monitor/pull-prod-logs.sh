@@ -52,5 +52,5 @@ OUTPUT=$(MSYS_NO_PATHCONV=1 aws logs filter-log-events \
 # the routine's own working directory don't have them), whichever directory
 # this script was started from. --output text separates events with tabs.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MAIN_CHECKOUT="$(cd "$(git -C "$SCRIPT_DIR" rev-parse --git-common-dir)/.." && pwd)"
+MAIN_CHECKOUT="$(cd "$(git -C "$SCRIPT_DIR" rev-parse --path-format=absolute --git-common-dir)/.." && pwd)"
 printf '%s\n' "$OUTPUT" | tr '\t' '\n' | (cd "$MAIN_CHECKOUT" && npx tsx "$SCRIPT_DIR/filterSince.ts" "$SINCE")
