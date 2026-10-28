@@ -1,17 +1,23 @@
+import { EventEmitter } from 'events'
 import type { Request, Response } from 'express'
 
+import { supportReaderConfig } from '../../../config'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import {
     createMockNext,
     createMockRequest
 } from '../setup/testSetup'
 
-const { supportReaderRateLimiter } =
+const {
+    supportReaderFailedAuthLimiter,
+    supportReaderRateLimiter
+} =
     jest.requireActual('../../middlewares/rateLimiting')
 
 const createRateLimitMockResponse = () => {
     const headers: Record<string, unknown> = {}
-    return {
+    return Object.assign(new EventEmitter(), {
+        statusCode: HttpStatusCodes.OK,
         status: jest.fn().mockReturnThis(),
         json: jest.fn().mockReturnThis(),
         send: jest.fn().mockReturnThis(),
@@ -23,19 +29,20 @@ const createRateLimitMockResponse = () => {
             delete headers[key]
         }),
         headersSent: false
-    } as unknown as Response
+    }) as unknown as Response
 }
 
 describe('supportReaderRateLimiter (real implementation)', () => {
-    it('allows 30 requests then forwards a 429 error to the error handler', async () => {
-        const req = createMockRequest({
-            ip: '10.2.0.1'
-        }) as Request
+    it('shares one bucket across IPs and forwards a 429 error after 30 reads, even after junk from the reader IP', async () => {
+        for (let attempt = 0; attempt < 40; attempt++)
+            await failAuth('10.2.1.0')
 
         for (let attempt = 0; attempt < 30; attempt++) {
             const next = createMockNext()
             await supportReaderRateLimiter(
-                req,
+                createMockRequest({
+                    ip: `10.2.1.${attempt}`
+                }) as Request,
                 createRateLimitMockResponse(),
                 next
             )
@@ -44,7 +51,53 @@ describe('supportReaderRateLimiter (real implementation)', () => {
 
         const res = createRateLimitMockResponse()
         const next = createMockNext()
-        await supportReaderRateLimiter(req, res, next)
+        await supportReaderRateLimiter(
+            createMockRequest({ ip: '10.2.1.200' }) as Request,
+            res,
+            next
+        )
+
+        expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+                statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+            })
+        )
+        expect(res.status).not.toHaveBeenCalled()
+    })
+})
+
+const readerSecret = 'reader-secret-0123456789'
+
+const callFailedAuthLimiter = async (
+    ip: string,
+    statusCode: number,
+    authorization?: string
+) => {
+    const res = createRateLimitMockResponse()
+    const next = createMockNext()
+    await supportReaderFailedAuthLimiter(
+        Object.assign(createMockRequest({ ip }), {
+            headers: { authorization }
+        }) as Request,
+        res,
+        next
+    )
+    ;(res as unknown as { statusCode: number }).statusCode = statusCode
+    res.emit('finish')
+    return { res, next }
+}
+
+const failAuth = (ip: string) =>
+    callFailedAuthLimiter(ip, HttpStatusCodes.UNAUTHORIZED)
+
+describe('supportReaderFailedAuthLimiter (real implementation)', () => {
+    it('lets 10 failed attempts through then forwards a 429 error', async () => {
+        for (let attempt = 0; attempt < 10; attempt++) {
+            const { next } = await failAuth('10.3.0.1')
+            expect(next).toHaveBeenCalled()
+        }
+
+        const { res, next } = await failAuth('10.3.0.1')
 
         expect(next).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -54,17 +107,67 @@ describe('supportReaderRateLimiter (real implementation)', () => {
         expect(res.status).not.toHaveBeenCalled()
     })
 
-    it('limits each IP independently', async () => {
-        const res = createRateLimitMockResponse()
-        const next = createMockNext()
+    it('does not count successful requests', async () => {
+        for (let attempt = 0; attempt < 15; attempt++) {
+            const res = createRateLimitMockResponse()
+            const next = createMockNext()
+            await supportReaderFailedAuthLimiter(
+                createMockRequest({ ip: '10.3.0.2' }) as Request,
+                res,
+                next
+            )
+            expect(next).toHaveBeenCalled()
+            res.emit('finish')
+        }
+    })
 
-        await supportReaderRateLimiter(
-            createMockRequest({ ip: '10.2.0.2' }) as Request,
-            res,
-            next
-        )
+    it('counts failures per IP', async () => {
+        for (let attempt = 0; attempt < 10; attempt++)
+            await failAuth('10.3.0.3')
+
+        const { next } = await failAuth('10.3.0.4')
 
         expect(next).toHaveBeenCalled()
-        expect(res.status).not.toHaveBeenCalled()
+    })
+
+    describe('with the reader secret configured', () => {
+        const originalSecret = supportReaderConfig.secret
+
+        beforeEach(() => {
+            supportReaderConfig.secret = readerSecret
+        })
+
+        afterEach(() => {
+            supportReaderConfig.secret = originalSecret
+        })
+
+        it('never blocks a valid secret, even after junk from the same IP', async () => {
+            for (let attempt = 0; attempt < 11; attempt++)
+                await failAuth('10.3.0.5')
+
+            const { next } = await callFailedAuthLimiter(
+                '10.3.0.5',
+                HttpStatusCodes.OK,
+                `Bearer ${readerSecret}`
+            )
+
+            expect(next).toHaveBeenCalled()
+        })
+
+        it('does not count 400 and 500 responses from a valid reader', async () => {
+            for (let attempt = 0; attempt < 12; attempt++) {
+                await callFailedAuthLimiter(
+                    '10.3.0.6',
+                    attempt % 2
+                        ? HttpStatusCodes.BAD_REQUEST
+                        : HttpStatusCodes.INTERNAL_SERVER_ERROR,
+                    `Bearer ${readerSecret}`
+                )
+            }
+
+            const { next } = await failAuth('10.3.0.6')
+
+            expect(next).toHaveBeenCalled()
+        })
     })
 })
