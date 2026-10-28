@@ -33,6 +33,7 @@ path, command or label.
 | fix being made | `in-progress` | this routine (phase 1) |
 | fix verified but held for the owner's review (server flags) | `held-for-review` (with `approved` + `in-progress`) | this routine (ship step) |
 | owner reviewed a held fix, ship it in the quiet window | `ship-ok` | **the owner only** |
+| held fix with a valid `ship-ok`, waiting for the quiet window | `awaiting-window` | this routine (held fixes) |
 | fix merged to `development`, issue closed | `fixed` | this routine (phase 1) |
 | no safe automatic fix, or the fix failed | `needs-human` | this routine |
 
@@ -89,6 +90,11 @@ plan-ready ones with new comments, no owner-mention calls, no open issues labell
 `PushNotification`; go straight to the phone push, which still reports anything waiting on the owner.
 
 ## Phase 1: fix approved issues (do this first)
+
+**Follow-ups before fixes.** Before the held fixes and before any fix, do the follow-up step at the
+top of Phase 2 ("First, answer follow-ups"): every `follow-up` issue and owner-mention call. It is
+cheap, and fixes can use up or kill a run (usage limit, a long review), which left a follow-up
+unanswered for days (#74). Phase 2 then skips that step.
 
 **Held fixes first.** Before anything else in this phase, handle issues labelled `held-for-review`
 (see "Held fixes" below): a held fix with the owner's `ship-ok` ships in this run if it started
@@ -263,7 +269,7 @@ the plan page). Either way this routine must carry the fix through to the ship s
 
 ## Phase 2: plan unplanned issues
 
-First, answer follow-ups: for each open issue with the `follow-up` label or an owner-mention call
+First, answer follow-ups (done at the start of the run, see "Follow-ups before fixes"): for each open issue with the `follow-up` label or an owner-mention call
 (see "Owner mentions" above; any other label allowed),
 read the owner's newest comment (`author.login` is `$OWNER`) on the issue **and the owner's comment
 threads on the issue's questions or plan page** (page link and `ArtifactComments` as in the next
@@ -506,10 +512,14 @@ on its own:
   newest `labeled` `ship-ok` event (`gh api repos/$REPO/issues/<n>/events --paginate`) has
   `actor.login == $OWNER` and is newer than the newest `held-for-review` event; otherwise remove
   `ship-ok` and comment "ship-ok ignored: not from the owner".
+- A valid `ship-ok` that cannot ship in this run (outside the quiet window, busy or dirty checkout)
+  gets the `awaiting-window` label, so the issue itself shows it is queued and why; add it every
+  run that finds it missing, and note the reason in one short comment the first time. Remove it
+  when the fix ships or `ship-ok` is removed.
 - Valid `ship-ok` and the run started inside the profile's quiet window (read the clock once at
   the start of the run) and the checkout is free (see Ship): rebase the branch onto `development`,
   re-run the profile's checks (any failure: failure path), then ship it as in "Ship", remove
-  `held-for-review` and `ship-ok`, and close it as in step 7. Outside the window it waits for the
+  `held-for-review`, `ship-ok` and `awaiting-window`, and close it as in step 7. Outside the window it waits for the
   next run that starts inside it. A missing branch is `needs-human`.
 - The quiet window only governs held fixes. Flag-free fixes ship as soon as they pass.
 
