@@ -189,3 +189,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over alternatives:** Owner, on #81: 'So the PR gets a summary of what changed and what new, so I can easily review it.' Holding at the PR phase only helps if the review is cheap.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 28/10/2026 — Instance metadata hop limit 2 so the container reads the instance role
+
+**Decision:** The pulse-server launch template (default v7) and the running instance use IMDS hop limit 2 with tokens still required (IMDSv2 only). The app container needs the instance role credentials to write error logs to CloudWatch (#83). This reverses the hop limit 1 set in v5 on 16/10/2026.
+
+**Why over alternatives:** With hop limit 1 a container cannot reach the metadata service, so the winston CloudWatch transport gets no credentials. Owner approved the change in the session ('Just get it', then ran the commands by hand after the tool permission check blocked them). The role stays scoped: secrets read for the app plus write to /pulse/server-errors only.
+
+**Rejected:** Static write-only IAM keys in Secrets Manager (long-lived key to rotate, new secret in the deploy path); a host-side shipper tailing docker logs (new moving part on the instance).
+
+**Source:** user, auto-recorded: "recorded by the session"
