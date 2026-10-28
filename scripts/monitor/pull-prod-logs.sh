@@ -1,93 +1,56 @@
 #!/bin/bash
 set -euo pipefail
 
-# Pulls error lines from the running prod container via SSM Run Command
-# (same access pattern as scripts/deploy/ec2-redeploy.sh). Reads the
-# container's stdout (`docker logs`), not logs/error.log: the file transports
-# pretty-print multi-line objects, while stdout is one winston JSON object per
-# line. `--since` filters on the box, so SSM's ~24KB output cap applies to new
-# errors only. Logs are lost when a deploy replaces the container, an accepted
-# gap for this monitor.
+# Pulls error lines from the prod error log group in CloudWatch Logs
+# (/pulse/server-errors), which the app ships to itself (see
+# src/utils/cloudWatchErrorTransport.ts). Read-only: the watcher uses the
+# pulse-log-reader IAM user, which can only read that one log group, so it
+# has no shell on prod. Logs survive deploys, and filter-log-events pages
+# through any number of errors (no ~24KB cap, so no "truncated" exit code).
+#
+# Credentials: the pulse-log-reader keys, loaded from
+# $WATCHERS_DIR/aws-log-reader.env (untracked, never committed) unless
+# AWS_ACCESS_KEY_ID is already set.
 #
 # Usage: pull-prod-logs.sh <since-iso8601>
 # Prints error lines (JSON, one per line) with a timestamp >= <since-iso8601>.
-# Exit codes: 0 all new errors printed; 3 output hit the SSM cap, so only the
-# oldest were printed (set the checkpoint to the last printed line's timestamp,
-# not now, and the next run picks up the rest); anything else: failure, don't
-# move the checkpoint.
-#
-# Instance id is always resolved live by tag (Name=pulse-server), never
-# hardcoded/env-pinned — the server sits behind an ASG, so the instance can
-# be replaced at any time (same lookup docs/DEPLOYMENT.md uses for manual
-# redeploys).
+# Exit codes: 0 all new errors printed; anything else: failure, don't move
+# the checkpoint.
 
 REGION="eu-central-1"
+LOG_GROUP="/pulse/server-errors"
+WATCHERS_DIR="${WATCHERS_DIR:-/c/Users/66bar/Claude/work/projects/pulse/.watchers}"
 SINCE="${1:?since ISO8601 timestamp required}"
 
-INSTANCE_ID=$(aws ec2 describe-instances \
-    --region "$REGION" \
-    --filters Name=tag:Name,Values=pulse-server Name=instance-state-name,Values=running \
-    --query 'Reservations[0].Instances[0].InstanceId' \
-    --output text)
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then
+    if [ ! -f "$WATCHERS_DIR/aws-log-reader.env" ]; then
+        echo "Missing $WATCHERS_DIR/aws-log-reader.env (pulse-log-reader keys)" >&2
+        exit 1
+    fi
+    set -a
+    # shellcheck disable=SC1091
+    . "$WATCHERS_DIR/aws-log-reader.env"
+    set +a
+fi
 
-if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
-    echo "No running instance tagged Name=pulse-server found" >&2
+SINCE_MS=$(node -e 'process.stdout.write(String(Date.parse(process.argv[1])))' "$SINCE")
+if [ "$SINCE_MS" = "NaN" ]; then
+    echo "Unparseable since timestamp: $SINCE" >&2
     exit 1
 fi
 
-REMOTE_CMD="docker logs --since '$SINCE' pulse-app 2>&1 | grep '\"level\":\"error\"' || true"
-SSM_OUTPUT_CAP=24000
-
-COMMAND_ID=$(aws ssm send-command \
+# MSYS_NO_PATHCONV keeps Git Bash from rewriting the leading slash of the
+# log group name into a Windows path
+OUTPUT=$(MSYS_NO_PATHCONV=1 aws logs filter-log-events \
     --region "$REGION" \
-    --instance-ids "$INSTANCE_ID" \
-    --document-name "AWS-RunShellScript" \
-    --parameters "$(node -e 'process.stdout.write(JSON.stringify({ commands: [process.argv[1]] }))' "$REMOTE_CMD")" \
-    --query "Command.CommandId" \
+    --log-group-name "$LOG_GROUP" \
+    --start-time "$SINCE_MS" \
+    --query 'events[].message' \
     --output text)
-
-# Poll until the command finishes (SSM has no blocking wait for output).
-for _ in $(seq 1 30); do
-    STATUS=$(aws ssm get-command-invocation \
-        --region "$REGION" \
-        --command-id "$COMMAND_ID" \
-        --instance-id "$INSTANCE_ID" \
-        --query "Status" \
-        --output text 2>/dev/null || echo "Pending")
-    [ "$STATUS" = "Success" ] && break
-    [ "$STATUS" = "Failed" ] && { echo "SSM command failed" >&2; exit 1; }
-    sleep 2
-done
-
-# Reading output from an unfinished command would look like "no errors" and
-# let the routine skip this window for good
-if [ "$STATUS" != "Success" ]; then
-    echo "SSM command did not finish (status: $STATUS)" >&2
-    exit 1
-fi
-
-OUTPUT=$(aws ssm get-command-invocation \
-    --region "$REGION" \
-    --command-id "$COMMAND_ID" \
-    --instance-id "$INSTANCE_ID" \
-    --query "StandardOutputContent" \
-    --output text)
-
-TRUNCATED=0
-if [ "${#OUTPUT}" -ge "$SSM_OUTPUT_CAP" ]; then
-    # The cap cuts mid-line; drop the partial last line
-    OUTPUT=$(printf '%s\n' "$OUTPUT" | sed '$d')
-    TRUNCATED=1
-    echo "SSM output cap hit: only the oldest new errors were returned" >&2
-fi
 
 # Run tsx from the main checkout (the only one with node_modules; worktrees and
 # the routine's own working directory don't have them), whichever directory
-# this script was started from.
+# this script was started from. --output text separates events with tabs.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MAIN_CHECKOUT="$(cd "$(git -C "$SCRIPT_DIR" rev-parse --git-common-dir)/.." && pwd)"
-printf '%s\n' "$OUTPUT" | (cd "$MAIN_CHECKOUT" && npx tsx "$SCRIPT_DIR/filterSince.ts" "$SINCE")
-
-if [ "$TRUNCATED" = "1" ]; then
-    exit 3
-fi
+printf '%s\n' "$OUTPUT" | tr '\t' '\n' | (cd "$MAIN_CHECKOUT" && npx tsx "$SCRIPT_DIR/filterSince.ts" "$SINCE")
