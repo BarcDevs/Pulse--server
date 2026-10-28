@@ -58,7 +58,9 @@ describe('toTicketExcerpt redaction', () => {
         ['a phone with spaced dashes', 'call 052 - 123 - 4567 please', 'call [number] please'],
         ['a long digit run', 'card 1234567890123 ok', 'card [number] ok'],
         ['an http url', 'see https://example.com/a?b=1 ok', 'see [link] ok'],
-        ['a www url', 'see www.example.com/page ok', 'see [link] ok']
+        ['a www url', 'see www.example.com/page ok', 'see [link] ok'],
+        ['a bare domain link with a path', 'see app.example.com/reset?t=1 ok', 'see [link] ok'],
+        ['a bare domain link with a query', 'see example.com?token=abc ok', 'see [link] ok']
     ])('redacts %s', (_name, message, expected) => {
         expect(toTicketExcerpt(message)).toBe(expected)
     })
@@ -158,6 +160,31 @@ describe('toReaderTicketDetail', () => {
         ))
 
         expect(message).toBe('example.com/[number]')
+    })
+
+    it('cuts a bare domain link to its domain and first path segment', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'open app.example.com/reset/abc?token=secret now'
+        ))
+
+        expect(message).toBe('open app.example.com/reset now')
+    })
+
+    it.each([
+        ['a file name', 'open notes.txt now'],
+        ['a version', 'running v1.2.3 now'],
+        ['a path with no dot', 'open the dashboard/settings page']
+    ])('leaves %s unchanged', (_name, text) => {
+        expect(toReaderTicketDetail(createTicket(text)).message)
+            .toBe(text)
+    })
+
+    it('still redacts an email followed by a path as an email', () => {
+        const { message } = toReaderTicketDetail(createTicket(
+            'mail a@b.com/x now'
+        ))
+
+        expect(message).toBe('mail [email] now')
     })
 
     it('does not leak credentials left with nothing after them', () => {

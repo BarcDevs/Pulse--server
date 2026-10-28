@@ -20,7 +20,8 @@ export const redactedNumberPlaceholder = '[number]'
 
 export const redactedLinkPlaceholder = '[link]'
 
-export const linkRedactionPattern = /(?:https?:\/\/|www\.)\S+/gi
+// a link with a scheme, a www. link, or a bare domain followed by a path, query or fragment (not preceded by an @, so an email is left to the email rule)
+export const linkRedactionPattern = /(?:https?:\/\/|www\.|(?<![\w@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?=[/?#]))\S+/gi
 
 export const emailRedactionPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/g
 
