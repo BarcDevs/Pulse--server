@@ -17,3 +17,11 @@
 **Lesson:** User, on #76: 'if it has a question mid-fix, it should just ask it in an artifact like always. It doesn't matter if it is mid-fix or pre fix.' #76 was locked as needs-human over one simple A/B/C design choice that an artifact question would have resolved.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 28/10/2026 — Commit type chosen mechanically as feat, bumping minor
+
+**Correct fact:** Claude labelled the #83 CloudWatch error-log shipping commit `feat`, which made the post-commit hook bump the version to 1.30.0 (minor) and pushed tag v1.30.0. Observability plumbing with no API or client change is not a feature: pick the commit type by what the change does for consumers and report the reasoning before committing, as GIT_RULES.md requires.
+
+**Lesson:** User asked 'Why did you mark it as a feat to bump minor?' and chose to rewrite to a patch bump. GIT_RULES.md says to think about the commit type and report the reasoning, not label everything feat. The hook bumps only for feat/fix/rfc/refactor/perf (chore bumps nothing), so the type decides the version.
+
+**Source:** user, auto-recorded: "recorded by the session"
