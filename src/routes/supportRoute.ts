@@ -236,7 +236,7 @@ router.route('/claude/tickets').get(
  *       SUPPORT_READER_SECRET (min 16 chars), accepted on this route only.
  *       Returns id, topic, createdAt, status, the full message and a masked
  *       sender email. Emails, phones and long numbers in the message are
- *       replaced, and links are cut to domain and first path segment. No
+ *       replaced, and links are cut to domain and the first path segment when it reads as a page name. No
  *       replies, no user id. Rate limited like the list.
  *     tags: [Support]
  *     parameters:

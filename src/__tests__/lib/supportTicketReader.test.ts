@@ -142,6 +142,30 @@ describe('toReaderTicketDetail', () => {
         expect(message).toBe('see app.example.com/goals now')
     })
 
+    it.each([
+        ['a handle', 'https://instagram.com/john.smith.real', 'instagram.com'],
+        ['a token', 'https://app.io/aB3dEf9Xk2QqZ?x=1', 'app.io'],
+        ['a mixed-case name', 'https://t.me/JohnSmith', 't.me'],
+        ['a number-bearing id', 'https://example.com/user123/x', 'example.com'],
+        ['an overlong segment', `https://example.com/${'a'.repeat(31)}`, 'example.com']
+    ])('drops a first path segment that is %s', (_name, link, expected) => {
+        const { message } = toReaderTicketDetail(createTicket(`see ${link} now`))
+
+        expect(message).toBe(`see ${expected} now`)
+    })
+
+    it.each([
+        ['goals'],
+        ['reset-password'],
+        ['settings']
+    ])('keeps a page-name segment: %s', (segment) => {
+        const { message } = toReaderTicketDetail(createTicket(
+            `see https://app.example.com/${segment}/x?t=1 now`
+        ))
+
+        expect(message).toBe(`see app.example.com/${segment} now`)
+    })
+
     it('keeps only the domain for a url with no path', () => {
         const { message } = toReaderTicketDetail(createTicket(
             'go to www.example.com?session=1, thanks'
@@ -158,12 +182,12 @@ describe('toReaderTicketDetail', () => {
         expect(message).toBe('example.com/path')
     })
 
-    it('redacts a long number left in the first path segment', () => {
+    it('drops a long number sitting in the first path segment', () => {
         const { message } = toReaderTicketDetail(createTicket(
             'https://example.com/1234567890123/x'
         ))
 
-        expect(message).toBe('example.com/[number]')
+        expect(message).toBe('example.com')
     })
 
     it('cuts a bare domain link to its domain and first path segment', () => {
@@ -236,10 +260,10 @@ describe('toReaderTicketDetail', () => {
 
     it('shortens a link with an uppercase scheme', () => {
         const { message } = toReaderTicketDetail(createTicket(
-            'see HTTPS://Example.com/Path/Deep?t=1'
+            'see HTTPS://Example.com/path/Deep?t=1'
         ))
 
-        expect(message).toBe('see Example.com/Path')
+        expect(message).toBe('see Example.com/path')
     })
 
     it('puts back the punctuation that ended the sentence', () => {

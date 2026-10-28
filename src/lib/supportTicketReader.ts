@@ -1,6 +1,8 @@
 import type { SupportTicket } from '../../prisma/generated/prisma/client'
 import {
     emailRedactionPattern,
+    linkPageNameSegmentMaxLength,
+    linkPageNameSegmentPattern,
     linkRedactionPattern,
     linkShortenPattern,
     linkTrailingPunctuationPattern,
@@ -34,8 +36,12 @@ export const redactPersonalDetails = (message: string): string =>
         message.replace(linkRedactionPattern, redactedLinkPlaceholder)
     )
 
-// keeps what the reader needs to place a link (domain and first path segment) and drops the rest,
-// which can hold tokens or ids; punctuation that ended the sentence is put back
+const isPageNameSegment = (segment: string): boolean =>
+    segment.length <= linkPageNameSegmentMaxLength
+    && linkPageNameSegmentPattern.test(segment)
+
+// keeps what the reader needs to place a link (domain, and the first path segment when it reads as a page name)
+// and drops the rest, which can hold handles, tokens or ids; punctuation that ended the sentence is put back
 const shortenLink = (link: string): string => {
     const trailing = link.match(linkTrailingPunctuationPattern)?.[0] ?? ''
     const body = link.slice(0, link.length - trailing.length)
@@ -47,7 +53,11 @@ const shortenLink = (link: string): string => {
     if (!host || isCredentialCut)
         return redactedLinkPlaceholder
 
-    return `${host}${firstSegment ? `/${firstSegment}` : ''}${trailing}`
+    const page = firstSegment && isPageNameSegment(firstSegment)
+        ? `/${firstSegment}`
+        : ''
+
+    return `${host}${page}${trailing}`
 }
 
 // links are shortened first so an email or number inside the dropped query never needs matching
