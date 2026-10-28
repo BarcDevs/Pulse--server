@@ -24,18 +24,23 @@ export const maskEmail = (email: string): string => {
     return `${email[0]}${maskedLocalSuffix}${email.slice(atIndex)}`
 }
 
-export const redactPersonalDetails = (message: string): string =>
+const redactEmailsAndNumbers = (message: string): string =>
     message
-        .replace(linkRedactionPattern, redactedLinkPlaceholder)
         .replace(emailRedactionPattern, redactedEmailPlaceholder)
         .replace(numberRedactionPattern, redactedNumberPlaceholder)
+
+export const redactPersonalDetails = (message: string): string =>
+    redactEmailsAndNumbers(
+        message.replace(linkRedactionPattern, redactedLinkPlaceholder)
+    )
 
 // keeps what the reader needs to place a link (domain and first path segment) and drops the rest,
 // which can hold tokens or ids; punctuation that ended the sentence is put back
 const shortenLink = (link: string): string => {
     const trailing = link.match(linkTrailingPunctuationPattern)?.[0] ?? ''
     const body = link.slice(0, link.length - trailing.length)
-    const [, host, firstSegment] = body.match(linkShortenPattern) ?? []
+    const [, authority = '', firstSegment] = body.match(linkShortenPattern) ?? []
+    const host = authority.slice(authority.lastIndexOf('@') + 1)
 
     if (!host)
         return redactedLinkPlaceholder
@@ -45,10 +50,9 @@ const shortenLink = (link: string): string => {
 
 // links are shortened first so an email or number inside the dropped query never needs matching
 const redactTicketMessage = (message: string): string =>
-    message
-        .replace(linkRedactionPattern, shortenLink)
-        .replace(emailRedactionPattern, redactedEmailPlaceholder)
-        .replace(numberRedactionPattern, redactedNumberPlaceholder)
+    redactEmailsAndNumbers(
+        message.replace(linkRedactionPattern, shortenLink)
+    )
 
 // redact the full message before slicing, so a pattern cut by the limit is never partly leaked
 export const toTicketExcerpt = (message: string): string => {
