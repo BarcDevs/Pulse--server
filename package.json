@@ -1,6 +1,6 @@
 {
   "name": "pulse-api",
-  "version": "1.29.10",
+  "version": "1.29.11",
   "description": "",
   "lint-staged": {
     "src/**/*.ts": [
@@ -44,7 +44,7 @@
     "@prisma/client": "^7.7.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.7.4",
-    "config": "^4.4.1",
+    "config": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csrf": "^3.1.0",
