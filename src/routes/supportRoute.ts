@@ -174,7 +174,8 @@ router.route('/tickets/:ticketId').get(
  *       Server-to-server. Requires `Authorization Bearer` with
  *       SUPPORT_READER_SECRET (min 16 chars), accepted on this route only.
  *       Returns id, topic, createdAt, status, a short excerpt and a masked
- *       sender email. No user id. Rate limited to 30 requests per 15 minutes
+ *       sender email. No user id. Optional `since` returns only tickets
+ *       created at or after it. Rate limited to 30 requests per 15 minutes
  *       per IP.
  *     tags: [Support]
  *     parameters:
@@ -194,6 +195,12 @@ router.route('/tickets/:ticketId').get(
  *         name: cursor
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: since
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: ISO 8601 date-time with a zone; tickets created at or after it
  *     responses:
  *       200:
  *         description: A page of ticket summaries and the next cursor

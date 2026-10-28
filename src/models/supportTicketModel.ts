@@ -7,6 +7,7 @@ type TicketListParams = {
     status?: SupportTicketStatus
     limit: number
     cursor?: string
+    since?: Date
 }
 
 type NewTicketParams = {
@@ -41,10 +42,14 @@ export const createTicket = ({
 export const listTickets = ({
     status,
     limit,
-    cursor
+    cursor,
+    since
 }: TicketListParams) =>
     Prisma.supportTicket.findMany({
-        where: { status },
+        where: {
+            status,
+            ...(since && { createdAt: { gte: since } })
+        },
         orderBy: [
             { createdAt: 'desc' },
             { id: 'desc' }

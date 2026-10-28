@@ -424,7 +424,13 @@ Returns the ticket as above plus `replies` (oldest first): `{ id, ticketId, body
 ### `GET /claude/tickets`
 > Server-to-server. Requires `Authorization: Bearer <SUPPORT_READER_SECRET>`. Rate limited: 30 requests per 15 minutes per IP
 
-For the Claude support-ticket reader. The credential is accepted on this route only, and no other credential works here. Same `status`, `limit` and `cursor` query as `GET /tickets`.
+For the Claude support-ticket reader. The credential is accepted on this route only, and no other credential works here. Same `status`, `limit` and `cursor` query as `GET /tickets`, plus an optional `since`.
+
+| Query   | Type   | Notes |
+|---------|--------|-------|
+| `since` | string | optional, ISO 8601 date-time with a zone (`2026-10-20T08:00:00.000Z`); only tickets created at or after it. Anything else is `400` |
+
+Omitting `since` returns tickets as before. The reader can pass the time of its last run to fetch only new tickets.
 
 **Response `200`**
 ```json

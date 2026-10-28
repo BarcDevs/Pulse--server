@@ -483,7 +483,7 @@ Login keeps the older rule (8+ characters, a letter and a digit) so existing acc
 | `POST` | `/api/{version}/support/contact` | Optional (no CSRF) | 5/15min | Store the message as a support ticket, then email it to support (`SUPPORT_EMAIL`, default `support@pulserehab.app`); signed-in users' account email is used as sender, otherwise `email` is required. Tickets are deleted 6 months after being closed (24 months if never closed) |
 | `GET` | `/api/{version}/support/tickets` | Cookie, `ADMIN` | - | Stored support tickets, newest first (`?status=`, `?limit=`, `?cursor=`) |
 | `GET` | `/api/{version}/support/tickets/:ticketId` | Cookie, `ADMIN` | - | One ticket with its replies |
-| `GET` | `/api/{version}/support/claude/tickets` | Bearer `SUPPORT_READER_SECRET` | 30/15min | Ticket summaries for the Claude reader: id, topic, createdAt, status, short redacted excerpt, masked sender email, no user id |
+| `GET` | `/api/{version}/support/claude/tickets` | Bearer `SUPPORT_READER_SECRET` | 30/15min | Ticket summaries for the Claude reader (`?status=`, `?limit=`, `?cursor=`, `?since=` ISO date-time, tickets created at or after it): id, topic, createdAt, status, short redacted excerpt, masked sender email, no user id |
 | `POST` | `/api/{version}/launch-funnel/open` | None (no CSRF) | 30/hour | Record a Launch Mailer `lm` token as opened and set the `launch_token` cookie; signup (email or Google) then records it as registered |
 | `GET` | `/api/{version}/launch-funnel` | Bearer `LAUNCH_FUNNEL_SECRET` | - | `{ opened, registered }` distinct tokens for preflight; 401 without the secret |
 

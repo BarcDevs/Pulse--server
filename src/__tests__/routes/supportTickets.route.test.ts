@@ -337,6 +337,51 @@ describe(`GET ${readerUrl}`, () => {
         )
     })
 
+    it('returns only tickets created at or after since', async () => {
+        prismaMock.supportTicket.findMany.mockResolvedValue([])
+
+        const response = await supertest(App)
+            .get(`${readerUrl}?status=NEW&since=2026-10-20T08:00:00.000Z`)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(response.status).toBe(HttpStatusCodes.OK)
+        expect(prismaMock.supportTicket.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    status: 'NEW',
+                    createdAt: { gte: new Date('2026-10-20T08:00:00.000Z') }
+                }
+            })
+        )
+    })
+
+    it('adds no date filter without since', async () => {
+        prismaMock.supportTicket.findMany.mockResolvedValue([])
+
+        await supertest(App)
+            .get(readerUrl)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(prismaMock.supportTicket.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { status: undefined }
+            })
+        )
+    })
+
+    it.each([
+        ['text', 'since=yesterday'],
+        ['a bare number', 'since=1'],
+        ['an empty value', 'since=']
+    ])('returns 400 for since as %s', async (_name, query) => {
+        const response = await supertest(App)
+            .get(`${readerUrl}?${query}`)
+            .set('Authorization', `Bearer ${secret}`)
+
+        expect(response.status).toBe(HttpStatusCodes.BAD_REQUEST)
+        expect(prismaMock.supportTicket.findMany).not.toHaveBeenCalled()
+    })
+
     it('returns 400 for an invalid query', async () => {
         const response = await supertest(App)
             .get(`${readerUrl}?status=DONE`)

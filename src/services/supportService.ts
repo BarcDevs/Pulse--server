@@ -17,7 +17,7 @@ import {
     ticketIdExists
 } from '../models/supportTicketModel'
 import type { SupportContactType } from '../schemas/support/supportContactSchema'
-import type { SupportTicketQueryType } from '../schemas/support/supportTicketQuerySchema'
+import type { SupportReaderTicketQueryType } from '../schemas/support/supportTicketQuerySchema'
 import { sendEmail } from '../utils/emailSender'
 import logger from '../utils/logger'
 
@@ -126,12 +126,14 @@ const toCursorPage = <T extends { id: string },>(
 export const listSupportTickets = async ({
     status,
     limit = supportTicketListDefaultLimit,
-    cursor
-}: SupportTicketQueryType) => {
+    cursor,
+    since
+}: SupportReaderTicketQueryType) => {
     const rows = await listTickets({
         status,
         limit,
-        cursor
+        cursor,
+        since
     })
 
     if (
@@ -145,7 +147,7 @@ export const listSupportTickets = async ({
 }
 
 export const listSupportTicketsForReader = async (
-    query: SupportTicketQueryType
+    query: SupportReaderTicketQueryType
 ) => {
     const { items, nextCursor } = await listSupportTickets(query)
 

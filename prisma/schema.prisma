@@ -365,6 +365,7 @@ model SupportTicket {
   replies SupportTicketReply[]
 
   @@index([status, createdAt])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([userId])
 }
 

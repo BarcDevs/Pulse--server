@@ -3,8 +3,14 @@ import type { Request, Response } from 'express'
 import { successResponse } from '../responses/success'
 import type { SupportContactType } from '../schemas/support/supportContactSchema'
 import { supportContactSchema } from '../schemas/support/supportContactSchema'
-import type { SupportTicketQueryType } from '../schemas/support/supportTicketQuerySchema'
-import { supportTicketQuerySchema } from '../schemas/support/supportTicketQuerySchema'
+import type {
+    SupportReaderTicketQueryType,
+    SupportTicketQueryType
+} from '../schemas/support/supportTicketQuerySchema'
+import {
+    supportReaderTicketQuerySchema,
+    supportTicketQuerySchema
+} from '../schemas/support/supportTicketQuerySchema'
 import {
     getSupportTicket,
     listSupportTickets,
@@ -69,8 +75,8 @@ export const getTicketsForReader = async (
     req: Request,
     res: Response
 ) => {
-    const query = validateAndExtract<SupportTicketQueryType>(
-        supportTicketQuerySchema,
+    const query = validateAndExtract<SupportReaderTicketQueryType>(
+        supportReaderTicketQuerySchema,
         req.query
     )
 
