@@ -84,6 +84,7 @@ Owner positions and recommended approaches from security audits — auth/verific
 | 21/10/2026 | Support tickets stored: service key for the Claude reader, 6-month (closed) and 24-month (never closed) retention, purged accounts keep tickets until retention |
 | 27/10/2026 | Reader excerpts redact emails, phones, long numbers (9+ digits) and links before the 120-char cut; names and addresses not caught |
 | 25/10/2026 | Support reader limiter: failed-auth limiter per IP (10 / 15 min) before auth, one shared valid-read bucket (30 / 15 min) after it |
+| 27/10/2026 | Reader ticket detail: full message redacted like the excerpt, but links cut to domain + first path segment instead of `[link]`; no replies |
 
 ## Dev Workflow & Git Hooks — [[decisions/dev-workflow]]
 Repo tooling decisions — git hooks, husky wiring, commit conventions.

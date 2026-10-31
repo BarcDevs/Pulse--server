@@ -54,16 +54,19 @@ export class CloudWatchErrorTransport extends Transport {
         const {
             level,
             message,
-            metadata,
-            timestamp
+            metadata
         } = info
+        const now = Date.now()
+        // The logger's metadata() format moves winston's timestamp under
+        // `metadata`; stdout lines get a top-level one from the console
+        // transport, and the watcher filters on it, so add it here too
         this.queue.push({
-            timestamp: Date.now(),
+            timestamp: now,
             message: JSON.stringify({
                 level,
                 message,
                 metadata,
-                timestamp
+                timestamp: new Date(now).toISOString()
             })
         })
         if (this.queue.length > maxQueuedEvents)

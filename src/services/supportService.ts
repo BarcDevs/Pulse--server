@@ -7,7 +7,10 @@ import {
 } from '../constants/support/supportTickets'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import { ValidationError } from '../errors/ValidationError'
-import { toReaderTicket } from '../lib/supportTicketReader'
+import {
+    toReaderTicket,
+    toReaderTicketDetail
+} from '../lib/supportTicketReader'
 import {
     addReplyAndMarkAnswered,
     createTicket,
@@ -163,3 +166,6 @@ export const getSupportTicket = async (id: string) => {
 
     return ticket
 }
+
+export const getSupportTicketForReader = async (id: string) =>
+    toReaderTicketDetail(await getSupportTicket(id))

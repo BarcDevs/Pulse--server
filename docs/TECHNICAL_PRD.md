@@ -483,7 +483,9 @@ Cached 10 minutes per time window. Falls back to static template if AI fails.
 
 **GET /tickets**, **GET /tickets/:ticketId** — Admin only (`isAuthenticated` + `isAdmin`). Cursor-paginated list (`status`, `limit` 1-100, `cursor`), newest first; the detail includes replies. For a future admin app; the first admin is set with one SQL statement (`docs/DEPLOYMENT.md`).
 
-**GET /claude/tickets** — Bearer `SUPPORT_READER_SECRET` (min 16 chars, timing-safe compare, 401 when unset, accepted on this route only), 30 req/15min/IP. Returns `{ id, topic, createdAt, status, excerpt (120 chars, emails/phones/long numbers/links redacted), senderEmail (masked) }`, no user id.
+**GET /claude/tickets** — Bearer `SUPPORT_READER_SECRET` (min 16 chars, timing-safe compare, 401 when unset, accepted on the two reader routes only), 30 valid reads/15min in total and 10 failed (401) attempts/15min/IP. Returns `{ id, topic, createdAt, status, excerpt (120 chars, emails/phones/long numbers/links redacted), senderEmail (masked) }`, no user id.
+
+**GET /claude/tickets/:ticketId** — same credential and rate limits. Returns `{ id, topic, createdAt, status, message (full text; emails/phones/long numbers redacted, links cut to domain and the first path segment when it reads as a page name), senderEmail (masked) }`, no replies, no user id; 404 for an unknown id.
 
 `recordTicketReply(ticketId, adminId, body)` (service, no route yet) emails the sender, stores a `SupportTicketReply` and sets the ticket `ANSWERED`; a `CLOSED` ticket is refused.
 
