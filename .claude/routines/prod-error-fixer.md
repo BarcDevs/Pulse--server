@@ -34,6 +34,7 @@ path, command or label.
 | fix verified but held for the owner's review (server flags) | `held-for-review` (with `approved` + `in-progress`) | this routine (ship step) |
 | owner reviewed a held fix, ship it in the quiet window | `ship-ok` | **the owner only** |
 | held fix with a valid `ship-ok`, waiting for the quiet window | `awaiting-window` | this routine (held fixes) |
+| fix verified and reviewed but not shipped this run (busy checkout, red CI, merge refused, release PR blocked) | `held` | this routine (ship step); removed when it ships |
 | a fixer run died on the usage limit while this issue was waiting on work | `limit-hit` | the StopFailure hook (`scripts/monitor/limit-hit.sh`); this routine removes it once it has handled the issue |
 | fix merged to `development`, issue closed | `fixed` | this routine (phase 1) |
 | no safe automatic fix, or the fix failed | `needs-human` | this routine |
@@ -229,7 +230,7 @@ asked, not failed" below); otherwise failure path (leave the branch unmerged for
    carries the fix (the `development` -> `main` PR from Ship) and a link to the session that made
    it (the session URL from the session tools such as `mcp__ccd_session_mgmt__get_session`, or the
    session id and title if no URL is available), nothing more; close it (`gh issue close <n> --reason completed`); remove
-   `approved` and `in-progress`, add `fixed`.
+   `approved`, `in-progress` and `held`, add `fixed`.
 
 **Mid-fix questions are asked, not failed.** A question that comes up after approval (a review
 finding with a design choice such as a HIGH risk with a recommended option, reality differing from
@@ -484,6 +485,14 @@ an incoming branch would overwrite one, and that refusal is reported like a conf
 --abort`, no stash). Never stash to get past a block. A blocked merge never skips the independent
 steps: still read the CI gate above, still check the release PR ("Release PR" below) and still
 send every notification.
+
+**`held` label.** Any issue whose fix passed steps 3 to 5 but is not shipped when this run ends,
+for a reason other than the owner's own review (busy checkout, red CI, refused merge, a blocked
+release PR, a rate-limited step), gets the `held` label (keep `approved` and `in-progress`) and
+one short comment the first time: "Held: fix ready, not shipped (<reason in a few words>). The
+next run ships it." Add it every run that finds it missing, so the issue always shows why it is
+waiting. The next run retries the ship step first. `held-for-review` (flags) and `awaiting-window`
+stay separate: `held` means only "ready, blocked by the pipeline, nothing for the owner to do".
 Otherwise, on `development` (all via `git -C "$MAIN"`):
 first `pull --ff-only origin development` (GIT_RULES.md: always pull before pushing; if it can't
 fast-forward, merge nothing and notify), then `merge --no-ff` each passing fix branch one at a time (on a conflict: `merge --abort`, keep
