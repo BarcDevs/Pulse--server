@@ -429,7 +429,7 @@ steps"), never forced or worked around.
    `git -C "$MAIN" fetch origin <head>`). A failed check or a conflict:
    leave it, and mention it once in the notification and the phone push.
 4. **Merge locally, like a fix.** Same guard as the Ship step (`ListAgents`, `git status`; busy or
-   dirty: skip and say "dependabot merge blocked: checkout busy"). On `development`:
+   modified tracked files, untracked files do not count: skip and say "dependabot merge blocked: checkout busy"). On `development`:
    `pull --ff-only origin development`, then `merge --no-ff origin/<head> -m "Merge dependabot
    <short title> (#<n>)"` one at a time (a conflict: `merge --abort`, skip it). Dependabot PRs that
    change nothing but Actions pins need no test run; a manifest or lockfile bump runs the
@@ -474,10 +474,16 @@ profile) is not merged here: it goes to "Held fixes" instead, and only flag-free
 below.
 
 Merge into `development`, push it (and the tags), then open the release PR and merge it once its checks are green ("Release PR" below). This is pre-authorised by the owner's approval of the plan: never ask whether to push or open the PR, just do it once the gate has passed. Ask only when a gate fails or this section says to stop. In the shared
-checkout (`$MAIN`): first run `ListAgents` and `git status`. If another session is active there
-or the tree is dirty, don't merge: leave the fix branch and the records unmerged, keep `approved`
-and `in-progress`, and say "merge blocked: checkout busy" in the notification; the next run retries
-the ship step only (it skips steps 3 to 5 for an issue whose fix branch already passed them).
+checkout (`$MAIN`): first run `ListAgents` and `git status`. Other sessions work in their own
+worktrees, so only a session active in `$MAIN` itself or a **modified tracked file** (`git status`
+lines other than `??`) counts as busy: then don't merge, leave the fix branch and the records
+unmerged, keep `approved` and `in-progress`, and say "merge blocked: checkout busy" in the
+notification; the next run retries the ship step only (it skips steps 3 to 5 for an issue whose fix
+branch already passed them). **Untracked files never block**: git itself refuses a merge only when
+an incoming branch would overwrite one, and that refusal is reported like a conflict (`merge
+--abort`, no stash). Never stash to get past a block. A blocked merge never skips the independent
+steps: still read the CI gate above, still check the release PR ("Release PR" below) and still
+send every notification.
 Otherwise, on `development` (all via `git -C "$MAIN"`):
 first `pull --ff-only origin development` (GIT_RULES.md: always pull before pushing; if it can't
 fast-forward, merge nothing and notify), then `merge --no-ff` each passing fix branch one at a time (on a conflict: `merge --abort`, keep
@@ -522,7 +528,7 @@ on its own:
   newest `labeled` `ship-ok` event (`gh api repos/$REPO/issues/<n>/events --paginate`) has
   `actor.login == $OWNER` and is newer than the newest `held-for-review` event; otherwise remove
   `ship-ok` and comment "ship-ok ignored: not from the owner".
-- A valid `ship-ok` that cannot ship in this run (outside the quiet window, busy or dirty checkout)
+- A valid `ship-ok` that cannot ship in this run (outside the quiet window, busy checkout)
   gets the `awaiting-window` label, so the issue itself shows it is queued and why; add it every
   run that finds it missing, and note the reason in one short comment the first time. Remove it
   when the fix ships or `ship-ok` is removed.
