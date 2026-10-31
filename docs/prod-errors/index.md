@@ -1,4 +1,4 @@
-<!-- checkpoint: 2026-10-11T07:12:28Z -->
+<!-- checkpoint: 2026-10-31T20:02:30Z -->
 
 # Production Errors
 
@@ -24,6 +24,7 @@ not re-diagnose). `|` inside a signature is written as `\|`.
 | `Error: Unhandled error caught Route not found! please check your inputs and try again!` | 50 | 2026-10-01 | 2026-10-02 | [custom-error-name](custom-error-name.md) |
 | `Error: Anthropic API request failed: <n> - invalid x-api-key` | 2 | 2026-10-10 | 2026-10-10 | [anthropic-401-invalid-api-key](anthropic-401-invalid-api-key.md) |
 | `Error: AI generation failed for provider anthropic, trying next` | 1 | 2026-10-10 | 2026-10-10 | [anthropic-401-invalid-api-key](anthropic-401-invalid-api-key.md) |
+| `SyntaxError: Unhandled error caught Expected property name or '}' in JSON at position <n> (line <n> column <n>)` | 1 | 2026-10-31 | 2026-10-31 | [malformed-json-body-500](malformed-json-body-500.md) |
 
 <!--
 Row template:
