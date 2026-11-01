@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events'
-import type { Request, Response } from 'express'
+import type { Request } from 'express'
 
 import { supportReaderConfig } from '../../../config'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { createRateLimitMockResponse } from '../setup/rateLimitMockResponse'
 import {
     createMockNext,
     createMockRequest
@@ -13,24 +13,6 @@ const {
     supportReaderRateLimiter
 } =
     jest.requireActual('../../middlewares/rateLimiting')
-
-const createRateLimitMockResponse = () => {
-    const headers: Record<string, unknown> = {}
-    return Object.assign(new EventEmitter(), {
-        statusCode: HttpStatusCodes.OK,
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-        setHeader: jest.fn((key: string, value: unknown) => {
-            headers[key] = value
-        }),
-        getHeader: jest.fn((key: string) => headers[key]),
-        removeHeader: jest.fn((key: string) => {
-            delete headers[key]
-        }),
-        headersSent: false
-    }) as unknown as Response
-}
 
 describe('supportReaderRateLimiter (real implementation)', () => {
     it('shares one bucket across IPs and forwards a 429 error after 30 reads, even after junk from the reader IP', async () => {
