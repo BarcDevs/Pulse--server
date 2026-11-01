@@ -71,6 +71,7 @@ Indexing, pool/timeout and counter decisions for the Postgres layer, what was re
 | 13/10/2026 | Plain `User.deletedAt` index for the purge (no partial index); interaction id lists capped at 1000 |
 | 13/10/2026 | Cursor pagination is additive: optional `cursor` beside `page`, keyset on the item id |
 | 13/10/2026 | `pg_stat_statements` ships as a migration; RDS default parameter group already preloads it |
+| 25/10/2026 | Plain `DailyCheckIn(createdAt)` index for the 5 minute AI job sweep, its own `CREATE INDEX`-only migration |
 
 ## Security & Privacy — [[decisions/security]]
 Owner positions and recommended approaches from security audits — auth/verification, account lifecycle, AI data, rate limits.
