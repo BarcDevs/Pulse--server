@@ -359,7 +359,7 @@ export const getRecommendations = async (
             const newSnapshot =
                 await recommendationsModel.getLatestSnapshot(userId)
 
-            if (newSnapshot) {
+            if (newSnapshot?.basedOnCheckInId === latestCheckIn.id) {
                 const posts = await Promise.all(
                     newSnapshot.items.map((item) =>
                         forumModel.getPost(item.postId)

@@ -7,6 +7,7 @@ import type { SupportTicketQueryType } from '../schemas/support/supportTicketQue
 import { supportTicketQuerySchema } from '../schemas/support/supportTicketQuerySchema'
 import {
     getSupportTicket,
+    getSupportTicketForReader,
     listSupportTickets,
     listSupportTicketsForReader,
     sendSupportMessage
@@ -78,5 +79,20 @@ export const getTicketsForReader = async (
         res,
         await listSupportTicketsForReader(query),
         'Support tickets fetched'
+    )
+}
+
+export const getTicketForReader = async (
+    req: Request,
+    res: Response
+) => {
+    const ticket = await getSupportTicketForReader(
+        String(req.params.ticketId)
+    )
+
+    successResponse(
+        res,
+        ticket,
+        'Support ticket fetched'
     )
 }

@@ -144,6 +144,27 @@ describe('recommendationsService.getRecommendations', () => {
         expect(forumModel.getPosts).toHaveBeenCalled()
     })
 
+    it('does not return an older check-in snapshot as ready when a stuck retry fails to save', async () => {
+        jest.mocked(checkInModel.getCheckIns)
+            .mockResolvedValue([makeCheckIn()])
+        jest.mocked(recommendationsModel.getSnapshotWithFlags)
+            .mockResolvedValue({
+                snapshot: null,
+                generationPending: true,
+                pendingSince: new Date(0)
+            } as never)
+        jest.mocked(recommendationsModel.getLatestSnapshot)
+            .mockResolvedValue(
+                makeSnapshot({ basedOnCheckInId: 'checkin-old' })
+            )
+        jest.mocked(forumModel.getPost)
+            .mockResolvedValue(makePost() as never)
+
+        const result = await getRecommendations(USER_ID)
+
+        expect(result.basedOnCheckInId).toBeUndefined()
+    })
+
     it('returns ready state with posts when snapshot has 3+ valid posts', async () => {
         const posts = [
             makePost({

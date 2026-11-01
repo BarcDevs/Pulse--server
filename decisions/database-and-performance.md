@@ -92,3 +92,15 @@ context in this topic — not routinely. Deep detail, evidence and how-tos live 
 **Why over alternatives:** running it by hand over SSM would be an unrecorded prod write; a custom parameter group adds a reboot and a thing to maintain for no gain.
 
 **How to apply:** if RDS is ever moved to a custom parameter group, keep `pg_stat_statements` in its `shared_preload_libraries`.
+
+---
+
+## 25/10/2026 — Plain `DailyCheckIn(createdAt)` index for the 5 minute AI job sweep
+
+**Problem:** the sweep that re-queues check-ins with no AI job and failed jobs filters check-ins by `createdAt > lookback cutoff` every 5 minutes. `DailyCheckIn` only had its primary key and the unique `(profileId, checkInDate)`, so the scan cost grew with every check-in ever stored.
+
+**Decision:** add `@@index([createdAt])` to `DailyCheckIn`, shipped as its own migration (`CREATE INDEX` only). The sweep query is unchanged.
+
+**Why over alternatives:** additive only, so it passes the RDS gate (no `DROP` or `RENAME`). A partial or composite index was not needed: the cutoff is a plain range on one column and Prisma can model this index. The cost is a small write overhead on check-in insert. Not verified on RDS, local only.
+
+**How to apply:** keep the sweep filtering on `createdAt` so it stays on this index; a new sweep over check-ins should reuse it rather than add another.
