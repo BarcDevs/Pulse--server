@@ -41,7 +41,10 @@ export const getLatestSnapshot = async (
     userId: string
 ): Promise<RecommendationSnapshot | null> => {
     const snapshot = await Prisma.postRecommendation.findFirst({
-        where: { userId },
+        where: {
+            userId,
+            generationPending: false
+        },
         orderBy: { generatedAt: 'desc' }
     })
 

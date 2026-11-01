@@ -89,14 +89,17 @@ describe('recommendationsModel', () => {
             expect(result).toBeNull()
         })
 
-        it('orders by generatedAt desc', async () => {
+        it('skips pending placeholders and orders by generatedAt desc', async () => {
             prismaMock.postRecommendation.findFirst.mockResolvedValue(mockSnapshot)
 
             await recommendationsModel.getLatestSnapshot('user-1')
 
             expect(prismaMock.postRecommendation.findFirst).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    where: { userId: 'user-1' },
+                    where: {
+                        userId: 'user-1',
+                        generationPending: false
+                    },
                     orderBy: { generatedAt: 'desc' }
                 })
             )
