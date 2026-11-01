@@ -1,6 +1,7 @@
-import type { Request, Response } from 'express'
+import type { Request } from 'express'
 
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
+import { createRateLimitMockResponse } from '../setup/rateLimitMockResponse'
 import {
     createMockNext,
     createMockRequest
@@ -8,23 +9,6 @@ import {
 
 const { supportRateLimiter } =
     jest.requireActual('../../middlewares/rateLimiting')
-
-const createRateLimitMockResponse = () => {
-    const headers: Record<string, unknown> = {}
-    return {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-        setHeader: jest.fn((key: string, value: unknown) => {
-            headers[key] = value
-        }),
-        getHeader: jest.fn((key: string) => headers[key]),
-        removeHeader: jest.fn((key: string) => {
-            delete headers[key]
-        }),
-        headersSent: false
-    } as unknown as Response
-}
 
 describe('supportRateLimiter (real implementation)', () => {
     it('allows 5 requests then forwards a 429 error to the error handler', async () => {

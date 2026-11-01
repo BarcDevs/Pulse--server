@@ -10,6 +10,7 @@ import {
     rateLimiter,
     sharePostRateLimiter
 } from '../../middlewares/rateLimiting'
+import { createRateLimitMockResponse } from '../setup/rateLimitMockResponse'
 import {
     createMockNext,
     createMockRequest,
@@ -96,18 +97,7 @@ describe('Rate Limiting Middleware', () => {
         }
 
         const run = async (userId: string, postId: string) => {
-            const headers: Record<string, unknown> = {}
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn(),
-                headersSent: false
-            } as unknown as Response
+            const res = createRateLimitMockResponse()
             const next = createMockNext()
             await realViewPostRateLimiter(buildReq(userId, postId), res, next)
             return { res, next }
@@ -173,24 +163,6 @@ describe('Rate Limiting Middleware', () => {
         const { checkInMutationRateLimiter: realCheckInMutationRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')
 
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            }
-            return res as unknown as unknown as Response
-        }
-
         it('should rate limit independently per user for the same IP', async () => {
             const ip = '10.0.0.5'
 
@@ -244,24 +216,6 @@ describe('Rate Limiting Middleware', () => {
         const { loginRateLimiter: realLoginRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')
 
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            }
-            return res as unknown as unknown as Response
-        }
-
         it('should rate limit independently per email for the same IP', async () => {
             const ip = '10.0.0.4'
 
@@ -293,23 +247,6 @@ describe('Rate Limiting Middleware', () => {
     describe('signupRateLimiter behavior (real implementation) (L17)', () => {
         const { signupRateLimiter: realSignupRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')
-
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            return {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            } as unknown as Response
-        }
 
         it('blocks the 6th sign-up from one IP within the hour', async () => {
             const ip = '10.0.0.17'
@@ -346,23 +283,6 @@ describe('Rate Limiting Middleware', () => {
             verifyResetCodeRateLimiter: realVerifyResetCodeRateLimiter
         } = jest.requireActual('../../middlewares/rateLimiting')
 
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            return {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            } as unknown as Response
-        }
-
         it('keeps a separate bucket per OTP route', async () => {
             const ip = '10.0.18.200'
             for (let i = 0; i < 6; i++) {
@@ -389,23 +309,6 @@ describe('Rate Limiting Middleware', () => {
     describe('passwordChangeRateLimiter behavior (real implementation) (L18)', () => {
         const { passwordChangeRateLimiter: realPasswordChangeRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')
-
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            return {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            } as unknown as Response
-        }
 
         it('blocks the 6th attempt by one user even across IPs', async () => {
             const userId = 'password-change-user'
@@ -439,24 +342,6 @@ describe('Rate Limiting Middleware', () => {
     describe('sharePostRateLimiter behavior (real implementation)', () => {
         const { sharePostRateLimiter: realSharePostRateLimiter } =
             jest.requireActual('../../middlewares/rateLimiting')
-
-        const createRateLimitMockResponse = () => {
-            const headers: Record<string, unknown> = {}
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-                send: jest.fn().mockReturnThis(),
-                setHeader: jest.fn((key: string, value: unknown) => {
-                    headers[key] = value
-                }),
-                getHeader: jest.fn((key: string) => headers[key]),
-                removeHeader: jest.fn((key: string) => {
-                    delete headers[key]
-                }),
-                headersSent: false
-            }
-            return res as unknown as unknown as Response
-        }
 
         it('should allow the first share request for a post', async () => {
             const req = createMockRequest({
