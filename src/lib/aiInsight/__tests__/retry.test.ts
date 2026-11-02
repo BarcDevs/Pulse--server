@@ -220,25 +220,41 @@ describe('retry utilities', () => {
             expect(callCount).toBe(3)
         })
 
+        // Fake timers, not Date.now(): real timers can fire a millisecond
+        // early on CI runners, which made a wall-clock assertion flaky
         it('should apply delay between retries', async () => {
-            const operation = jest.fn()
-                .mockRejectedValueOnce(
-                    new Error('Network error 1')
-                )
-                .mockRejectedValueOnce(
-                    new Error('Network error 2')
-                )
-                .mockResolvedValueOnce({ success: true })
+            jest.useFakeTimers()
 
-            const start = Date.now()
-            await retryAsync(
-                operation,
-                { maxRetries: 2, delayMs: 50 }
-            )
-            const elapsed = Date.now() - start
+            try {
+                const operation = jest.fn()
+                    .mockRejectedValueOnce(
+                        new Error('Network error 1')
+                    )
+                    .mockRejectedValueOnce(
+                        new Error('Network error 2')
+                    )
+                    .mockResolvedValueOnce({ success: true })
 
-            // 2 retries × 50ms = 100ms minimum
-            expect(elapsed).toBeGreaterThanOrEqual(100)
+                const result = retryAsync(
+                    operation,
+                    { maxRetries: 2, delayMs: 50 }
+                )
+
+                await jest.advanceTimersByTimeAsync(49)
+                expect(operation).toHaveBeenCalledTimes(1)
+
+                await jest.advanceTimersByTimeAsync(1)
+                expect(operation).toHaveBeenCalledTimes(2)
+
+                await jest.advanceTimersByTimeAsync(49)
+                expect(operation).toHaveBeenCalledTimes(2)
+
+                await jest.advanceTimersByTimeAsync(1)
+                expect(operation).toHaveBeenCalledTimes(3)
+                await expect(result).resolves.toEqual({ success: true })
+            } finally {
+                jest.useRealTimers()
+            }
         })
     })
 })
