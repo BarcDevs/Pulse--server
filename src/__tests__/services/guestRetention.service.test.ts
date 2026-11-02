@@ -27,13 +27,17 @@ describe('guestRetentionService', () => {
             const before = Date.now()
 
             const count = await purgeStaleGuests()
+            const after = Date.now()
 
             const { where } = prismaMock.user.findMany.mock.calls[0][0]!
             const cutoff = (where!.createdAt as { lt: Date }).lt.getTime()
 
             expect(count).toBe(2)
             expect(where!.isGuest).toBe(true)
-            expect(before - cutoff).toBeGreaterThanOrEqual(guestRetentionMs)
+            // The cutoff is "now minus the retention", with "now" read inside
+            // the call: it lies in the window between the two clock reads
+            expect(cutoff).toBeGreaterThanOrEqual(before - guestRetentionMs)
+            expect(cutoff).toBeLessThanOrEqual(after - guestRetentionMs)
             expect(prismaMock.user.deleteMany).toHaveBeenCalledWith({
                 where: {
                     id: { in: ['a', 'b'] },
