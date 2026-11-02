@@ -69,6 +69,12 @@ Patients have:
 Landing Page → Sign Up / Log In → Email verification → Home
 ```
 
+### Flow 1b: Guest Check-In (Logged-Out, No Account)
+```
+Public check-in route → POST /auth/guest → Check-in → Chart + AI insight → Save prompt (email + password) → POST /auth/guest/upgrade → Email verification
+```
+A guest is a server-side anonymous user (`isGuest`). It can only check in and see the result; the rest of the app stays behind a real login. Upgrading converts the same row, so the check-ins carry over. Limits: 3 check-ins per guest, guests older than 30 days are purged.
+
 ### Flow 2: Check-In (Logged In)
 ```
 Home (CTA: "Check In Today") → /check-in/new → Form → Submit → Dashboard/Overview
@@ -287,7 +293,7 @@ Google AI API (for insight generation)
 **User** (identity + auth)
 ```
 id, email, hashedPassword, firstName, lastName, username, googleId?,
-role, createdAt, active, deleted_at
+role, createdAt, active, isGuest, deleted_at
 ```
 
 **Profile** (presentation + personalization — 1-to-1 with User, auto-created on signup)
@@ -422,13 +428,17 @@ grow every time a new resource type is added server-side. Full code list and sha
 
 **POST /signup** — `{ email, password, firstName, lastName, username? }` → 201 User
 
+**POST /guest** — Public, no CSRF, 10/hour — creates or reuses an anonymous guest session → 201/200 `{ user (isGuest: true), _csrf }` + cookies; 409 if the cookie is a real account
+
+**POST /guest/upgrade** — Guest session + CSRF — `{ email, password, firstName?, lastName?, username? }` → 200 `{ user (isGuest: false), _csrf }`, same user row, new cookies, confirm-email OTP sent; 403 if not a guest, 409 if email/username taken
+
 **GET /google** — Redirect to Google OAuth consent screen (no auth required)
 
 **GET /google/callback** — OAuth code exchange; finds/creates user; sets cookies; redirects to client
 
 **GET /refresh** — Regenerate CSRF token → 200 `{ _csrf }`
 
-**GET /me** — Current user + profile → 200 User
+**GET /me** — Current user + profile (includes `isGuest`) → 200 User
 
 **GET /logout** — Clear cookies → 200
 

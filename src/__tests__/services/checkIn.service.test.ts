@@ -4,6 +4,7 @@ import * as checkInStats from '../../lib/checkInStats'
 import * as checkInAiJobModel from '../../models/checkInAiJobModel'
 import * as checkInModel from '../../models/checkInModel'
 import {
+    assertGuestCheckInAllowance,
     createCheckIn,
     getCheckIns,
     getCheckInStats,
@@ -321,6 +322,29 @@ describe('CheckInService', () => {
             const result = await getCheckInStats(USER_ID)
 
             expect(result.totalCheckIns).toBe(0)
+        })
+    })
+    // ==================== assertGuestCheckInAllowance ====================
+    describe('assertGuestCheckInAllowance', () => {
+        const withCount = (count: number) => {
+            jest.spyOn(checkInModel, 'getProfileIdForUser')
+                .mockResolvedValue(PROFILE_ID)
+            jest.spyOn(checkInModel, 'countCheckIns')
+                .mockResolvedValue(count)
+        }
+
+        it('allows a guest below the limit', async () => {
+            withCount(2)
+
+            await expect(assertGuestCheckInAllowance(USER_ID))
+                .resolves.toBeUndefined()
+        })
+
+        it('rejects a guest at the limit with the save-your-account message', async () => {
+            withCount(3)
+
+            await expect(assertGuestCheckInAllowance(USER_ID))
+                .rejects.toThrow('Guest check-in limit reached. Create an account to continue.')
         })
     })
 })

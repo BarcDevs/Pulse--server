@@ -1,4 +1,8 @@
 import { Prisma } from '../../prisma/generated/prisma/client'
+import {
+    GUEST_CHECK_IN_LIMIT,
+    GUEST_CHECK_IN_LIMIT_MESSAGE
+} from '../constants/auth/authRules'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     resolveCheckInDate,
@@ -53,6 +57,19 @@ export const getCheckIns = async (
         profileId,
         query?.limit
     )
+}
+
+// Bounds the AI cost of anonymous sessions; the client turns the 403 into
+// the save-your-account prompt
+export const assertGuestCheckInAllowance = async (
+    userId: string
+): Promise<void> => {
+    const profileId = await getProfileIdForUser(userId)
+
+    if (await checkInModel.countCheckIns(profileId) >= GUEST_CHECK_IN_LIMIT)
+        throw errorFactory.auth.forbidden(
+            GUEST_CHECK_IN_LIMIT_MESSAGE
+        )
 }
 
 export const createCheckIn = async (

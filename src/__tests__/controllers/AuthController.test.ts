@@ -14,6 +14,9 @@ jest.mock('../../services/authService', () => ({
     ...jest.requireActual('../../services/authService'),
     login: jest.fn(),
     signup: jest.fn(),
+    getSession: jest.fn(),
+    createGuest: jest.fn(),
+    upgradeGuest: jest.fn(),
     getUser: jest.fn(),
     resetPassword: jest.fn(),
     deactivateUser: jest.fn()
@@ -571,5 +574,148 @@ describe('AuthController', () => {
                 expect(res.status).not.toHaveBeenCalled()
             }
         )
+    })
+    // ==================== GUESTS ====================
+    describe('guest sessions', () => {
+        const guest = createMockUser({ isGuest: true })
+        const mockRes = () => createMockResponse() as unknown as Response
+
+        beforeEach(() => {
+            jest.clearAllMocks()
+        })
+
+        it('createGuest creates a guest, sets both cookies and returns user + _csrf', async () => {
+            ;(authServices.getSession as jest.Mock).mockResolvedValue(null)
+            ;(authServices.createGuest as jest.Mock).mockResolvedValue(guest)
+            const req = createMockRequest({ cookies: {} }) as unknown as Request
+            const res = mockRes()
+
+            await authController.createGuest(req, res)
+
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.CREATED)
+            expect(res.cookie).toHaveBeenCalledWith(
+                'accessToken',
+                expect.any(String),
+                expect.objectContaining({ httpOnly: true })
+            )
+            expect(res.cookie).toHaveBeenCalledWith(
+                '_csrf',
+                expect.any(String),
+                expect.any(Object)
+            )
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        user: expect.objectContaining({ isGuest: true }),
+                        _csrf: expect.any(String)
+                    })
+                })
+            )
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        user: expect.not.objectContaining({
+                            password: expect.any(String)
+                        })
+                    })
+                })
+            )
+        })
+
+        it('createGuest reuses the guest behind a valid cookie', async () => {
+            ;(authServices.getSession as jest.Mock)
+                .mockResolvedValue({ userId: guest.id, isGuest: true })
+            ;(authServices.getUser as jest.Mock).mockResolvedValue(guest)
+            const req = createMockRequest({
+                cookies: { accessToken: 'token' }
+            }) as unknown as Request
+            const res = mockRes()
+
+            await authController.createGuest(req, res)
+
+            expect(authServices.createGuest).not.toHaveBeenCalled()
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.OK)
+        })
+
+        it('createGuest refuses when the cookie belongs to a real account', async () => {
+            ;(authServices.getSession as jest.Mock)
+                .mockResolvedValue({ userId: 'u1', isGuest: false })
+            const req = createMockRequest({
+                cookies: { accessToken: 'token' }
+            }) as unknown as Request
+
+            await expect(authController.createGuest(req, mockRes()))
+                .rejects.toThrow('Already signed in!')
+            expect(authServices.createGuest).not.toHaveBeenCalled()
+        })
+
+        it('upgradeGuest converts the guest, sends the OTP and re-issues cookies', async () => {
+            const upgraded = createMockUser({ isGuest: false, email: 'new@test.com' })
+            ;(authServices.upgradeGuest as jest.Mock).mockResolvedValue(upgraded)
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'new@test.com', password: 'Mango-Kite-Plum-7!' }
+            }) as unknown as Request
+            const res = mockRes()
+
+            await authController.upgradeGuest(req, res)
+
+            expect(authServices.upgradeGuest).toHaveBeenCalledWith(
+                guest.id,
+                expect.objectContaining({ email: 'new@test.com' })
+            )
+            expect(authOTP.sendConfirmEmailOTP).toHaveBeenCalledWith('new@test.com')
+            expect(res.cookie).toHaveBeenCalledWith(
+                'accessToken',
+                expect.any(String),
+                expect.any(Object)
+            )
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        user: expect.objectContaining({ isGuest: false }),
+                        _csrf: expect.any(String)
+                    })
+                })
+            )
+        })
+
+        it('upgradeGuest does not require a name', async () => {
+            ;(authServices.upgradeGuest as jest.Mock)
+                .mockResolvedValue(createMockUser({ isGuest: false }))
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
+            }) as unknown as Request
+
+            await expect(authController.upgradeGuest(req, mockRes()))
+                .resolves.not.toThrow()
+        })
+
+        it('upgradeGuest rejects a real account without touching the service', async () => {
+            const req = createMockRequest({
+                userId: 'u1',
+                isGuest: false,
+                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
+            }) as unknown as Request
+
+            await expect(authController.upgradeGuest(req, mockRes()))
+                .rejects.toThrow('Only guest accounts can be upgraded')
+            expect(authServices.upgradeGuest).not.toHaveBeenCalled()
+        })
+
+        it('upgradeGuest rejects a weak password before converting', async () => {
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'a@test.com', password: 'abc' }
+            }) as unknown as Request
+
+            await expect(authController.upgradeGuest(req, mockRes()))
+                .rejects.toThrow()
+            expect(authServices.upgradeGuest).not.toHaveBeenCalled()
+        })
     })
 })

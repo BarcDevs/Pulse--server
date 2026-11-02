@@ -51,6 +51,7 @@ beforeEach(() => {
     jest.mocked(getSessionState)
         .mockResolvedValue({
             active: true,
+            isGuest: false,
             passwordUpdatedAt: new Date(0)
         })
 })

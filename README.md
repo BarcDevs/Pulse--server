@@ -213,6 +213,7 @@ graph TD
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
 | active | Boolean | Account status |
+| isGuest | Boolean | `true` for an anonymous guest session (placeholder name/email/username); `false` after `POST /auth/guest/upgrade` or for any normal signup. Guests older than 30 days are deleted |
 | deleted_at | DateTime | Set on account deletion (confirmed with a code emailed to the account); hard-deleted 30 days later unless the user logs back in |
 
 ### Profile
@@ -412,6 +413,8 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 |---|---|---|---|---|
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
 | `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
+| `POST` | `/api/{version}/auth/guest` | — (no CSRF) | 10/hour | Start or reuse an anonymous guest session (check-in and result only); returns `{ user, _csrf }` |
+| `POST` | `/api/{version}/auth/guest/upgrade` | Guest cookie + CSRF | 5/hour | Convert the guest to a real account on the same row (`{ email, password }`, names optional); re-issues cookies and sends the confirm-email OTP |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
@@ -420,7 +423,9 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
-**Password Requirements** (signup, reset and change password):
+Guests are rejected with `403` on every protected route except check-in, check-in stats/progress insights, `insight/observation`, `auth/me`, `auth/refresh`, `auth/logout` and `auth/guest/upgrade`, and are capped at 3 check-ins.
+
+**Password Requirements** (signup, guest upgrade, reset and change password):
 - Minimum 8 characters
 - At least one uppercase letter, one lowercase letter and one digit
 - No 4 or more repeated or sequential characters in a row (like `1234`, `abcd`, `aaaa`)

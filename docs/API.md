@@ -86,6 +86,63 @@ Sets `accessToken` and `_csrf` cookies.
 
 ---
 
+### `POST /guest`
+> Public, no CSRF. Rate limited: 10 requests per hour per IP
+
+Starts an anonymous **guest** session so a visitor can check in and see the result before creating an account. No body.
+
+Creates a user flagged `isGuest: true` with placeholder identity (`firstName`/`lastName` `Guest`, username `guest_<12 hex>`, email `<32 hex>@guest.invalid`) and an unknown random password, so nobody can log in as a guest. Sets the `accessToken` cookie (same lifetime as a "remember me" login) and the `_csrf` cookie.
+
+Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fresh `_csrf`) instead of a second row.
+
+**Response `201`** (new guest) or **`200`** (existing guest)
+```json
+{
+  "message": "guest created!",
+  "data": {
+    "user": { "id": "string", "firstName": "Guest", "lastName": "Guest", "username": "guest_...", "email": "...@guest.invalid", "role": "USER", "isGuest": true },
+    "_csrf": "string"
+  }
+}
+```
+
+**Errors:** `409` the cookie belongs to a real account, `429` rate limit
+
+**What a guest can use:** `POST/GET/PATCH /check-in`, `GET /check-in/stats`, `GET /check-in/progress-insights`, `GET /insight/observation`, `GET /auth/me`, `GET /auth/refresh`, `POST /auth/logout`, `POST /auth/guest/upgrade`. Every other authenticated route returns `403` (`AUTH_FORBIDDEN`, "Create an account to use this feature"). A guest is also treated as anonymous on routes with optional authentication.
+
+**Guest limits:** at most 3 check-ins per guest. `POST /check-in` past the limit returns `403` `AUTH_FORBIDDEN` ("Guest check-in limit reached. Create an account to continue."). Guests that never upgrade are deleted after 30 days (check-ins cascade).
+
+---
+
+### `POST /guest/upgrade`
+> Auth required (guest session), CSRF required. Rate limited with signup: 5 requests per hour per IP
+
+Turns the current guest into a real account on the **same user row**, so check-ins are kept. Re-issues `accessToken` and `_csrf` (the password change revokes the guest token) and emails the confirm-email OTP; the account is then in the same state as a fresh, unverified signup, so continue with `POST /confirm-email`. Launch Mailer attribution is recorded here, not at guest creation.
+
+**Body**
+| Field       | Type   | Required | Notes                                  |
+|-------------|--------|----------|----------------------------------------|
+| `email`     | string | yes      | Valid email                            |
+| `password`  | string | yes      | Same rules as signup                   |
+| `firstName` | string | no       | Alphanumeric. Stays `Guest` if omitted |
+| `lastName`  | string | no       | Alphanumeric. Stays `Guest` if omitted |
+| `username`  | string | no       | Stays the generated `guest_...` if omitted |
+
+**Response `200`**
+```json
+{
+  "message": "guest upgraded!",
+  "data": {
+    "user": { "id": "same id", "email": "new email", "isGuest": false },
+    "_csrf": "string"
+  }
+}
+```
+
+**Errors:** `400` validation, `401` missing or invalid session or CSRF, `403` the session is not a guest, `409` email or username already taken, `429` rate limit
+
+---
+
 ### `GET /google`
 > No auth required
 
@@ -144,6 +201,7 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
       "role": "USER | ADMIN",
       "createdAt": "ISO 8601 date",
       "active": "boolean",
+      "isGuest": "boolean",
       "profile?": {
         "id": "string",
         "image": "string | null",

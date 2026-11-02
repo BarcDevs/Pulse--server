@@ -99,6 +99,39 @@ export const createUser = async (
     return user as ServerUserType
 }
 
+// Keeps the same row, so the guest's check-ins carry over. Bumping
+// passwordUpdatedAt revokes the guest token; the caller issues a fresh one
+export const convertGuest = (
+    userId: string,
+    data: Partial<NewUserType>
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true,
+            isGuest: true
+        },
+        data: {
+            ...data,
+            isGuest: false,
+            passwordUpdatedAt: new Date()
+        }
+    }) as Promise<ServerUserType>
+
+// Profile, check-ins and insights cascade from the user row
+export const deleteStaleGuests = async (
+    olderThan: Date
+): Promise<number> => {
+    const { count } = await Prisma.user.deleteMany({
+        where: {
+            isGuest: true,
+            createdAt: { lt: olderThan }
+        }
+    })
+
+    return count
+}
+
 export const updateUser = (
     userId: string,
     newUserData: Partial<NewUserType>

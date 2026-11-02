@@ -43,6 +43,15 @@ export const resetPasswordRateLimiter = createOtpRateLimiter()
 export const changeEmailRateLimiter = createOtpRateLimiter()
 export const confirmEmailChangeRateLimiter = createOtpRateLimiter()
 
+// Each guest costs a user row and AI generations, so cap creation per IP
+export const guestRateLimiter = rateLimit({
+    windowMs: hourInMs,
+    limit: isDev ? 100 : 10,
+    handler: createTooManyRequestsHandler(
+        'Too many guest sessions from this IP, please try again in an hour'
+    )
+})
+
 // Stops mass account creation / email squatting from one IP
 export const signupRateLimiter = rateLimit({
     windowMs: hourInMs,

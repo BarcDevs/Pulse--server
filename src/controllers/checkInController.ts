@@ -51,6 +51,9 @@ export const createCheckIn = async (
         req.body
     )
 
+    if (req.isGuest)
+        await checkInService.assertGuestCheckInAllowance(userId)
+
     const {
         checkIn,
         created

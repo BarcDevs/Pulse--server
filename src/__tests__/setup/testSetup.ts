@@ -23,6 +23,7 @@ export type MockRequest = {
     params?: Record<string, string>
     query?: Record<string, string>
     userId?: string
+    isGuest?: boolean
     csrfToken?: string
     method?: string
     originalUrl?: string
@@ -70,6 +71,7 @@ export const createMockUser = (
     passwordUpdatedAt: new Date(),
     createdAt: new Date(),
     active: true,
+    isGuest: false,
     deletedAt: undefined,
     confirmEmailOTP: undefined,
     confirmEmailExpiration: undefined,

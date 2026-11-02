@@ -1,5 +1,10 @@
-import { DUMMY_PASSWORD_HASH } from '../constants/auth/authRules'
-import { secondInMs } from '../constants/time'
+import { randomBytes, randomUUID } from 'crypto'
+
+import {
+    DUMMY_PASSWORD_HASH,
+    GUEST_RETENTION_DAYS
+} from '../constants/auth/authRules'
+import { dayInMs, secondInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
@@ -15,6 +20,7 @@ import type {
     NewUserType,
     ServerUserType
 } from '../types/data/UserType'
+import { scheduleDailyJob } from '../utils/scheduleDailyJob'
 
 export const getUser = async (
     by: 'email' | 'id',
@@ -39,9 +45,9 @@ export const getUser = async (
 // A session dies when the user is deactivated or the password changes after
 // the token was issued (iat is in whole seconds). DB errors propagate so an
 // outage is a 500, not a forced logout.
-export const getSessionUserId = async (
+export const getSession = async (
     token?: string
-): Promise<string | null> => {
+): Promise<{ userId: string, isGuest: boolean } | null> => {
     if (!token) return null
 
     let payload: ReturnType<typeof verifyToken>
@@ -61,7 +67,21 @@ export const getSessionUserId = async (
         session.passwordUpdatedAt.getTime() / secondInMs
     )
 
-    return passwordUpdatedAt <= iat ? id : null
+    return passwordUpdatedAt <= iat
+        ? { userId: id, isGuest: !!session.isGuest }
+        : null
+}
+
+// Guests count as anonymous here, so routes that personalise for a logged-in
+// user never treat a guest as one
+export const getSessionUserId = async (
+    token?: string
+): Promise<string | null> => {
+    const session = await getSession(token)
+
+    return session && !session.isGuest
+        ? session.userId
+        : null
 }
 
 // Deactivated accounts keep their email until the purge
@@ -157,6 +177,60 @@ export const signup = async (
         userWithHashedPassword
     )
 }
+
+// Placeholders satisfy the unique/non-null columns; the .invalid email and the
+// unknown random password mean nobody can log in as a guest
+export const createGuest = async (): Promise<ServerUserType> => {
+    const guestId = randomUUID().replaceAll('-', '')
+
+    return authModel.createUser({
+        firstName: 'Guest',
+        lastName: 'Guest',
+        username: `guest_${guestId.slice(0, 12)}`,
+        email: `${guestId}@guest.invalid`,
+        password: await hashPassword(randomBytes(32).toString('hex')),
+        isGuest: true
+    })
+}
+
+export const upgradeGuest = async (
+    userId: string,
+    upgrade: Partial<NewUserType> & Pick<NewUserType, 'email' | 'password'>
+): Promise<ServerUserType> => {
+    if (await isEmailTaken(upgrade.email))
+        throw errorFactory.auth.conflict(
+            'User already exists!'
+        )
+
+    if (
+        upgrade.username
+        && await authModel.getUserByUsername(upgrade.username)
+    )
+        throw errorFactory.auth.conflict(
+            'Username already taken!'
+        )
+
+    return authModel.convertGuest(
+        userId,
+        {
+            ...upgrade,
+            password: await hashPassword(upgrade.password)
+        }
+    )
+}
+
+export const purgeStaleGuests = (): Promise<number> =>
+    authModel.deleteStaleGuests(
+        new Date(
+            Date.now() - GUEST_RETENTION_DAYS * dayInMs
+        )
+    )
+
+export const scheduleGuestPurge = () =>
+    scheduleDailyJob(
+        'Stale guest purge failed',
+        purgeStaleGuests
+    )
 
 export const resetPassword = async (
     userId: string,

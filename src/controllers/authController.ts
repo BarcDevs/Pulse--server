@@ -27,6 +27,7 @@ import {
     recordFailedConfirmEmailAttempt,
     recordFailedEmailChangeAttempt,
     removeResetPasswordOTP,
+    sendConfirmEmailOTP,
     sendEmailChangeOTP,
     sendForgotPasswordOTP,
     verifyOTP
@@ -47,6 +48,8 @@ import type { ResetPasswordType } from '../schemas/auth/resetPasswordSchema'
 import { resetPasswordSchema } from '../schemas/auth/resetPasswordSchema'
 import type { SignupType } from '../schemas/auth/signupSchema'
 import { signupSchema } from '../schemas/auth/signupSchema'
+import type { UpgradeGuestType } from '../schemas/auth/upgradeGuestSchema'
+import { upgradeGuestSchema } from '../schemas/auth/upgradeGuestSchema'
 import type { VerifyResetCodeType } from '../schemas/auth/verifyResetCodeSchema'
 import { verifyResetCodeSchema } from '../schemas/auth/verifyResetCodeSchema'
 import * as authServices from '../services/authService'
@@ -138,6 +141,106 @@ export const signup = async (
         'user created!',
         HttpStatusCodes.CREATED
     )
+}
+
+const respondWithSession = (
+    res: Response,
+    user: ServerUserType,
+    message: string,
+    status: number = HttpStatusCodes.OK
+) => {
+    const {
+        csrfSecret,
+        csrfToken: _csrf
+    } = generateCSRFToken()
+    // A guest has no password to log back in with, so the session has to
+    // outlive the browser session
+    const cookiesOptions = getCookiesOptions(true)
+
+    res.cookie(
+        'accessToken',
+        createToken(user, true),
+        cookiesOptions
+    )
+    res.cookie(
+        '_csrf',
+        csrfSecret,
+        {
+            ...cookiesOptions,
+            maxAge: hourInMs
+        }
+    )
+
+    successResponse<{
+        user: UserType
+        _csrf: string
+    }>(
+        res,
+        {
+            user: sanitizeUserData(user),
+            _csrf
+        },
+        message,
+        status
+    )
+}
+
+// Idempotent per cookie: a refresh reuses the guest instead of creating one
+export const createGuest = async (
+    req: Request,
+    res: Response
+) => {
+    const session = await authServices.getSession(
+        req.cookies.accessToken
+    )
+
+    if (session && !session.isGuest)
+        throw errorFactory.auth.conflict(
+            'Already signed in!'
+        )
+
+    if (session) {
+        const guest = await authServices.getUser('id', session.userId)
+
+        if (guest)
+            return respondWithSession(
+                res,
+                guest,
+                'guest session!'
+            )
+    }
+
+    respondWithSession(
+        res,
+        await authServices.createGuest(),
+        'guest created!',
+        HttpStatusCodes.CREATED
+    )
+}
+
+export const upgradeGuest = async (
+    req: Request,
+    res: Response
+) => {
+    if (!req.isGuest || !req.userId)
+        throw errorFactory.auth.forbidden(
+            'Only guest accounts can be upgraded'
+        )
+
+    const upgrade = validateAndExtract<UpgradeGuestType>(
+        upgradeGuestSchema,
+        req.body
+    )
+
+    const user = await authServices.upgradeGuest(
+        req.userId,
+        upgrade
+    )
+
+    await sendConfirmEmailOTP(user.email)
+    await trackLaunchRegistration(req, res)
+
+    respondWithSession(res, user, 'guest upgraded!')
 }
 // endregion
 

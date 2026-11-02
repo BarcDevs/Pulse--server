@@ -11,7 +11,7 @@ import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
-import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { isAuthenticatedOrGuest } from '../middlewares/isAuthenticated'
 import { checkInMutationRateLimiter } from '../middlewares/rateLimiting'
 
 const router = Router()
@@ -174,18 +174,18 @@ const router = Router()
 router
     .route('/')
     .get(
-        isAuthenticated,
+        isAuthenticatedOrGuest,
         getCheckIns
     )
     .post(
-        isAuthenticated,
+        isAuthenticatedOrGuest,
         checkInMutationRateLimiter,
         extractCsrfToken,
         csrfMiddleware,
         createCheckIn
     )
     .patch(
-        isAuthenticated,
+        isAuthenticatedOrGuest,
         checkInMutationRateLimiter,
         extractCsrfToken,
         csrfMiddleware,
@@ -222,7 +222,7 @@ router
 router
     .route('/stats')
     .get(
-        isAuthenticated,
+        isAuthenticatedOrGuest,
         getCheckInStats
     )
 
@@ -260,7 +260,7 @@ router
 router
     .route('/progress-insights')
     .get(
-        isAuthenticated,
+        isAuthenticatedOrGuest,
         getProgressInsights
     )
 

@@ -9,6 +9,7 @@ export const getSessionState = (
         },
         select: {
             active: true,
+            isGuest: true,
             passwordUpdatedAt: true
         }
     })

@@ -448,8 +448,8 @@ describe('Rate Limiting Middleware', () => {
             throw new Error('limiter never blocked')
         }
 
-        it('covers all 18 limiters', () => {
-            expect(actualLimiters).toHaveLength(18)
+        it('covers all 19 limiters', () => {
+            expect(actualLimiters).toHaveLength(19)
         })
 
         it.each(actualLimiters)(
