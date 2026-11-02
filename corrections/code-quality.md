@@ -18,3 +18,9 @@ Wrote `1000 * 60 * 60 * 24` in `contextBuilder.ts` for day-gap calc — should'v
 Ran `python3 - <<EOF` to insert a runbook status line in `docs/ASG-MIGRATION.md`, immediately after having logged the same mistake in the client repo's own corrections log earlier this session.
 
 **Lesson:** the correction has to actually change behavior, not just get filed. Use the Edit tool for text edits, full stop — checking "have I done this before" against the correction I just wrote would have caught it in time.
+
+## 02/11/2026 — Reuse existing endpoints before creating new ones
+
+**Correct fact:** Before adding a new API endpoint, check whether an existing one already covers the need and use it. Do not create a new endpoint when an existing one would do.
+
+**Source:** user, auto-recorded: "And you should also record the correction that you jumped and created new endpoint for nothing when you could have just used the existing one."
