@@ -28,3 +28,26 @@ export const trackLaunchRegistration = async (
         )
     }
 }
+
+// A visitor from a launch email who starts as a guest. The cookie stays, so
+// the later upgrade is still recorded as the registration
+export const trackLaunchGuest = async (
+    req: Request
+): Promise<void> => {
+    const token: unknown = req.cookies?.[launchFunnelCookieName]
+
+    if (
+        typeof token !== 'string'
+        || !launchTokenPattern.test(token)
+    )
+        return
+
+    try {
+        await launchFunnelService.recordGuest(token)
+    } catch (error) {
+        logger.warn(
+            'Launch funnel guest not recorded',
+            toLoggableError(error)
+        )
+    }
+}

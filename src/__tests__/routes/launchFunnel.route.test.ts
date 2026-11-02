@@ -60,10 +60,13 @@ describe(`GET ${baseUrl}`, () => {
         expect(response.status).toBe(HttpStatusCodes.UNAUTHORIZED)
     })
 
-    it('returns opened and registered tokens, registered inside opened', async () => {
+    it('returns opened, guest and registered tokens, each inside opened', async () => {
+        const directToken = 'tok_CCCCCCCCCCCCCCCCCCCC'
+
         prismaMock.launchFunnelToken.findMany.mockResolvedValue([
-            { token, registeredAt: new Date() },
-            { token: otherToken, registeredAt: null }
+            { token, guestAt: new Date(), registeredAt: new Date() },
+            { token: otherToken, guestAt: new Date(), registeredAt: null },
+            { token: directToken, guestAt: null, registeredAt: new Date() }
         ] as never)
 
         const response = await supertest(App)
@@ -72,8 +75,9 @@ describe(`GET ${baseUrl}`, () => {
 
         expect(response.status).toBe(HttpStatusCodes.OK)
         expect(response.body).toEqual({
-            opened: [token, otherToken],
-            registered: [token]
+            opened: [token, otherToken, directToken],
+            guests: [token, otherToken],
+            registered: [token, directToken]
         })
     })
 
@@ -84,7 +88,11 @@ describe(`GET ${baseUrl}`, () => {
             .get(baseUrl)
             .set('Authorization', `Bearer ${secret}`)
 
-        expect(response.body).toEqual({ opened: [], registered: [] })
+        expect(response.body).toEqual({
+            opened: [],
+            guests: [],
+            registered: []
+        })
     })
 })
 
