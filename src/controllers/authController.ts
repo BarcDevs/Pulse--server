@@ -5,21 +5,19 @@ import {
     googleOAuthConfig,
     isDev
 } from '../../config'
+import { GUEST_ONLY_UPGRADE_MESSAGE } from '../constants/auth/authRules'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import {
-    hourInMs,
-    minuteInMs
-} from '../constants/time'
+import { minuteInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
     createToken
 } from '../lib/authCrypto'
-import { generateCSRFToken } from '../lib/authCSRF'
 import {
     generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData
+    sanitizeUserData,
+    setCsrfCookie,
+    setSessionCookies
 } from '../lib/authHelpers'
 import {
     assertResetPasswordOTP,
@@ -31,7 +29,10 @@ import {
     sendForgotPasswordOTP,
     verifyOTP
 } from '../lib/authOTP'
-import { trackLaunchRegistration } from '../lib/launchFunnelTracking'
+import {
+    trackLaunchGuest,
+    trackLaunchRegistration
+} from '../lib/launchFunnelTracking'
 import { successResponse } from '../responses/success'
 import type { ChangeEmailType } from '../schemas/auth/changeEmailSchema'
 import { changeEmailSchema } from '../schemas/auth/changeEmailSchema'
@@ -47,6 +48,8 @@ import type { ResetPasswordType } from '../schemas/auth/resetPasswordSchema'
 import { resetPasswordSchema } from '../schemas/auth/resetPasswordSchema'
 import type { SignupType } from '../schemas/auth/signupSchema'
 import { signupSchema } from '../schemas/auth/signupSchema'
+import type { UpgradeGuestType } from '../schemas/auth/upgradeGuestSchema'
+import { upgradeGuestSchema } from '../schemas/auth/upgradeGuestSchema'
 import type { VerifyResetCodeType } from '../schemas/auth/verifyResetCodeSchema'
 import { verifyResetCodeSchema } from '../schemas/auth/verifyResetCodeSchema'
 import * as authServices from '../services/authService'
@@ -81,25 +84,10 @@ export const login = async (
         remember,
         req.ip
     )
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-
-    const cookiesOptions = getCookiesOptions(remember)
-
-    res.cookie(
-        'accessToken',
+    const _csrf = setSessionCookies(
+        res,
         token,
-        cookiesOptions
-    )
-    res.cookie(
-        '_csrf',
-        csrfSecret,
-        {
-            ...cookiesOptions,
-            maxAge: hourInMs
-        }
+        remember
     )
 
     successResponse<{
@@ -137,6 +125,98 @@ export const signup = async (
         { user: sanitizeUserData(newUserCreated) },
         'user created!',
         HttpStatusCodes.CREATED
+    )
+}
+
+// A guest has no password to log back in with, so a new session has to
+// outlive the browser session
+const respondWithSession = (
+    res: Response,
+    user: ServerUserType,
+    message: string,
+    status: number = HttpStatusCodes.OK,
+    reissueToken = true
+) => {
+    const _csrf = reissueToken
+        ? setSessionCookies(
+            res,
+            createToken(user, true),
+            true
+        )
+        : setCsrfCookie(
+            res,
+            false
+        )
+
+    successResponse<{
+        user: UserType
+        _csrf: string
+    }>(
+        res,
+        {
+            user: sanitizeUserData(user),
+            _csrf
+        },
+        message,
+        status
+    )
+}
+
+export const createGuest = async (
+    req: Request,
+    res: Response
+) => {
+    const {
+        user,
+        created
+    } = await authServices.resolveGuest(
+        req.cookies.accessToken,
+        req.ip
+    )
+
+    if (created)
+        await trackLaunchGuest(req)
+
+    // A reused guest keeps its token: re-issuing it on every visit would keep
+    // an abandoned guest alive past the retention window
+    respondWithSession(
+        res,
+        user,
+        created
+            ? 'guest created!'
+            : 'guest session!',
+        created
+            ? HttpStatusCodes.CREATED
+            : HttpStatusCodes.OK,
+        created
+    )
+}
+
+export const upgradeGuest = async (
+    req: Request,
+    res: Response
+) => {
+    if (!req.isGuest || !req.userId)
+        throw errorFactory.auth.forbidden(
+            GUEST_ONLY_UPGRADE_MESSAGE
+        )
+
+    const upgrade = validateAndExtract<UpgradeGuestType>(
+        upgradeGuestSchema,
+        req.body
+    )
+
+    const user = await authServices.upgradeGuest(
+        req.userId,
+        upgrade
+    )
+
+    await trackLaunchRegistration(req, res)
+
+    respondWithSession(
+        res,
+        user,
+        'guest upgraded!'
     )
 }
 // endregion
@@ -183,17 +263,9 @@ export const getCsrfToken = async (
     req: Request,
     res: Response
 ) => {
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-    const cookiesOptions =
-        getCookiesOptions(false)
-
-    res.cookie(
-        '_csrf',
-        csrfSecret,
-        cookiesOptions
+    const _csrf = setCsrfCookie(
+        res,
+        false
     )
 
     successResponse<{
@@ -532,24 +604,11 @@ export const googleCallback = async (
     if (Date.now() - user.createdAt.getTime() < newGoogleUserWindowMs)
         await trackLaunchRegistration(req, res)
 
-    const token = createToken(user)
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-
-    const cookiesOptions =
-        getCookiesOptions(false)
-
-    res.cookie(
-        'accessToken',
-        token,
-        cookiesOptions
+    setSessionCookies(
+        res,
+        createToken(user),
+        false
     )
-    res.cookie('_csrf', csrfSecret, {
-        ...cookiesOptions,
-        maxAge: hourInMs
-    })
 
     const isValidRedirect =
         typeof storedRedirect === 'string'

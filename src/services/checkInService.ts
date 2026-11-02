@@ -1,4 +1,8 @@
 import { Prisma } from '../../prisma/generated/prisma/client'
+import {
+    GUEST_CHECK_IN_LIMIT,
+    GUEST_CHECK_IN_LIMIT_MESSAGE
+} from '../constants/auth/authRules'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     resolveCheckInDate,
@@ -55,8 +59,42 @@ export const getCheckIns = async (
     )
 }
 
+type CheckInOptions = {
+    isGuest?: boolean
+}
+
+// Bounds the AI cost of anonymous sessions; the client turns the 403 into
+// the save-your-account prompt. Only a check-in for a new day counts: a guest
+// at the limit can still edit today's
+export const assertGuestCheckInAllowance = async (
+    profileId: string
+): Promise<void> => {
+    const checkInCount =
+        await checkInModel.countCheckIns(profileId)
+
+    if (checkInCount >= GUEST_CHECK_IN_LIMIT)
+        throw errorFactory.auth.forbidden(
+            GUEST_CHECK_IN_LIMIT_MESSAGE
+        )
+}
+
+// A guest gets insights for the first submission only: every edit would queue
+// another AI run, and guests cost nothing to create
+const queueAiJobUnlessGuest = (
+    checkInId: string,
+    userId: string,
+    options: CheckInOptions
+): Promise<void> =>
+    options.isGuest
+        ? Promise.resolve()
+        : queueAiJob(
+            checkInId,
+            userId
+        )
+
 export const createCheckIn = async (
-    data: NewCheckInType
+    data: NewCheckInType,
+    options: CheckInOptions = {}
 ): Promise<{
     checkIn: CheckInType
     created: boolean
@@ -69,6 +107,12 @@ export const createCheckIn = async (
     const existing = await checkInModel
         .findTodayCheckIn(profileId, checkInDate)
 
+    if (
+        options.isGuest
+        && !existing
+    )
+        await assertGuestCheckInAllowance(profileId)
+
     if (existing) {
         const { userId: _userId, ...updateData } = data
         await checkInModel.updateCheckIn(
@@ -78,7 +122,11 @@ export const createCheckIn = async (
             createdAt
         )
 
-        await queueAiJob(existing.id, data.userId)
+        await queueAiJobUnlessGuest(
+            existing.id,
+            data.userId,
+            options
+        )
 
         const checkIn = await checkInModel
             .findTodayCheckIn(profileId, checkInDate)
@@ -115,7 +163,11 @@ export const createCheckIn = async (
             )
             const checkIn = await checkInModel
                 .findTodayCheckIn(profileId, checkInDate)
-            await queueAiJob(checkIn!.id, data.userId)
+            await queueAiJobUnlessGuest(
+                checkIn!.id,
+                data.userId,
+                options
+            )
             return { checkIn: checkIn!, created: false }
         }
         throw err
@@ -123,7 +175,8 @@ export const createCheckIn = async (
 }
 
 export const updateCheckIn = async (
-    data: UpdateCheckInType
+    data: UpdateCheckInType,
+    options: CheckInOptions = {}
 ): Promise<CheckInType> => {
     const { id: profileId, timezone } =
         await getProfileContext(data.userId)
@@ -145,7 +198,11 @@ export const updateCheckIn = async (
         updatedAt
     )
     await checkInModel.updateUserLastCheckIn(userId)
-    await queueAiJob(existing.id, userId)
+    await queueAiJobUnlessGuest(
+        existing.id,
+        userId,
+        options
+    )
 
     const fetchedCheckIn = await checkInModel
         .findTodayCheckIn(profileId, checkInDate)

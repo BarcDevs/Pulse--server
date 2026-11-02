@@ -143,9 +143,30 @@ describe('CheckInController', () => {
             await checkInController.createCheckIn(req, res)
 
             expect(checkInService.createCheckIn).toHaveBeenCalledWith(
-                expect.objectContaining({ userId: USER_ID })
+                expect.objectContaining({ userId: USER_ID }),
+                { isGuest: undefined }
             )
             expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.CREATED)
+        })
+
+        it('tells the service when the request is a guest session', async () => {
+            jest.spyOn(checkInService, 'createCheckIn').mockResolvedValue({
+                checkIn: mockCheckIn(),
+                created: true
+            })
+
+            const req = createMockRequest({
+                userId: USER_ID,
+                isGuest: true,
+                body: { moodScore: 7, painLevel: 3, activities: ['walking'] }
+            }) as unknown as Request
+
+            await checkInController.createCheckIn(req, res)
+
+            expect(checkInService.createCheckIn).toHaveBeenCalledWith(
+                expect.objectContaining({ userId: USER_ID }),
+                { isGuest: true }
+            )
         })
 
         it('returns 200 on update (created=false)', async () => {
@@ -190,7 +211,8 @@ describe('CheckInController', () => {
             await checkInController.updateCheckIn(req, res)
 
             expect(checkInService.updateCheckIn).toHaveBeenCalledWith(
-                expect.objectContaining({ userId: USER_ID })
+                expect.objectContaining({ userId: USER_ID }),
+                { isGuest: undefined }
             )
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({ data: updated })
@@ -240,6 +262,20 @@ describe('CheckInController', () => {
             ).rejects.toThrow()
         })
 
+        it('tells the service when the request is a guest session', async () => {
+            jest.spyOn(progressInsightsService, 'generateProgressInsight')
+                .mockResolvedValue({} as never)
+            const req = createMockRequest({
+                userId: USER_ID,
+                isGuest: true
+            }) as unknown as Request
+
+            await checkInController.getProgressInsights(req, res)
+
+            expect(progressInsightsService.generateProgressInsight)
+                .toHaveBeenCalledWith(USER_ID, { isGuest: true })
+        })
+
         it('returns progress insights', async () => {
             const insight = {
                 summary: 'Good progress',
@@ -260,7 +296,8 @@ describe('CheckInController', () => {
 
             await checkInController.getProgressInsights(req, res)
 
-            expect(progressInsightsService.generateProgressInsight).toHaveBeenCalledWith(USER_ID)
+            expect(progressInsightsService.generateProgressInsight)
+                .toHaveBeenCalledWith(USER_ID, { isGuest: undefined })
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({ data: insight })
             )

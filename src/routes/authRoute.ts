@@ -4,6 +4,7 @@ import {
     changeEmail,
     confirmEmail,
     confirmEmailChange,
+    createGuest,
     forgotPassword,
     getCsrfToken,
     googleCallback,
@@ -13,18 +14,23 @@ import {
     me,
     resetPassword,
     signup,
+    upgradeGuest,
     verifyResetCode
 } from '../controllers/authController'
 import {
     csrfMiddleware,
     extractCsrfToken
 } from '../middlewares/csrf'
-import { isAuthenticated } from '../middlewares/isAuthenticated'
+import {
+    isAuthenticated,
+    isAuthenticatedOrGuest
+} from '../middlewares/isAuthenticated'
 import {
     changeEmailRateLimiter,
     confirmEmailChangeRateLimiter,
     confirmEmailRateLimiter,
     forgotPasswordRateLimiter,
+    guestRateLimiter,
     loginRateLimiter,
     resetPasswordRateLimiter,
     signupRateLimiter,
@@ -274,7 +280,7 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/refresh').get(
-    isAuthenticated,
+    isAuthenticatedOrGuest,
     getCsrfToken
 )
 
@@ -335,8 +341,71 @@ router.route('/logout').post(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/me').get(
-    isAuthenticated,
+    isAuthenticatedOrGuest,
     me
+)
+
+/**
+ * @swagger
+ * /auth/guest:
+ *   post:
+ *     summary: Start an anonymous guest session
+ *     description: Public, no CSRF. Creates a guest user (check-in and result only), sets the accessToken and _csrf cookies, and returns the user with a CSRF token. Idempotent per cookie. 409 when the cookie belongs to a real account.
+ *     tags: [Auth]
+ *     responses:
+ *       201:
+ *         description: Guest created
+ *       200:
+ *         description: Existing guest session reused
+ *       409:
+ *         description: Already signed in as a real account
+ */
+router.route('/guest').post(
+    guestRateLimiter,
+    createGuest
+)
+
+/**
+ * @swagger
+ * /auth/guest/upgrade:
+ *   post:
+ *     summary: Turn the current guest into a real account
+ *     description: Keeps the same user row so check-ins carry over. Re-issues the cookies and sends no email. firstName, lastName and username are optional.
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Upgraded; user.isGuest is false
+ *       403:
+ *         description: Not a guest session
+ *       409:
+ *         description: Email or username taken
+ */
+router.route('/guest/upgrade').post(
+    isAuthenticatedOrGuest,
+    signupRateLimiter,
+    extractCsrfToken,
+    csrfMiddleware,
+    upgradeGuest
 )
 
 /**

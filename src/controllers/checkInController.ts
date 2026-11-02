@@ -54,10 +54,13 @@ export const createCheckIn = async (
     const {
         checkIn,
         created
-    } = await checkInService.createCheckIn({
-        ...validatedData,
-        userId
-    })
+    } = await checkInService.createCheckIn(
+        {
+            ...validatedData,
+            userId
+        },
+        { isGuest: req.isGuest }
+    )
 
     return successResponse<CheckInType>(
         res,
@@ -82,10 +85,13 @@ export const updateCheckIn = async (
         req.body
     )
 
-    const data = await checkInService.updateCheckIn({
-        ...validatedData,
-        userId
-    })
+    const data = await checkInService.updateCheckIn(
+        {
+            ...validatedData,
+            userId
+        },
+        { isGuest: req.isGuest }
+    )
 
     return successResponse<CheckInType>(
         res,
@@ -117,7 +123,10 @@ export const getProgressInsights = async (
     const userId = extractUserId(req)
 
     const data = await progressInsightsService
-        .generateProgressInsight(userId)
+        .generateProgressInsight(
+            userId,
+            { isGuest: req.isGuest }
+        )
 
     return successResponse<ProgressInsight>(
         res,

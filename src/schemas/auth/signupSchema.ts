@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { INVALID_EMAIL_TLD } from '../../constants/auth/authRules'
+
 import { newPasswordField } from './passwordFormat'
 
 export const signupSchema = z.object({
@@ -12,7 +14,12 @@ export const signupSchema = z.object({
         .max(30, 'Username must be 30 characters or fewer')
         .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
         .optional(),
-    email: z.email('Email is required').toLowerCase(),
+    email: z.email('Email is required')
+        .toLowerCase()
+        .refine(
+            (email) => !email.endsWith(INVALID_EMAIL_TLD),
+            'Email is not valid'
+        ),
     password: newPasswordField('Password is required')
 })
 

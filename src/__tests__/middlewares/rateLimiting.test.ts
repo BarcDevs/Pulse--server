@@ -12,9 +12,11 @@ import {
 } from '../../middlewares/rateLimiting'
 import { createRateLimitMockResponse } from '../setup/rateLimitMockResponse'
 import {
+    createAuthToken,
     createMockNext,
     createMockRequest,
-    createMockResponse
+    createMockResponse,
+    createMockUser
 } from '../setup/testSetup'
 
 describe('Rate Limiting Middleware', () => {
@@ -277,6 +279,56 @@ describe('Rate Limiting Middleware', () => {
         })
     })
 
+    describe('guestRateLimiter behavior (real implementation)', () => {
+        const { guestRateLimiter: realGuestRateLimiter } =
+            jest.requireActual('../../middlewares/rateLimiting')
+
+        const callWith = async (ip: string, cookies?: Record<string, string>) => {
+            const next = createMockNext()
+            await realGuestRateLimiter(
+                createMockRequest({ ip, cookies }) as Request,
+                createRateLimitMockResponse(),
+                next
+            )
+
+            return next
+        }
+
+        it('blocks the 11th guest creation from one IP within the hour', async () => {
+            const ip = '10.0.0.31'
+            for (let i = 0; i < 10; i++)
+                expect(await callWith(ip)).toHaveBeenCalledWith()
+
+            expect(await callWith(ip)).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                })
+            )
+        })
+
+        it('does not count requests that carry a live session', async () => {
+            const ip = '10.0.0.32'
+            const token = createAuthToken(createMockUser({ isGuest: true }))
+
+            for (let i = 0; i < 15; i++)
+                expect(await callWith(ip, { accessToken: token }))
+                    .toHaveBeenCalledWith()
+        })
+
+        it('still counts a request whose cookie is not a valid session', async () => {
+            const ip = '10.0.0.33'
+            for (let i = 0; i < 10; i++)
+                await callWith(ip, { accessToken: 'garbage' })
+
+            expect(await callWith(ip, { accessToken: 'garbage' }))
+                .toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        statusCode: HttpStatusCodes.TOO_MANY_REQUESTS
+                    })
+                )
+        })
+    })
+
     describe('OTP rate limiters (real implementation) (L18)', () => {
         const {
             forgotPasswordRateLimiter: realForgotPasswordRateLimiter,
@@ -448,8 +500,8 @@ describe('Rate Limiting Middleware', () => {
             throw new Error('limiter never blocked')
         }
 
-        it('covers all 18 limiters', () => {
-            expect(actualLimiters).toHaveLength(18)
+        it('covers all 19 limiters', () => {
+            expect(actualLimiters).toHaveLength(19)
         })
 
         it.each(actualLimiters)(

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import { getObservation } from '../controllers/insightsController'
-import { isAuthenticated } from '../middlewares/isAuthenticated'
+import { isAuthenticatedOrGuest } from '../middlewares/isAuthenticated'
 
 const router = Router()
 
@@ -58,6 +58,6 @@ const router = Router()
  */
 router
     .route('/observation')
-    .get(isAuthenticated, getObservation)
+    .get(isAuthenticatedOrGuest, getObservation)
 
 export default router

@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express'
 
 import { launchFunnelCookieName } from '../../constants/launchFunnel'
-import { trackLaunchRegistration } from '../../lib/launchFunnelTracking'
+import {
+    trackLaunchGuest,
+    trackLaunchRegistration
+} from '../../lib/launchFunnelTracking'
 import * as launchFunnelService from '../../services/launchFunnelService'
 import {
     createMockRequest,
@@ -9,6 +12,7 @@ import {
 } from '../setup/testSetup'
 
 jest.mock('../../services/launchFunnelService', () => ({
+    recordGuest: jest.fn(),
     recordRegistered: jest.fn()
 }))
 
@@ -54,5 +58,39 @@ describe('trackLaunchRegistration', () => {
 
         await expect(done).resolves.toBeUndefined()
         expect(res.clearCookie).not.toHaveBeenCalled()
+    })
+})
+
+describe('trackLaunchGuest', () => {
+    const runGuest = (cookies?: Record<string, string>) =>
+        trackLaunchGuest(createMockRequest({ cookies }) as Request)
+
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+
+    it.each([
+        ['no cookies', undefined],
+        ['no launch cookie', { other: 'x' }],
+        ['a malformed launch cookie', { [launchFunnelCookieName]: 'a@b.com' }]
+    ])('does nothing for %s', async (_name, cookies) => {
+        await runGuest(cookies)
+
+        expect(launchFunnelService.recordGuest).not.toHaveBeenCalled()
+    })
+
+    it('records the guest stage and leaves the cookie for the later upgrade', async () => {
+        await runGuest({ [launchFunnelCookieName]: token })
+
+        expect(launchFunnelService.recordGuest).toHaveBeenCalledWith(token)
+        expect(launchFunnelService.recordRegistered).not.toHaveBeenCalled()
+    })
+
+    it('swallows a recording failure so guest creation still succeeds', async () => {
+        ;(launchFunnelService.recordGuest as jest.Mock)
+            .mockRejectedValueOnce(new Error('db down'))
+
+        await expect(runGuest({ [launchFunnelCookieName]: token }))
+            .resolves.toBeUndefined()
     })
 })

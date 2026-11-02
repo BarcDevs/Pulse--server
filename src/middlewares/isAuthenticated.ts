@@ -4,25 +4,36 @@ import type {
     Response
 } from 'express'
 
+import { GUEST_FORBIDDEN_MESSAGE } from '../constants/auth/authRules'
 import { errorFactory } from '../errors/factory/ErrorFactory'
-import { getSessionUserId } from '../services/authService'
+import { getSession } from '../services/authService'
 
-export const isAuthenticated = async (
+const authenticate = (allowGuest: boolean) => async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const userId = await getSessionUserId(
+    const session = await getSession(
         req.cookies.accessToken
     )
 
-    if (!userId) {
+    if (!session) {
         res.clearCookie('accessToken')
 
         throw errorFactory.auth.unauthorized()
     }
 
-    req.userId = userId
+    if (session.isGuest && !allowGuest)
+        throw errorFactory.auth.forbidden(
+            GUEST_FORBIDDEN_MESSAGE
+        )
+
+    req.userId = session.userId
+    req.isGuest = session.isGuest
 
     next()
 }
+
+// Guests are rejected by default; only the routes a guest may use opt in
+export const isAuthenticated = authenticate(false)
+export const isAuthenticatedOrGuest = authenticate(true)

@@ -4,7 +4,12 @@ import ms, { type StringValue } from 'ms'
 import { authConfig } from '../../../config'
 import { EMAIL_LOGO_PATH } from '../../constants/emailLogo'
 import { minuteInMs } from '../../constants/time'
-import { resetPasswordTemplate } from '../../utils/emailTemplates'
+import {
+    changeEmailTemplate,
+    confirmEmailTemplate,
+    deleteAccountTemplate,
+    resetPasswordTemplate
+} from '../../utils/emailTemplates'
 
 const digitOrder = (html: string) =>
     [...html.matchAll(/font-family:monospace;">\s*(\d)<\/span>/g)]
@@ -12,6 +17,19 @@ const digitOrder = (html: string) =>
         .join('')
 
 describe('emailTemplates', () => {
+    it.each(['en', 'he'])(
+        'leaves no raw {{placeholder}} in any %s email',
+        (lang) => {
+            for (const template of [
+                resetPasswordTemplate,
+                confirmEmailTemplate,
+                changeEmailTemplate,
+                deleteAccountTemplate
+            ])
+                expect(template(123456, lang)).not.toMatch(/\{\{.*?\}\}/)
+        }
+    )
+
     it('lays Hebrew mail out right-to-left on the tables themselves', () => {
         const html = resetPasswordTemplate(123456, 'he')
 

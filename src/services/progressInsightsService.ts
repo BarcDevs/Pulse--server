@@ -36,8 +36,15 @@ const getLastCheckInTimestamp = async (
     return checkIns[0].updatedAt?.getTime() || 0
 }
 
+type ProgressInsightOptions = {
+    isGuest?: boolean
+}
+
+// A guest gets the plain insight: the weekly summary is an AI call, and
+// guests cost nothing to create
 export const generateProgressInsight = async (
-    userId: string
+    userId: string,
+    options: ProgressInsightOptions = {}
 ): Promise<ProgressInsight> => {
     const [profileId, userLanguage] = await Promise.all([
         getProfileIdForUser(userId),
@@ -78,7 +85,10 @@ export const generateProgressInsight = async (
             currentEnd
         )
 
-    if (currentPeriodCheckIns.length < 2) {
+    if (
+        options.isGuest
+        || currentPeriodCheckIns.length < 2
+    ) {
         const fallback = buildFallbackInsight(
             currentStart,
             currentEnd,

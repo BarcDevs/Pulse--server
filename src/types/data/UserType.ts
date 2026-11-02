@@ -40,6 +40,7 @@ export type UserType = {
     role: Role
     createdAt: Date
     active: boolean
+    isGuest: boolean
     profile?: Partial<ProfileType>
 }
 
@@ -71,4 +72,5 @@ export type NewUserType = {
     username: string
     email: string
     password: string
+    isGuest?: boolean
 }

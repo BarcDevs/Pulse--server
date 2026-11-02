@@ -312,4 +312,14 @@ describe('CheckInModel', () => {
             await expect(checkInModel.getCheckIns('profile-id')).rejects.toThrow('Connection refused')
         })
     })
+
+    describe('countCheckIns', () => {
+        it('counts the check-ins of one profile', async () => {
+            prismaMock.dailyCheckIn.count.mockResolvedValue(2)
+
+            expect(await checkInModel.countCheckIns('profile-id')).toBe(2)
+            expect(prismaMock.dailyCheckIn.count)
+                .toHaveBeenCalledWith({ where: { profileId: 'profile-id' } })
+        })
+    })
 })

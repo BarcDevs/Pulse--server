@@ -155,7 +155,7 @@ const buildStrings = (
         ),
         footer: msgs.emails.shared.footer.replaceAll('{{brandName}}', brandName),
         intro: msgs.emails[type].html.intro.replaceAll('{{brandName}}', brandName),
-        disclaimer: msgs.emails[type].html.disclaimer
+        disclaimer: msgs.emails[type].html.disclaimer.replaceAll('{{brandName}}', brandName)
     }
 }
 

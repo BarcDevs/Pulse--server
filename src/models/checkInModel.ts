@@ -66,6 +66,11 @@ export const getCheckIns = async (
         include: checkInInclude
     }) as CheckInRow[]).map(toCheckIn)
 
+export const countCheckIns = (
+    profileId: string
+): Promise<number> =>
+    Prisma.dailyCheckIn.count({ where: { profileId } })
+
 export const findCheckInById = async (
     checkInId: string
 ): Promise<CheckInType | null> =>

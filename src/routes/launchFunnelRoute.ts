@@ -47,7 +47,7 @@ router.route('/open').post(
  * /launch-funnel:
  *   get:
  *     summary: Launch Mailer funnel counts for preflight
- *     description: Server-to-server. Requires `Authorization Bearer` with the shared secret. Every registered token is also in opened.
+ *     description: Server-to-server. Requires `Authorization Bearer` with the shared secret. Every guest and registered token is also in opened; a guest who upgrades is in both.
  *     tags: [Launch Funnel]
  *     responses:
  *       200:
@@ -58,6 +58,10 @@ router.route('/open').post(
  *               type: object
  *               properties:
  *                 opened:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 guests:
  *                   type: array
  *                   items:
  *                     type: string

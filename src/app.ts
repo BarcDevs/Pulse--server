@@ -11,6 +11,7 @@ import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
 import { scheduleAccountPurge } from './services/accountDeletionService'
 import { startCheckInAiWorker } from './services/checkInAiWorkerService'
+import { scheduleGuestPurge } from './services/guestRetentionService'
 import { scheduleSupportTicketRetention } from './services/supportTicketRetentionService'
 import { verifyEmailTransport } from './utils/emailSender'
 import logger from './utils/logger'
@@ -52,6 +53,7 @@ if (env !== 'test') {
 
         verifyEmailTransport()
         scheduleAccountPurge()
+        scheduleGuestPurge()
         scheduleSupportTicketRetention()
         stopCheckInAiWorker = startCheckInAiWorker()
     })

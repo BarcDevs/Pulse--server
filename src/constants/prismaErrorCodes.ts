@@ -1,0 +1,3 @@
+export const PRISMA_UNIQUE_VIOLATION = 'P2002'
+
+export const PRISMA_RECORD_NOT_FOUND = 'P2025'

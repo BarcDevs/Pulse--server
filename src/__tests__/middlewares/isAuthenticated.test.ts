@@ -3,7 +3,10 @@ import jwt from 'jsonwebtoken'
 
 import { authConfig } from '../../../config'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
-import { isAuthenticated } from '../../middlewares/isAuthenticated'
+import {
+    isAuthenticated,
+    isAuthenticatedOrGuest
+} from '../../middlewares/isAuthenticated'
 import { optionalAuthentication } from '../../middlewares/optionalAuthentication'
 import { getSessionState } from '../../models/sessionModel'
 import {
@@ -25,16 +28,24 @@ jest.mock('../../errors/factory/ErrorFactory', () => ({
                 ;(error as Error & {statusCode: number})
                     .statusCode = HttpStatusCodes.UNAUTHORIZED
                 return error
+            }),
+            forbidden: jest.fn((message?: string) => {
+                const error = new Error(`Forbidden! ${message}`)
+                ;(error as Error & {statusCode: number})
+                    .statusCode = HttpStatusCodes.FORBIDDEN
+                return error
             })
         }
     }
 }))
 
 const mockSession = (
-    session: { active: boolean, passwordUpdatedAt: Date } | null
+    session: { active: boolean, isGuest?: boolean, passwordUpdatedAt: Date } | null
 ) =>
     jest.mocked(getSessionState)
-        .mockResolvedValue(session)
+        .mockResolvedValue(
+            session && { isGuest: false, ...session }
+        )
 
 const runWithToken = (accessToken?: string) => {
     const req = createMockRequest({
@@ -220,5 +231,72 @@ describe('optionalAuthentication Middleware', () => {
 
     it('should leave req.userId unset without a token', async () => {
         expect(await runOptional()).toBeUndefined()
+    })
+})
+
+describe('guest sessions', () => {
+    const guestToken = () => createAuthToken(createMockUser())
+    const mockRes = () => createMockResponse() as unknown as Response
+
+    beforeEach(() => {
+        mockSession({
+            active: true,
+            isGuest: true,
+            passwordUpdatedAt: new Date(0)
+        })
+    })
+
+    it('isAuthenticated rejects a guest with 403 and keeps the cookie', async () => {
+        const { req, res, next, run } = runWithToken(guestToken())
+
+        await expect(run()).rejects.toThrow('Create an account to use this feature')
+        expect(next).not.toHaveBeenCalled()
+        expect(req.userId).toBeUndefined()
+        expect(res.clearCookie).not.toHaveBeenCalled()
+    })
+
+    it('isAuthenticatedOrGuest lets a guest through and flags the request', async () => {
+        const req = createMockRequest({
+            cookies: { accessToken: guestToken() }
+        }) as Request
+        const next = createMockNext()
+
+        await isAuthenticatedOrGuest(req, mockRes(), next)
+
+        expect(next).toHaveBeenCalled()
+        expect(req.userId).toBe(createMockUser().id)
+        expect(req.isGuest).toBe(true)
+    })
+
+    it('isAuthenticatedOrGuest flags a real user as not a guest', async () => {
+        mockSession({
+            active: true,
+            passwordUpdatedAt: new Date(0)
+        })
+        const req = createMockRequest({
+            cookies: { accessToken: guestToken() }
+        }) as Request
+
+        await isAuthenticatedOrGuest(req, mockRes(), createMockNext())
+
+        expect(req.isGuest).toBe(false)
+    })
+
+    it('isAuthenticatedOrGuest still rejects a missing token', async () => {
+        const req = createMockRequest({ cookies: {} }) as Request
+
+        await expect(
+            isAuthenticatedOrGuest(req, mockRes(), createMockNext())
+        ).rejects.toThrow()
+    })
+
+    it('optionalAuthentication treats a guest as anonymous', async () => {
+        const req = createMockRequest({
+            cookies: { accessToken: guestToken() }
+        }) as Request
+
+        await optionalAuthentication(req, mockRes(), createMockNext())
+
+        expect(req.userId).toBeUndefined()
     })
 })

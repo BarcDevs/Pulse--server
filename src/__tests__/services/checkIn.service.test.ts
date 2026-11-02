@@ -4,6 +4,7 @@ import * as checkInStats from '../../lib/checkInStats'
 import * as checkInAiJobModel from '../../models/checkInAiJobModel'
 import * as checkInModel from '../../models/checkInModel'
 import {
+    assertGuestCheckInAllowance,
     createCheckIn,
     getCheckIns,
     getCheckInStats,
@@ -321,6 +322,101 @@ describe('CheckInService', () => {
             const result = await getCheckInStats(USER_ID)
 
             expect(result.totalCheckIns).toBe(0)
+        })
+    })
+    // ==================== guests ====================
+    describe('assertGuestCheckInAllowance', () => {
+        it('allows a guest below the limit', async () => {
+            jest.spyOn(checkInModel, 'countCheckIns').mockResolvedValue(2)
+
+            await expect(assertGuestCheckInAllowance(PROFILE_ID))
+                .resolves.toBeUndefined()
+        })
+
+        it('rejects a guest at the limit with the save-your-account message', async () => {
+            jest.spyOn(checkInModel, 'countCheckIns').mockResolvedValue(3)
+
+            await expect(assertGuestCheckInAllowance(PROFILE_ID))
+                .rejects.toThrow('Guest check-in limit reached. Create an account to continue.')
+        })
+    })
+
+    describe('createCheckIn as a guest', () => {
+        const data = {
+            userId: USER_ID,
+            moodScore: 7,
+            painLevel: 3,
+            activities: ['walking']
+        }
+
+        it('refuses a check-in for a new day once the limit is reached', async () => {
+            mockProfileContext()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(null as never)
+            jest.spyOn(checkInModel, 'countCheckIns').mockResolvedValue(3)
+
+            await expect(createCheckIn(data, { isGuest: true }))
+                .rejects.toThrow('Guest check-in limit reached')
+            expect(checkInModel.createCheckIn).not.toHaveBeenCalled()
+        })
+
+        it('still lets a guest at the limit edit today\'s check-in', async () => {
+            mockProfileContext()
+            const existing = mockCheckIn()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(existing as never)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined as never)
+            const count = jest.spyOn(checkInModel, 'countCheckIns').mockResolvedValue(3)
+
+            const result = await createCheckIn(data, { isGuest: true })
+
+            expect(result.created).toBe(false)
+            expect(count).not.toHaveBeenCalled()
+        })
+
+        it('queues the AI job for the first submission', async () => {
+            mockProfileContext()
+            const created = mockCheckIn()
+            jest.spyOn(checkInModel, 'findTodayCheckIn')
+                .mockResolvedValueOnce(null as never)
+                .mockResolvedValueOnce(created as never)
+            jest.spyOn(checkInModel, 'countCheckIns').mockResolvedValue(0)
+            jest.spyOn(checkInModel, 'createCheckIn').mockResolvedValue(created as never)
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn').mockResolvedValue(undefined as never)
+
+            await createCheckIn(data, { isGuest: true })
+
+            expect(checkInAiJobModel.enqueueJob).toHaveBeenCalledWith(CHECK_IN_ID, USER_ID)
+        })
+
+        it('does not queue another AI run when a guest re-submits today', async () => {
+            mockProfileContext()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(mockCheckIn() as never)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined as never)
+
+            await createCheckIn(data, { isGuest: true })
+
+            expect(checkInAiJobModel.enqueueJob).not.toHaveBeenCalled()
+        })
+
+        it('does not queue an AI run when a guest patches today', async () => {
+            mockProfileContext()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(mockCheckIn() as never)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined as never)
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn').mockResolvedValue(undefined as never)
+
+            await updateCheckIn({ userId: USER_ID, moodScore: 8 }, { isGuest: true })
+
+            expect(checkInAiJobModel.enqueueJob).not.toHaveBeenCalled()
+        })
+
+        it('keeps queueing for a real account that patches today', async () => {
+            mockProfileContext()
+            jest.spyOn(checkInModel, 'findTodayCheckIn').mockResolvedValue(mockCheckIn() as never)
+            jest.spyOn(checkInModel, 'updateCheckIn').mockResolvedValue(undefined as never)
+            jest.spyOn(checkInModel, 'updateUserLastCheckIn').mockResolvedValue(undefined as never)
+
+            await updateCheckIn({ userId: USER_ID, moodScore: 8 })
+
+            expect(checkInAiJobModel.enqueueJob).toHaveBeenCalledWith(CHECK_IN_ID, USER_ID)
         })
     })
 })

@@ -464,4 +464,108 @@ describe('AuthModel', () => {
             ).rejects.toThrow('P2025')
         })
     })
+
+    describe('convertGuest', () => {
+        it('converts only an active guest row and revokes the old token', async () => {
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser({ isGuest: false }) as never)
+
+            await authModel.convertGuest('guest-id', {
+                email: 'new@test.com',
+                password: 'hashed'
+            })
+
+            const args = prismaMock.user.update.mock.calls[0][0]
+
+            expect(args.where).toEqual({
+                id: 'guest-id',
+                active: true,
+                isGuest: true
+            })
+            expect(args.data).toMatchObject({
+                email: 'new@test.com',
+                isGuest: false
+            })
+            expect(args.data.passwordUpdatedAt).toBeInstanceOf(Date)
+        })
+
+        it('returns the user with its profile', async () => {
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser() as never)
+
+            await authModel.convertGuest('guest-id', {})
+
+            expect(prismaMock.user.update).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    include: expect.objectContaining({
+                        profile: expect.any(Object)
+                    })
+                })
+            )
+        })
+
+        it('propagates the error when the guest row is gone', async () => {
+            prismaMock.user.update.mockRejectedValue(new Error('P2025'))
+
+            await expect(authModel.convertGuest('gone', {}))
+                .rejects.toThrow('P2025')
+        })
+    })
+
+    describe('deleteStaleGuests', () => {
+        const cutoff = new Date('2026-01-01')
+
+        it('selects guests created before the cutoff and deletes them by id', async () => {
+            prismaMock.user.findMany
+                .mockResolvedValue([{ id: 'a' }] as never)
+            prismaMock.user.deleteMany.mockResolvedValue({ count: 1 })
+
+            const count = await authModel.deleteStaleGuests(cutoff, 10)
+
+            expect(count).toBe(1)
+            expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+                where: {
+                    isGuest: true,
+                    createdAt: { lt: cutoff }
+                },
+                select: { id: true },
+                take: 10
+            })
+            expect(prismaMock.user.deleteMany).toHaveBeenCalledWith({
+                where: {
+                    id: { in: ['a'] },
+                    isGuest: true
+                }
+            })
+        })
+
+        it('stops at an empty batch without issuing a delete', async () => {
+            prismaMock.user.findMany.mockResolvedValue([])
+
+            expect(await authModel.deleteStaleGuests(cutoff, 10)).toBe(0)
+            expect(prismaMock.user.deleteMany).not.toHaveBeenCalled()
+        })
+
+        it('never touches an account that stopped being a guest in between', async () => {
+            prismaMock.user.findMany
+                .mockResolvedValue([{ id: 'upgraded' }] as never)
+            prismaMock.user.deleteMany.mockResolvedValue({ count: 0 })
+
+            expect(await authModel.deleteStaleGuests(cutoff, 10)).toBe(0)
+            expect(prismaMock.user.deleteMany).toHaveBeenCalledWith(
+                { where: expect.objectContaining({ isGuest: true }) }
+            )
+        })
+
+        it('keeps deleting while batches come back full', async () => {
+            prismaMock.user.findMany
+                .mockResolvedValueOnce([{ id: 'a' }, { id: 'b' }] as never)
+                .mockResolvedValueOnce([{ id: 'c' }] as never)
+            prismaMock.user.deleteMany
+                .mockResolvedValueOnce({ count: 2 })
+                .mockResolvedValueOnce({ count: 1 })
+
+            expect(await authModel.deleteStaleGuests(cutoff, 2)).toBe(3)
+        })
+    })
 })

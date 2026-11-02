@@ -4,24 +4,26 @@ import type {
 } from '../types/data/UserType'
 import Prisma from '../utils/prismaClient'
 
+const userWithProfileInclude = {
+    profile: {
+        select: {
+            id: true,
+            image: true,
+            timezone: true,
+            theme: true,
+            language: true,
+            lastCheckInAt: true
+        }
+    }
+} as const
+
 export const getUserById = async (id: string):
     Promise<ServerUserType | null> => {
     const user = await Prisma.user.findUnique({
         where: {
             id
         },
-        include: {
-            profile: {
-                select: {
-                    id: true,
-                    image: true,
-                    timezone: true,
-                    theme: true,
-                    language: true,
-                    lastCheckInAt: true
-                }
-            }
-        }
+        include: userWithProfileInclude
     })
 
     if (!user || !user.active) return null
@@ -43,18 +45,7 @@ export const getUserByEmailAnyStatus = async (
                 mode: 'insensitive'
             }
         },
-        include: {
-            profile: {
-                select: {
-                    id: true,
-                    image: true,
-                    timezone: true,
-                    theme: true,
-                    language: true,
-                    lastCheckInAt: true
-                }
-            }
-        }
+        include: userWithProfileInclude
     }) as ServerUserType | null
 
 export const getUserByEmail = async (
@@ -76,7 +67,8 @@ export const getUserByUsername = async (
     }) as ServerUserType | null
 
 export const createUser = async (
-    newUser: NewUserType
+    newUser: NewUserType,
+    timezone?: string
 ): Promise<ServerUserType> => {
     const user =
         await Prisma.$transaction(
@@ -88,7 +80,8 @@ export const createUser = async (
 
                 await tx.profile.create({
                     data: {
-                        userId: createdUser.id
+                        userId: createdUser.id,
+                        ...(timezone && { timezone })
                     }
                 })
 
@@ -97,6 +90,69 @@ export const createUser = async (
         )
 
     return user as ServerUserType
+}
+
+// Keeps the same row, so the guest's check-ins carry over. Bumping
+// passwordUpdatedAt revokes the guest token; the caller issues a fresh one
+export const convertGuest = (
+    userId: string,
+    data: Partial<NewUserType>
+): Promise<ServerUserType> =>
+    Prisma.user.update({
+        where: {
+            id: userId,
+            active: true,
+            isGuest: true
+        },
+        data: {
+            ...data,
+            isGuest: false,
+            passwordUpdatedAt: new Date()
+        },
+        include: userWithProfileInclude
+    }) as Promise<ServerUserType>
+
+// Profile, check-ins and insights cascade from the user row. Deleted in
+// batches so one run after a bot wave cannot become a single huge statement
+export const deleteStaleGuests = async (
+    olderThan: Date,
+    batchSize: number
+): Promise<number> => {
+    let deleted = 0
+    let batch: { id: string }[]
+
+    do {
+        batch = await Prisma.user.findMany({
+            where: {
+                isGuest: true,
+                createdAt: {
+                    lt: olderThan
+                }
+            },
+            select: {
+                id: true
+            },
+            take: batchSize
+        })
+
+        if (batch.length === 0)
+            break
+
+        const ids = batch.map(({ id }) => id)
+
+        const { count } = await Prisma.user.deleteMany({
+            where: {
+                id: {
+                    in: ids
+                },
+                isGuest: true
+            }
+        })
+
+        deleted += count
+    } while (batch.length === batchSize)
+
+    return deleted
 }
 
 export const updateUser = (
