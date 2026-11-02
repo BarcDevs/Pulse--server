@@ -280,7 +280,7 @@ router
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.route('/refresh').get(
-    isAuthenticated,
+    isAuthenticatedOrGuest,
     getCsrfToken
 )
 

@@ -147,7 +147,8 @@ const respondWithSession = (
     res: Response,
     user: ServerUserType,
     message: string,
-    status: number = HttpStatusCodes.OK
+    status: number = HttpStatusCodes.OK,
+    extra: { confirmEmailSent?: boolean } = {}
 ) => {
     const {
         csrfSecret,
@@ -174,11 +175,13 @@ const respondWithSession = (
     successResponse<{
         user: UserType
         _csrf: string
+        confirmEmailSent?: boolean
     }>(
         res,
         {
             user: sanitizeUserData(user),
-            _csrf
+            _csrf,
+            ...extra
         },
         message,
         status
@@ -237,10 +240,29 @@ export const upgradeGuest = async (
         upgrade
     )
 
-    await sendConfirmEmailOTP(user.email)
+    // The row is already converted and the old token revoked, so a mail
+    // failure must not fail the request: the new cookies have to reach the
+    // client or the user is left logged out with a half-upgraded account
+    let confirmEmailSent = true
+    try {
+        await sendConfirmEmailOTP(user.email)
+    } catch (error: unknown) {
+        confirmEmailSent = false
+        logger.error('Guest upgrade: confirm-email OTP not sent', {
+            userId: user.id,
+            error: toLoggableError(error)
+        })
+    }
+
     await trackLaunchRegistration(req, res)
 
-    respondWithSession(res, user, 'guest upgraded!')
+    respondWithSession(
+        res,
+        user,
+        'guest upgraded!',
+        HttpStatusCodes.OK,
+        { confirmEmailSent }
+    )
 }
 // endregion
 

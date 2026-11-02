@@ -117,7 +117,7 @@ Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fre
 ### `POST /guest/upgrade`
 > Auth required (guest session), CSRF required. Rate limited with signup: 5 requests per hour per IP
 
-Turns the current guest into a real account on the **same user row**, so check-ins are kept. Re-issues `accessToken` and `_csrf` (the password change revokes the guest token) and emails the confirm-email OTP; the account is then in the same state as a fresh, unverified signup, so continue with `POST /confirm-email`. Launch Mailer attribution is recorded here, not at guest creation.
+Turns the current guest into a real account on the **same user row**, so check-ins are kept. Re-issues `accessToken` and `_csrf` (the password change revokes the guest token) and emails the confirm-email OTP. A mail failure does **not** fail the request (the row is already converted and the old token revoked, so the new cookies must reach the client); the response then has `confirmEmailSent: false`. There is currently no endpoint to resend the confirm-email OTP; the account is then in the same state as a fresh, unverified signup, so continue with `POST /confirm-email`. Launch Mailer attribution is recorded here, not at guest creation.
 
 **Body**
 | Field       | Type   | Required | Notes                                  |
@@ -134,7 +134,8 @@ Turns the current guest into a real account on the **same user row**, so check-i
   "message": "guest upgraded!",
   "data": {
     "user": { "id": "same id", "email": "new email", "isGuest": false },
-    "_csrf": "string"
+    "_csrf": "string",
+    "confirmEmailSent": true
   }
 }
 ```
@@ -170,7 +171,7 @@ Validates the state parameter against the stored cookie, exchanges the authoriza
 ---
 
 ### `GET /refresh`
-> Auth required
+> Auth required (guest sessions allowed)
 
 **Response `200`**
 ```json

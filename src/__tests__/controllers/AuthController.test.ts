@@ -681,6 +681,57 @@ describe('AuthController', () => {
             )
         })
 
+        it('upgradeGuest still returns the new session when the OTP email fails', async () => {
+            ;(authServices.upgradeGuest as jest.Mock)
+                .mockResolvedValue(createMockUser({ isGuest: false }))
+            ;(authOTP.sendConfirmEmailOTP as jest.Mock)
+                .mockRejectedValueOnce(new Error('Failed to send email'))
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
+            }) as unknown as Request
+            const res = mockRes()
+
+            await authController.upgradeGuest(req, res)
+
+            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.OK)
+            expect(res.cookie).toHaveBeenCalledWith(
+                'accessToken',
+                expect.any(String),
+                expect.any(Object)
+            )
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        user: expect.objectContaining({ isGuest: false }),
+                        _csrf: expect.any(String),
+                        confirmEmailSent: false
+                    })
+                })
+            )
+        })
+
+        it('upgradeGuest reports confirmEmailSent when the OTP email goes out', async () => {
+            ;(authServices.upgradeGuest as jest.Mock)
+                .mockResolvedValue(createMockUser({ isGuest: false }))
+            ;(authOTP.sendConfirmEmailOTP as jest.Mock).mockResolvedValueOnce(123456)
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
+            }) as unknown as Request
+            const res = mockRes()
+
+            await authController.upgradeGuest(req, res)
+
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({ confirmEmailSent: true })
+                })
+            )
+        })
+
         it('upgradeGuest does not require a name', async () => {
             ;(authServices.upgradeGuest as jest.Mock)
                 .mockResolvedValue(createMockUser({ isGuest: false }))
