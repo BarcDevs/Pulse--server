@@ -213,7 +213,7 @@ graph TD
 | lastCheckInAt | DateTime | Optional |
 | createdAt | DateTime | |
 | active | Boolean | Account status |
-| isGuest | Boolean | `true` for an anonymous guest session (placeholder name/email/username); `false` after `POST /auth/guest/upgrade` or for any normal signup. Guests older than 30 days are deleted |
+| isGuest | Boolean | `true` for an anonymous guest session (placeholder name/email/username); `false` after `POST /auth/guest/upgrade` or for any normal signup. Guests older than the guest token lifetime plus one day (8 days in production) are deleted |
 | deleted_at | DateTime | Set on account deletion (confirmed with a code emailed to the account); hard-deleted 30 days later unless the user logs back in |
 
 ### Profile
@@ -414,7 +414,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
 | `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
 | `POST` | `/api/{version}/auth/guest` | — (no CSRF) | 10/hour | Start or reuse an anonymous guest session (check-in and result only); returns `{ user, _csrf }` |
-| `POST` | `/api/{version}/auth/guest/upgrade` | Guest cookie + CSRF | 5/hour | Convert the guest to a real account on the same row (`{ email, password }`, names optional); re-issues cookies and sends the confirm-email OTP |
+| `POST` | `/api/{version}/auth/guest/upgrade` | Guest cookie + CSRF | 5/hour | Convert the guest to a real account on the same row (`{ email, password }`, names optional); re-issues cookies, sends no email |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |
@@ -423,7 +423,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/verify-reset-code` | — | 5/15min | Check a reset OTP without consuming it |
 | `PUT` | `/api/{version}/auth/reset-password` | — | 5/15min | Reset password with OTP |
 
-Guests are rejected with `403` on every protected route except check-in, check-in stats/progress insights, `insight/observation`, `auth/me`, `auth/refresh`, `auth/logout` and `auth/guest/upgrade`, and are capped at 3 check-ins.
+Guests are rejected with `403` on every protected route except check-in, check-in stats/progress insights, `insight/observation`, `auth/me`, `auth/refresh`, `auth/logout` and `auth/guest/upgrade`, and are capped at 3 check-ins (one per day). Guests get AI insights for the first submission only and never the AI weekly summary (`progress-insights`).
 
 **Password Requirements** (signup, guest upgrade, reset and change password):
 - Minimum 8 characters
@@ -491,8 +491,8 @@ Login keeps the older rule (8+ characters, a letter and a digit) so existing acc
 | `GET` | `/api/{version}/support/tickets/:ticketId` | Cookie, `ADMIN` | - | One ticket with its replies |
 | `GET` | `/api/{version}/support/claude/tickets` | Bearer `SUPPORT_READER_SECRET` | 30 valid reads/15min in total, 10 failed (401) attempts/15min/IP | Ticket summaries for the Claude reader: id, topic, createdAt, status, short redacted excerpt, masked sender email, no user id |
 | `GET` | `/api/{version}/support/claude/tickets/:ticketId` | Bearer `SUPPORT_READER_SECRET` | same as the list | One ticket for the Claude reader with the full message redacted (emails, phones, long numbers; links cut to domain and the first path segment when it reads as a page name), masked sender email, no replies, no user id |
-| `POST` | `/api/{version}/launch-funnel/open` | None (no CSRF) | 30/hour | Record a Launch Mailer `lm` token as opened and set the `launch_token` cookie; signup (email or Google) then records it as registered |
-| `GET` | `/api/{version}/launch-funnel` | Bearer `LAUNCH_FUNNEL_SECRET` | - | `{ opened, registered }` distinct tokens for preflight; 401 without the secret |
+| `POST` | `/api/{version}/launch-funnel/open` | None (no CSRF) | 30/hour | Record a Launch Mailer `lm` token as opened and set the `launch_token` cookie; signup (email or Google) then records it as registered; `POST /auth/guest` records it as a guest |
+| `GET` | `/api/{version}/launch-funnel` | Bearer `LAUNCH_FUNNEL_SECRET` | - | `{ opened, guests, registered }` distinct tokens for preflight; 401 without the secret |
 
 ### Recovery Goals *(protected)*
 

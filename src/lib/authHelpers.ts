@@ -1,11 +1,19 @@
-import type { CookieOptions } from 'express'
+import type {
+    CookieOptions,
+    Response
+} from 'express'
 import ms from 'ms'
 
 import { authConfig, isDev } from '../../config'
 import { SESSION_EXPIRES_IN } from '../constants/auth/authRules'
+import {
+    ACCESS_TOKEN_COOKIE_NAME,
+    CSRF_COOKIE_NAME
+} from '../constants/auth/cookieNames'
 import { ErrorCodes } from '../constants/errorCodes'
 import { excludedUserFields } from '../constants/excludedUserFields'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import { hourInMs } from '../constants/time'
 import { AuthError } from '../errors/AuthError'
 import * as authModel from '../models/authModel'
 import type {
@@ -17,6 +25,7 @@ import {
     comparePassword,
     hashPassword
 } from './authCrypto'
+import { generateCSRFToken } from './authCSRF'
 
 export const getCookiesOptions = (
     remember: boolean
@@ -29,6 +38,56 @@ export const getCookiesOptions = (
         ? ms(authConfig.expiresIn)
         : ms(SESSION_EXPIRES_IN)
 }) as CookieOptions
+
+// Refreshes only the CSRF secret cookie, for a session whose access token
+// stays as it is. Returns the CSRF token the client sends back
+export const setCsrfCookie = (
+    res: Response,
+    remember: boolean
+): string => {
+    const {
+        csrfSecret,
+        csrfToken
+    } = generateCSRFToken()
+
+    res.cookie(
+        CSRF_COOKIE_NAME,
+        csrfSecret,
+        getCookiesOptions(remember)
+    )
+
+    return csrfToken
+}
+
+// The session pair: the access token cookie plus the CSRF secret cookie,
+// which only lives an hour. Returns the CSRF token the client sends back
+export const setSessionCookies = (
+    res: Response,
+    token: string,
+    remember: boolean
+): string => {
+    const {
+        csrfSecret,
+        csrfToken
+    } = generateCSRFToken()
+    const cookiesOptions = getCookiesOptions(remember)
+
+    res.cookie(
+        ACCESS_TOKEN_COOKIE_NAME,
+        token,
+        cookiesOptions
+    )
+    res.cookie(
+        CSRF_COOKIE_NAME,
+        csrfSecret,
+        {
+            ...cookiesOptions,
+            maxAge: hourInMs
+        }
+    )
+
+    return csrfToken
+}
 
 export const generateRandomUsername = () => {
     const timestamp = Date.now()

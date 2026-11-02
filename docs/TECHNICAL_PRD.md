@@ -73,7 +73,7 @@ Landing Page → Sign Up / Log In → Email verification → Home
 ```
 Public check-in route → POST /auth/guest → Check-in → Chart + AI insight → Save prompt (email + password) → POST /auth/guest/upgrade → Email verification
 ```
-A guest is a server-side anonymous user (`isGuest`). It can only check in and see the result; the rest of the app stays behind a real login. Upgrading converts the same row, so the check-ins carry over. Limits: 3 check-ins per guest, guests older than 30 days are purged.
+A guest is a server-side anonymous user (`isGuest`). It can only check in and see the result; the rest of the app stays behind a real login. Upgrading converts the same row, so the check-ins carry over. Limits: 3 check-ins per guest, AI insights for the first submission only, guests older than the token lifetime plus one day are purged (8 days in production), and a guest never gets the AI weekly summary.
 
 ### Flow 2: Check-In (Logged In)
 ```
@@ -430,7 +430,7 @@ grow every time a new resource type is added server-side. Full code list and sha
 
 **POST /guest** — Public, no CSRF, 10/hour — creates or reuses an anonymous guest session → 201/200 `{ user (isGuest: true), _csrf }` + cookies; 409 if the cookie is a real account
 
-**POST /guest/upgrade** — Guest session + CSRF — `{ email, password, firstName?, lastName?, username? }` → 200 `{ user (isGuest: false), _csrf }`, same user row, new cookies, confirm-email OTP sent; 403 if not a guest, 409 if email/username taken
+**POST /guest/upgrade** — Guest session + CSRF — `{ email, password, firstName?, lastName?, username? }` → 200 `{ user (isGuest: false), _csrf }`, same user row, new cookies, no email sent (same unverified state as signup); 403 if not a guest, 409 if email/username taken
 
 **GET /google** — Redirect to Google OAuth consent screen (no auth required)
 
@@ -503,11 +503,11 @@ Retention: a daily in-process job deletes `CLOSED` tickets 6 months after `close
 
 ### Launch Funnel Endpoints — /api/{version}/launch-funnel
 
-Attribution for the Launch Mailer (preflight). Stores only the opaque `lm` token from the email link in `LaunchFunnelToken` (`openedAt`, `registeredAt`), with no link to `User`.
+Attribution for the Launch Mailer (preflight). Stores only the opaque `lm` token from the email link in `LaunchFunnelToken` (`openedAt`, `guestAt`, `registeredAt`), with no link to `User`.
 
-**POST /open** — Public (no CSRF), 30 req/hour/IP — `{ token }` → 204. Upserts the token and sets the httpOnly `launch_token` cookie (90 days). `signup` and the Google callback read the cookie, record `registeredAt` and clear it; a recording failure never fails the signup.
+**POST /open** — Public (no CSRF), 30 req/hour/IP — `{ token }` → 204. Upserts the token and sets the httpOnly `launch_token` cookie (90 days). `POST /auth/guest` (a newly created guest) records `guestAt` and keeps the cookie; `signup`, the guest upgrade and the Google callback record `registeredAt` and clear it; a recording failure never fails the request.
 
-**GET /** — Bearer `LAUNCH_FUNNEL_SECRET` (min 16 chars, timing-safe compare, 401 when unset) → 200 `{ opened: string[], registered: string[] }`, distinct tokens, registered is a subset of opened.
+**GET /** — Bearer `LAUNCH_FUNNEL_SECRET` (min 16 chars, timing-safe compare, 401 when unset) → 200 `{ opened: string[], guests: string[], registered: string[] }`, distinct tokens, each of `guests` and `registered` is a subset of opened.
 
 ### Users Endpoints — /api/{version}/users
 

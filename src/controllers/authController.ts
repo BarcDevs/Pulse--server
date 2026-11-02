@@ -5,21 +5,19 @@ import {
     googleOAuthConfig,
     isDev
 } from '../../config'
+import { GUEST_ONLY_UPGRADE_MESSAGE } from '../constants/auth/authRules'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import {
-    hourInMs,
-    minuteInMs
-} from '../constants/time'
+import { minuteInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
     createToken
 } from '../lib/authCrypto'
-import { generateCSRFToken } from '../lib/authCSRF'
 import {
     generateRandomUsername,
-    getCookiesOptions,
-    sanitizeUserData
+    sanitizeUserData,
+    setCsrfCookie,
+    setSessionCookies
 } from '../lib/authHelpers'
 import {
     assertResetPasswordOTP,
@@ -27,12 +25,14 @@ import {
     recordFailedConfirmEmailAttempt,
     recordFailedEmailChangeAttempt,
     removeResetPasswordOTP,
-    sendConfirmEmailOTP,
     sendEmailChangeOTP,
     sendForgotPasswordOTP,
     verifyOTP
 } from '../lib/authOTP'
-import { trackLaunchRegistration } from '../lib/launchFunnelTracking'
+import {
+    trackLaunchGuest,
+    trackLaunchRegistration
+} from '../lib/launchFunnelTracking'
 import { successResponse } from '../responses/success'
 import type { ChangeEmailType } from '../schemas/auth/changeEmailSchema'
 import { changeEmailSchema } from '../schemas/auth/changeEmailSchema'
@@ -84,25 +84,10 @@ export const login = async (
         remember,
         req.ip
     )
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-
-    const cookiesOptions = getCookiesOptions(remember)
-
-    res.cookie(
-        'accessToken',
+    const _csrf = setSessionCookies(
+        res,
         token,
-        cookiesOptions
-    )
-    res.cookie(
-        '_csrf',
-        csrfSecret,
-        {
-            ...cookiesOptions,
-            maxAge: hourInMs
-        }
+        remember
     )
 
     successResponse<{
@@ -143,81 +128,67 @@ export const signup = async (
     )
 }
 
+// A guest has no password to log back in with, so a new session has to
+// outlive the browser session
 const respondWithSession = (
     res: Response,
     user: ServerUserType,
     message: string,
     status: number = HttpStatusCodes.OK,
-    extra: { confirmEmailSent?: boolean } = {}
+    reissueToken = true
 ) => {
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-    // A guest has no password to log back in with, so the session has to
-    // outlive the browser session
-    const cookiesOptions = getCookiesOptions(true)
-
-    res.cookie(
-        'accessToken',
-        createToken(user, true),
-        cookiesOptions
-    )
-    res.cookie(
-        '_csrf',
-        csrfSecret,
-        {
-            ...cookiesOptions,
-            maxAge: hourInMs
-        }
-    )
+    const _csrf = reissueToken
+        ? setSessionCookies(
+            res,
+            createToken(user, true),
+            true
+        )
+        : setCsrfCookie(
+            res,
+            false
+        )
 
     successResponse<{
         user: UserType
         _csrf: string
-        confirmEmailSent?: boolean
     }>(
         res,
         {
             user: sanitizeUserData(user),
-            _csrf,
-            ...extra
+            _csrf
         },
         message,
         status
     )
 }
 
-// Idempotent per cookie: a refresh reuses the guest instead of creating one
 export const createGuest = async (
     req: Request,
     res: Response
 ) => {
-    const session = await authServices.getSession(
-        req.cookies.accessToken
+    const {
+        user,
+        created
+    } = await authServices.resolveGuest(
+        req.cookies.accessToken,
+        req.ip
     )
 
-    if (session && !session.isGuest)
-        throw errorFactory.auth.conflict(
-            'Already signed in!'
-        )
+    if (created)
+        await trackLaunchGuest(req)
 
-    if (session) {
-        const guest = await authServices.getUser('id', session.userId)
-
-        if (guest)
-            return respondWithSession(
-                res,
-                guest,
-                'guest session!'
-            )
-    }
-
+    // A reused guest keeps its token: re-issuing it on every visit would keep
+    // an abandoned guest alive past the retention window
     respondWithSession(
         res,
-        await authServices.createGuest(),
-        'guest created!',
-        HttpStatusCodes.CREATED
+        user,
+        created
+            ? 'guest created!'
+            : 'guest session!',
+        created
+            ? HttpStatusCodes.CREATED
+            : HttpStatusCodes.OK,
+        created
     )
 }
 
@@ -227,7 +198,7 @@ export const upgradeGuest = async (
 ) => {
     if (!req.isGuest || !req.userId)
         throw errorFactory.auth.forbidden(
-            'Only guest accounts can be upgraded'
+            GUEST_ONLY_UPGRADE_MESSAGE
         )
 
     const upgrade = validateAndExtract<UpgradeGuestType>(
@@ -240,28 +211,12 @@ export const upgradeGuest = async (
         upgrade
     )
 
-    // The row is already converted and the old token revoked, so a mail
-    // failure must not fail the request: the new cookies have to reach the
-    // client or the user is left logged out with a half-upgraded account
-    let confirmEmailSent = true
-    try {
-        await sendConfirmEmailOTP(user.email)
-    } catch (error: unknown) {
-        confirmEmailSent = false
-        logger.error('Guest upgrade: confirm-email OTP not sent', {
-            userId: user.id,
-            error: toLoggableError(error)
-        })
-    }
-
     await trackLaunchRegistration(req, res)
 
     respondWithSession(
         res,
         user,
-        'guest upgraded!',
-        HttpStatusCodes.OK,
-        { confirmEmailSent }
+        'guest upgraded!'
     )
 }
 // endregion
@@ -308,17 +263,9 @@ export const getCsrfToken = async (
     req: Request,
     res: Response
 ) => {
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-    const cookiesOptions =
-        getCookiesOptions(false)
-
-    res.cookie(
-        '_csrf',
-        csrfSecret,
-        cookiesOptions
+    const _csrf = setCsrfCookie(
+        res,
+        false
     )
 
     successResponse<{
@@ -657,24 +604,11 @@ export const googleCallback = async (
     if (Date.now() - user.createdAt.getTime() < newGoogleUserWindowMs)
         await trackLaunchRegistration(req, res)
 
-    const token = createToken(user)
-    const {
-        csrfSecret,
-        csrfToken: _csrf
-    } = generateCSRFToken()
-
-    const cookiesOptions =
-        getCookiesOptions(false)
-
-    res.cookie(
-        'accessToken',
-        token,
-        cookiesOptions
+    setSessionCookies(
+        res,
+        createToken(user),
+        false
     )
-    res.cookie('_csrf', csrfSecret, {
-        ...cookiesOptions,
-        maxAge: hourInMs
-    })
 
     const isValidRedirect =
         typeof storedRedirect === 'string'

@@ -87,13 +87,13 @@ Sets `accessToken` and `_csrf` cookies.
 ---
 
 ### `POST /guest`
-> Public, no CSRF. Rate limited: 10 requests per hour per IP
+> Public, no CSRF. Rate limited: 10 new guests per hour per IP
 
 Starts an anonymous **guest** session so a visitor can check in and see the result before creating an account. No body.
 
-Creates a user flagged `isGuest: true` with placeholder identity (`firstName`/`lastName` `Guest`, username `guest_<12 hex>`, email `<32 hex>@guest.invalid`) and an unknown random password, so nobody can log in as a guest. Sets the `accessToken` cookie (same lifetime as a "remember me" login) and the `_csrf` cookie.
+Creates a user flagged `isGuest: true` with placeholder identity (`firstName`/`lastName` `Guest`, username `guest_<12 hex>`, email `<32 hex>@guest.invalid`) and a password hash nobody knows, so nobody can log in as a guest. The profile timezone is detected from the request IP (a guest never logs in, so it would otherwise stay on the default). Sets the `accessToken` cookie (same lifetime as a "remember me" login) and the `_csrf` cookie. If the visitor came from a Launch Mailer link, the `lm` token is recorded as a `guest` in the launch funnel (the cookie stays, so the later upgrade still records the registration).
 
-Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fresh `_csrf`) instead of a second row.
+Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fresh `_csrf`, the access token is **not** re-issued) instead of a second row. Requests that carry a live session do not count toward the rate limit; a missing or invalid cookie does.
 
 **Response `201`** (new guest) or **`200`** (existing guest)
 ```json
@@ -108,16 +108,16 @@ Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fre
 
 **Errors:** `409` the cookie belongs to a real account, `429` rate limit
 
-**What a guest can use:** `POST/GET/PATCH /check-in`, `GET /check-in/stats`, `GET /check-in/progress-insights`, `GET /insight/observation`, `GET /auth/me`, `GET /auth/refresh`, `POST /auth/logout`, `POST /auth/guest/upgrade`. Every other authenticated route returns `403` (`AUTH_FORBIDDEN`, "Create an account to use this feature"). A guest is also treated as anonymous on routes with optional authentication.
+**What a guest can use:** `POST/GET/PATCH /check-in`, `GET /check-in/stats`, `GET /check-in/progress-insights` (a guest always gets the plain insight, never the AI weekly summary), `GET /insight/observation`, `GET /auth/me`, `GET /auth/refresh`, `POST /auth/logout`, `POST /auth/guest/upgrade`. Every other authenticated route returns `403` (`AUTH_FORBIDDEN`, "Create an account to use this feature"). A guest is also treated as anonymous on routes with optional authentication.
 
-**Guest limits:** at most 3 check-ins per guest. `POST /check-in` past the limit returns `403` `AUTH_FORBIDDEN` ("Guest check-in limit reached. Create an account to continue."). Guests that never upgrade are deleted after 30 days (check-ins cascade).
+**Guest limits:** at most 3 check-ins per guest (one per day). A check-in for a new day past the limit returns `403` `AUTH_FORBIDDEN` ("Guest check-in limit reached. Create an account to continue."); editing today's check-in is still allowed. A guest gets AI insights for the first submission of a check-in only: later edits (`POST` or `PATCH`) do not queue another AI run. Guests that never upgrade are deleted once they are older than the guest token lifetime plus one day (8 days in production, where the token lasts 7); the token is not extended while the guest is reused, so an active guest is never deleted. Check-ins cascade. A guest cannot log in (`POST /auth/login` refuses guest rows).
 
 ---
 
 ### `POST /guest/upgrade`
 > Auth required (guest session), CSRF required. Rate limited with signup: 5 requests per hour per IP
 
-Turns the current guest into a real account on the **same user row**, so check-ins are kept. Re-issues `accessToken` and `_csrf` (the password change revokes the guest token) and emails the confirm-email OTP. A mail failure does **not** fail the request (the row is already converted and the old token revoked, so the new cookies must reach the client); the response then has `confirmEmailSent: false`. There is currently no endpoint to resend the confirm-email OTP; the account is then in the same state as a fresh, unverified signup, so continue with `POST /confirm-email`. Launch Mailer attribution is recorded here, not at guest creation.
+Turns the current guest into a real account on the **same user row**, so check-ins are kept. Re-issues `accessToken` and `_csrf` (the password change revokes the guest token). **No email is sent**: the account ends in the same state as a fresh, unverified signup (`emailVerifiedAt` null), which also sends none. (Mailing a code to whatever address an anonymous visitor types would let anyone make the product email a stranger and squat their address.) Launch Mailer attribution (`registered`) is recorded here.
 
 **Body**
 | Field       | Type   | Required | Notes                                  |
@@ -126,7 +126,7 @@ Turns the current guest into a real account on the **same user row**, so check-i
 | `password`  | string | yes      | Same rules as signup                   |
 | `firstName` | string | no       | Alphanumeric. Stays `Guest` if omitted |
 | `lastName`  | string | no       | Alphanumeric. Stays `Guest` if omitted |
-| `username`  | string | no       | Stays the generated `guest_...` if omitted |
+| `username`  | string | no       | A random `user<digits>` name is generated if omitted, as in signup |
 
 **Response `200`**
 ```json
@@ -134,13 +134,12 @@ Turns the current guest into a real account on the **same user row**, so check-i
   "message": "guest upgraded!",
   "data": {
     "user": { "id": "same id", "email": "new email", "isGuest": false },
-    "_csrf": "string",
-    "confirmEmailSent": true
+    "_csrf": "string"
   }
 }
 ```
 
-**Errors:** `400` validation, `401` missing or invalid session or CSRF, `403` the session is not a guest, `409` email or username already taken, `429` rate limit
+**Errors:** `400` validation (a `.invalid` email is rejected), `401` missing or invalid session or CSRF, `403` the session is not a guest (also when a double submit already converted it), `409` email or username already taken (also when a concurrent request wins the race), `429` rate limit
 
 ---
 
@@ -569,11 +568,12 @@ No `accessToken` and no CSRF token required (the visitor has no session yet). Re
 ```json
 {
   "opened": ["<lm token>", "<lm token>"],
+  "guests": ["<lm token>"],
   "registered": ["<lm token>"]
 }
 ```
 
-Distinct tokens. Every registered token is also in `opened`.
+Distinct tokens. Every `guests` and `registered` token is also in `opened`. A guest who later upgrades is in both lists; a visitor who signs up directly is only in `registered`.
 
 **Errors:** `401` secret missing or wrong, or `LAUNCH_FUNNEL_SECRET` unset or under 16 chars on the server (no data is returned)
 

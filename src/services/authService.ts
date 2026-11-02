@@ -1,10 +1,23 @@
-import { randomBytes, randomUUID } from 'crypto'
+import { randomUUID } from 'crypto'
 
+import { Prisma } from '../../prisma/generated/prisma/client'
 import {
+    ALREADY_SIGNED_IN_MESSAGE,
     DUMMY_PASSWORD_HASH,
-    GUEST_RETENTION_DAYS
+    EMAIL_TAKEN_MESSAGE,
+    GUEST_EMAIL_DOMAIN,
+    GUEST_ID_LENGTH,
+    GUEST_ONLY_UPGRADE_MESSAGE,
+    GUEST_PASSWORD_HASH,
+    GUEST_PLACEHOLDER_NAME,
+    GUEST_USERNAME_PREFIX,
+    USERNAME_TAKEN_MESSAGE
 } from '../constants/auth/authRules'
-import { dayInMs, secondInMs } from '../constants/time'
+import {
+    PRISMA_RECORD_NOT_FOUND,
+    PRISMA_UNIQUE_VIOLATION
+} from '../constants/prismaErrorCodes'
+import { secondInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
 import {
     comparePassword,
@@ -12,15 +25,18 @@ import {
     hashPassword,
     verifyToken
 } from '../lib/authCrypto'
+import { generateRandomUsername } from '../lib/authHelpers'
 import { getTimezoneFromIp } from '../lib/geoLocation'
 import * as authModel from '../models/authModel'
 import * as profileModel from '../models/profileModel'
 import { getSessionState } from '../models/sessionModel'
+import type { UpgradeGuestType } from '../schemas/auth/upgradeGuestSchema'
+import type { ResolvedGuestType } from '../types/data/ResolvedGuestType'
+import type { SessionType } from '../types/data/SessionType'
 import type {
     NewUserType,
     ServerUserType
 } from '../types/data/UserType'
-import { scheduleDailyJob } from '../utils/scheduleDailyJob'
 
 export const getUser = async (
     by: 'email' | 'id',
@@ -47,7 +63,7 @@ export const getUser = async (
 // outage is a 500, not a forced logout.
 export const getSession = async (
     token?: string
-): Promise<{ userId: string, isGuest: boolean } | null> => {
+): Promise<SessionType | null> => {
     if (!token) return null
 
     let payload: ReturnType<typeof verifyToken>
@@ -68,7 +84,10 @@ export const getSession = async (
     )
 
     return passwordUpdatedAt <= iat
-        ? { userId: id, isGuest: !!session.isGuest }
+        ? {
+            userId: id,
+            isGuest: !!session.isGuest
+        }
         : null
 }
 
@@ -132,7 +151,13 @@ export const login = async (
         user?.password ?? DUMMY_PASSWORD_HASH
     )
 
-    if (!user || !passwordMatches) {
+    // Guests have no password; the shared placeholder hash is a second
+    // barrier, this is the first
+    if (
+        !user
+        || user.isGuest
+        || !passwordMatches
+    ) {
         throw errorFactory.auth.credentials()
     }
 
@@ -147,23 +172,31 @@ export const login = async (
     return createToken(user, remember)
 }
 
+const assertEmailAndUsernameFree = async (
+    email: string,
+    username?: string
+): Promise<void> => {
+    if (await isEmailTaken(email))
+        throw errorFactory.auth.conflict(
+            EMAIL_TAKEN_MESSAGE
+        )
+
+    if (
+        username
+        && await authModel.getUserByUsername(username)
+    )
+        throw errorFactory.auth.conflict(
+            USERNAME_TAKEN_MESSAGE
+        )
+}
+
 export const signup = async (
     newUser: NewUserType
 ): Promise<ServerUserType> => {
-    if (await isEmailTaken(newUser.email))
-        throw errorFactory.auth.conflict(
-            'User already exists!'
-        )
-
-    const usernameExists =
-        await authModel.getUserByUsername(
-            newUser.username
-        )
-
-    if (usernameExists)
-        throw errorFactory.auth.conflict(
-            'Username already taken!'
-        )
+    await assertEmailAndUsernameFree(
+        newUser.email,
+        newUser.username
+    )
 
     const passwordHash =
         await hashPassword(newUser.password)
@@ -179,58 +212,117 @@ export const signup = async (
 }
 
 // Placeholders satisfy the unique/non-null columns; the .invalid email and the
-// unknown random password mean nobody can log in as a guest
-export const createGuest = async (): Promise<ServerUserType> => {
+// password nobody knows mean nobody can log in as a guest. Guests never log
+// in, so the timezone is detected from the IP here or their days would run on
+// the profile default
+export const createGuest = async (
+    ip?: string
+): Promise<ServerUserType> => {
+    // The login email keeps the whole UUID: the short id is only for the
+    // username, which other users can see
     const guestId = randomUUID().replaceAll('-', '')
+    const timezone = ip
+        ? getTimezoneFromIp(ip)
+        : null
 
-    return authModel.createUser({
-        firstName: 'Guest',
-        lastName: 'Guest',
-        username: `guest_${guestId.slice(0, 12)}`,
-        email: `${guestId}@guest.invalid`,
-        password: await hashPassword(randomBytes(32).toString('hex')),
-        isGuest: true
-    })
+    const guest = await authModel.createUser(
+        {
+            firstName: GUEST_PLACEHOLDER_NAME,
+            lastName: GUEST_PLACEHOLDER_NAME,
+            username: `${GUEST_USERNAME_PREFIX}${guestId.slice(0, GUEST_ID_LENGTH)}`,
+            email: `${guestId}@${GUEST_EMAIL_DOMAIN}`,
+            password: GUEST_PASSWORD_HASH,
+            isGuest: true
+        },
+        timezone ?? undefined
+    )
+
+    return await authModel.getUserById(guest.id) ?? guest
+}
+
+// Idempotent per cookie: a valid guest session is reused, and a session that
+// belongs to a real account is never replaced
+export const resolveGuest = async (
+    token?: string,
+    ip?: string
+): Promise<ResolvedGuestType> => {
+    const session = await getSession(token)
+
+    if (
+        session
+        && !session.isGuest
+    )
+        throw errorFactory.auth.conflict(
+            ALREADY_SIGNED_IN_MESSAGE
+        )
+
+    const existing = session
+        ? await authModel.getUserById(session.userId)
+        : null
+
+    if (existing)
+        return {
+            user: existing,
+            created: false
+        }
+
+    return {
+        user: await createGuest(ip),
+        created: true
+    }
+}
+
+// Two requests racing the same upgrade or the same email end at the unique
+// index or at the isGuest filter, and both are client errors, not 500s
+// The violated column is read back from the data, not from the error: the
+// pg adapter does not report it under meta.target
+const toUpgradeConflict = async (
+    error: unknown,
+    email: string
+) => {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError))
+        return error
+
+    if (error.code === PRISMA_UNIQUE_VIOLATION)
+        return errorFactory.auth.conflict(
+            await isEmailTaken(email)
+                ? EMAIL_TAKEN_MESSAGE
+                : USERNAME_TAKEN_MESSAGE
+        )
+
+    if (error.code === PRISMA_RECORD_NOT_FOUND)
+        return errorFactory.auth.forbidden(
+            GUEST_ONLY_UPGRADE_MESSAGE
+        )
+
+    return error
 }
 
 export const upgradeGuest = async (
     userId: string,
-    upgrade: Partial<NewUserType> & Pick<NewUserType, 'email' | 'password'>
+    upgrade: UpgradeGuestType
 ): Promise<ServerUserType> => {
-    if (await isEmailTaken(upgrade.email))
-        throw errorFactory.auth.conflict(
-            'User already exists!'
-        )
-
-    if (
+    await assertEmailAndUsernameFree(
+        upgrade.email,
         upgrade.username
-        && await authModel.getUserByUsername(upgrade.username)
     )
-        throw errorFactory.auth.conflict(
-            'Username already taken!'
-        )
 
-    return authModel.convertGuest(
-        userId,
-        {
-            ...upgrade,
-            password: await hashPassword(upgrade.password)
-        }
-    )
+    try {
+        return await authModel.convertGuest(
+            userId,
+            {
+                ...upgrade,
+                username: upgrade.username ?? generateRandomUsername(),
+                password: await hashPassword(upgrade.password)
+            }
+        )
+    } catch (error: unknown) {
+        throw await toUpgradeConflict(
+            error,
+            upgrade.email
+        )
+    }
 }
-
-export const purgeStaleGuests = (): Promise<number> =>
-    authModel.deleteStaleGuests(
-        new Date(
-            Date.now() - GUEST_RETENTION_DAYS * dayInMs
-        )
-    )
-
-export const scheduleGuestPurge = () =>
-    scheduleDailyJob(
-        'Stale guest purge failed',
-        purgeStaleGuests
-    )
 
 export const resetPassword = async (
     userId: string,

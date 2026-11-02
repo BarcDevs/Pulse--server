@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken'
 
+import { Prisma } from '../../../prisma/generated/prisma/client'
+import { GUEST_PASSWORD_HASH } from '../../constants/auth/authRules'
 import {
     comparePassword,
     createToken,
@@ -13,13 +15,14 @@ import {
 } from '../../lib/authHelpers'
 import { verifyOTP } from '../../lib/authOTP'
 import { getTimezoneFromIp } from '../../lib/geoLocation'
+import { getSessionState } from '../../models/sessionModel'
 import {
     createGuest,
     deactivateUser,
     getUser,
     login,
-    purgeStaleGuests,
     resetPassword,
+    resolveGuest,
     signup,
     updateEmail,
     upgradeGuest
@@ -740,9 +743,16 @@ describe('Auth Service', () => {
     })
     // ==================== guests ====================
     describe('createGuest', () => {
-        it('creates a flagged guest with unguessable placeholder credentials', async () => {
-            prismaMock.user.create
-                .mockResolvedValue(createMockUser({ isGuest: true }) as never)
+        const stubCreatedGuest = () => {
+            const guest = createMockUser({ isGuest: true })
+            prismaMock.user.create.mockResolvedValue(guest as never)
+            prismaMock.user.findUnique.mockResolvedValue(guest as never)
+
+            return guest
+        }
+
+        it('creates a flagged guest with placeholder identity and the unusable password hash', async () => {
+            stubCreatedGuest()
 
             await createGuest()
 
@@ -751,16 +761,15 @@ describe('Auth Service', () => {
             expect(data).toMatchObject({
                 firstName: 'Guest',
                 lastName: 'Guest',
-                isGuest: true
+                isGuest: true,
+                password: GUEST_PASSWORD_HASH
             })
             expect(data.email).toMatch(/^[0-9a-f]{32}@guest\.invalid$/)
             expect(data.username).toMatch(/^guest_[0-9a-f]{12}$/)
-            expect(data.password).toMatch(/^\$2[aby]\$/)
         })
 
         it('gives every guest a distinct email and username', async () => {
-            prismaMock.user.create
-                .mockResolvedValue(createMockUser({ isGuest: true }) as never)
+            stubCreatedGuest()
 
             await createGuest()
             await createGuest()
@@ -771,6 +780,109 @@ describe('Auth Service', () => {
             expect(first.email).not.toBe(second.email)
             expect(first.username).not.toBe(second.username)
         })
+
+        it('creates the profile with the timezone from the IP, because a guest never logs in', async () => {
+            const guest = stubCreatedGuest()
+            jest.mocked(getTimezoneFromIp).mockReturnValue('America/New_York')
+
+            await createGuest('8.8.8.8')
+
+            expect(prismaMock.profile.create).toHaveBeenCalledWith({
+                data: {
+                    userId: guest.id,
+                    timezone: 'America/New_York'
+                }
+            })
+            expect(prismaMock.profile.update).not.toHaveBeenCalled()
+        })
+
+        it('leaves the default timezone when there is no IP', async () => {
+            const guest = stubCreatedGuest()
+
+            await createGuest()
+
+            expect(prismaMock.profile.create).toHaveBeenCalledWith({
+                data: { userId: guest.id }
+            })
+        })
+
+        it('leaves the default timezone when the IP cannot be located', async () => {
+            const guest = stubCreatedGuest()
+            jest.mocked(getTimezoneFromIp).mockReturnValue(null)
+
+            await createGuest('10.0.0.1')
+
+            expect(prismaMock.profile.create).toHaveBeenCalledWith({
+                data: { userId: guest.id }
+            })
+        })
+
+        it('returns the user with its profile, as /auth/me does', async () => {
+            const guest = stubCreatedGuest()
+
+            await createGuest()
+
+            expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { id: guest.id },
+                    include: expect.objectContaining({
+                        profile: expect.any(Object)
+                    })
+                })
+            )
+        })
+    })
+
+    describe('resolveGuest', () => {
+        const sessionFor = (isGuest: boolean) => {
+            const user = createMockUser({ isGuest })
+            jest.mocked(getSessionState).mockResolvedValue({
+                active: true,
+                isGuest,
+                passwordUpdatedAt: new Date(0)
+            })
+            prismaMock.user.findUnique.mockResolvedValue(user as never)
+
+            return { user, token: createToken(user) }
+        }
+
+        it('creates a guest when there is no session', async () => {
+            const guest = createMockUser({ isGuest: true })
+            prismaMock.user.create.mockResolvedValue(guest as never)
+            prismaMock.user.findUnique.mockResolvedValue(guest as never)
+
+            const result = await resolveGuest(undefined)
+
+            expect(result.created).toBe(true)
+            expect(prismaMock.user.create).toHaveBeenCalled()
+        })
+
+        it('creates a guest when the cookie is invalid', async () => {
+            const guest = createMockUser({ isGuest: true })
+            prismaMock.user.create.mockResolvedValue(guest as never)
+            prismaMock.user.findUnique.mockResolvedValue(guest as never)
+
+            const result = await resolveGuest('not-a-token')
+
+            expect(result.created).toBe(true)
+        })
+
+        it('reuses the guest behind a valid guest session', async () => {
+            const { user, token } = sessionFor(true)
+
+            const result = await resolveGuest(token)
+
+            expect(result).toEqual({ user, created: false })
+            expect(prismaMock.user.create).not.toHaveBeenCalled()
+        })
+
+        it('refuses to replace a real account session', async () => {
+            const { token } = sessionFor(false)
+
+            await expect(resolveGuest(token))
+                .rejects.toThrow('Already signed in!')
+            expect(prismaMock.user.create).not.toHaveBeenCalled()
+        })
     })
 
     describe('upgradeGuest', () => {
@@ -778,6 +890,13 @@ describe('Auth Service', () => {
             email: 'new@test.com',
             password: 'Password123!'
         }
+
+        const prismaError = (code: string, target?: string[]) =>
+            new Prisma.PrismaClientKnownRequestError('boom', {
+                code,
+                clientVersion: 'test',
+                meta: target ? { target } : undefined
+            })
 
         it('rejects an email that is already taken', async () => {
             prismaMock.user.findFirst
@@ -819,21 +938,79 @@ describe('Auth Service', () => {
             expect(args.data.password).not.toBe(upgrade.password)
             expect(args.data.passwordUpdatedAt).toBeInstanceOf(Date)
         })
+
+        it('gives the real account a generated username when none is sent', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser({ isGuest: false }) as never)
+
+            await upgradeGuest('guest-id', upgrade)
+
+            expect(prismaMock.user.update.mock.calls[0][0].data.username)
+                .toMatch(/^user\d+$/)
+        })
+
+        it('keeps the username the user chose', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
+            prismaMock.user.findUnique.mockResolvedValue(null as never)
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser({ isGuest: false }) as never)
+
+            await upgradeGuest('guest-id', {
+                ...upgrade,
+                username: 'chosen_name'
+            })
+
+            expect(prismaMock.user.update.mock.calls[0][0].data.username)
+                .toBe('chosen_name')
+        })
+
+        it('maps a lost race on the email to a 409, found by re-reading the email', async () => {
+            prismaMock.user.findFirst
+                .mockResolvedValueOnce(null as never)
+                .mockResolvedValueOnce(createMockUser() as never)
+            prismaMock.user.update.mockRejectedValue(prismaError('P2002'))
+
+            await expect(upgradeGuest('guest-id', upgrade))
+                .rejects.toThrow('User already exists!')
+        })
+
+        it('maps a lost race on the username to a 409, whatever shape the error meta has', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
+            prismaMock.user.update.mockRejectedValue(prismaError('P2002'))
+
+            await expect(upgradeGuest('guest-id', upgrade))
+                .rejects.toThrow('Username already taken!')
+        })
+
+        it('maps a double submit (guest row already converted) to a 403', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
+            prismaMock.user.update.mockRejectedValue(prismaError('P2025'))
+
+            await expect(upgradeGuest('guest-id', upgrade))
+                .rejects.toThrow('Only guest accounts can be upgraded')
+        })
+
+        it('lets an unexpected database error through', async () => {
+            prismaMock.user.findFirst.mockResolvedValue(null as never)
+            prismaMock.user.update.mockRejectedValue(new Error('db down'))
+
+            await expect(upgradeGuest('guest-id', upgrade))
+                .rejects.toThrow('db down')
+        })
     })
 
-    describe('purgeStaleGuests', () => {
-        it('deletes only guests older than the retention window', async () => {
-            prismaMock.user.deleteMany.mockResolvedValue({ count: 2 } as never)
+    describe('login as a guest', () => {
+        it('refuses a guest row even when the password matches', async () => {
+            const guest = createMockUser({
+                isGuest: true,
+                password: await hashPassword('Guessable-Pass-1!')
+            })
+            prismaMock.user.findFirst.mockResolvedValue(guest as never)
 
-            const before = Date.now()
-            const count = await purgeStaleGuests()
-
-            const { where } = prismaMock.user.deleteMany.mock.calls[0][0]!
-            const cutoff = (where!.createdAt as { lt: Date }).lt.getTime()
-
-            expect(count).toBe(2)
-            expect(where!.isGuest).toBe(true)
-            expect(before - cutoff).toBeGreaterThanOrEqual(30 * 24 * 60 * 60 * 1000)
+            await expect(login(guest.email, 'Guessable-Pass-1!', false))
+                .rejects.toThrow()
+            expect(prismaMock.user.update).not.toHaveBeenCalled()
         })
     })
 })

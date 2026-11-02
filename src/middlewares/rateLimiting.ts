@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 import { isDev, serverConfig } from '../../config'
+import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth/cookieNames'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { supportReaderRateLimitKey } from '../constants/support/supportTickets'
 import {
@@ -8,6 +9,7 @@ import {
     hourInMs,
     minuteInMs
 } from '../constants/time'
+import { getSession } from '../services/authService'
 import { createTooManyRequestsHandler } from '../utils/tooManyRequestsHandler'
 
 import { hasValidSupportReaderSecret } from './supportReaderAuth'
@@ -43,10 +45,17 @@ export const resetPasswordRateLimiter = createOtpRateLimiter()
 export const changeEmailRateLimiter = createOtpRateLimiter()
 export const confirmEmailChangeRateLimiter = createOtpRateLimiter()
 
-// Each guest costs a user row and AI generations, so cap creation per IP
+// Each guest costs a user row and AI generations, so cap creation per IP.
+// A request that carries a live session only reuses a guest (or is refused),
+// so it is not counted; a missing or invalid cookie still is, so dropping the
+// cookie does not skip the cap
 export const guestRateLimiter = rateLimit({
     windowMs: hourInMs,
     limit: isDev ? 100 : 10,
+    skip: async (req) =>
+        !!await getSession(
+            req.cookies?.[ACCESS_TOKEN_COOKIE_NAME]
+        ),
     handler: createTooManyRequestsHandler(
         'Too many guest sessions from this IP, please try again in an hour'
     )

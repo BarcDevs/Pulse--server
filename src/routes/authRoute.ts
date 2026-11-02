@@ -370,7 +370,7 @@ router.route('/guest').post(
  * /auth/guest/upgrade:
  *   post:
  *     summary: Turn the current guest into a real account
- *     description: Keeps the same user row so check-ins carry over. Re-issues the cookies and sends the confirm-email OTP. firstName, lastName and username are optional.
+ *     description: Keeps the same user row so check-ins carry over. Re-issues the cookies and sends no email. firstName, lastName and username are optional.
  *     tags: [Auth]
  *     security:
  *       - cookieAuth: []

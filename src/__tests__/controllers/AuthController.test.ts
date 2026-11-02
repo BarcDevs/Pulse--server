@@ -3,6 +3,7 @@ import type { Request, Response } from 'express'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import * as authController from '../../controllers/authController'
 import * as authOTP from '../../lib/authOTP'
+import * as launchFunnelTracking from '../../lib/launchFunnelTracking'
 import * as authServices from '../../services/authService'
 import {
     createMockRequest,
@@ -16,10 +17,16 @@ jest.mock('../../services/authService', () => ({
     signup: jest.fn(),
     getSession: jest.fn(),
     createGuest: jest.fn(),
+    resolveGuest: jest.fn(),
     upgradeGuest: jest.fn(),
     getUser: jest.fn(),
     resetPassword: jest.fn(),
     deactivateUser: jest.fn()
+}))
+
+jest.mock('../../lib/launchFunnelTracking', () => ({
+    trackLaunchGuest: jest.fn(),
+    trackLaunchRegistration: jest.fn()
 }))
 
 jest.mock('../../lib/authOTP', () => ({
@@ -584,14 +591,20 @@ describe('AuthController', () => {
             jest.clearAllMocks()
         })
 
-        it('createGuest creates a guest, sets both cookies and returns user + _csrf', async () => {
-            ;(authServices.getSession as jest.Mock).mockResolvedValue(null)
-            ;(authServices.createGuest as jest.Mock).mockResolvedValue(guest)
-            const req = createMockRequest({ cookies: {} }) as unknown as Request
+        it('createGuest passes the cookie and IP to the service and sets both cookies for a new guest', async () => {
+            ;(authServices.resolveGuest as jest.Mock)
+                .mockResolvedValue({ user: guest, created: true })
+            const req = createMockRequest({
+                cookies: { accessToken: 'old' }
+            }) as unknown as Request
             const res = mockRes()
 
             await authController.createGuest(req, res)
 
+            expect(authServices.resolveGuest)
+                .toHaveBeenCalledWith('old', req.ip)
+            expect(launchFunnelTracking.trackLaunchGuest)
+                .toHaveBeenCalledWith(req)
             expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.CREATED)
             expect(res.cookie).toHaveBeenCalledWith(
                 'accessToken',
@@ -611,6 +624,18 @@ describe('AuthController', () => {
                     })
                 })
             )
+        })
+
+        it('createGuest never returns the password hash', async () => {
+            ;(authServices.resolveGuest as jest.Mock)
+                .mockResolvedValue({ user: guest, created: true })
+
+            const res = mockRes()
+            await authController.createGuest(
+                createMockRequest({ cookies: {} }) as unknown as Request,
+                res
+            )
+
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: expect.objectContaining({
@@ -622,34 +647,49 @@ describe('AuthController', () => {
             )
         })
 
-        it('createGuest reuses the guest behind a valid cookie', async () => {
-            ;(authServices.getSession as jest.Mock)
-                .mockResolvedValue({ userId: guest.id, isGuest: true })
-            ;(authServices.getUser as jest.Mock).mockResolvedValue(guest)
-            const req = createMockRequest({
-                cookies: { accessToken: 'token' }
-            }) as unknown as Request
+        it('createGuest keeps the access token of a reused guest and only refreshes the CSRF cookie', async () => {
+            ;(authServices.resolveGuest as jest.Mock)
+                .mockResolvedValue({ user: guest, created: false })
             const res = mockRes()
 
-            await authController.createGuest(req, res)
+            await authController.createGuest(
+                createMockRequest({
+                    cookies: { accessToken: 'token' }
+                }) as unknown as Request,
+                res
+            )
 
-            expect(authServices.createGuest).not.toHaveBeenCalled()
             expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.OK)
+            expect(launchFunnelTracking.trackLaunchGuest)
+                .not.toHaveBeenCalled()
+            expect(res.cookie).toHaveBeenCalledTimes(1)
+            expect(res.cookie).toHaveBeenCalledWith(
+                '_csrf',
+                expect.any(String),
+                expect.any(Object)
+            )
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        _csrf: expect.any(String)
+                    })
+                })
+            )
         })
 
-        it('createGuest refuses when the cookie belongs to a real account', async () => {
-            ;(authServices.getSession as jest.Mock)
-                .mockResolvedValue({ userId: 'u1', isGuest: false })
-            const req = createMockRequest({
-                cookies: { accessToken: 'token' }
-            }) as unknown as Request
+        it('createGuest lets the service refuse a real-account cookie', async () => {
+            ;(authServices.resolveGuest as jest.Mock)
+                .mockRejectedValue(new Error('Already signed in!'))
 
-            await expect(authController.createGuest(req, mockRes()))
-                .rejects.toThrow('Already signed in!')
-            expect(authServices.createGuest).not.toHaveBeenCalled()
+            await expect(authController.createGuest(
+                createMockRequest({
+                    cookies: { accessToken: 'token' }
+                }) as unknown as Request,
+                mockRes()
+            )).rejects.toThrow('Already signed in!')
         })
 
-        it('upgradeGuest converts the guest, sends the OTP and re-issues cookies', async () => {
+        it('upgradeGuest converts the guest and re-issues cookies without mailing anything', async () => {
             const upgraded = createMockUser({ isGuest: false, email: 'new@test.com' })
             ;(authServices.upgradeGuest as jest.Mock).mockResolvedValue(upgraded)
             const req = createMockRequest({
@@ -665,7 +705,9 @@ describe('AuthController', () => {
                 guest.id,
                 expect.objectContaining({ email: 'new@test.com' })
             )
-            expect(authOTP.sendConfirmEmailOTP).toHaveBeenCalledWith('new@test.com')
+            expect(authOTP.sendConfirmEmailOTP).not.toHaveBeenCalled()
+            expect(launchFunnelTracking.trackLaunchRegistration)
+                .toHaveBeenCalled()
             expect(res.cookie).toHaveBeenCalledWith(
                 'accessToken',
                 expect.any(String),
@@ -677,57 +719,6 @@ describe('AuthController', () => {
                         user: expect.objectContaining({ isGuest: false }),
                         _csrf: expect.any(String)
                     })
-                })
-            )
-        })
-
-        it('upgradeGuest still returns the new session when the OTP email fails', async () => {
-            ;(authServices.upgradeGuest as jest.Mock)
-                .mockResolvedValue(createMockUser({ isGuest: false }))
-            ;(authOTP.sendConfirmEmailOTP as jest.Mock)
-                .mockRejectedValueOnce(new Error('Failed to send email'))
-            const req = createMockRequest({
-                userId: guest.id,
-                isGuest: true,
-                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
-            }) as unknown as Request
-            const res = mockRes()
-
-            await authController.upgradeGuest(req, res)
-
-            expect(res.status).toHaveBeenCalledWith(HttpStatusCodes.OK)
-            expect(res.cookie).toHaveBeenCalledWith(
-                'accessToken',
-                expect.any(String),
-                expect.any(Object)
-            )
-            expect(res.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: expect.objectContaining({
-                        user: expect.objectContaining({ isGuest: false }),
-                        _csrf: expect.any(String),
-                        confirmEmailSent: false
-                    })
-                })
-            )
-        })
-
-        it('upgradeGuest reports confirmEmailSent when the OTP email goes out', async () => {
-            ;(authServices.upgradeGuest as jest.Mock)
-                .mockResolvedValue(createMockUser({ isGuest: false }))
-            ;(authOTP.sendConfirmEmailOTP as jest.Mock).mockResolvedValueOnce(123456)
-            const req = createMockRequest({
-                userId: guest.id,
-                isGuest: true,
-                body: { email: 'a@test.com', password: 'Mango-Kite-Plum-7!' }
-            }) as unknown as Request
-            const res = mockRes()
-
-            await authController.upgradeGuest(req, res)
-
-            expect(res.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: expect.objectContaining({ confirmEmailSent: true })
                 })
             )
         })
@@ -762,6 +753,18 @@ describe('AuthController', () => {
                 userId: guest.id,
                 isGuest: true,
                 body: { email: 'a@test.com', password: 'abc' }
+            }) as unknown as Request
+
+            await expect(authController.upgradeGuest(req, mockRes()))
+                .rejects.toThrow()
+            expect(authServices.upgradeGuest).not.toHaveBeenCalled()
+        })
+
+        it('upgradeGuest rejects an unmailable .invalid address', async () => {
+            const req = createMockRequest({
+                userId: guest.id,
+                isGuest: true,
+                body: { email: 'x@guest.invalid', password: 'Mango-Kite-Plum-7!' }
             }) as unknown as Request
 
             await expect(authController.upgradeGuest(req, mockRes()))

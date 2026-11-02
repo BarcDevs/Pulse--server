@@ -2,6 +2,7 @@
 import * as cache from '../../lib/cache/progressInsightsCache'
 import * as authModel from '../../models/authModel'
 import * as checkInModel from '../../models/checkInModel'
+import { createProvider } from '../../services/aiProviders/ProviderFactory'
 import * as progressInsightsService from '../../services/progressInsightsService'
 
 jest.mock('../../models/checkInModel')
@@ -78,6 +79,32 @@ describe('Progress Insights Service', () => {
                 )
                 expect(result.highlights.improvements).toHaveLength(0)
                 expect(result.highlights.regressions).toHaveLength(0)
+            }
+        )
+
+        it(
+            'should give a guest the plain insight even with enough data, with no AI summary',
+            async () => {
+                const today = new Date()
+                const currentCheckIns = [
+                    mockCheckIn(8, 2, new Date(today)),
+                    mockCheckIn(8.5, 2.5, new Date(today.getTime() - 86400000)),
+                    mockCheckIn(8, 2, new Date(today.getTime() - 172800000))
+                ]
+
+                jest.spyOn(checkInModel, 'getProfileIdForUser')
+                    .mockResolvedValue(mockProfileId as never)
+                jest.spyOn(checkInModel, 'getCheckIns')
+                    .mockResolvedValue([currentCheckIns[0]])
+                jest.spyOn(checkInModel, 'getCheckInsForDateRange')
+                    .mockResolvedValue(currentCheckIns)
+
+                const result = await progressInsightsService
+                    .generateProgressInsight(mockUserId, { isGuest: true })
+
+                expect(result.summary).toContain('Not enough data yet')
+                expect(result.trend).toBe('stable')
+                expect(createProvider).not.toHaveBeenCalled()
             }
         )
 
