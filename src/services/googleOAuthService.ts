@@ -2,8 +2,13 @@ import crypto from 'crypto'
 import { OAuth2Client } from 'google-auth-library'
 
 import { googleOAuthConfig } from '../../config'
+import { Prisma } from '../../prisma/generated/prisma/client'
 import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
+import {
+    PRISMA_RECORD_NOT_FOUND,
+    PRISMA_UNIQUE_VIOLATION
+} from '../constants/prismaErrorCodes'
 import { AuthError } from '../errors/AuthError'
 import { hashPassword } from '../lib/authCrypto'
 import * as authModel from '../models/authModel'
@@ -182,8 +187,51 @@ const createGoogleUser = async (
     })
 }
 
-export const findOrCreateUser = async (
+// Same row as the guest, so the check-ins carry over. Null when the row is
+// gone or was converted meanwhile (P2025), or when the email, Google id or
+// username was taken meanwhile (P2002). The caller runs the lookups again,
+// which finds the account a parallel callback just made, or creates one
+const convertGuestToGoogleUser = async (
+    guestId: string,
     profile: GoogleProfile
+): Promise<ServerUserType | null> => {
+    const username =
+        await generateUniqueUsername(profile)
+
+    const randomPassword = crypto
+        .randomBytes(32)
+        .toString('hex')
+
+    try {
+        return await authModel.convertGuest(guestId, {
+            firstName: profile.firstName || 'Google',
+            lastName: profile.lastName || 'User',
+            username,
+            email: profile.email,
+            password: await hashPassword(randomPassword),
+            googleId: profile.googleId,
+            emailVerifiedAt: new Date(),
+            picture: profile.picture
+        })
+    } catch (error: unknown) {
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError
+            && [
+                PRISMA_RECORD_NOT_FOUND,
+                PRISMA_UNIQUE_VIOLATION
+            ].includes(error.code)
+        )
+            return null
+
+        throw error
+    }
+}
+
+// An existing Google or email account wins over the guest: the visitor
+// signs in to it and the guest row is left to the purge
+export const findOrCreateUser = async (
+    profile: GoogleProfile,
+    guestId?: string
 ): Promise<ServerUserType> => {
     const existingByGoogleId =
         await authModel.getUserByGoogleIdAnyStatus(profile.googleId)
@@ -214,12 +262,19 @@ export const findOrCreateUser = async (
         )
     }
 
-    return createGoogleUser(profile)
+    if (!guestId) return createGoogleUser(profile)
+
+    const convertedGuest =
+        await convertGuestToGoogleUser(guestId, profile)
+
+    // No guest id on the retry, so it cannot loop
+    return convertedGuest ?? findOrCreateUser(profile)
 }
 
 export const handleCallback = async (
     code: string,
-    ip?: string
+    ip?: string,
+    guestId?: string
 ): Promise<ServerUserType> => {
     const tokens =
         await exchangeCodeForTokens(code)
@@ -236,7 +291,7 @@ export const handleCallback = async (
     const profile =
         await fetchGoogleProfile(tokens.id_token)
 
-    const user = await findOrCreateUser(profile)
+    const user = await findOrCreateUser(profile, guestId)
 
     const userProfile =
         await profileModel.getProfileByUserId(user.id)

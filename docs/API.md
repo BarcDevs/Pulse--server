@@ -157,6 +157,14 @@ Initiates the Google OAuth sign-in flow. Generates a state parameter, stores it 
 
 Validates the state parameter against the stored cookie, exchanges the authorization code for tokens, finds or creates the user account, and sets auth cookies.
 
+**Guest session:** if the request carries a valid guest `accessToken` cookie (it is `Lax`, so the browser sends it on Google's redirect back), the callback decides in this order:
+1. A user with this Google id already exists: sign in to it. The guest row is left to the purge.
+2. A verified email/password account has the Google email: Google is linked to it and the visitor signs in to it. The guest row is left to the purge.
+3. An unverified account has the Google email: `409`, as for a visitor without a guest session.
+4. Otherwise the guest row **becomes** the Google account: same user row (check-ins kept), `isGuest: false`, Google name, email, `googleId` and picture, email verified, a random unusable password, a generated username. New cookies replace the guest ones, and Launch Mailer attribution (`registered`) is recorded.
+
+A guest row that vanished or was already converted during the round trip is ignored and a new user is created. No client change or extra parameter is needed.
+
 **Query Parameters**
 | Param   | Type   | Notes                              |
 |---------|--------|------------------------------------|

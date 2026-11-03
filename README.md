@@ -415,6 +415,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 | `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
 | `POST` | `/api/{version}/auth/guest` | — (no CSRF) | 10/hour | Start or reuse an anonymous guest session (check-in and result only); returns `{ user, _csrf }` |
 | `POST` | `/api/{version}/auth/guest/upgrade` | Guest cookie + CSRF | 5/hour | Convert the guest to a real account on the same row (`{ email, password }`, names optional); re-issues cookies, sends no email |
+| `GET` | `/api/{version}/auth/google/callback` | Guest cookie (optional) | — | With a guest cookie and a new Google identity, the guest row becomes the Google account (check-ins kept); an existing Google or verified-email account wins |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
 | `POST` | `/api/{version}/auth/logout` | CSRF | — | Logout and clear session |
 | `GET` | `/api/{version}/auth/me` | Cookie | — | Get current user profile |

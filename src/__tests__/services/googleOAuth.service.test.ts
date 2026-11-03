@@ -1,6 +1,11 @@
 import * as googleAuthLib from 'google-auth-library'
 
+import { Prisma } from '../../../prisma/generated/prisma/client'
 import { ErrorCodes } from '../../constants/errorCodes'
+import {
+    PRISMA_RECORD_NOT_FOUND,
+    PRISMA_UNIQUE_VIOLATION
+} from '../../constants/prismaErrorCodes'
 import { AuthError } from '../../errors/AuthError'
 import { getTimezoneFromIp } from '../../lib/geoLocation'
 import * as authModel from '../../models/authModel'
@@ -257,6 +262,186 @@ describe('GoogleOAuthService', () => {
             await expect(
                 findOrCreateUser(mockGoogleProfile)
             ).rejects.toThrow('DB error')
+        })
+
+        describe('with a guest session', () => {
+            const guestRow = createMockUser({ id: 'guest-id', isGuest: false })
+
+            const noMatches = () => {
+                prismaMock.user.findUnique.mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByUsername')
+                    .mockResolvedValue(null as never)
+            }
+
+            it('converts the guest row to the Google identity instead of creating a user', async () => {
+                noMatches()
+                prismaMock.user.update.mockResolvedValue(guestRow as never)
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('guest-id')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+
+                const args = prismaMock.user.update.mock.calls[0][0]
+                expect(args.where).toEqual({
+                    id: 'guest-id',
+                    active: true,
+                    isGuest: true
+                })
+                expect(args.data).toMatchObject({
+                    email: mockGoogleProfile.email,
+                    googleId: mockGoogleProfile.googleId,
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    isGuest: false,
+                    profile: { update: { image: mockGoogleProfile.picture } }
+                })
+                expect(args.data.emailVerifiedAt).toBeInstanceOf(Date)
+                expect(args.data.passwordUpdatedAt).toBeInstanceOf(Date)
+            })
+
+            it('gives the converted account an unguessable password', async () => {
+                noMatches()
+                prismaMock.user.update.mockResolvedValue(guestRow as never)
+
+                await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                const { password } = prismaMock.user.update.mock.calls[0][0].data
+                expect(password).toEqual(expect.stringMatching(/^\$2[aby]\$/))
+            })
+
+            it('signs in to the account that already has this Google id and leaves the guest alone', async () => {
+                const existing = createMockUser({ id: 'google-user-id' })
+                prismaMock.user.findUnique.mockResolvedValue(existing as never)
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('google-user-id')
+                expect(prismaMock.user.update).not.toHaveBeenCalled()
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+            })
+
+            it('links Google to a verified email account and leaves the guest alone', async () => {
+                const emailUser = createMockUser({
+                    id: 'email-user-id',
+                    emailVerifiedAt: new Date()
+                })
+                prismaMock.user.findUnique.mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(emailUser as never)
+                prismaMock.user.update.mockResolvedValue(emailUser as never)
+                prismaMock.profile.findUnique.mockResolvedValue({ image: null } as never)
+                prismaMock.profile.update.mockResolvedValue({} as never)
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('email-user-id')
+                expect(prismaMock.user.update).toHaveBeenCalledTimes(1)
+                expect(prismaMock.user.update.mock.calls[0][0].where)
+                    .toMatchObject({ id: 'email-user-id' })
+            })
+
+            it('refuses an unverified email account instead of converting the guest', async () => {
+                const emailUser = createMockUser({
+                    id: 'email-user-id',
+                    emailVerifiedAt: null
+                })
+                prismaMock.user.findUnique.mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(emailUser as never)
+
+                await expect(
+                    findOrCreateUser(mockGoogleProfile, 'guest-id')
+                ).rejects.toThrow(AuthError)
+                expect(prismaMock.user.update).not.toHaveBeenCalled()
+            })
+
+            it('creates a new user when the guest row is gone or already converted', async () => {
+                noMatches()
+                prismaMock.user.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('missing', {
+                        code: PRISMA_RECORD_NOT_FOUND,
+                        clientVersion: 'test'
+                    })
+                )
+                prismaMock.user.create.mockResolvedValue(
+                    createMockUser({ id: 'new-user-id' }) as never
+                )
+                prismaMock.profile.create.mockResolvedValue({} as never)
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('new-user-id')
+            })
+
+            it('signs in to the account a parallel callback just made from the same guest', async () => {
+                const converted = createMockUser({ id: 'guest-id' })
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null as never)
+                    .mockResolvedValueOnce(converted as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByUsername')
+                    .mockResolvedValue(null as never)
+                prismaMock.user.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('missing', {
+                        code: PRISMA_RECORD_NOT_FOUND,
+                        clientVersion: 'test'
+                    })
+                )
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('guest-id')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+            })
+
+            it('looks the account up again when a unique value was taken meanwhile', async () => {
+                const taken = createMockUser({ id: 'google-user-id' })
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null as never)
+                    .mockResolvedValueOnce(taken as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByUsername')
+                    .mockResolvedValue(null as never)
+                prismaMock.user.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('unique', {
+                        code: PRISMA_UNIQUE_VIOLATION,
+                        clientVersion: 'test'
+                    })
+                )
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('google-user-id')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+            })
+
+            it('propagates any other conversion error', async () => {
+                noMatches()
+                prismaMock.user.update.mockRejectedValue(new Error('DB error'))
+
+                await expect(
+                    findOrCreateUser(mockGoogleProfile, 'guest-id')
+                ).rejects.toThrow('DB error')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+            })
+
+            it('omits the profile image update when Google sends no picture', async () => {
+                noMatches()
+                prismaMock.user.update.mockResolvedValue(guestRow as never)
+
+                await findOrCreateUser(
+                    { ...mockGoogleProfile, picture: null },
+                    'guest-id'
+                )
+
+                expect(prismaMock.user.update.mock.calls[0][0].data)
+                    .not.toHaveProperty('profile')
+            })
         })
 
         it('propagates transaction error when linkGoogleId fails', async () => {

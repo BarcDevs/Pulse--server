@@ -94,9 +94,17 @@ export const createUser = async (
 
 // Keeps the same row, so the guest's check-ins carry over. Bumping
 // passwordUpdatedAt revokes the guest token; the caller issues a fresh one
+// A Google identity arrives verified, with the picture it carries. A guest
+// profile never has an image, so the picture is set outright
+export type GuestConversionType = Partial<NewUserType> & {
+    googleId?: string
+    emailVerifiedAt?: Date
+    picture?: string | null
+}
+
 export const convertGuest = (
     userId: string,
-    data: Partial<NewUserType>
+    { picture, ...data }: GuestConversionType
 ): Promise<ServerUserType> =>
     Prisma.user.update({
         where: {
@@ -107,7 +115,10 @@ export const convertGuest = (
         data: {
             ...data,
             isGuest: false,
-            passwordUpdatedAt: new Date()
+            passwordUpdatedAt: new Date(),
+            ...picture && {
+                profile: { update: { image: picture } }
+            }
         },
         include: userWithProfileInclude
     }) as Promise<ServerUserType>

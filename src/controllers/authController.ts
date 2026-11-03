@@ -6,6 +6,7 @@ import {
     isDev
 } from '../../config'
 import { GUEST_ONLY_UPGRADE_MESSAGE } from '../constants/auth/authRules'
+import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth/cookieNames'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
 import { minuteInMs } from '../constants/time'
 import { errorFactory } from '../errors/factory/ErrorFactory'
@@ -593,15 +594,27 @@ export const googleCallback = async (
             'Failed to authenticate with Google'
         )
 
+    // The access token cookie is Lax, so a guest's one comes back on Google's
+    // top-level redirect and the guest row can become the Google account
+    const session = await authServices.getSession(
+        req.cookies?.[ACCESS_TOKEN_COOKIE_NAME]
+    )
+    const guestId = session?.isGuest
+        ? session.userId
+        : undefined
+
     const user =
         await googleOAuthService.handleCallback(
             code,
-            req.ip
+            req.ip,
+            guestId
         )
 
     // Google sign-in creates and logs in through one path, so a user made
-    // moments ago is the registration
-    if (Date.now() - user.createdAt.getTime() < newGoogleUserWindowMs)
+    // moments ago, or a guest converted just now, is the registration
+    const isRegistration = user.id === guestId
+        || Date.now() - user.createdAt.getTime() < newGoogleUserWindowMs
+    if (isRegistration)
         await trackLaunchRegistration(req, res)
 
     setSessionCookies(

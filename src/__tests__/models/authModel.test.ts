@@ -489,6 +489,37 @@ describe('AuthModel', () => {
             expect(args.data.passwordUpdatedAt).toBeInstanceOf(Date)
         })
 
+        it('carries a verified Google identity and sets the picture on the profile', async () => {
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser() as never)
+            const verifiedAt = new Date()
+
+            await authModel.convertGuest('guest-id', {
+                googleId: 'google-sub',
+                emailVerifiedAt: verifiedAt,
+                picture: 'https://example.com/photo.jpg'
+            })
+
+            const { data } = prismaMock.user.update.mock.calls[0][0]
+
+            expect(data).toMatchObject({
+                googleId: 'google-sub',
+                emailVerifiedAt: verifiedAt,
+                profile: { update: { image: 'https://example.com/photo.jpg' } }
+            })
+            expect(data).not.toHaveProperty('picture')
+        })
+
+        it('leaves the profile alone without a picture', async () => {
+            prismaMock.user.update
+                .mockResolvedValue(createMockUser() as never)
+
+            await authModel.convertGuest('guest-id', { picture: null })
+
+            expect(prismaMock.user.update.mock.calls[0][0].data)
+                .not.toHaveProperty('profile')
+        })
+
         it('returns the user with its profile', async () => {
             prismaMock.user.update
                 .mockResolvedValue(createMockUser() as never)
