@@ -2,7 +2,10 @@ import * as googleAuthLib from 'google-auth-library'
 
 import { Prisma } from '../../../prisma/generated/prisma/client'
 import { ErrorCodes } from '../../constants/errorCodes'
-import { PRISMA_RECORD_NOT_FOUND } from '../../constants/prismaErrorCodes'
+import {
+    PRISMA_RECORD_NOT_FOUND,
+    PRISMA_UNIQUE_VIOLATION
+} from '../../constants/prismaErrorCodes'
 import { AuthError } from '../../errors/AuthError'
 import { getTimezoneFromIp } from '../../lib/geoLocation'
 import * as authModel from '../../models/authModel'
@@ -371,6 +374,50 @@ describe('GoogleOAuthService', () => {
                 const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
 
                 expect(result.id).toBe('new-user-id')
+            })
+
+            it('signs in to the account a parallel callback just made from the same guest', async () => {
+                const converted = createMockUser({ id: 'guest-id' })
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null as never)
+                    .mockResolvedValueOnce(converted as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByUsername')
+                    .mockResolvedValue(null as never)
+                prismaMock.user.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('missing', {
+                        code: PRISMA_RECORD_NOT_FOUND,
+                        clientVersion: 'test'
+                    })
+                )
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('guest-id')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+            })
+
+            it('looks the account up again when a unique value was taken meanwhile', async () => {
+                const taken = createMockUser({ id: 'google-user-id' })
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(null as never)
+                    .mockResolvedValueOnce(taken as never)
+                jest.spyOn(authModel, 'getUserByEmailAnyStatus')
+                    .mockResolvedValue(null as never)
+                jest.spyOn(authModel, 'getUserByUsername')
+                    .mockResolvedValue(null as never)
+                prismaMock.user.update.mockRejectedValue(
+                    new Prisma.PrismaClientKnownRequestError('unique', {
+                        code: PRISMA_UNIQUE_VIOLATION,
+                        clientVersion: 'test'
+                    })
+                )
+
+                const result = await findOrCreateUser(mockGoogleProfile, 'guest-id')
+
+                expect(result.id).toBe('google-user-id')
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
             })
 
             it('propagates any other conversion error', async () => {

@@ -5,7 +5,10 @@ import { googleOAuthConfig } from '../../config'
 import { Prisma } from '../../prisma/generated/prisma/client'
 import { ErrorCodes } from '../constants/errorCodes'
 import { HttpStatusCodes } from '../constants/httpStatusCodes'
-import { PRISMA_RECORD_NOT_FOUND } from '../constants/prismaErrorCodes'
+import {
+    PRISMA_RECORD_NOT_FOUND,
+    PRISMA_UNIQUE_VIOLATION
+} from '../constants/prismaErrorCodes'
 import { AuthError } from '../errors/AuthError'
 import { hashPassword } from '../lib/authCrypto'
 import * as authModel from '../models/authModel'
@@ -184,8 +187,10 @@ const createGoogleUser = async (
     })
 }
 
-// Same row as the guest, so the check-ins carry over. Null when the guest
-// row is gone or was converted meanwhile, and the caller creates a new user
+// Same row as the guest, so the check-ins carry over. Null when the row is
+// gone or was converted meanwhile (P2025), or when the email, Google id or
+// username was taken meanwhile (P2002). The caller runs the lookups again,
+// which finds the account a parallel callback just made, or creates one
 const convertGuestToGoogleUser = async (
     guestId: string,
     profile: GoogleProfile
@@ -211,7 +216,10 @@ const convertGuestToGoogleUser = async (
     } catch (error: unknown) {
         if (
             error instanceof Prisma.PrismaClientKnownRequestError
-            && error.code === PRISMA_RECORD_NOT_FOUND
+            && [
+                PRISMA_RECORD_NOT_FOUND,
+                PRISMA_UNIQUE_VIOLATION
+            ].includes(error.code)
         )
             return null
 
@@ -254,11 +262,13 @@ export const findOrCreateUser = async (
         )
     }
 
-    const convertedGuest = guestId
-        ? await convertGuestToGoogleUser(guestId, profile)
-        : null
+    if (!guestId) return createGoogleUser(profile)
 
-    return convertedGuest ?? createGoogleUser(profile)
+    const convertedGuest =
+        await convertGuestToGoogleUser(guestId, profile)
+
+    // No guest id on the retry, so it cannot loop
+    return convertedGuest ?? findOrCreateUser(profile)
 }
 
 export const handleCallback = async (
