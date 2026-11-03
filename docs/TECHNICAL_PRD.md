@@ -432,6 +432,8 @@ grow every time a new resource type is added server-side. Full code list and sha
 
 **POST /guest/upgrade** — Guest session + CSRF — `{ email, password, firstName?, lastName?, username? }` → 200 `{ user (isGuest: false), _csrf }`, same user row, new cookies, no email sent (same unverified state as signup); 403 if not a guest, 409 if email/username taken
 
+**GET /google/callback** — with a valid guest cookie, a brand-new Google identity converts the guest row (same row, `isGuest: false`, check-ins kept, `registered` attribution); an existing Google or verified-email account wins and the guest is left to the purge
+
 **GET /google** — Redirect to Google OAuth consent screen (no auth required)
 
 **GET /google/callback** — OAuth code exchange; finds/creates user; sets cookies; redirects to client

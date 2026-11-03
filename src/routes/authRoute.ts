@@ -170,7 +170,7 @@ router.route('/google').get(googleSignIn)
  * /auth/google/callback:
  *   get:
  *     summary: Handle Google OAuth callback
- *     description: Validates the state parameter, exchanges the authorization code for tokens, finds or creates the user, sets auth cookies, and redirects to the client application.
+ *     description: Validates the state parameter, exchanges the authorization code for tokens, finds or creates the user, sets auth cookies, and redirects to the client application. With a valid guest accessToken cookie, a new Google identity converts the guest row instead of creating a user; an existing Google or verified-email account is signed in to instead.
  *     tags: [Auth]
  *     parameters:
  *       - in: query

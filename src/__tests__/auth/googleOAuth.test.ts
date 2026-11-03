@@ -6,8 +6,15 @@ import App from '../../app'
 import { ErrorCodes } from '../../constants/errorCodes'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
 import { AuthError } from '../../errors/AuthError'
+import { trackLaunchRegistration } from '../../lib/launchFunnelTracking'
+import { getSessionState } from '../../models/sessionModel'
 import * as googleOAuthService from '../../services/googleOAuthService'
-import { createMockUser } from '../setup/testSetup'
+import {
+    createAuthToken,
+    createMockUser
+} from '../setup/testSetup'
+
+jest.mock('../../lib/launchFunnelTracking')
 
 jest.mock(
     '../../services/googleOAuthService',
@@ -492,7 +499,8 @@ describe('Google OAuth', () => {
                     expect(mockHandleCallback)
                         .toHaveBeenCalledWith(
                             'my-auth-code',
-                            expect.any(String)
+                            expect.any(String),
+                            undefined
                         )
                 }
             )
@@ -537,6 +545,120 @@ describe('Google OAuth', () => {
                         .toBe(true)
                 }
             )
+            // region Guest session on the callback
+            describe('with a guest session cookie', () => {
+                const state = 'g'.repeat(64)
+                const guest = createMockUser({
+                    id: 'guest-id',
+                    isGuest: true
+                })
+
+                const callbackAs = (user: unknown, cookies: string[]) => {
+                    mockHandleCallback.mockResolvedValue(user)
+
+                    return supertest(App)
+                        .get(googleCallbackEndpoint)
+                        .query({ code: 'guest-code', state })
+                        .set('Cookie', [`oauth_state=${state}`, ...cookies])
+                }
+
+                beforeEach(() => {
+                    jest.mocked(getSessionState).mockResolvedValue({
+                        active: true,
+                        isGuest: true,
+                        passwordUpdatedAt: new Date(0)
+                    })
+                })
+
+                it('passes the guest id to handleCallback', async () => {
+                    await callbackAs(
+                        createGoogleUser({ id: 'guest-id' }),
+                        [`accessToken=${createAuthToken(guest)}`]
+                    )
+
+                    expect(mockHandleCallback).toHaveBeenCalledWith(
+                        'guest-code',
+                        expect.any(String),
+                        'guest-id'
+                    )
+                })
+
+                it('counts the converted guest as a registration', async () => {
+                    await callbackAs(
+                        createGoogleUser({
+                            id: 'guest-id',
+                            createdAt: new Date('2026-01-01')
+                        }),
+                        [`accessToken=${createAuthToken(guest)}`]
+                    )
+
+                    expect(trackLaunchRegistration).toHaveBeenCalledTimes(1)
+                })
+
+                it('does not count a login to another account as a registration', async () => {
+                    await callbackAs(
+                        createGoogleUser({
+                            id: 'other-user',
+                            createdAt: new Date('2026-01-01')
+                        }),
+                        [`accessToken=${createAuthToken(guest)}`]
+                    )
+
+                    expect(trackLaunchRegistration).not.toHaveBeenCalled()
+                })
+
+                it('replaces the guest cookie with the new session', async () => {
+                    const response = await callbackAs(
+                        createGoogleUser({ id: 'guest-id' }),
+                        [`accessToken=${createAuthToken(guest)}`]
+                    )
+
+                    const cookies = ([] as string[])
+                        .concat(response.headers['set-cookie'] || [])
+
+                    expect(cookies.some((cookie) =>
+                        cookie.startsWith('accessToken=')
+                        && !cookie.startsWith('accessToken=;')
+                    )).toBe(true)
+                    expect(cookies.some((cookie) =>
+                        cookie.startsWith('_csrf=')
+                    )).toBe(true)
+                })
+
+                it('ignores the cookie of a real user', async () => {
+                    jest.mocked(getSessionState).mockResolvedValue({
+                        active: true,
+                        isGuest: false,
+                        passwordUpdatedAt: new Date(0)
+                    })
+
+                    await callbackAs(
+                        createGoogleUser(),
+                        [`accessToken=${createAuthToken(guest)}`]
+                    )
+
+                    expect(mockHandleCallback).toHaveBeenCalledWith(
+                        'guest-code',
+                        expect.any(String),
+                        undefined
+                    )
+                })
+
+                it('ignores a garbage cookie', async () => {
+                    await callbackAs(
+                        createGoogleUser(),
+                        ['accessToken=not-a-jwt']
+                    )
+
+                    expect(mockHandleCallback).toHaveBeenCalledWith(
+                        'guest-code',
+                        expect.any(String),
+                        undefined
+                    )
+                })
+            })
+            // endregion
+
             it(
                 'should redirect to stored oauth_redirect path on success',
                 async () => {
