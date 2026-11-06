@@ -107,12 +107,12 @@ context in this topic — not routinely.
 
 ---
 
-## 21/10/2026 — Routines report to Bar through ntfy for now; remote control stays as backup
+## 21/10/2026 — Routines report to Bar through ntfy: the fallback after remote control did not work
 
-**Decision:** How the Pulse routines report to Bar: ntfy notifications are wired up for now. The remote-control path is not dropped; it is kept as a backup. File an issue for its feedback, then watch whether remote control is allowed in routines and watch any change in local Claude Code routine behavior.
+**Decision:** How the Pulse routines report to Bar: remote control was tried and did not work, so ntfy notifications are the fallback and are wired up for now. Remote control is not dropped entirely: file an issue for its feedback, then watch whether it becomes allowed in routines and watch any change in local Claude Code routine behavior.
 
 **Source:** Bar, typed in a Pulse server session on 2026-10-21: "Dont drop it entirely, just keep it as backup and file an issue then watch wether it being allowed to use in routine (or also watch any change in l
-(Reading of "it" as the remote-control path is inferred from "allowed to use in routine"; confirm at review.)
+(Clarified by Bar on 2026-11-06: ntfy is the fallback because remote control did not work.)
 
 ## 22/10/2026 — Questions to the user go on a question artifact answered by comment
 
