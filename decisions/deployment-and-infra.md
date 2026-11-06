@@ -199,3 +199,17 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Static write-only IAM keys in Secrets Manager (long-lived key to rotate, new secret in the deploy path); a host-side shipper tailing docker logs (new moving part on the instance).
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 06/11/2026 — Routine runs on Sonnet 4.6, not 5 or 5.5
+
+**Decision:** The scheduled routine is set up on Sonnet 4.6 (not Sonnet 5 or 5.5) to save tokens, because it runs on the old tokenizer.
+
+**Why over alternatives:** Token saving on the old tokenizer.
+
+**Source:** Bar, typed in a Pulse server session on 2026-09-30: "ive set it up on sonnet 4.6 (not 5 or 5.5) to save tokens since it run on the old tokeniser"
+
+## 06/11/2026 — Use the separate AWS cost tool, not the AWS MCP
+
+**Decision:** To check actual AWS cost use the separate cost explorer tool (split out from the MCP), not the AWS MCP.
+
+**Source:** Bar, typed in a Pulse server session on 2026-10-21: "Use the tool, not the MCP. You separated from the MCP to check actual cost" and "No I remember we had the MCP and we split the cost explorer format

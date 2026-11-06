@@ -109,3 +109,22 @@ context in this topic — not routinely.
 
 **How to apply:** do not add a manual generate step before typecheck or test. The scripts use sh-style env syntax like `test`, so on Windows run npm with a bash script shell. CI now generates twice until its explicit step is dropped.
 
+## 06/11/2026 — Scheduler runs the full /review on its change before creating a PR
+
+**Decision:** The scheduled fixer routine runs the full /review on its own change before it opens a PR, so it never PRs unsafe code. Note: the current prod-error-fixer routine requires the full review-agents before merge, a later design of the same rule.
+
+**Why over alternatives:** So unsafe code is not put up as a PR.
+
+**Source:** Bar, typed in a Pulse server session on 2026-09-30: "note the scheduler to run the full /review on its change before creating a pr, that wat it'd not pr unsafe code"
+
+## 06/11/2026 — Wire up ntfy for now; do not drop the remote-control path entirely
+
+**Decision:** ntfy notifications are wired up for now. The remote-control connection (the mod that lets the team connect) is not dropped entirely: file an issue for its feedback, then watch whether it is allowed in routines and watch any change in local Claude Code routine behavior. Exact meaning of "it" was not confirmed; flagged for review.
+
+**Source:** Bar, typed in a Pulse server session on 2026-10-21: "Dont drop it entirely, just keep it as backup and file an issue then watch wether it being allowed to use in routine (or also watch any change in l
+
+## 06/11/2026 — Questions to the user go on a question artifact answered by comment
+
+**Decision:** When a run needs an answer it publishes a question artifact. Bar answers or follows up by commenting on that artifact and tells the next Claude run to pick it up; the next run reads the comment, replaces the question artifact with the plan and comments on it for the following session. This also avoids the "can't interact with local session" problem.
+
+**Source:** Bar, typed in a Pulse server session on 2026-10-22: "So commenting out on an artifact interacts with the session who started it i found it more convinient and it solves the can't interact with local s
