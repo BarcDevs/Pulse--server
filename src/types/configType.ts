@@ -36,6 +36,7 @@ type AuthConfig = {
     jwtSecret: string
     expiresIn: number
     otp_expiration: number
+    requireGuestHeader: boolean
 }
 
 type GoogleOAuthConfig = {

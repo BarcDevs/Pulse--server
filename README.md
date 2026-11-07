@@ -413,7 +413,7 @@ added server-side. Full list (`src/constants/errorCodes.ts`):
 |---|---|---|---|---|
 | `POST` | `/api/{version}/auth/login` | — | — | Login and receive JWT cookie |
 | `POST` | `/api/{version}/auth/signup` | — | 5/hour | Register new user |
-| `POST` | `/api/{version}/auth/guest` | — (no CSRF) | 10/hour | Start or reuse an anonymous guest session (check-in and result only); returns `{ user, _csrf }` |
+| `POST` | `/api/{version}/auth/guest` | — (no CSRF) | 10/hour | Start or reuse an anonymous guest session (check-in and result only); needs an `X-Requested-With` header (logged when missing, `403` once `REQUIRE_GUEST_HEADER=true`, default off); returns `{ user, _csrf }` |
 | `POST` | `/api/{version}/auth/guest/upgrade` | Guest cookie + CSRF | 5/hour | Convert the guest to a real account on the same row (`{ email, password }`, names optional); re-issues cookies, sends no email |
 | `GET` | `/api/{version}/auth/google/callback` | Guest cookie (optional) | — | With a guest cookie and a new Google identity, the guest row becomes the Google account (check-ins kept); an existing Google or verified-email account wins |
 | `GET` | `/api/{version}/auth/csrf` | — | — | Get CSRF token |
@@ -645,6 +645,7 @@ SERVER_API_VERSION
 ORIGIN
 DATABASE_URL
 JWT_SECRET
+REQUIRE_GUEST_HEADER (optional, default false: when true, POST /auth/guest needs an X-Requested-With header)
 ANTHROPIC_API_KEY / GOOGLE_AI_API_KEY / GOOGLE_FREE_AI_API_KEY / OPENAI_API_KEY
 ```
 

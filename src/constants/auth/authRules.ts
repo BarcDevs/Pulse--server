@@ -2,6 +2,11 @@ export const SESSION_EXPIRES_IN = '1d'
 
 export const ACCOUNT_DELETION_GRACE_DAYS = 30
 
+export const GUEST_REQUEST_HEADER = 'x-requested-with'
+
+export const GUEST_HEADER_FORBIDDEN_MESSAGE =
+    'Missing X-Requested-With header'
+
 export const GUEST_CHECK_IN_LIMIT = 3
 
 // A guest is kept for the token lifetime (config) plus this grace, see

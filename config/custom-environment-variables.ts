@@ -9,7 +9,11 @@ export default {
         url: 'DATABASE_URL'
     },
     auth: {
-        jwtSecret: 'JWT_SECRET'
+        jwtSecret: 'JWT_SECRET',
+        requireGuestHeader: {
+            __name: 'REQUIRE_GUEST_HEADER',
+            __format: 'boolean'
+        }
     },
     email: {
         emailPass: 'EMAIL_PASSWORD',

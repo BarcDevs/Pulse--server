@@ -1,6 +1,9 @@
 import supertest from 'supertest'
 
-import { serverConfig } from '../../../config'
+import {
+    authConfig,
+    serverConfig
+} from '../../../config'
 import { Prisma } from '../../../prisma/generated/prisma/client'
 import App from '../../app'
 import { HttpStatusCodes } from '../../constants/httpStatusCodes'
@@ -54,6 +57,57 @@ describe('Guest routes', () => {
             expect(response.body.data).toHaveProperty('_csrf')
             expect(cookieNames(response))
                 .toEqual(expect.arrayContaining(['accessToken', '_csrf']))
+        })
+
+        describe('X-Requested-With header', () => {
+            const original = authConfig.requireGuestHeader
+
+            beforeEach(() => {
+                prismaMock.user.create.mockResolvedValue(guest as never)
+                prismaMock.user.findUnique.mockResolvedValue(guest as never)
+            })
+
+            afterEach(() => {
+                authConfig.requireGuestHeader = original
+            })
+
+            it('refuses with 403 and creates no guest when enforced and the header is missing', async () => {
+                authConfig.requireGuestHeader = true
+
+                const response = await supertest(App).post(guestEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.FORBIDDEN)
+                expect(prismaMock.user.create).not.toHaveBeenCalled()
+                expect(cookieNames(response)).toEqual([])
+            })
+
+            it('creates a guest when enforced and the header is sent', async () => {
+                authConfig.requireGuestHeader = true
+
+                const response = await supertest(App)
+                    .post(guestEndpoint)
+                    .set('X-Requested-With', 'XMLHttpRequest')
+
+                expect(response.status).toBe(HttpStatusCodes.CREATED)
+            })
+
+            it('creates a guest when not enforced and the header is missing', async () => {
+                authConfig.requireGuestHeader = false
+
+                const response = await supertest(App).post(guestEndpoint)
+
+                expect(response.status).toBe(HttpStatusCodes.CREATED)
+            })
+
+            it('creates a guest when not enforced and the header is sent', async () => {
+                authConfig.requireGuestHeader = false
+
+                const response = await supertest(App)
+                    .post(guestEndpoint)
+                    .set('X-Requested-With', 'XMLHttpRequest')
+
+                expect(response.status).toBe(HttpStatusCodes.CREATED)
+            })
         })
 
         it('needs no CSRF token and no session', async () => {

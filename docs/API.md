@@ -87,7 +87,7 @@ Sets `accessToken` and `_csrf` cookies.
 ---
 
 ### `POST /guest`
-> Public, no CSRF. Rate limited: 10 new guests per hour per IP
+> Public, no CSRF. Rate limited: 10 new guests per hour per IP. Needs a non-empty `X-Requested-With` header (any value, e.g. `XMLHttpRequest`)
 
 Starts an anonymous **guest** session so a visitor can check in and see the result before creating an account. No body.
 
@@ -106,7 +106,9 @@ Idempotent per cookie: a valid guest cookie gets the same guest back (`200`, fre
 }
 ```
 
-**Errors:** `409` the cookie belongs to a real account, `429` rate limit
+**`X-Requested-With`:** a plain cross-site form post cannot set a custom header, so requiring it stops a foreign page from planting a guest cookie in a visitor's browser. Controlled by `REQUIRE_GUEST_HEADER` (config `auth.requireGuestHeader`, default `false`). While it is off a missing header is only logged as a warning (no IP, no cookie values) and the request proceeds. Switch it on only after the client sends the header and the warning log is quiet.
+
+**Errors:** `403` header missing while `REQUIRE_GUEST_HEADER` is on (no guest is created), `409` the cookie belongs to a real account, `429` rate limit
 
 **What a guest can use:** `POST/GET/PATCH /check-in`, `GET /check-in/stats`, `GET /check-in/progress-insights` (a guest always gets the plain insight, never the AI weekly summary), `GET /insight/observation`, `GET /auth/me`, `GET /auth/refresh`, `POST /auth/logout`, `POST /auth/guest/upgrade`. Every other authenticated route returns `403` (`AUTH_FORBIDDEN`, "Create an account to use this feature"). A guest is also treated as anonymous on routes with optional authentication.
 

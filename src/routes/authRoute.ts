@@ -36,6 +36,7 @@ import {
     signupRateLimiter,
     verifyResetCodeRateLimiter
 } from '../middlewares/rateLimiting'
+import { requireGuestHeader } from '../middlewares/requireGuestHeader'
 
 const router = Router()
 
@@ -350,18 +351,28 @@ router.route('/me').get(
  * /auth/guest:
  *   post:
  *     summary: Start an anonymous guest session
- *     description: Public, no CSRF. Creates a guest user (check-in and result only), sets the accessToken and _csrf cookies, and returns the user with a CSRF token. Idempotent per cookie. 409 when the cookie belongs to a real account.
+ *     description: Public, no CSRF. Needs a non-empty X-Requested-With header; a missing header is logged, and refused with 403 when REQUIRE_GUEST_HEADER is on. Creates a guest user (check-in and result only), sets the accessToken and _csrf cookies, and returns the user with a CSRF token. Idempotent per cookie. 409 when the cookie belongs to a real account.
  *     tags: [Auth]
+ *     parameters:
+ *       - in: header
+ *         name: X-Requested-With
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Any non-empty value. Required once REQUIRE_GUEST_HEADER is on; a missing header is only logged until then.
  *     responses:
  *       201:
  *         description: Guest created
  *       200:
  *         description: Existing guest session reused
+ *       403:
+ *         description: X-Requested-With header missing while REQUIRE_GUEST_HEADER is on
  *       409:
  *         description: Already signed in as a real account
  */
 router.route('/guest').post(
     guestRateLimiter,
+    requireGuestHeader,
     createGuest
 )
 

@@ -17,7 +17,8 @@ export default {
     auth: {
         jwtSecret: '',
         expiresIn: '1d',
-        otp_expiration: '10m'
+        otp_expiration: '10m',
+        requireGuestHeader: false
     },
     database: {
         url: 'DEV_DATABASE_URL',

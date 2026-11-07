@@ -35,7 +35,8 @@ const appConfig: AppConfig = {
 const authConfig: AuthConfig = {
     jwtSecret: config.get<string>('auth.jwtSecret'),
     expiresIn: config.get<number>('auth.expiresIn'),
-    otp_expiration: config.get<number>('auth.otp_expiration')
+    otp_expiration: config.get<number>('auth.otp_expiration'),
+    requireGuestHeader: config.get<boolean>('auth.requireGuestHeader')
 }
 
 if (authConfig.jwtSecret.length < 32) {
