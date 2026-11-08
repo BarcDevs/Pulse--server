@@ -97,3 +97,10 @@ Auto-recorded corrections.
 | Date | Entry |
 |---|---|
 | 02/11/2026 | Don't add a new endpoint when an existing flow can be reused |
+
+## Feature Design — [[corrections/feature-design]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 08/11/2026 | Launch-funnel links must use the /start page, not the root |
