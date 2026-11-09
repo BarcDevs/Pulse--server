@@ -667,6 +667,8 @@ Every push to `development` auto-deploys `Pulse--server-staging`, isolated from 
 | Google OAuth | Separate Authorized JS origin + redirect URI (`/api/{version}/auth/google/callback` on the staging URL) |
 | `NODE_ENV` | `production` (Render's default for Node web services) — **do not change.** Build uses `tsc`, which doesn't read `NODE_ENV`, but other tooling in the pipeline expects `production`/`development`/`test` only — setting `staging` may break assumptions elsewhere. |
 | `APP_ENV` | `staging` — overrides the app's internal `env` config value without touching `NODE_ENV`. Set this on the staging Render service only. |
+| Migrations | Run automatically on every start via the `prestart` npm script (`scripts/prestart.cjs`) when `APP_ENV=staging` (`prisma migrate deploy`; a failed migration fails the start). Render runs `npm start`, so the dashboard needs no change. Production (Docker, `node src/app.js`) never runs it. |
+| CloudWatch error shipping | Off on staging (only ships when `APP_ENV=production`) |
 
 Frontend staging build: see [client README](https://github.com/BarcDevs/Pulse--client#staging-environment).
 

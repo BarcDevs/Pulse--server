@@ -38,6 +38,9 @@ jobs:
       - name: Lint
         run: npm run lint:check
 
+      - name: Migration gate tests
+        run: NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules npx jest src/__tests__/scripts/ec2-redeploy.test.ts --coverage=false
+
       - name: Unit tests (with coverage gate)
         run: npm test
 
