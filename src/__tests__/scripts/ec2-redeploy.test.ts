@@ -50,34 +50,83 @@ describe('ec2-redeploy.sh migration gate', () => {
     });
 
     describe('is_destructive_sql', () => {
-        it.each([
-            'ALTER TABLE "User" DROP COLUMN "nickname";',
-            'DROP TABLE "Legacy";',
-            'ALTER TABLE "User" RENAME COLUMN "a" TO "b";',
-            'ALTER TABLE "User" RENAME TABLE "a" TO "b";',
-            'alter table "User" drop column "nickname";',
-            'ALTER TABLE "User" ALTER COLUMN "age" SET DATA TYPE INTEGER;',
-            'ALTER TABLE "User" ALTER COLUMN "age" TYPE INTEGER;',
-            'ALTER TABLE "User" ALTER COLUMN "email" SET NOT NULL;',
-            'ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL;',
-            'TRUNCATE TABLE "Report";',
-            'DELETE FROM "Report";',
-            `UPDATE "User" SET "plan" = 'free';`,
-            'DROP TYPE "Role";',
-            'ALTER TABLE "User"\n  DROP COLUMN "nickname";'
-        ])('flags destructive SQL: %s', (sql) => {
-            expect(runGate('is_destructive_sql', sql).status).toBe(0);
-        });
+        const dangerous: Array<[string, string]> = [
+            ['drop column', 'ALTER TABLE "User" DROP COLUMN "nickname";'],
+            ['drop column without keyword', 'ALTER TABLE "User" DROP "nickname";'],
+            ['drop column if exists', 'ALTER TABLE "User" DROP COLUMN IF EXISTS "nickname";'],
+            ['drop table', 'DROP TABLE "Legacy";'],
+            ['drop index', 'DROP INDEX "User_email_idx";'],
+            ['drop constraint', 'ALTER TABLE "User" DROP CONSTRAINT "User_fkey";'],
+            ['drop view', 'DROP VIEW "ActiveUsers";'],
+            ['drop function', 'DROP FUNCTION "touch"();'],
+            ['drop trigger', 'DROP TRIGGER "t" ON "User";'],
+            ['drop sequence', 'DROP SEQUENCE "User_id_seq";'],
+            ['drop database', 'DROP DATABASE pulse;'],
+            ['drop type', 'DROP TYPE "Role";'],
+            ['drop schema', 'DROP SCHEMA "legacy" CASCADE;'],
+            ['alter type drop value', 'ALTER TYPE "Role" DROP VALUE \'admin\';'],
+            ['alter type rename value', 'ALTER TYPE "Role" RENAME VALUE \'a\' TO \'b\';'],
+            ['rename column', 'ALTER TABLE "User" RENAME COLUMN "a" TO "b";'],
+            ['rename table', 'ALTER TABLE "User" RENAME TO "Person";'],
+            ['alter column type', 'ALTER TABLE "User" ALTER COLUMN "age" TYPE INTEGER;'],
+            ['alter column set data type', 'ALTER TABLE "User" ALTER COLUMN "age" SET DATA TYPE INTEGER;'],
+            ['set not null', 'ALTER TABLE "User" ALTER COLUMN "email" SET NOT NULL;'],
+            ['add column not null without default', 'ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL;'],
+            ['truncate', 'TRUNCATE TABLE "Report";'],
+            ['delete from', 'DELETE FROM "Report" WHERE "id" = 1;'],
+            ['update set', 'UPDATE "User" SET "plan" = \'free\';']
+        ];
+
+        const variants = (sql: string) => [
+            sql,
+            sql.toLowerCase(),
+            sql.replace(/ (?=[A-Z])/g, '\n    ')
+        ];
+
+        it.each(dangerous.flatMap(([kind, sql]) => variants(sql).map((v, i) => [kind, ['upper', 'lower', 'multi-line'][i], v])))(
+            'flags %s (%s)',
+            (_kind, _variant, sql) => {
+                expect(runGate('is_destructive_sql', sql).status).toBe(0);
+            }
+        );
 
         it.each([
-            'ALTER TABLE "User" ADD COLUMN "nickname" TEXT;',
-            'CREATE TABLE "SupportContact" ("id" SERIAL PRIMARY KEY);',
-            'CREATE INDEX "idx" ON "User"("email");',
-            `ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL DEFAULT 'free';`,
-            '-- we no longer DROP COLUMN here\nALTER TABLE "User" ADD COLUMN "x" TEXT;',
-            ''
-        ])('allows additive SQL: %s', (sql) => {
+            ['create table', 'CREATE TABLE "SupportContact" ("id" SERIAL PRIMARY KEY);'],
+            ['create index', 'CREATE INDEX "idx" ON "User"("email");'],
+            ['create unique index', 'CREATE UNIQUE INDEX "u" ON "User"("email");'],
+            ['create type', 'CREATE TYPE "Role" AS ENUM (\'a\', \'b\');'],
+            ['add enum value', 'ALTER TYPE "Role" ADD VALUE \'c\';'],
+            ['add column nullable', 'ALTER TABLE "User" ADD COLUMN "nickname" TEXT;'],
+            ['add column with default', 'ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL DEFAULT \'free\';'],
+            ['add constraint', 'ALTER TABLE "Report" ADD CONSTRAINT "fk" FOREIGN KEY ("uid") REFERENCES "User"("id");'],
+            ['drop not null', 'ALTER TABLE "User" ALTER COLUMN "email" DROP NOT NULL;'],
+            ['drop default', 'ALTER TABLE "User" ALTER COLUMN "plan" DROP DEFAULT;'],
+            ['set default', 'ALTER TABLE "User" ALTER COLUMN "plan" SET DEFAULT \'free\';'],
+            ['comment mentioning drop', '-- we no longer DROP COLUMN here\nALTER TABLE "User" ADD COLUMN "x" TEXT;'],
+            ['column named like a keyword', 'ALTER TABLE "User" ADD COLUMN "dropped_at" TIMESTAMP(3);'],
+            ['empty', '']
+        ])('allows additive SQL: %s', (_kind, sql) => {
             expect(runGate('is_destructive_sql', sql).status).toBe(1);
+        });
+    });
+
+    describe('snapshot_name_for_tag', () => {
+        it('builds pre-migrate-<tag>-<timestamp>', () => {
+            const result = runGate('snapshot_name_for_tag abc123 20261109120000', '');
+
+            expect(result.stdout).toBe('pre-migrate-abc123-20261109120000');
+        });
+
+        it('replaces characters RDS identifiers do not allow', () => {
+            const result = runGate('snapshot_name_for_tag v1.2_rc/3 20261109120000', '');
+
+            expect(result.stdout).toBe('pre-migrate-v1-2-rc-3-20261109120000');
+        });
+
+        it('defaults the timestamp to now', () => {
+            const result = runGate('snapshot_name_for_tag abc', '');
+
+            expect(result.stdout).toMatch(/^pre-migrate-abc-\d{14}$/);
         });
     });
 
