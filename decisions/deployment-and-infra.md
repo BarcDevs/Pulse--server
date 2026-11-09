@@ -156,6 +156,20 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 
 **How to apply:** rollout order matters. If the loopback-bound deploy goes out before the tunnel is live, the site goes down. The order is: create the tunnel, store the token and IAM → start `cloudflared` once via SSM → swap DNS (delete the apex A record, add the tunnel public hostname) → merge the client PR → remove SG 80/443 → set SSL mode to Full (strict) and Always Use HTTPS. The EIP stays attached for now (outbound, SSH) but is no longer on the request path.
 
+## 30/09/2026 — Routine runs on Sonnet 4.6, not 5 or 5.5
+
+**Decision:** The scheduled routine is set up on Sonnet 4.6 (not Sonnet 5 or 5.5) to save tokens, because it runs on the old tokenizer.
+
+**Why over alternatives:** Token saving on the old tokenizer.
+
+**Source:** Bar, typed in a Pulse server session on 2026-09-30: "ive set it up on sonnet 4.6 (not 5 or 5.5) to save tokens since it run on the old tokeniser"
+
+## 21/10/2026 — Use the separate AWS cost tool, not the AWS MCP
+
+**Decision:** To check actual AWS cost use the separate cost explorer tool (split out from the MCP), not the AWS MCP.
+
+**Source:** Bar, typed in a Pulse server session on 2026-10-21: "Use the tool, not the MCP. You separated from the MCP to check actual cost" and "No I remember we had the MCP and we split the cost explorer format
+
 ## 27/10/2026 — Watcher fixer merges release PR on green checks
 
 **Decision:** The fixer routine now merges the development to main release PR itself when every check is green, and pushes to the owner whenever a Deploy run waits for approval. The owner only approves the deploy. held-for-review stays as the review gate until the owner replaces it with rules.

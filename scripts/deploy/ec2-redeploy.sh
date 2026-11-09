@@ -38,9 +38,41 @@ pending_migration_names() {
     sed -n '/have not yet been applied/,/^$/p' | grep -oE '^[0-9]{8,}_?[A-Za-z0-9_]*$' || true
 }
 
-# Exit 0 if the migration SQL on stdin drops or renames a column/table.
+# Exit 0 if the migration SQL on stdin can lose data or break the previous
+# container (the only rollback target: the schema is never rolled back). Flags:
+#   - every DROP (COLUMN/TABLE/CONSTRAINT/VIEW/FUNCTION/TRIGGER/SEQUENCE/
+#     TYPE/SCHEMA/DATABASE, ALTER TYPE ... DROP VALUE, and ALTER TABLE x DROP "col"
+#     without the COLUMN keyword) except DROP NOT NULL / DROP DEFAULT / DROP IDENTITY
+#     and DROP INDEX (incl. IF EXISTS / CONCURRENTLY), which is deliberately
+#     allowed: an index only affects query performance, never correctness
+#   - RENAME COLUMN/TABLE/VALUE (and any other RENAME ... TO)
+#   - ALTER COLUMN ... TYPE / SET DATA TYPE (lossy cast, table rewrite)
+#   - ALTER COLUMN ... SET NOT NULL (fails or locks if NULLs exist)
+#   - ADD COLUMN ... NOT NULL with no DEFAULT (old code's INSERTs start failing)
+#   - TRUNCATE, DELETE FROM, UPDATE ... SET (data rewrites need a human)
+# Passes: CREATE TABLE/INDEX/TYPE, DROP INDEX, ADD COLUMN (nullable or with DEFAULT),
+# ADD CONSTRAINT, DROP NOT NULL, SET DEFAULT.
+# `--` comments are stripped first, so a comment never trips or hides the gate.
 is_destructive_sql() {
-    grep -qiE 'DROP (COLUMN|TABLE)|RENAME (COLUMN|TABLE)'
+    local sql
+    sql=$(sed 's/--.*$//' | tr '\n\r' '  ')
+    if echo "$sql" | grep -qiE 'RENAME +(COLUMN|TABLE|VALUE|TO)|ALTER +COLUMN[^;]*(SET +DATA +)?TYPE|ALTER +COLUMN[^;]*SET +NOT +NULL|TRUNCATE|DELETE +FROM|UPDATE +("?[A-Za-z0-9_.]+"?) +SET'; then
+        return 0
+    fi
+    if echo "$sql" | grep -oiE '(^|[^A-Za-z0-9_"])DROP +[^ ;]+( +[^ ;]+)?' | sed -E 's/^[^Dd]*//' | grep -qivE '^DROP +(INDEX|NOT +NULL|DEFAULT|IDENTITY)'; then
+        return 0
+    fi
+    echo "$sql" | grep -oiE 'ADD +COLUMN[^;]*' | grep -iE 'NOT +NULL' | grep -qiv 'DEFAULT'
+}
+
+# Name of the pre-migration RDS snapshot: "pre-migrate-<tag>-<timestamp>".
+# RDS identifiers allow only letters, digits and hyphens, so anything else in
+# the image tag becomes a hyphen. Timestamp defaults to now (override for tests).
+snapshot_name_for_tag() {
+    local tag ts
+    tag=$(printf '%s' "$1" | tr -c 'A-Za-z0-9-' '-')
+    ts="${2:-$(date +%Y%m%d%H%M%S)}"
+    printf 'pre-migrate-%s-%s' "$tag" "$ts"
 }
 
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
@@ -92,8 +124,7 @@ if [ -z "$SUPPORT_READER_SECRET" ]; then
     echo "WARNING: pulse/app/SUPPORT_READER_SECRET not readable - GET /support/claude/tickets will reject every request." >&2
 fi
 
-# Expand/contract gate: destructive migrations (dropped/renamed columns or
-# tables) must ship in a separate release after the code that stops reading
+# Expand/contract gate: destructive migrations (see is_destructive_sql) must ship in a separate release after the code that stops reading
 # them, applied manually under a maintenance window. Auto-deploy refuses them
 # outright — the previous container can't be rolled back to a schema that no
 # longer exists once a drop/rename has run.
@@ -112,6 +143,18 @@ for name in $PENDING_NAMES; do
         exit 1
     fi
 done
+
+# Automatic backup before any migration runs: never migrate without it.
+# The instance role needs rds:CreateDBSnapshot and rds:DescribeDBSnapshots
+# (plus rds:AddTagsToResource if the snapshot is tagged); see docs/DEPLOYMENT.md.
+if [ -n "$PENDING_NAMES" ]; then
+    SNAPSHOT_ID=$(snapshot_name_for_tag "$IMAGE_TAG")
+    echo "Creating RDS snapshot $SNAPSHOT_ID before migrating..."
+    if ! aws rds create-db-snapshot --region "$REGION" --db-instance-identifier pulse-db --db-snapshot-identifier "$SNAPSHOT_ID"         || ! timeout 900 aws rds wait db-snapshot-available --region "$REGION" --db-snapshot-identifier "$SNAPSHOT_ID"; then
+        echo "RDS snapshot $SNAPSHOT_ID failed or timed out — refusing to migrate without a backup." >&2
+        exit 1
+    fi
+fi
 
 echo "Running migrations..."
 docker run --rm -e DATABASE_URL="$DATABASE_URL" "$ECR/$REPO:migrate-$IMAGE_TAG" npm run release
