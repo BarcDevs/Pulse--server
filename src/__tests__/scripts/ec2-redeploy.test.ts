@@ -55,7 +55,6 @@ describe('ec2-redeploy.sh migration gate', () => {
             ['drop column without keyword', 'ALTER TABLE "User" DROP "nickname";'],
             ['drop column if exists', 'ALTER TABLE "User" DROP COLUMN IF EXISTS "nickname";'],
             ['drop table', 'DROP TABLE "Legacy";'],
-            ['drop index', 'DROP INDEX "User_email_idx";'],
             ['drop constraint', 'ALTER TABLE "User" DROP CONSTRAINT "User_fkey";'],
             ['drop view', 'DROP VIEW "ActiveUsers";'],
             ['drop function', 'DROP FUNCTION "touch"();'],
@@ -92,6 +91,18 @@ describe('ec2-redeploy.sh migration gate', () => {
 
         it.each([
             ['create table', 'CREATE TABLE "SupportContact" ("id" SERIAL PRIMARY KEY);'],
+            ['drop index', 'DROP INDEX "User_email_idx";'],
+            ['drop index lower', 'drop index "User_email_idx";'],
+            ['drop index multi-line', `DROP
+  INDEX
+  "User_email_idx";`],
+            ['drop index if exists', 'DROP INDEX IF EXISTS "User_email_idx";'],
+            ['drop index concurrently', 'DROP INDEX CONCURRENTLY "User_email_idx";'],
+            ['prisma index change', `-- DropIndex
+DROP INDEX "idx_x";
+
+-- CreateIndex
+CREATE INDEX "idx_x" ON "User"("email", "plan");`],
             ['create index', 'CREATE INDEX "idx" ON "User"("email");'],
             ['create unique index', 'CREATE UNIQUE INDEX "u" ON "User"("email");'],
             ['create type', 'CREATE TYPE "Role" AS ENUM (\'a\', \'b\');'],

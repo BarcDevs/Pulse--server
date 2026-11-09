@@ -40,15 +40,17 @@ pending_migration_names() {
 
 # Exit 0 if the migration SQL on stdin can lose data or break the previous
 # container (the only rollback target: the schema is never rolled back). Flags:
-#   - every DROP (COLUMN/TABLE/INDEX/CONSTRAINT/VIEW/FUNCTION/TRIGGER/SEQUENCE/
+#   - every DROP (COLUMN/TABLE/CONSTRAINT/VIEW/FUNCTION/TRIGGER/SEQUENCE/
 #     TYPE/SCHEMA/DATABASE, ALTER TYPE ... DROP VALUE, and ALTER TABLE x DROP "col"
 #     without the COLUMN keyword) except DROP NOT NULL / DROP DEFAULT / DROP IDENTITY
+#     and DROP INDEX (incl. IF EXISTS / CONCURRENTLY), which is deliberately
+#     allowed: an index only affects query performance, never correctness
 #   - RENAME COLUMN/TABLE/VALUE (and any other RENAME ... TO)
 #   - ALTER COLUMN ... TYPE / SET DATA TYPE (lossy cast, table rewrite)
 #   - ALTER COLUMN ... SET NOT NULL (fails or locks if NULLs exist)
 #   - ADD COLUMN ... NOT NULL with no DEFAULT (old code's INSERTs start failing)
 #   - TRUNCATE, DELETE FROM, UPDATE ... SET (data rewrites need a human)
-# Passes: CREATE TABLE/INDEX/TYPE, ADD COLUMN (nullable or with DEFAULT),
+# Passes: CREATE TABLE/INDEX/TYPE, DROP INDEX, ADD COLUMN (nullable or with DEFAULT),
 # ADD CONSTRAINT, DROP NOT NULL, SET DEFAULT.
 # `--` comments are stripped first, so a comment never trips or hides the gate.
 is_destructive_sql() {
@@ -57,7 +59,7 @@ is_destructive_sql() {
     if echo "$sql" | grep -qiE 'RENAME +(COLUMN|TABLE|VALUE|TO)|ALTER +COLUMN[^;]*(SET +DATA +)?TYPE|ALTER +COLUMN[^;]*SET +NOT +NULL|TRUNCATE|DELETE +FROM|UPDATE +("?[A-Za-z0-9_.]+"?) +SET'; then
         return 0
     fi
-    if echo "$sql" | grep -oiE '(^|[^A-Za-z0-9_"])DROP +[^ ;]+( +[^ ;]+)?' | sed -E 's/^[^Dd]*//' | grep -qivE '^DROP +(NOT +NULL|DEFAULT|IDENTITY)'; then
+    if echo "$sql" | grep -oiE '(^|[^A-Za-z0-9_"])DROP +[^ ;]+( +[^ ;]+)?' | sed -E 's/^[^Dd]*//' | grep -qivE '^DROP +(INDEX|NOT +NULL|DEFAULT|IDENTITY)'; then
         return 0
     fi
     echo "$sql" | grep -oiE 'ADD +COLUMN[^;]*' | grep -iE 'NOT +NULL' | grep -qiv 'DEFAULT'
