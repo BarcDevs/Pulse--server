@@ -11,6 +11,7 @@
   "main": "index.js",
   "scripts": {
     "prepare": "husky || true",
+    "prestart": "node scripts/prestart.cjs",
     "start": "node dist/src/app.js",
     "build": "npx prisma generate && tsc",
     "start:dev": "NODE_ENV=development node --watch --import tsx src/app.ts",
