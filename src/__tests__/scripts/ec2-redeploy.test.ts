@@ -55,7 +55,16 @@ describe('ec2-redeploy.sh migration gate', () => {
             'DROP TABLE "Legacy";',
             'ALTER TABLE "User" RENAME COLUMN "a" TO "b";',
             'ALTER TABLE "User" RENAME TABLE "a" TO "b";',
-            'alter table "User" drop column "nickname";'
+            'alter table "User" drop column "nickname";',
+            'ALTER TABLE "User" ALTER COLUMN "age" SET DATA TYPE INTEGER;',
+            'ALTER TABLE "User" ALTER COLUMN "age" TYPE INTEGER;',
+            'ALTER TABLE "User" ALTER COLUMN "email" SET NOT NULL;',
+            'ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL;',
+            'TRUNCATE TABLE "Report";',
+            'DELETE FROM "Report";',
+            `UPDATE "User" SET "plan" = 'free';`,
+            'DROP TYPE "Role";',
+            'ALTER TABLE "User"\n  DROP COLUMN "nickname";'
         ])('flags destructive SQL: %s', (sql) => {
             expect(runGate('is_destructive_sql', sql).status).toBe(0);
         });
@@ -64,6 +73,8 @@ describe('ec2-redeploy.sh migration gate', () => {
             'ALTER TABLE "User" ADD COLUMN "nickname" TEXT;',
             'CREATE TABLE "SupportContact" ("id" SERIAL PRIMARY KEY);',
             'CREATE INDEX "idx" ON "User"("email");',
+            `ALTER TABLE "User" ADD COLUMN "plan" TEXT NOT NULL DEFAULT 'free';`,
+            '-- we no longer DROP COLUMN here\nALTER TABLE "User" ADD COLUMN "x" TEXT;',
             ''
         ])('allows additive SQL: %s', (sql) => {
             expect(runGate('is_destructive_sql', sql).status).toBe(1);

@@ -38,9 +38,22 @@ pending_migration_names() {
     sed -n '/have not yet been applied/,/^$/p' | grep -oE '^[0-9]{8,}_?[A-Za-z0-9_]*$' || true
 }
 
-# Exit 0 if the migration SQL on stdin drops or renames a column/table.
+# Exit 0 if the migration SQL on stdin can lose data or break the previous
+# container (the only rollback target: the schema is never rolled back). Flags:
+#   - DROP COLUMN/TABLE/TYPE/SCHEMA, RENAME COLUMN/TABLE/VALUE
+#   - ALTER COLUMN ... TYPE (lossy cast, table rewrite)
+#   - ALTER COLUMN ... SET NOT NULL (fails or locks if NULLs exist)
+#   - ADD COLUMN ... NOT NULL with no DEFAULT (old code's INSERTs start failing)
+#   - TRUNCATE, DELETE FROM, UPDATE ... SET (data rewrites need a human)
+# `--` comments are stripped first, so a comment never trips or hides the gate.
 is_destructive_sql() {
-    grep -qiE 'DROP (COLUMN|TABLE)|RENAME (COLUMN|TABLE)'
+    local sql
+    sql=$(sed 's/--.*$//' | tr '
+' ' ')
+    if echo "$sql" | grep -qiE 'DROP +(COLUMN|TABLE|TYPE|SCHEMA)|RENAME +(COLUMN|TABLE|VALUE)|ALTER +COLUMN[^;]*(SET +DATA +)?TYPE|ALTER +COLUMN[^;]*SET +NOT +NULL|TRUNCATE|DELETE +FROM|UPDATE +("?[A-Za-z0-9_.]+"?) +SET'; then
+        return 0
+    fi
+    echo "$sql" | grep -oiE 'ADD +COLUMN[^;]*' | grep -iE 'NOT +NULL' | grep -qiv 'DEFAULT'
 }
 
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
@@ -92,8 +105,7 @@ if [ -z "$SUPPORT_READER_SECRET" ]; then
     echo "WARNING: pulse/app/SUPPORT_READER_SECRET not readable - GET /support/claude/tickets will reject every request." >&2
 fi
 
-# Expand/contract gate: destructive migrations (dropped/renamed columns or
-# tables) must ship in a separate release after the code that stops reading
+# Expand/contract gate: destructive migrations (see is_destructive_sql) must ship in a separate release after the code that stops reading
 # them, applied manually under a maintenance window. Auto-deploy refuses them
 # outright — the previous container can't be rolled back to a schema that no
 # longer exists once a drop/rename has run.
