@@ -213,3 +213,21 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Static write-only IAM keys in Secrets Manager (long-lived key to rotate, new secret in the deploy path); a host-side shipper tailing docker logs (new moving part on the instance).
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 15/11/2026 — Client moves onto the server EC2 box, not S3
+
+**Decision:** The Next.js client container will run on the same EC2 box as the server, behind path routing, and the separate client EC2 instance goes away. The client is not moved to S3 + CloudFront and is not rewritten in another framework.
+
+**Why over alternatives:** The client is Next.js `output: 'standalone'` and needs Node at runtime (per-request CSP nonce in `src/proxy.ts`, cookie locale via `cookies()`, `/api` rewrites), so S3 needs a client refactor. The actual waste is the second box and its public IPv4; one shared box removes that with no client code change.
+
+**Rejected:** S3 + CloudFront static export now (client refactor, delays the chat work, about no extra saving once the box is sized for chat); keeping the separate client EC2 (keeps paying for the second box and IPv4).
+
+**Source:** Bar, AskUserQuestion answer in the aws-arch session, 2026-11-15
+
+## 15/11/2026 — FastAPI chat service: assistant first, design per inter-service report
+
+**Decision:** The FastAPI chat service starts as an AI assistant only, built so user-to-user chat can later be added as a feature of the same service. Its communication with the Node server follows `~/Claude/personal/teach/python-fastapi/report-interservice-python-nodejs.md`: Node owns auth, the main DB and the browser WebSocket; FastAPI owns chat logic, LLM calls and async jobs; REST/OpenAPI for sync calls, BullMQ over Redis for async, Redis Pub/Sub for real-time fan-out, M2M key plus `X-User-ID` for auth.
+
+**Why over alternatives:** User-to-user chat is a future possibility, not current scope. The report is the user's chosen source for the service-communication design; it does not cover AWS or deployment.
+
+**Source:** Bar, AskUserQuestion answers in the aws-arch session, 2026-11-15

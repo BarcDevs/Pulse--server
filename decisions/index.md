@@ -61,6 +61,8 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 28/10/2026 | Risky releases held by a needs-review label at the PR phase |
 | 28/10/2026 | Held needs-review PRs carry a what-changed summary |
 | 28/10/2026 | Instance metadata hop limit 2 so the container reads the instance role |
+| 15/11/2026 | Client moves onto the server EC2 box, not S3 |
+| 15/11/2026 | FastAPI chat service: assistant first, design per inter-service report |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
