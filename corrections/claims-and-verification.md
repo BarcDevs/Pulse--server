@@ -50,3 +50,11 @@ Across several turns I framed the server's changing public IP as the ASG blocker
 Asked to resolve the "Monitor agent for production errors" TODO, I wrote "resolved 10/10/2026, built by the owner" in `TODO.md` from the user's words "i already built it", without checking who built it or when. The user corrected it: it was not built by them and not today; it was built by the `aws-monitor` session. `git log -- scripts/monitor` shows the scripts first added 29/09/2026 (e3e764c) and last changed 09/10/2026.
 
 **How to apply:** before recording who built something or when, read the history (`git log` dates and `Claude-Session` trailers) or ask. "I built it" from the user can mean work done by their agent sessions, and a record that names an author or date is a claim that needs a source.
+
+## 15/11/2026 — "Test it" on a plan claim meant docs, not builds
+
+**Correct fact:** Asked to "test" whether Pulse's native packages work on ARM during an architecture planning session, Claude started real arm64 image builds under emulation on the user's PC. The user meant a check from documentation and published package information only. In a planning session, verify a claim from docs, lockfiles and registry metadata first, and ask before starting a heavy or long-running local job.
+
+**Lesson:** The build was not wanted, loaded the PC until the session stopped it for low memory, and produced no result. The docs check answers the planning question at almost no cost.
+
+**Source:** Bar, comment on the Pulse AWS Architecture Plan artifact, 2026-11-15: "No, I didn't mean you should actually build it to test. I mean only from docs and things."
