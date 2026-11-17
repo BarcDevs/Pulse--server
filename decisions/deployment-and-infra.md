@@ -231,3 +231,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over alternatives:** User-to-user chat is a future possibility, not current scope. The report is the user's chosen source for the service-communication design; it does not cover AWS or deployment.
 
 **Source:** Bar, AskUserQuestion answers in the aws-arch session, 2026-11-15
+
+## 17/11/2026 — Stay on t3.small, no ARM (t4g.small) move
+
+**Decision:** The single app box stays on x86 t3.small. The planned step 2 move to t4g.small (ARM) is dropped. Switching later stays possible, since nothing in the layout blocks it.
+
+**Why over alternatives:** It saves $4.22 a month (about $51 a year), which does not justify three build pipelines (server, client, chat), an arm64 machine image, and production being the only ARM environment (dev PC and Render staging are x86). ARM support was checked from documentation only, never run.
+
+**Rejected:** t4g.small as a second step after the client move. t3.medium and t4g.medium were also rejected earlier as overkill.
+
+**Source:** Bar, comments on the AWS architecture artifact, 17 Nov 2026
