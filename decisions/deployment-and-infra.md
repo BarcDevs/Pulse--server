@@ -251,3 +251,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Staying on db.t3.micro to avoid a few minutes of database downtime (total would be $57.50).
 
 **Source:** Bar, terminal, 17 Nov 2026
+
+## 17/11/2026 — Job queue is RabbitMQ, not SQS or BullMQ
+
+**Decision:** Background jobs run on a RabbitMQ container on the app box, used by Node only for now (chat consumes no jobs). Hard memory cap (256 MiB estimate, to be measured after the client move), data on a volume, internal network only, one Node user limited to its own queues. Replaces the earlier BullMQ-over-Redis decision and the SQS plan.
+
+**Why over alternatives:** Owner chose it on 17 Nov to gain experience in a broker that job listings often name, alongside a sound design. Jobs are rebuildable from Postgres, so losing the box's volume costs a delay, not data.
+
+**Rejected:** SQS (managed, no memory, but no broker experience); BullMQ on Redis (needs a second non-evicting Redis, weak Python client); Redis Streams (retries to be written by hand).
+
+**Source:** Artifact comment thread 687af3ff, 17 Nov 2026: "RabbitMQ it is, so I also gain experience along the way."
