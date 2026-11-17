@@ -241,3 +241,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** t4g.small as a second step after the client move. t3.medium and t4g.medium were also rejected earlier as overkill.
 
 **Source:** Bar, comments on the AWS architecture artifact, 17 Nov 2026
+
+## 17/11/2026 — Move RDS to db.t4g.micro (confirmed)
+
+**Decision:** The RDS instance class changes from db.t3.micro to db.t4g.micro. Confirmed as part of the plan. The change itself is not run yet: it needs a maintenance window the user picks and a snapshot first.
+
+**Why over alternatives:** Saves about $1.76 a month with tax ($0.019 against $0.021 an hour), with no code change. Checked 17 Nov with the AWS CLI: db.t4g.micro is orderable for Postgres 17.10 in eu-central-1. AWS's extension table lists pgvector 0.8.2 on 17.10; still to confirm with CREATE EXTENSION vector on a restored copy. The database being on ARM while the app box stays on x86 is harmless, since the app reaches Postgres over the network.
+
+**Rejected:** Staying on db.t3.micro to avoid a few minutes of database downtime (total would be $57.50).
+
+**Source:** Bar, terminal, 17 Nov 2026

@@ -64,6 +64,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 15/11/2026 | Client moves onto the server EC2 box, not S3 |
 | 15/11/2026 | FastAPI chat service: assistant first, design per inter-service report |
 | 17/11/2026 | Stay on t3.small, no ARM (t4g.small) move |
+| 17/11/2026 | Move RDS to db.t4g.micro (confirmed) |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
