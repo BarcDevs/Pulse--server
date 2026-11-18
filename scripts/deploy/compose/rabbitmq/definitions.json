@@ -1,0 +1,95 @@
+{
+    "rabbit_version": "4.0",
+    "vhosts": [
+        { "name": "/pulse" }
+    ],
+    "exchanges": [
+        {
+            "name": "pulse.jobs",
+            "vhost": "/pulse",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "pulse.jobs.retry",
+            "vhost": "/pulse",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        },
+        {
+            "name": "pulse.jobs.dead",
+            "vhost": "/pulse",
+            "type": "direct",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "queues": [
+        {
+            "name": "pulse.checkin-ai",
+            "vhost": "/pulse",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic",
+                "x-dead-letter-exchange": "pulse.jobs.retry",
+                "x-dead-letter-routing-key": "checkin-ai"
+            }
+        },
+        {
+            "name": "pulse.checkin-ai.retry",
+            "vhost": "/pulse",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic",
+                "x-message-ttl": 10000,
+                "x-dead-letter-exchange": "pulse.jobs",
+                "x-dead-letter-routing-key": "checkin-ai"
+            }
+        },
+        {
+            "name": "pulse.checkin-ai.dead",
+            "vhost": "/pulse",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        }
+    ],
+    "bindings": [
+        {
+            "source": "pulse.jobs",
+            "vhost": "/pulse",
+            "destination": "pulse.checkin-ai",
+            "destination_type": "queue",
+            "routing_key": "checkin-ai",
+            "arguments": {}
+        },
+        {
+            "source": "pulse.jobs.retry",
+            "vhost": "/pulse",
+            "destination": "pulse.checkin-ai.retry",
+            "destination_type": "queue",
+            "routing_key": "checkin-ai",
+            "arguments": {}
+        },
+        {
+            "source": "pulse.jobs.dead",
+            "vhost": "/pulse",
+            "destination": "pulse.checkin-ai.dead",
+            "destination_type": "queue",
+            "routing_key": "checkin-ai",
+            "arguments": {}
+        }
+    ]
+}

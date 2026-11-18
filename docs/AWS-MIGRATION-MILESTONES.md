@@ -18,10 +18,10 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 - [x] A1 S: compose file with cloudflared, Redis and RabbitMQ (`scripts/deploy/compose/docker-compose.yml`), validated with `docker compose config`. The server and the client are not in it: they keep their blue/green deploy scripts and join the networks (design point, see the log).
 - [x] A2 S: two networks, `pulse_edge` and `pulse_internal` (`internal: true`, no internet): `config` shows cloudflared on edge and Redis and RabbitMQ on internal.
 - [x] A3 S: memory limits (cloudflared 64 MiB, Redis 128 MiB with a 100 MiB cache cap, RabbitMQ 256 MiB) and `restart: always`: `config` shows them.
-- [ ] A4 S: healthchecks for each service: defined in the file, not yet run. cloudflared needs a real tunnel token, Redis and RabbitMQ were not started.
+- [x] A4 S: healthchecks: Redis and RabbitMQ reported healthy in a local run; cloudflared's `tunnel ready` command exists in the pinned image, but it was not run against a real tunnel, so its healthy state is still unverified.
 - [x] A5 S: nothing publishes a host port: `config --profile broker` shows no `ports` for any service.
-- [ ] A6 S: Redis service with a password, `maxmemory 100mb`, `allkeys-lru`: defined under the `broker` profile and validated by `config`; not started yet, so the refusal of an unauthenticated command is untested.
-- [ ] A7 S: RabbitMQ definitions file with a vhost and one Node user limited to its own queues, management plugin off: the file imports into a local container without errors.
+- [x] A6 S: Redis service with a password, `maxmemory 100mb`, `allkeys-lru`: verified locally, an unauthenticated command gets `NOAUTH`, with the password it answers `PONG`, and `maxmemory` is 104857600 with policy `allkeys-lru`.
+- [x] A7 S: RabbitMQ `definitions.json` (vhost `/pulse`, three exchanges, queue, retry queue with a 10 second delay, dead-letter queue), `rabbitmq.conf` (watermark 192 MiB, disk limit 512 MiB) and `create-node-user.sh`: verified locally, the definitions load, the user `pulse_node` has no tags and may touch only names starting `pulse.`, `guest` is deleted, and a second run changes nothing. Idle memory was about 84 to 99 MiB in a local container, which is a first reading and not the box.
 - [ ] A8 owner: the tunnel is remotely managed (token from Secrets Manager), so its ingress rules live in Cloudflare and not in a file here. The rules to set are `client:3000` for pages and `/api/*` to `server:8080`; set them in Cloudflare only with the owner's go [owner].
 - [x] A9 S: `asg-boot.sh` runs the new `boot-stack.sh` (compose containers chosen by `/pulse/boot/profiles`, then the server and the client), and falls back to the old boot when the image lacks it: `bash -n` passes and tests with stubbed AWS calls cover the profile and tag choices. `shellcheck` is not installed here.
 - [x] A10 S: the server deploy writes `/pulse/last-good/server` after a good deploy (a failure only warns) and `boot-stack.sh` reads it, falling back to `latest`: tests with stubbed calls pass. The instance role still needs `ssm:PutParameter` and `ssm:GetParameter` on `/pulse/*`.
@@ -110,6 +110,7 @@ Chat day work is milestoned when it starts: the `pulse--chat` repository, the We
 
 _(append a dated line per completed step)_
 
+- 2026-11-18 (evening): A4, A6 and A7 verified with Docker locally (containers, network and volume removed afterwards). Phase A is finished except the client repo's deploy script (A13 to A15 there).
 - 2026-11-18 (later): E3 done: pgvector checked on a temporary restored copy through the app box, then the copy was deleted. A9 to A15 done in the server repo with tests, A16 earlier. A4, A6 and A7 still need Docker, which is not running on this machine. Client deploy script (A13 to A15) not changed.
 - 2026-11-18: A1, A2, A3, A5 and A16 done on branch `feat/aws-migration-compose`, uncommitted. Typecheck and lint clean; 131 of 132 suites pass in one run and the one failure passes alone (a Jest cache read race); 2,391 tests pass. Dependencies installed with `npm ci --ignore-scripts`.
 - 2026-11-18: design point: the deploy scripts do blue/green swaps with `docker run`, so compose holds only the infrastructure containers, and boot runs compose first and then the server and client deploy scripts with the last good tags. To confirm.

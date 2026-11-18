@@ -23,7 +23,7 @@
 #
 # Secrets are never written here. The boot or deploy script exports them into
 # the shell just before `docker compose up`, read from Secrets Manager:
-#   TUNNEL_TOKEN, REDIS_PASSWORD, RABBITMQ_NODE_PASSWORD
+#   TUNNEL_TOKEN, REDIS_PASSWORD (compose), RABBITMQ_NODE_PASSWORD (passed to create-node-user.sh)
 # No service publishes a host port.
 
 name: pulse
@@ -103,13 +103,13 @@ services:
       - broker
     image: rabbitmq:4.0-alpine
     hostname: pulse-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: pulse_node
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_NODE_PASSWORD:?RABBITMQ_NODE_PASSWORD must be exported by the boot script}
     networks:
       - internal
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/conf.d/20-pulse.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/create-node-user.sh:/etc/rabbitmq/create-node-user.sh:ro
     restart: always
     mem_limit: 256m
     cap_drop:
@@ -121,8 +121,9 @@ services:
       - DAC_OVERRIDE
     security_opt:
       - no-new-privileges:true
-    # Placeholder user from the image: replaced by a definitions file with a
-    # vhost and a user limited to its own queues (milestone A7, not built).
+    # No default user is created here. The vhost and queues come from
+    # definitions.json, and create-node-user.sh adds the one application user
+    # (RABBITMQ_NODE_PASSWORD) after the first start.
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
