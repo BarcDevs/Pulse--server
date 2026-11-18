@@ -291,3 +291,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** SSE plus POST for the assistant (simpler and safer now, but needs a second transport for user-to-user chat); FastAPI holding the browser WebSocket (Node already owns users and auth).
 
 **Source:** Terminal, 18 Nov 2026: "אז וובסוקט הוחלט"
+
+## 18/11/2026 — RabbitMQ on the app box now; chat uses a provider key
+
+**Decision:** RabbitMQ runs on the app box for now and a separate machine is decided only after the load test. The chat service uses its own model provider API key and holds no AWS credentials, so Bedrock stays Node-only for embeddings; the provider is chosen after the model evaluation. The fallback if memory exceeds 80% at the deploy peak is decided after the load test.
+
+**Why over alternatives:** Keeps cost at zero extra for now and keeps the wall around chat (no AWS credentials). The real memory reading decides whether the broker needs its own box.
+
+**Rejected:** Own t4g.micro for RabbitMQ now (about $7.01 a month, more to maintain); a Bedrock identity for chat (weakens the isolation); fixing a memory fallback before the test.
+
+**Source:** Terminal questions, 18 Nov 2026

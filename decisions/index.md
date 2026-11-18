@@ -40,6 +40,7 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | 10/10/2026 | Fallback: gemini-3.1-flash-lite preferred over claude-sonnet-5-5; Anthropic dropped from the prod chain |
 | 11/10/2026 | Considering Bedrock Knowledge Bases instead of pgvector/Qdrant for RAG (not decided) |
 | 13/10/2026 | AI text sanitised in code (dashes, curly quotes); an invalid insight is regenerated once before the template |
+| 18/11/2026 | Chat uses a provider API key; Bedrock stays Node-only |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
@@ -69,6 +70,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | Check-in AI moves onto RabbitMQ with a Postgres outbox |
 | 18/11/2026 | Apply the review fixes to the plan, except 8 and 9 |
 | 18/11/2026 | Chat transport is WebSocket on Node, not SSE |
+| 18/11/2026 | RabbitMQ on the app box now; chat uses a provider key |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.

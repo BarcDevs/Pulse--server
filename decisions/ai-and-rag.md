@@ -96,3 +96,9 @@ either without that comparison.
 **Why over alternatives:** the sanitising is deterministic, so it beats asking the model again. The second attempt costs a call only when the first reply was unusable. A claim checker was rejected: it needs per-claim parsing and either misses lies or blocks true numbers.
 
 **How to apply:** any new place that stores AI text must call `sanitizeGeneratedText`; keep `INSIGHT_GENERATION_ATTEMPTS` small, since each attempt can walk the whole chain.
+
+## 18/11/2026 — Chat uses a provider API key; Bedrock stays Node-only
+
+**Decision:** The chat service authenticates to its model with a provider API key, not AWS credentials. Bedrock access stays limited to the Node side. This resolves the contradiction in the plan, which had said chat has no AWS credentials but also hinted at Claude through Bedrock.
+
+**Source:** user, auto-recorded: "The user answered: 'RabbitMQ data: the root disk is deleted when the box is replaced. Add a separate EBS disk kept after termination and attached at boot, or accept losing the queue on replacement bec"
