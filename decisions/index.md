@@ -87,6 +87,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | Old client box is deleted only after the new client runs successfully |
 | 18/11/2026 | Proposed plan values approved; migration day tentatively 18 Nov |
 | 18/11/2026 | Box migration first, Redis and RabbitMQ after; DB window 21:00 UTC |
+| 18/11/2026 | Compose holds only the long-lived containers; server and client keep blue/green scripts |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.

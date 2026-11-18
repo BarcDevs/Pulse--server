@@ -403,3 +403,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** One combined migration with Redis and RabbitMQ in step 1.
 
 **Source:** Terminal, 18 Nov 2026, answers to the order and time offset questions
+
+## 18/11/2026 — Compose holds only the long-lived containers; server and client keep blue/green scripts
+
+**Decision:** The compose file defines the networks and the long-lived infrastructure containers (cloudflared now, Redis and RabbitMQ later under a broker profile). The server and the client are not in it: each keeps its own blue/green deploy script, with its health gate and rollback, and joins the networks. Boot runs compose first, then the server and client deploy scripts with the last good image tags read from Parameter Store. This refines the earlier plan wording that boot runs compose for everything.
+
+**Why over alternatives:** The existing deploy scripts swap containers with docker run and roll back on a failed health check, which compose does not give. Keeping them avoids rebuilding a tested mechanism during the migration.
+
+**Rejected:** Putting the server and client into the compose file too (would need a new blue/green swap and rollback).
+
+**Source:** Terminal, 18 Nov 2026, answer to the design question
