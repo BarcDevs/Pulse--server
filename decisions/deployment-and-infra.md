@@ -377,3 +377,11 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Merging the entries into one (declined by the owner on 17 Nov).
 
 **Source:** Artifact comments, 16 to 17 Nov 2026
+
+## 18/11/2026 — Old client box is deleted only after the new client runs successfully
+
+**Decision:** The old client EC2 instance, its Elastic IP, volume and security group are not deleted until the new client is built and running successfully on the app box and has served all the traffic. Deletion stays the last migration step and waits for the owner's approval.
+
+**Why over alternatives:** Deletion cannot be undone, and until the new client has carried all the traffic the old box is the way back.
+
+**Source:** Terminal, 18 Nov 2026: "מחיקת הקליינט: לא מוחקים לפני שהקליינט החדש בנוי ורץ בהצלחה"

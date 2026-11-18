@@ -84,6 +84,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | Load test plan: three runs with a fake model, under 80% memory |
 | 18/11/2026 | AWS Activate credits are a task, not part of the plan |
 | 18/11/2026 | Keep Secrets Manager, no merge; trim two unused entries |
+| 18/11/2026 | Old client box is deleted only after the new client runs successfully |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
