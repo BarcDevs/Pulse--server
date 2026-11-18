@@ -27,8 +27,8 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 - [x] A10 S: the server deploy writes `/pulse/last-good/server` after a good deploy (a failure only warns) and `boot-stack.sh` reads it, falling back to `latest`: tests with stubbed calls pass. The instance role still needs `ssm:PutParameter` and `ssm:GetParameter` on `/pulse/*`.
 - [x] A11 S: `pulse-network-rules.sh` with `print` and `apply`: default deny to the metadata address from every bridge except the server containers (fixed addresses on the edge network) and for host processes of every user but root; tests check the printed rules. Not applied anywhere.
 - [x] A12 S: the return-traffic rule in `asg-boot.sh` now also covers `br+`: `bash -n` passes. Not applied anywhere.
-- [x] A13 S: `acquire_deploy_lock` in the server deploy script (`flock`, waits up to 10 minutes): the test passes where `flock` exists and is skipped here (Git Bash has no `flock`). The client script is not changed yet.
-- [x] A14 S: `prune_old_images` removes only this repository's images beyond the newest four (two releases of two tags) and replaces the box-wide 24-hour prune: tests cover the selection. The client script is not changed yet.
+- [x] A13 S: `acquire_deploy_lock` in the server deploy script (`flock`, waits up to 10 minutes): the test passes where `flock` exists and is skipped here (Git Bash has no `flock`). The client deploy script has the same change in the client repo (branch `feat/aws-migration-deploy`, worktree `pulse--client.wt/aws-deploy`), checked by hand.
+- [x] A14 S: `prune_old_images` removes only this repository's images beyond the newest four (two releases of two tags) and replaces the box-wide 24-hour prune: tests cover the selection. The client deploy script has the same change in the client repo (branch `feat/aws-migration-deploy`, worktree `pulse--client.wt/aws-deploy`), checked by hand.
 - [x] A15 S: `graceful_stop` (30 seconds) for the candidate and the previous container, and the candidate starts with `WORKERS_ENABLED=false`: tests pass.
 - [x] A16 S: `WORKERS_ENABLED` setting (default on) through the config package, with `startBackgroundWorkers` in `src/lib/backgroundWorkers.ts` and a test: with it off nothing starts and stop resolves. The deploy script does not set it for the candidate yet (a separate step).
 
@@ -110,6 +110,7 @@ Chat day work is milestoned when it starts: the `pulse--chat` repository, the We
 
 _(append a dated line per completed step)_
 
+- 2026-11-18 (late): the client deploy script got the lock, own-repo prune (two tags), graceful stop and the last good tag, in a separate worktree of the client repo. Syntax checked and the helper functions tried by hand; the client repo has no shell tests yet. Not committed.
 - 2026-11-18 (evening): A4, A6 and A7 verified with Docker locally (containers, network and volume removed afterwards). Phase A is finished except the client repo's deploy script (A13 to A15 there).
 - 2026-11-18 (later): E3 done: pgvector checked on a temporary restored copy through the app box, then the copy was deleted. A9 to A15 done in the server repo with tests, A16 earlier. A4, A6 and A7 still need Docker, which is not running on this machine. Client deploy script (A13 to A15) not changed.
 - 2026-11-18: A1, A2, A3, A5 and A16 done on branch `feat/aws-migration-compose`, uncommitted. Typecheck and lint clean; 131 of 132 suites pass in one run and the one failure passes alone (a Jest cache read race); 2,391 tests pass. Dependencies installed with `npm ci --ignore-scripts`.
