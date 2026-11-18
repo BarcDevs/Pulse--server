@@ -1,0 +1,206 @@
+import { spawnSync } from 'child_process'
+import path from 'path'
+
+const toPosix = (relative: string) => path
+    .resolve(__dirname, relative)
+    .split(path.sep)
+    .join('/')
+
+const redeployPath = toPosix('../../../scripts/deploy/ec2-redeploy.sh')
+const bootPath = toPosix('../../../scripts/deploy/boot-stack.sh')
+const rulesPath = toPosix('../../../scripts/deploy/pulse-network-rules.sh')
+
+const runBash = (
+    script: string,
+    env: Record<string, string> = {},
+    input?: string
+) => spawnSync('bash', ['-c', script], {
+    input,
+    encoding: 'utf8',
+    env: { ...process.env, ...env }
+})
+
+const runRedeploy = (fn: string, input?: string, env: Record<string, string> = {}) => runBash(
+    `source "${redeployPath}" test-tag; ${fn}`,
+    { REDEPLOY_SOURCE_ONLY: '1', ...env },
+    input
+)
+
+const runBoot = (stubs: string, fn: string) => runBash(
+    `${stubs}; source "${bootPath}"; ${fn}`,
+    { BOOT_SOURCE_ONLY: '1' }
+)
+
+const hasFlock = runBash('command -v flock').status === 0
+
+describe('ec2-redeploy.sh deploy helpers', () => {
+    describe('select_images_to_prune', () => {
+        const repo = '1.dkr.ecr.eu-central-1.amazonaws.com/pulse-server-app'
+        const lines = [
+            `${repo}:runner-6`,
+            `${repo}:migrate-6`,
+            `${repo}:runner-5`,
+            `${repo}:migrate-5`,
+            `${repo}:runner-4`,
+            `${repo}:migrate-4`,
+            '1.dkr.ecr.eu-central-1.amazonaws.com/pulse-client-app:v9',
+            `${repo}:<none>`
+        ].join('\n')
+
+        it('keeps the newest images and lists the older ones of this repository only', () => {
+            const result = runRedeploy(`select_images_to_prune "${repo}" 4`, lines)
+
+            expect(result.status).toBe(0)
+            expect(result.stdout.trim().split('\n')).toEqual([
+                `${repo}:runner-4`,
+                `${repo}:migrate-4`
+            ])
+        })
+
+        it('never lists an image of another repository', () => {
+            const result = runRedeploy(`select_images_to_prune "${repo}" 0`, lines)
+
+            expect(result.stdout).not.toContain('pulse-client-app')
+        })
+
+        it('lists nothing when there are fewer images than the keep count', () => {
+            const result = runRedeploy(`select_images_to_prune "${repo}" 10`, lines)
+
+            expect(result.status).toBe(0)
+            expect(result.stdout.trim()).toBe('')
+        })
+    })
+
+    describe('last good tag', () => {
+        it('names the Parameter Store entry per service', () => {
+            const result = runRedeploy('last_good_param_name server')
+
+            expect(result.stdout).toBe('/pulse/last-good/server')
+        })
+
+        it('writes the tag with an overwrite', () => {
+            // the helper discards stdout, so the stub reports on stderr
+            const result = runRedeploy('aws() { echo "aws $*" >&2; }; write_last_good server abc123')
+
+            expect(result.status).toBe(0)
+            expect(result.stderr).toContain('ssm put-parameter')
+            expect(result.stderr).toContain('--name /pulse/last-good/server')
+            expect(result.stderr).toContain('--value abc123')
+            expect(result.stderr).toContain('--overwrite')
+        })
+    })
+
+    describe('graceful_stop', () => {
+        it('gives the container the grace period', () => {
+            const result = runRedeploy('log=$(mktemp); docker() { echo "docker $*" >> "$log"; }; graceful_stop pulse-app-prev 45; cat "$log"')
+
+            expect(result.stdout.trim()).toBe('docker stop -t 45 pulse-app-prev')
+        })
+
+        it('defaults to 30 seconds', () => {
+            const result = runRedeploy('log=$(mktemp); docker() { echo "docker $*" >> "$log"; }; graceful_stop pulse-app-prev; cat "$log"')
+
+            expect(result.stdout.trim()).toBe('docker stop -t 30 pulse-app-prev')
+        })
+    })
+
+    describe('acquire_deploy_lock', () => {
+        const lockFile = path.join(
+            process.env.TMPDIR ?? process.env.TEMP ?? '/tmp',
+            `pulse-deploy-test-${process.pid}.lock`
+        ).split(path.sep).join('/');
+
+        (hasFlock ? it : it.skip)('makes a second deploy give up while the first holds the lock', () => {
+            const result = runRedeploy(
+                `(acquire_deploy_lock; sleep 3) & sleep 1; acquire_deploy_lock; echo "second status $?"; wait`,
+                undefined,
+                { DEPLOY_LOCK_FILE: lockFile, DEPLOY_LOCK_WAIT_SECONDS: '1' }
+            )
+
+            expect(result.stderr).toContain('giving up')
+        })
+    })
+})
+
+describe('boot-stack.sh', () => {
+    it('starts no compose profile when the parameter is absent', () => {
+        const result = runBoot('aws() { return 255; }', 'boot_profiles')
+
+        expect(result.status).toBe(0)
+        expect(result.stdout).toBe('')
+    })
+
+    it('treats the literal None as no profile', () => {
+        const result = runBoot('aws() { echo None; }', 'boot_profiles')
+
+        expect(result.stdout).toBe('')
+    })
+
+    it('returns the profiles without spaces', () => {
+        const result = runBoot('aws() { echo "tunnel, broker"; }', 'boot_profiles')
+
+        expect(result.stdout).toBe('tunnel,broker')
+    })
+
+    it('boots the last good server tag', () => {
+        const result = runBoot('aws() { echo abc123; }', 'server_boot_tag')
+
+        expect(result.stdout).toBe('abc123')
+    })
+
+    it('falls back to latest when no tag is recorded', () => {
+        const result = runBoot('aws() { return 255; }', 'server_boot_tag')
+
+        expect(result.stdout).toBe('latest')
+    })
+
+    it('does nothing with no profiles', () => {
+        const result = runBoot('docker() { echo "docker $*"; }', 'start_infrastructure ""')
+
+        expect(result.status).toBe(0)
+        expect(result.stdout).toContain('starting no compose containers')
+        expect(result.stdout).not.toContain('docker compose')
+    })
+
+    it('starts compose with the named profiles', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; docker() { echo "docker $* profiles=$COMPOSE_PROFILES"; }',
+            'start_infrastructure "tunnel,broker"'
+        )
+
+        expect(result.stdout).toContain('compose -f /opt/pulse/compose/docker-compose.yml up -d')
+        expect(result.stdout).toContain('profiles=tunnel,broker')
+    })
+})
+
+describe('pulse-network-rules.sh', () => {
+    const rules = () => runBash(`bash "${rulesPath}" print`).stdout.trim().split('\n')
+
+    it('drops the metadata address from containers except the server containers', () => {
+        const lines = rules()
+
+        expect(lines).toContain('rule filter PULSE-IMDS -s 172.30.0.10 -j RETURN')
+        expect(lines).toContain('rule filter PULSE-IMDS -s 172.30.0.11 -j RETURN')
+        expect(lines).toContain('rule filter PULSE-IMDS -j DROP')
+        expect(lines).toContain('hook filter DOCKER-USER -d 169.254.169.254 -j PULSE-IMDS')
+    })
+
+    it('puts the allowed returns before the final drop', () => {
+        const lines = rules()
+
+        expect(lines.indexOf('rule filter PULSE-IMDS -s 172.30.0.10 -j RETURN'))
+            .toBeLessThan(lines.indexOf('rule filter PULSE-IMDS -j DROP'))
+    })
+
+    it('blocks host processes of every user except root', () => {
+        expect(rules()).toContain(
+            'rule filter OUTPUT -d 169.254.169.254 -m owner ! --uid-owner 0 -j DROP'
+        )
+    })
+
+    it('rejects an unknown mode', () => {
+        const result = runBash(`bash "${rulesPath}" delete`)
+
+        expect(result.status).toBe(2)
+    })
+})

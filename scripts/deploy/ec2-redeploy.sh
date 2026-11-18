@@ -75,9 +75,58 @@ snapshot_name_for_tag() {
     printf 'pre-migrate-%s-%s' "$tag" "$ts"
 }
 
+# One deploy at a time on the box: the server and the client deploys share this
+# lock, so two candidates never run together and one deploy never prunes the
+# other's rollback image. Waits up to 10 minutes, then gives up. The lock is
+# held until this script exits.
+DEPLOY_LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/pulse-deploy.lock}"
+acquire_deploy_lock() {
+    exec 9>"$DEPLOY_LOCK_FILE"
+    if ! flock -w "${DEPLOY_LOCK_WAIT_SECONDS:-600}" 9; then
+        echo "Another deploy holds $DEPLOY_LOCK_FILE - giving up." >&2
+        return 1
+    fi
+}
+
+# Image references of ONE repository to remove: reads "repo:tag" lines on stdin,
+# newest first (the order `docker images` prints), skips the newest KEEP and any
+# untagged line, and never lists an image of another repository. A release pushes
+# two tags (runner and migrate), so KEEP=4 keeps the last two releases.
+select_images_to_prune() {
+    local repo="$1" keep="$2"
+    grep -F "$repo:" | grep -v '<none>' | tail -n "+$((keep + 1))" || true
+}
+
+# `docker rmi` refuses an image a container still uses, so the running and the
+# previous containers' images are always safe.
+prune_old_images() {
+    docker images --format '{{.Repository}}:{{.Tag}}' "$1" \
+        | select_images_to_prune "$1" "$2" \
+        | xargs -r docker rmi > /dev/null 2>&1 || true
+}
+
+# Gives the container time to finish in-flight work (the app drains jobs on
+# SIGTERM) before Docker kills it.
+graceful_stop() {
+    docker stop -t "${2:-30}" "$1" > /dev/null 2>&1 || true
+}
+
+# Last good image tag per service, kept in Parameter Store so a replaced box
+# boots the version that last passed its health check, never an untested "latest".
+last_good_param_name() {
+    printf '/pulse/last-good/%s' "$1"
+}
+
+write_last_good() {
+    aws ssm put-parameter --region "$REGION" --name "$(last_good_param_name "$1")" \
+        --value "$2" --type String --overwrite > /dev/null
+}
+
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
     return 0
 fi
+
+acquire_deploy_lock
 
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR"
 
@@ -182,8 +231,11 @@ RUN_ARGS=(
 
 echo "Starting candidate container on a staging port..."
 docker rm -f pulse-app-candidate 2>/dev/null || true
+# WORKERS_ENABLED=false: the candidate is only health checked, so it must not
+# claim jobs or start the purge schedulers.
 docker run -d --name pulse-app-candidate -p 127.0.0.1:8081:8080 \
     "${RUN_ARGS[@]}" \
+    -e WORKERS_ENABLED=false \
     "$ECR/$REPO:runner-$IMAGE_TAG"
 
 if ! health_check 8081; then
@@ -194,6 +246,7 @@ if ! health_check 8081; then
 fi
 
 echo "Candidate healthy. Swapping into production..."
+graceful_stop pulse-app-candidate
 docker rm -f pulse-app-candidate
 
 # Idempotent swap: clear any stale leftover from an interrupted previous run
@@ -201,7 +254,7 @@ docker rm -f pulse-app-candidate
 docker rm -f pulse-app-prev 2>/dev/null || true
 if docker inspect pulse-app > /dev/null 2>&1; then
     docker rename pulse-app pulse-app-prev
-    docker stop pulse-app-prev > /dev/null 2>&1 || true
+    graceful_stop pulse-app-prev
 fi
 
 docker run -d --name pulse-app --restart=always -p 80:8080 \
@@ -211,7 +264,9 @@ docker run -d --name pulse-app --restart=always -p 80:8080 \
 if health_check 80; then
     echo "Deploy succeeded, container healthy."
     docker rm -f pulse-app-prev 2>/dev/null || true
-    docker image prune -af --filter "until=24h" > /dev/null 2>&1 || true
+    prune_old_images "$ECR/$REPO" 4
+    write_last_good server "$IMAGE_TAG" \
+        || echo "WARNING: could not record the last good tag in Parameter Store." >&2
     exit 0
 fi
 
