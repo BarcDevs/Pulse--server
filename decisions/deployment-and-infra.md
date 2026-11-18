@@ -271,3 +271,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Leaving check-in AI on the Postgres table (works today but gives no broker experience); a local RabbitMQ only (nothing verifiable for a CV); multiple broker nodes (more machines and memory than the plan has).
 
 **Source:** Artifact comment thread 50b01dab, 18 Nov 2026: "Good. Record it in depth in a doc for the exp too"
+
+## 18/11/2026 — Apply the review fixes to the plan, except 8 and 9
+
+**Decision:** The plan takes the Opus review fixes as designed: compose boot with last-good image tags from Parameter Store, tunnel routing that works on both boxes, client rebuilt with SERVER_URL=http://server:8080, cloudflared on the edge network with a default-deny metadata block, a deploy lock, no Redis path for chat context, row-level security and iterative scans for vector search, tighter chat database roles, monitoring and backup retention with a restore test, explicit CPU credit mode, load test on a clone, and a 15-minute database change window. Finding 8 (RabbitMQ memory cap) stays a check after th
+
+**Why over alternatives:** The owner asked to fix every finding that does not conflict with their decisions, kept 8 as needs verification after the load test, and said the chat model is not chosen yet so 9 cannot name a provider.
+
+**Rejected:** Separate tables for private and shared vectors (conflicts with the single-store decision); shrinking the RabbitMQ cap or the box now (needs a measurement); naming OpenAI in the data-terms check (the chat model is not chosen).
+
+**Source:** Terminal, 18 Nov 2026: "About #9, we still to decide the model for chat since it needs a separate eval. Mark 8 as needs verification after load test"

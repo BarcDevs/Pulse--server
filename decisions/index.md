@@ -67,6 +67,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 17/11/2026 | Move RDS to db.t4g.micro (confirmed) |
 | 17/11/2026 | Job queue is RabbitMQ, not SQS or BullMQ |
 | 18/11/2026 | Check-in AI moves onto RabbitMQ with a Postgres outbox |
+| 18/11/2026 | Apply the review fixes to the plan, except 8 and 9 |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
