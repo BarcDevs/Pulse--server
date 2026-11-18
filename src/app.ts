@@ -7,12 +7,9 @@ import {
     serverConfig
 } from '../config'
 
+import { startBackgroundWorkers } from './lib/backgroundWorkers'
 import exposeProductionApp from './middlewares/exposeProductionApp'
 import { declareRoutes } from './routes/declare_routes'
-import { scheduleAccountPurge } from './services/accountDeletionService'
-import { startCheckInAiWorker } from './services/checkInAiWorkerService'
-import { scheduleGuestPurge } from './services/guestRetentionService'
-import { scheduleSupportTicketRetention } from './services/supportTicketRetentionService'
 import { verifyEmailTransport } from './utils/emailSender'
 import logger from './utils/logger'
 import prisma from './utils/prismaClient'
@@ -52,10 +49,7 @@ if (env !== 'test') {
         logger.info(message)
 
         verifyEmailTransport()
-        scheduleAccountPurge()
-        scheduleGuestPurge()
-        scheduleSupportTicketRetention()
-        stopCheckInAiWorker = startCheckInAiWorker()
+        stopCheckInAiWorker = startBackgroundWorkers()
     })
 
     const shutdown = (signal: string) => {
