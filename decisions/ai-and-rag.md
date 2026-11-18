@@ -120,3 +120,31 @@ either without that comparison.
 **Rejected:** Replacing the keyword pipeline with vector search only (loses exact facets and the deterministic safety filter); leaving RAG out of recommendations.
 
 **Source:** Terminal, 18 Nov 2026: today the recommendations use keywords, RAG should combine with it if useful, the idea is mostly semantic
+
+## 18/11/2026 — Chat sees a check-in summary only; check-in AI gets chat topics
+
+**Decision:** Chat receives only a short per-user check-in summary, the most relevant part, built by a background job after each check-in, sent by Node with each message. No raw check-in text goes to chat, Redis or logs. In return, check-in AI gets only the relevant chat topics, never chat history: chat extracts short topics, each with a label and a one-line paraphrased note (no quotes, no names, diagnoses or medication unless they are the topic), Node picks them up over the existing Node-to-chat path (chat never calls Node), stores them on the per-user memory record filtered by user id, and passes only tha
+
+**Why over alternatives:** The summary gives chat the context it needs without exposing raw check-ins, and relevant topics make check-in feedback fit the user's state, while chat history is mostly irrelevant.
+
+**Rejected:** Full check-in text to chat; sending chat history to check-in AI; a label-only topic (the note is needed so the topic is understood).
+
+**Source:** Artifact comment threads, 17 Nov 2026
+
+## 18/11/2026 — Chat uses provider prompt caching with a stable prompt prefix
+
+**Decision:** The chat service uses the model provider's own prompt caching to save tokens. Prompts are ordered with unchanging parts first and changing parts last: system prompt and rules, the per-user memory summary and topics, retrieved chunks, recent conversation, the new message. The start of each prompt is kept byte-identical between calls, and only the last few turns plus a running summary are sent. Discount, minimum prompt size and cache lifetime depend on the chosen provider and model and are not counted in the cost tables until read from the provider's pricing page.
+
+**Why over alternatives:** It cuts chat token cost without a new service, and it is separate from Redis.
+
+**Source:** Terminal, 18 Nov 2026
+
+## 18/11/2026 — RAG variant: pgvector on RDS with Bedrock embeddings, no Knowledge Bases
+
+**Decision:** The RAG process uses Bedrock Titan Text Embeddings for embeddings and stores vectors in pgvector on the existing RDS database (variant A), with the user id and a type on each row. Bedrock Knowledge Bases with OpenSearch Serverless was rejected. Only the Node server has Bedrock permission, on one embedding model. Steps: ingest through the job queue, embed, store, retrieve filtered by user id, augment, generate. The embedding price and Hebrew quality are still to be checked.
+
+**Why over alternatives:** Variant A costs about nothing extra, while Knowledge Bases with OpenSearch Serverless has a large minimum monthly cost.
+
+**Rejected:** Bedrock Knowledge Bases with OpenSearch Serverless ($0.339 per OCU-hour); a dedicated graph database.
+
+**Source:** Terminal and artifact comments, 17 Nov 2026

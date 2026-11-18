@@ -112,3 +112,4 @@ Auto-recorded corrections.
 | Date | Entry |
 |---|---|
 | 18/11/2026 | Don't present my own design as the user's decision |
+| 18/11/2026 | OPEN means open for the user, not a check Claude carries out |

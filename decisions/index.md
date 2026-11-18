@@ -43,6 +43,9 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | 18/11/2026 | Chat uses a provider API key; Bedrock stays Node-only |
 | 18/11/2026 | Chat needs guardrails: on topic, no forbidden medical advice |
 | 18/11/2026 | RAG adds to the keyword recommendations, does not replace them |
+| 18/11/2026 | Chat sees a check-in summary only; check-in AI gets chat topics |
+| 18/11/2026 | Chat uses provider prompt caching with a stable prompt prefix |
+| 18/11/2026 | RAG variant: pgvector on RDS with Bedrock embeddings, no Knowledge Bases |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
@@ -75,6 +78,12 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | RabbitMQ on the app box now; chat uses a provider key |
 | 18/11/2026 | No separate disk for RabbitMQ, the sweeper rebuilds the queue |
 | 18/11/2026 | Queue consumer concurrency starts at 2, tuned after load test |
+| 18/11/2026 | Cloudflare stays the front door, CloudFront not added |
+| 18/11/2026 | Redis is a firm part of the plan, with cache rules |
+| 18/11/2026 | Database class change at 23:00 local time on migration day |
+| 18/11/2026 | Load test plan: three runs with a fake model, under 80% memory |
+| 18/11/2026 | AWS Activate credits are a task, not part of the plan |
+| 18/11/2026 | Keep Secrets Manager, no merge; trim two unused entries |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.

@@ -321,3 +321,59 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Fixing 4 or 10 now (unmeasured risk to memory, provider limits and database connections).
 
 **Source:** Terminal, 18 Nov 2026: "Decide after the load test"
+
+## 18/11/2026 — Cloudflare stays the front door, CloudFront not added
+
+**Decision:** Cloudflare stays the CDN and front door through the existing tunnel, and CloudFront is not added. The client stays on the same box as the server (S3 was rejected on 15 Nov). The ARM move (t4g.small) and a larger t3.medium were dropped from the plan.
+
+**Why over alternatives:** Keeping Cloudflare avoids a second CDN and cost, and the box has room for everything on a t3.small.
+
+**Rejected:** CloudFront in front of the box; S3 for the client; ARM t4g.small; t3.medium.
+
+**Source:** Artifact comments, 16 to 17 Nov 2026
+
+## 18/11/2026 — Redis is a firm part of the plan, with cache rules
+
+**Decision:** Redis runs as one more container on the internal network with a hard memory cap of 100 MiB and least-recently-used eviction. Uses, in order: rate-limit counters, chosen database reads (cache-aside), and live fan-out (Pub/Sub) when a second Node instance or user-to-user chat exists. Chat context does not go through Redis. Rules: every key expires, the cache is never the only copy, no health or check-in content in cached values, password set and no published port. Background jobs do not use Redis.
+
+**Why over alternatives:** Redis is chosen mainly for hands-on production experience, with efficiency second. Each use is placed where it does real work and covers a different Redis pattern.
+
+**Rejected:** Redis for chat user context (removed 18 Nov); BullMQ or Redis Streams for jobs (RabbitMQ chosen).
+
+**Source:** Artifact comments, 15 to 18 Nov 2026
+
+## 18/11/2026 — Database class change at 23:00 local time on migration day
+
+**Decision:** The RDS change from db.t3.micro to db.t4g.micro runs at 11 p.m. local time (UTC+3, 20:00 UTC) on migration day, after a snapshot, before the client box is deleted. Plan for about 15 minutes of downtime, check pending modifications first, and freeze deploys during the window. Not run yet.
+
+**Why over alternatives:** It is the owner's next maintenance window, and doing it before the only irreversible step keeps the database healthy before anything is deleted.
+
+**Source:** Artifact comments, 18 Nov 2026: "Local (utc+3)"
+
+## 18/11/2026 — Load test plan: three runs with a fake model, under 80% memory
+
+**Decision:** Memory under load is verified by a load test of 100 to 1,000 requests, with a deploy during the load, run three times: after the setup, after chat day, and after the RAG and pgvector work. Run on a clone of the box in production mode, with many test users and a named tool such as k6. The model is a fake endpoint that copies real response timing and size (a few seconds with spread, streamed in chunks), plus one small run on the free key to confirm the real path. Pass: memory under about 80% at peak, no container killed for memory, no failed requests. Chat's 200 MiB and RabbitMQ's 256 MiB cap st
+
+**Why over alternatives:** The memory reading was taken at near-zero traffic, and a fake model avoids burning the AI budget while matching the load a real model would put on the box.
+
+**Rejected:** Running against the production box; using the free key for the whole test (rate limits); testing only once.
+
+**Source:** Artifact comments, 18 Nov 2026
+
+## 18/11/2026 — AWS Activate credits are a task, not part of the plan
+
+**Decision:** Chasing the AWS Activate credits application is a task tracked in the second brain's daily file, not an item in the AWS architecture plan. The plan's cost numbers do not count credits.
+
+**Why over alternatives:** The application's outcome does not change the design, only the bill.
+
+**Source:** Terminal, 18 Nov 2026
+
+## 18/11/2026 — Keep Secrets Manager, no merge; trim two unused entries
+
+**Decision:** AWS Secrets Manager stays as the store, and merging the entries into one was declined. The Google OAuth client ID moves into the app config through the config package, with an environment variable still able to override it for staging. The unused Anthropic entry and the free Google AI entry are removed from Secrets Manager and from the deploy script. One entry is added for the service-to-service credential between Node and chat. These are plan decisions only: nothing has been changed in AWS.
+
+**Why over alternatives:** The client ID is public by design, an explicit list of entries on the role keeps permissions narrow, and each entry costs $0.40 a month, so unused ones go.
+
+**Rejected:** Merging the entries into one (declined by the owner on 17 Nov).
+
+**Source:** Artifact comments, 16 to 17 Nov 2026
