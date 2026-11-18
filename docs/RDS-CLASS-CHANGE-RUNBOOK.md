@@ -29,6 +29,24 @@ Decision: `decisions/deployment-and-infra.md` (17 Nov: move to db.t4g.micro; 18 
 3. Optional but planned: test `CREATE EXTENSION vector;` on a copy restored from the latest automated snapshot, on a temporary `db.t4g.micro`, then delete the copy. This creates an instance (a few cents) and needs the owner's go.
 4. Tell the owner the expected downtime: about 15 minutes. A single-instance class change usually takes longer than a few minutes.
 
+## pgvector check on a restored copy (prepared, not run, needs the owner's go)
+
+Goal: show that `CREATE EXTENSION vector;` works on `db.t4g.micro` with PostgreSQL 17.10 before the real instance changes class. Read on 18 Nov from the live instance: subnet group `pulse-rds-subnet-group`, VPC `vpc-0702154ad2faa034f`, security group `sg-0d6e9cdd1a065d584`, not publicly accessible, storage encrypted, parameter group `default.postgres17`, availability zone `eu-central-1a`.
+
+1. Restore the latest automated snapshot (7 days are kept) into a temporary private copy. This creates an instance and costs a few cents an hour while it exists:
+   `aws rds restore-db-instance-from-db-snapshot --db-instance-identifier pulse-db-vector-test --db-snapshot-identifier <latest rds:pulse-db-... snapshot> --db-instance-class db.t4g.micro --db-subnet-group-name pulse-rds-subnet-group --vpc-security-group-ids sg-0d6e9cdd1a065d584 --no-publicly-accessible --no-multi-az --availability-zone eu-central-1a --region eu-central-1`
+   then `aws rds wait db-instance-available --db-instance-identifier pulse-db-vector-test --region eu-central-1`
+2. Run the SQL from the app box, which is inside the VPC (the local machine never connects to RDS, by project rule), through SSM Run Command with a throwaway `postgres:17` client container. The master credentials stay in Secrets Manager and are read on the box by the script; they are never printed, never pasted here and never written to a file. The statements:
+   `CREATE EXTENSION IF NOT EXISTS vector;`
+   `SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';`
+   Expected: `vector` with version 0.8.x (AWS lists 0.8.2 for 17.10).
+3. Delete the copy, naming the test instance only (never `pulse-db`):
+   `aws rds delete-db-instance --db-instance-identifier pulse-db-vector-test --skip-final-snapshot --delete-automated-backups --region eu-central-1`
+   then confirm with `aws rds describe-db-instances --region eu-central-1 --query 'DBInstances[].DBInstanceIdentifier'` that only `pulse-db` is left.
+4. Record the version and the time in the plan's "Still to verify" row.
+
+Safety: the copy has no public access and sits in the same security group as the live database; the delete command carries the test instance's identifier and must be read once more before it is run.
+
 ## In the window
 
 Each command is run only after the owner says go.

@@ -15,14 +15,14 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase A: whole-box boot and compose (S) [local]
 
-- [ ] A1 S: draft `docker-compose` file with the server, client, Redis, RabbitMQ and cloudflared services: `docker compose config` validates.
-- [ ] A2 S: two networks in the file, edge (cloudflared, client, server) and internal (server, Redis, RabbitMQ): `config` shows each service on the right ones.
-- [ ] A3 S: memory limits from the budget (Redis 100 MiB, RabbitMQ 256 MiB) and restart policies: `config` shows them.
-- [ ] A4 S: healthchecks for each service: each reports healthy locally.
-- [ ] A5 S: nothing publishes a host port: `config` shows no `ports` for any service.
-- [ ] A6 S: Redis service with a password from an env file, `maxmemory 100mb`, `allkeys-lru`: container starts and refuses an unauthenticated command.
+- [x] A1 S: compose file with cloudflared, Redis and RabbitMQ (`scripts/deploy/compose/docker-compose.yml`), validated with `docker compose config`. The server and the client are not in it: they keep their blue/green deploy scripts and join the networks (design point, see the log).
+- [x] A2 S: two networks, `pulse_edge` and `pulse_internal` (`internal: true`, no internet): `config` shows cloudflared on edge and Redis and RabbitMQ on internal.
+- [x] A3 S: memory limits (cloudflared 64 MiB, Redis 128 MiB with a 100 MiB cache cap, RabbitMQ 256 MiB) and `restart: always`: `config` shows them.
+- [ ] A4 S: healthchecks for each service: defined in the file, not yet run. cloudflared needs a real tunnel token, Redis and RabbitMQ were not started.
+- [x] A5 S: nothing publishes a host port: `config --profile broker` shows no `ports` for any service.
+- [ ] A6 S: Redis service with a password, `maxmemory 100mb`, `allkeys-lru`: defined under the `broker` profile and validated by `config`; not started yet, so the refusal of an unauthenticated command is untested.
 - [ ] A7 S: RabbitMQ definitions file with a vhost and one Node user limited to its own queues, management plugin off: the file imports into a local container without errors.
-- [ ] A8 S: cloudflared ingress config pointing to `client:3000` and `/api/*` to `server:8080`: file validates with `cloudflared tunnel ingress validate`.
+- [ ] A8 owner: the tunnel is remotely managed (token from Secrets Manager), so its ingress rules live in Cloudflare and not in a file here. The rules to set are `client:3000` for pages and `/api/*` to `server:8080`; set them in Cloudflare only with the owner's go [owner].
 - [ ] A9 S: `asg-boot.sh` runs `docker compose up -d` from a versioned compose file path: `shellcheck` passes and a dry run with stubbed AWS calls prints the right commands.
 - [ ] A10 S: read the last good image tags from Parameter Store at boot, write them after a good deploy: dry run with stubbed calls shows both.
 - [ ] A11 S: metadata block as default deny for every bridge and for host processes except the server container: script lints and prints the rules.
@@ -30,7 +30,7 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 - [ ] A13 S: deploy lock in the deploy script (`flock`): two parallel local runs, the second waits or exits.
 - [ ] A14 S: prune only the service's own images and keep the last two tags: dry run lists what would be removed.
 - [ ] A15 S: graceful stop with a 30 second grace period instead of forced removal: dry run shows `docker stop -t 30`.
-- [ ] A16 S: setting to turn workers off for the deploy candidate, with a guard in `src/app.ts` and a test: the test shows the worker and schedulers do not start when it is off.
+- [x] A16 S: `WORKERS_ENABLED` setting (default on) through the config package, with `startBackgroundWorkers` in `src/lib/backgroundWorkers.ts` and a test: with it off nothing starts and stop resolves. The deploy script does not set it for the candidate yet (a separate step).
 
 ## Phase B: client image and tunnel routing (C)
 
@@ -110,4 +110,7 @@ Chat day work is milestoned when it starts: the `pulse--chat` repository, the We
 
 _(append a dated line per completed step)_
 
+- 2026-11-18: A1, A2, A3, A5 and A16 done on branch `feat/aws-migration-compose`, uncommitted. Typecheck and lint clean; 131 of 132 suites pass in one run and the one failure passes alone (a Jest cache read race); 2,391 tests pass. Dependencies installed with `npm ci --ignore-scripts`.
+- 2026-11-18: design point: the deploy scripts do blue/green swaps with `docker run`, so compose holds only the infrastructure containers, and boot runs compose first and then the server and client deploy scripts with the last good tags. To confirm.
+- 2026-11-18: the pgvector check on a restored copy is written into `docs/RDS-CLASS-CHANGE-RUNBOOK.md`, not run.
 - 2026-11-18: milestone list written, nothing implemented. E1 done: runbook written, read-only database checks made.
