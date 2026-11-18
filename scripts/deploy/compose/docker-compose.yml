@@ -1,0 +1,120 @@
+# Infrastructure containers for the single app box (draft, 18 Nov 2026, not deployed).
+#
+# Scope: this file defines the networks and the long-lived infrastructure
+# containers. The server and the client are NOT defined here: each keeps its own
+# blue/green deploy script (scripts/deploy/ec2-redeploy.sh in each repo), which
+# starts its container with `--network pulse_edge` (the server is also connected
+# to pulse_internal with `docker network connect`). That keeps the tested swap,
+# health gate and rollback of those scripts.
+#
+# Networks:
+#   pulse_edge      cloudflared, client, server. Has outbound internet.
+#   pulse_internal  server, Redis, RabbitMQ (and chat later). `internal: true`,
+#                   so nothing on it can reach the internet, and nothing from
+#                   the internet or the client can reach it.
+#
+# Redis and RabbitMQ sit behind the `broker` profile. The first migration does
+# not start them: `docker compose up -d` brings up cloudflared only, and
+# `docker compose --profile broker up -d` adds the brokers later.
+#
+# Secrets are never written here. The boot or deploy script exports them into
+# the shell just before `docker compose up`, read from Secrets Manager:
+#   TUNNEL_TOKEN, REDIS_PASSWORD, RABBITMQ_NODE_PASSWORD
+# No service publishes a host port.
+
+name: pulse
+
+networks:
+  edge:
+    name: pulse_edge
+  internal:
+    name: pulse_internal
+    internal: true
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.3
+    command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN must be exported by the boot script}
+    networks:
+      - edge
+    restart: always
+    mem_limit: 64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # The readiness command is cloudflared's own. Not yet run against a real
+    # tunnel: check that it reports healthy on the first start.
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "localhost:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  redis:
+    profiles:
+      - broker
+    image: redis:7.4-alpine
+    command: >
+      sh -c 'exec redis-server
+      --requirepass "$$REDIS_PASSWORD"
+      --maxmemory 100mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be exported by the boot script}
+    networks:
+      - internal
+    restart: always
+    mem_limit: 128m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  rabbitmq:
+    profiles:
+      - broker
+    image: rabbitmq:4.0-alpine
+    hostname: pulse-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: pulse_node
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_NODE_PASSWORD:?RABBITMQ_NODE_PASSWORD must be exported by the boot script}
+    networks:
+      - internal
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: always
+    mem_limit: 256m
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    # Placeholder user from the image: replaced by a definitions file with a
+    # vhost and a user limited to its own queues (milestone A7, not built).
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  rabbitmq-data:
+    name: pulse_rabbitmq_data
