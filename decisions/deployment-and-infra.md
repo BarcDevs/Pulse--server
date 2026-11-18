@@ -281,3 +281,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Separate tables for private and shared vectors (conflicts with the single-store decision); shrinking the RabbitMQ cap or the box now (needs a measurement); naming OpenAI in the data-terms check (the chat model is not chosen).
 
 **Source:** Terminal, 18 Nov 2026: "About #9, we still to decide the model for chat since it needs a separate eval. Mark 8 as needs verification after load test"
+
+## 18/11/2026 — Chat transport is WebSocket on Node, not SSE
+
+**Decision:** The browser connects to the Node server over a WebSocket for chat. Node calls the chat service over HTTP with streaming, a separate internal link. Requirements on chat day: Origin and session check on each connection, size and rate limits per user, reconnect and resume built in because every server deploy cuts the connection.
+
+**Why over alternatives:** User-to-user chat is planned and needs a two-way connection, so building SSE for the assistant first would mean building twice. A check of the job-targeting repo found WebSocket in 5 job requirements (all nice-to-have) and SSE in none, so market demand is only a weak extra reason.
+
+**Rejected:** SSE plus POST for the assistant (simpler and safer now, but needs a second transport for user-to-user chat); FastAPI holding the browser WebSocket (Node already owns users and auth).
+
+**Source:** Terminal, 18 Nov 2026: "אז וובסוקט הוחלט"
