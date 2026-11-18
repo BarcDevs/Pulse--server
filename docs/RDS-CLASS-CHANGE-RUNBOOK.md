@@ -19,7 +19,7 @@ Decision: `decisions/deployment-and-infra.md` (17 Nov: move to db.t4g.micro; 18 
 
 ## Time
 
-The plan says 11 p.m. local time. This machine's clock shows an offset of +02:00 on 18 Nov, which would make 23:00 local equal to **21:00 UTC**, and not the 20:00 UTC (UTC+3) written in the plan on 18 Nov. Confirm the offset before the window. Either way the window does not overlap the automated backup window (22:52 to 23:22 UTC).
+11 p.m. local time, UTC+2 (confirmed by the owner on 18 Nov), which is **21:00 UTC**. The owner first wrote UTC+3 (20:00 UTC); this machine's clock shows +02:00 and the owner chose that. The window does not overlap the automated backup window (22:52 to 23:22 UTC).
 
 ## Before the window (owner's go needed for the ones that create something)
 

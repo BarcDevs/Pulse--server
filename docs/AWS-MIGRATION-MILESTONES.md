@@ -11,6 +11,8 @@ Each milestone is about 5 minutes and can be shown working on its own. Tags:
 
 Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--client`, **CH** = `pulse--chat` (new, later).
 
+**Order (decided 18 Nov):** the box migration ships first: phases A (without A6 and A7), B, E and F. Redis and RabbitMQ are added after it: A6 and D with Redis, A7 and C with RabbitMQ. The first migration box therefore runs cloudflared, the client and the server only. Phases G and H follow the migration. Database class change tonight: 11 p.m. local time, UTC+2, which is 21:00 UTC (confirmed 18 Nov).
+
 ## Phase A: whole-box boot and compose (S) [local]
 
 - [ ] A1 S: draft `docker-compose` file with the server, client, Redis, RabbitMQ and cloudflared services: `docker compose config` validates.
@@ -64,7 +66,7 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 ## Phase E: database class change (tonight, 23:00 local)
 
 - [x] E1 S: runbook written: `docs/RDS-CLASS-CHANGE-RUNBOOK.md`. Pending modifications none, backups kept 7 days (read 18 Nov).
-- [ ] E2 owner: confirm the time offset (UTC+3 or UTC+2) for 23:00 [owner].
+- [x] E2 owner: time offset confirmed 18 Nov: UTC+2, so 23:00 local is 21:00 UTC [owner].
 - [ ] E3 AWS: `CREATE EXTENSION vector;` on a copy restored from the latest automated snapshot, then delete the copy [AWS go]: the extension is created and the copy is gone.
 - [ ] E4 AWS: manual snapshot `pulse-db-before-t4g-2026-11-18` [AWS go]: status available.
 - [ ] E5 AWS: change the class to `db.t4g.micro` with apply-immediately [AWS go]: instance available on the new class, nothing pending.

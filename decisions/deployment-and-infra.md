@@ -393,3 +393,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over alternatives:** The owner approved the proposed values and named the migration day as probably today, which means the date is a target, not an authorization to run infra changes.
 
 **Source:** Terminal, 18 Nov 2026: "ערכים מוצעים מאושרים"; migration day "כנראה היום"
+
+## 18/11/2026 — Box migration first, Redis and RabbitMQ after; DB window 21:00 UTC
+
+**Decision:** The box migration ships first (boot recovery with compose, the client move, t3.small, the database class change), and Redis and RabbitMQ are added after it, so the first migration box runs cloudflared, the client and the server only. The database class change is at 11 p.m. local time, UTC+2, which is 21:00 UTC (the owner first wrote UTC+3, then chose the machine's UTC+2). The build is split into milestones in docs/AWS-MIGRATION-MILESTONES.md and the database step has a runbook in docs/RDS-CLASS-CHANGE-RUNBOOK.md. Nothing has been applied to AWS.
+
+**Why over alternatives:** Smaller blast radius if step 1 fails, no cost change. The 21:00 UTC window does not overlap the 22:52 to 23:22 UTC automated backup window.
+
+**Rejected:** One combined migration with Redis and RabbitMQ in step 1.
+
+**Source:** Terminal, 18 Nov 2026, answers to the order and time offset questions
