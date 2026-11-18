@@ -13,9 +13,13 @@
 #                   so nothing on it can reach the internet, and nothing from
 #                   the internet or the client can reach it.
 #
-# Redis and RabbitMQ sit behind the `broker` profile. The first migration does
-# not start them: `docker compose up -d` brings up cloudflared only, and
-# `docker compose --profile broker up -d` adds the brokers later.
+# Every service sits behind a profile, so nothing starts by accident:
+#   tunnel  cloudflared. Not started on a new box until the tunnel routing has
+#           been changed for it (a second connector on the same tunnel would
+#           send page traffic to the server's port).
+#   broker  Redis and RabbitMQ, added after the first migration.
+# boot-stack.sh reads the profiles to start from the Parameter Store value
+# /pulse/boot/profiles (for example "tunnel,broker"); absent means none.
 #
 # Secrets are never written here. The boot or deploy script exports them into
 # the shell just before `docker compose up`, read from Secrets Manager:
@@ -24,15 +28,26 @@
 
 name: pulse
 
+# Fixed subnets so the metadata rules can name the server containers by address
+# (pulse-network-rules.sh): the server is 172.30.0.10 and its deploy candidate
+# 172.30.0.11 on pulse_edge. The VPC is 172.31.0.0/16, so there is no overlap.
 networks:
   edge:
     name: pulse_edge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
   internal:
     name: pulse_internal
     internal: true
+    ipam:
+      config:
+        - subnet: 172.30.1.0/24
 
 services:
   cloudflared:
+    profiles:
+      - tunnel
     image: cloudflare/cloudflared:2026.10.3
     command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 run
     environment:
