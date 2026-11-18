@@ -261,3 +261,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** SQS (managed, no memory, but no broker experience); BullMQ on Redis (needs a second non-evicting Redis, weak Python client); Redis Streams (retries to be written by hand).
 
 **Source:** Artifact comment thread 687af3ff, 17 Nov 2026: "RabbitMQ it is, so I also gain experience along the way."
+
+## 18/11/2026 — Check-in AI moves onto RabbitMQ with a Postgres outbox
+
+**Decision:** Check-in AI feedback moves from the Postgres job table with its polling worker onto RabbitMQ. Each job keeps a pending row in Postgres as the record, RabbitMQ is the delivery channel, and a sweeper republishes rows still pending after a few minutes. Consumers are idempotent. The broker stays a single node on the app box. Not built yet: this is a plan decision.
+
+**Why over alternatives:** It is the highest-volume job and the one the load test stresses, so it gives real production experience with a broker (a goal of the owner) with the sweeper as the safety net, as the Postgres worker has today.
+
+**Rejected:** Leaving check-in AI on the Postgres table (works today but gives no broker experience); a local RabbitMQ only (nothing verifiable for a CV); multiple broker nodes (more machines and memory than the plan has).
+
+**Source:** Artifact comment thread 50b01dab, 18 Nov 2026: "Good. Record it in depth in a doc for the exp too"
