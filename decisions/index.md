@@ -72,6 +72,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | Apply the review fixes to the plan, except 8 and 9 |
 | 18/11/2026 | Chat transport is WebSocket on Node, not SSE |
 | 18/11/2026 | RabbitMQ on the app box now; chat uses a provider key |
+| 18/11/2026 | No separate disk for RabbitMQ, the sweeper rebuilds the queue |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.

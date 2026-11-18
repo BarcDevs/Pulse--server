@@ -301,3 +301,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Own t4g.micro for RabbitMQ now (about $7.01 a month, more to maintain); a Bedrock identity for chat (weakens the isolation); fixing a memory fallback before the test.
 
 **Source:** Terminal questions, 18 Nov 2026
+
+## 18/11/2026 — No separate disk for RabbitMQ, the sweeper rebuilds the queue
+
+**Decision:** RabbitMQ keeps its data on the instance root disk with no separate EBS volume. If the box is replaced, the queue is lost and the pending rows in Postgres plus the sweeper republish unfinished jobs. A separate volume stays an option if a job ever cannot be rebuilt from Postgres.
+
+**Why over alternatives:** Loss of the queue costs a delay, not data, so a separate volume adds an attach-at-boot step tied to one availability zone and one more thing that can fail at boot, for a small cost ($0.0952 per GB-month) that is not the deciding factor.
+
+**Rejected:** Separate EBS kept after termination, attached at boot.
+
+**Source:** Terminal, 18 Nov 2026: "Sweeper it is"
