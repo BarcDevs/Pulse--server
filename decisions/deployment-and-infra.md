@@ -385,3 +385,11 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over alternatives:** Deletion cannot be undone, and until the new client has carried all the traffic the old box is the way back.
 
 **Source:** Terminal, 18 Nov 2026: "מחיקת הקליינט: לא מוחקים לפני שהקליינט החדש בנוי ורץ בהצלחה"
+
+## 18/11/2026 — Proposed plan values approved; migration day tentatively 18 Nov
+
+**Decision:** The values proposed in the plan are approved: the chat repository name pulse--chat, the 10-minute recovery target in the prove-recovery step, the 7-day snapshot of the client box volume before deletion, and the starting alarm thresholds. Migration day is tentatively 18 Nov 2026 (today) and is not scheduled; implementation of the compose boot, rebuilt client image and tunnel routing comes first. No migration step has been run.
+
+**Why over alternatives:** The owner approved the proposed values and named the migration day as probably today, which means the date is a target, not an authorization to run infra changes.
+
+**Source:** Terminal, 18 Nov 2026: "ערכים מוצעים מאושרים"; migration day "כנראה היום"
