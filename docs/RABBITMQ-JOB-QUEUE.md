@@ -43,6 +43,8 @@ Rules:
 
 Jobs on the queue: per-user memory summary after a check-in, RAG ingest (posts, check-in summaries, chat summaries), chat topic pickup, and check-in AI feedback (new, 18 Nov).
 
+Consumer concurrency (18 Nov): starts at 2 jobs at once, the same as the polling worker today, set through config. The final number is chosen after the load test from real memory use, provider rate-limit (429) errors and queue depth. For scale: if one job takes about 8 seconds (an assumption, not measured), a burst of 1,000 takes about 67 minutes at 2, 33 at 4 and 13 at 10.
+
 ## 4. Broker setup and hardening (to build)
 
 - One container on the app box, internal Docker network only, no published port, management plugin off.

@@ -311,3 +311,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Separate EBS kept after termination, attached at boot.
 
 **Source:** Terminal, 18 Nov 2026: "Sweeper it is"
+
+## 18/11/2026 — Queue consumer concurrency starts at 2, tuned after load test
+
+**Decision:** The RabbitMQ consumers for check-in AI start with 2 jobs at once, the same as the polling worker today, set through config. The final number is chosen after the load test from real memory, provider rate-limit errors and queue depth.
+
+**Why over alternatives:** No real measurement exists yet for memory under a burst or for the provider's 429 limits, so a number chosen now would be a guess.
+
+**Rejected:** Fixing 4 or 10 now (unmeasured risk to memory, provider limits and database connections).
+
+**Source:** Terminal, 18 Nov 2026: "Decide after the load test"
