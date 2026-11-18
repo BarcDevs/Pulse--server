@@ -41,6 +41,9 @@ iptables -t mangle -C PREROUTING -d $FIXED_IP -j CONNMARK --set-mark 0x1 2>/dev/
     || iptables -t mangle -A PREROUTING -d $FIXED_IP -j CONNMARK --set-mark 0x1
 iptables -t mangle -C PREROUTING -i docker0 -j CONNMARK --restore-mark 2>/dev/null \
     || iptables -t mangle -A PREROUTING -i docker0 -j CONNMARK --restore-mark
+# User-defined networks (the compose bridges, br-*) need the same restore
+iptables -t mangle -C PREROUTING -i br+ -j CONNMARK --restore-mark 2>/dev/null \
+    || iptables -t mangle -A PREROUTING -i br+ -j CONNMARK --restore-mark
 ip rule show | grep -q "fwmark 0x1" || ip rule add fwmark 0x1 lookup 10001 priority 10002
 ROUTING_EOF
 chmod 755 /usr/local/bin/pulse-eni-routing.sh
@@ -61,4 +64,31 @@ UNIT_EOF
 systemctl daemon-reload
 systemctl enable --now pulse-eni-routing.service
 
-bash /opt/pulse/redeploy.sh latest
+# Default-deny metadata rules, baked into the image with the boot script. A box
+# built from an older image has neither file and boots the old way.
+if [ -f /opt/pulse/pulse-network-rules.sh ]; then
+    cat > /etc/systemd/system/pulse-network-rules.service <<RULES_UNIT_EOF
+[Unit]
+Description=Default-deny rules for the instance metadata service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash /opt/pulse/pulse-network-rules.sh apply
+
+[Install]
+WantedBy=multi-user.target
+RULES_UNIT_EOF
+    systemctl daemon-reload
+    systemctl enable --now pulse-network-rules.service
+fi
+
+# Whole-box boot (compose containers, then the server and the client with their
+# last good tags) when the image has it, otherwise the previous behaviour.
+if [ -f /opt/pulse/boot-stack.sh ]; then
+    bash /opt/pulse/boot-stack.sh
+else
+    bash /opt/pulse/redeploy.sh latest
+fi
