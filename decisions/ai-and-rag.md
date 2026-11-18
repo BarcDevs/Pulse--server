@@ -110,3 +110,13 @@ either without that comparison.
 **Why over alternatives:** Pulse is a recovery-support app, so free chat that drifts or gives medical advice is a safety risk, not only a quality issue. The server already blocks diagnostic wording for check-in AI, so chat should meet at least the same bar.
 
 **Source:** Terminal, 18 Nov 2026: guardrails so chat does not drift to unrelated topics or give forbidden medical advice
+
+## 18/11/2026 — RAG adds to the keyword recommendations, does not replace them
+
+**Decision:** Post recommendations after a check-in keep today's pipeline (candidates by activities, tags and key-issue terms, risky-post filter, popular fallback, weighted scoring, author fatigue, diverse top 5). RAG adds a second candidate source found by meaning and adds its similarity as one more scoring signal. The risky-post filter stays deterministic and runs on every candidate, including the ones found by vector search.
+
+**Why over alternatives:** The goal is matching by meaning, which keyword search misses, so RAG should contribute. The keyword and tag path stays for exact facets and because the safety filter must not depend on similarity scores.
+
+**Rejected:** Replacing the keyword pipeline with vector search only (loses exact facets and the deterministic safety filter); leaving RAG out of recommendations.
+
+**Source:** Terminal, 18 Nov 2026: today the recommendations use keywords, RAG should combine with it if useful, the idea is mostly semantic
