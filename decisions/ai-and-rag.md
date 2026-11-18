@@ -102,3 +102,11 @@ either without that comparison.
 **Decision:** The chat service authenticates to its model with a provider API key, not AWS credentials. Bedrock access stays limited to the Node side. This resolves the contradiction in the plan, which had said chat has no AWS credentials but also hinted at Claude through Bedrock.
 
 **Source:** user, auto-recorded: "The user answered: 'RabbitMQ data: the root disk is deleted when the box is replaced. Add a separate EBS disk kept after termination and attached at boot, or accept losing the queue on replacement bec"
+
+## 18/11/2026 — Chat needs guardrails: on topic, no forbidden medical advice
+
+**Decision:** The chat service must stay inside the app's purpose and must not give medical advice it is not allowed to give (diagnosis, medication or dose, treatment changes). The plan adds layered guardrails: scope and medical rules in the system prompt, a check on incoming messages with fixed replies for out-of-scope, medical-advice and crisis cases, a deterministic check on replies modelled on the existing check-in AI validator, a fixed bilingual test set run in the model evaluation, logs without message text, and a visible notice. Scope wording, crisis message and test pass bar are still to be set.
+
+**Why over alternatives:** Pulse is a recovery-support app, so free chat that drifts or gives medical advice is a safety risk, not only a quality issue. The server already blocks diagnostic wording for check-in AI, so chat should meet at least the same bar.
+
+**Source:** Terminal, 18 Nov 2026: guardrails so chat does not drift to unrelated topics or give forbidden medical advice

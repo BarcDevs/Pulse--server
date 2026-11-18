@@ -41,6 +41,7 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | 11/10/2026 | Considering Bedrock Knowledge Bases instead of pgvector/Qdrant for RAG (not decided) |
 | 13/10/2026 | AI text sanitised in code (dashes, curly quotes); an invalid insight is regenerated once before the template |
 | 18/11/2026 | Chat uses a provider API key; Bedrock stays Node-only |
+| 18/11/2026 | Chat needs guardrails: on topic, no forbidden medical advice |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
