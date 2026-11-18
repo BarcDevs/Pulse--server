@@ -105,3 +105,10 @@ Auto-recorded corrections.
 | Date | Entry |
 |---|---|
 | 08/11/2026 | Launch-funnel links must use the /start page, not the root |
+
+## Claude Behavior — [[corrections/claude-behavior]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 18/11/2026 | Don't present my own design as the user's decision |
