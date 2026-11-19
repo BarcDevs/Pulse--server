@@ -1,6 +1,6 @@
 # RDS class change runbook: db.t3.micro to db.t4g.micro
 
-Status: prepared 18 Nov 2026, **not run**. Nothing in this file has been applied to AWS. Each step that changes anything waits for the owner's explicit go at the time.
+Status: **run 19 Nov 2026, 02:04 to 02:12 UTC** on the owner's go (earlier than the planned 21:00 UTC window). Snapshot `pulse-db-before-t4g-2026-11-19` taken first (the name in the commands below says 18 Nov). Class change started 02:07:27 UTC, instance available again on `db.t4g.micro` at 02:11:39 UTC (RDS event), about 4.5 minutes from modify to finished. No pending modifications. Server error log: only the pool errors from the shutdown (02:09 UTC), none after 02:12 UTC. Checked at 12:00 UTC: `prisma migrate status` says "Database schema is up to date", the server container is healthy and answers `/api/status` with 200, and the error log has 0 entries between 02:12 and 12:00 UTC. A real login and check-in were not tested (no matching lines in the server log, no test credentials used). The manual snapshot `pulse-db-before-t4g-2026-11-19` is due for deletion on 26 Nov 2026.
 
 Decision: `decisions/deployment-and-infra.md` (17 Nov: move to db.t4g.micro; 18 Nov: window at 11 p.m. local time, snapshot first). Plan: the "Pulse AWS Architecture Plan" artifact, migration step 5.
 
