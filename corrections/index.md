@@ -84,6 +84,7 @@ Auto-recorded corrections.
 | 27/10/2026 | Check issue labels before advising on unmerged issue branches |
 | 28/10/2026 | Watcher asks mid-fix design questions in an artifact, not needs-human |
 | 28/10/2026 | Commit type chosen mechanically as feat, bumping minor |
+| 19/11/2026 | Commit finished work before starting the next change |
 
 ## Working Style — [[corrections/working-style]]
 Auto-recorded corrections.

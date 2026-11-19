@@ -25,3 +25,9 @@
 **Lesson:** User asked 'Why did you mark it as a feat to bump minor?' and chose to rewrite to a patch bump. GIT_RULES.md says to think about the commit type and report the reasoning, not label everything feat. The hook bumps only for feat/fix/rfc/refactor/perf (chore bumps nothing), so the type decides the version.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 19/11/2026 — Commit finished work before starting the next change
+
+**Correct fact:** When a set of files is done, commit them before starting the next change instead of leaving them uncommitted and moving on. The user pointed out that finished files were left uncommitted when the assistant moved to a new change.
+
+**Source:** user, auto-recorded: "שאלתי למה לא עשית את הקומיט לקבצים שסיימת לעבוד איתם, עשית שם שינוי, סיימת איתו, עכשיו אתה מוכן לשינוי הבא, נכון? אז אתה אמור לעשות קומיט לפני השינוי הבא."
