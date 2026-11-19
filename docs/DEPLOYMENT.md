@@ -116,6 +116,21 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   on connect, so a runaway query is cancelled with `57014` instead of holding a connection).
   Each container uses up to `poolMax` connections and a redeploy briefly runs two, so keep
   `2 x poolMax x instances` under the `db.t4g.micro` `max_connections`.
+- **Connection budget** (read on 19 Nov 2026 from the live instance: `max_connections` 79,
+  `superuser_reserved_connections` 3, `shared_buffers` 184,648 kB; 2 `pulse_app` connections idle).
+  Worst case is a redeploy, when two containers of a service hold their pools at once:
+
+  | Who | Normal | During a redeploy |
+  |---|---|---|
+  | Node server (`poolMax` 10) | 10 | 20 |
+  | Chat service (planned, pool 5) | 5 | 10 |
+  | Migrations and admin (`pulse_admin`) | 1 | 2 |
+  | Ad hoc, monitoring, backups | 3 | 3 |
+  | Reserved for superuser | 3 | 3 |
+  | **Total** | **22** | **38** |
+
+  38 of 79 leaves about 41 spare. Re-read `SHOW max_connections` after any class change: RDS
+  derives it from the instance memory.
 - **Slow queries**: any query over `database.slowQueryMs` (200ms) is logged as a `Slow database
   query` warning with SQL text (placeholders only) and duration, never bound values.
 - **`pg_trgm`**: forum search relies on GIN trigram indexes. The migration runs
