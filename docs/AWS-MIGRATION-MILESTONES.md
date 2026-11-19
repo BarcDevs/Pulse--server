@@ -34,8 +34,9 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase B: client image and tunnel routing (C)
 
-- [ ] B1 C: build argument `SERVER_URL=http://server:8080` in the deploy workflow and image build [local]: the built rewrites point to it.
-- [ ] B2 C: client service entry in the compose file with a healthcheck [local]: starts and answers locally.
+- [x] B1 C: `SERVER_URL` of the image build comes from the repository variable `SERVER_URL`, with today's private address as the fallback [local]: done 19 Nov, client commit 7a17d15e on `feat/aws-migration-deploy`. Checked by loading `next.config.mjs`: with `SERVER_URL=http://server:8080` the rewrite is `http://server:8080/api/:path*`. Merging changes nothing until the owner sets the variable (a GitHub setting, only with the owner's go). One image has one baked-in URL, so the old client box and the new one cannot share an image once the variable is set: B4 must decide this.
+- [ ] B2 C: replaced (19 Nov). The client is not a compose service (A1 decision), so this milestone becomes B5 below. Found while starting it: both deploy scripts still publish host ports (`-p 80:8080` for the server, `-p 127.0.0.1:80:3000` for the client) and do not join `pulse_edge`, but the tunnel ingress (`server:8080`, `client:3000`) and the metadata rules (A11, fixed addresses 172.30.0.10 and .11) assume they do.
+- [ ] B5 S: the server and client deploy scripts start their containers on `pulse_edge` with fixed addresses and a network alias (`server`, `client`), the candidate on the spare address, and the health check goes through the container address, not a host port [local]: tests with stubbed `docker` show the `docker run` arguments; a local run with Docker answers on `http://server:8080/api/status` from another container. Needs a design pass first: how the alias moves from the old container to the candidate during the swap.
 - [ ] B3 owner: read the current tunnel routing in Cloudflare (dashboard or API) and paste what it shows into the plan [owner]: the page records the real ingress, not a guess.
 - [ ] B4 S: decide the routing that resolves on both boxes from B3's result [local]: a one-paragraph change note in the migration section.
 
@@ -72,7 +73,7 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 - [x] E5 AWS: change the class to `db.t4g.micro` with apply-immediately [AWS go]: done 19 Nov, modify started 02:07:27 UTC, finished 02:11:39 UTC, nothing pending.
 - [x] E6 AWS: server reconnects, `prisma migrate status` clean, quiet error log, login and a check-in work [AWS go]: done 19 Nov 12:00 UTC. A guest session and a check-in on production returned 201 and the insight reached `ready` in about 12 seconds; the error log had 0 entries from 02:12 to 12:00 UTC.
 - [x] E7 S: update `docs/DEPLOYMENT.md` (class) [local]: done 19 Nov; the connection budget table waits for E8.
-- [ ] E8 AWS: `SHOW max_connections` and write the budget table [AWS go].
+- [x] E8 AWS: `SHOW max_connections` and write the budget table [AWS go]: done 19 Nov, `max_connections` 79 (3 reserved), budget table in `docs/DEPLOYMENT.md`: 38 of 79 in the worst case (a redeploy with the chat service present).
 
 ## Phase F: box migration (apply steps, one at a time) [AWS go]
 
