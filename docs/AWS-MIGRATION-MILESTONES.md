@@ -68,10 +68,10 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 - [x] E1 S: runbook written: `docs/RDS-CLASS-CHANGE-RUNBOOK.md`. Pending modifications none, backups kept 7 days (read 18 Nov).
 - [x] E2 owner: time offset confirmed 18 Nov: UTC+2, so 23:00 local is 21:00 UTC [owner].
 - [x] E3 AWS: `CREATE EXTENSION vector;` on a copy restored from the latest automated snapshot, then delete the copy [AWS go]: done 18 Nov, `vector 0.8.2` on PostgreSQL 17.10 and `db.t4g.micro`, the copy deleted, only `pulse-db` left.
-- [ ] E4 AWS: manual snapshot `pulse-db-before-t4g-2026-11-18` [AWS go]: status available.
-- [ ] E5 AWS: change the class to `db.t4g.micro` with apply-immediately [AWS go]: instance available on the new class, nothing pending.
-- [ ] E6 AWS: server reconnects, `prisma migrate status` clean, 30 quiet minutes in the error log, login and a check-in work [AWS go].
-- [ ] E7 S: update `docs/DEPLOYMENT.md` (class, connection budget) in the same change [local].
+- [x] E4 AWS: manual snapshot [AWS go]: done 19 Nov 02:04 UTC as `pulse-db-before-t4g-2026-11-19` (the owner asked to run it early, not at 23:00); delete it on 26 Nov.
+- [x] E5 AWS: change the class to `db.t4g.micro` with apply-immediately [AWS go]: done 19 Nov, modify started 02:07:27 UTC, finished 02:11:39 UTC, nothing pending.
+- [x] E6 AWS: server reconnects, `prisma migrate status` clean, quiet error log, login and a check-in work [AWS go]: done 19 Nov 12:00 UTC. A guest session and a check-in on production returned 201 and the insight reached `ready` in about 12 seconds; the error log had 0 entries from 02:12 to 12:00 UTC.
+- [x] E7 S: update `docs/DEPLOYMENT.md` (class) [local]: done 19 Nov; the connection budget table waits for E8.
 - [ ] E8 AWS: `SHOW max_connections` and write the budget table [AWS go].
 
 ## Phase F: box migration (apply steps, one at a time) [AWS go]
@@ -105,6 +105,19 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 ## Phase I: not split yet
 
 Chat day work is milestoned when it starts: the `pulse--chat` repository, the WebSocket on Node, the guardrails and their test set, prompt caching, the model evaluation, RAG ingest and retrieval, the vector search row-level security, and the second and third load test runs.
+
+## Phase J: routine test users, analytics and the admin dashboard (added 19 Nov, owner's request)
+
+Decision: `decisions/deployment-and-infra.md` (19 Nov): real accounts that do routine actions in production, passwords only in the gitignored `.env`, no Secrets Manager entry.
+
+- [x] J1 AWS: create test user 1 on production [AWS go]: done 19 Nov, signup 201 and login 200. Email `pulse-test-1@pulserehab.app`, password generated and written to `.env` as `PULSE_TEST_USER_1_PASSWORD`, never printed.
+- [x] J2 owner (19 Nov): done with plus addressing, not the subdomain. Rule `testuser@pulserehab.app` to the owner's inbox, plus Cloudflare's "Enable subaddressing" setting (off by default: with it off, a real OTP mail to `testuser+1@pulserehab.app` hard-bounced at Resend and left no entry in the Cloudflare activity log). After enabling it a test mail to `testuser+1@` arrived. Each test user is `testuser+N@pulserehab.app`. `testuser+1@pulserehab.app` is still on Resend's suppression list after the first bounce (a second mail at 12:49 UTC was `suppressed`): remove it in the Resend dashboard, or use `testuser+2@` and later addresses, which are not suppressed. The subdomain catch-all below is not needed. Original text (kept for the record): choose the mailbox for test users, so the OTP flows (confirm email, forgot password, email change) can be tested [owner]. Proposal: Cloudflare Email Routing on the subdomain `test.pulserehab.app` with one catch-all rule to the owner's inbox: no per-address entries, no spam from the main domain, free, real mail, Resend never sends to a dead address. The owner sets it up once in the Cloudflare dashboard (adds the subdomain's mail records and verifies the destination address); nothing is changed on the owner's account without the owner's go. Exclude rule for analytics: email ends with `@test.pulserehab.app`. Check that sending through Resend from the main domain is not affected. Until then no flow that sends mail may run for these users.
+- [ ] J3 S: one naming rule for test users, used by every exclude below: written in `docs/`. The rule is the email `testuser+N@pulserehab.app` (the mailbox from J2). Test user 1 was created earlier as `pulse-test-1@pulserehab.app`, which has no mailbox: change its email to `testuser+2@pulserehab.app` with the change-email flow, or leave it out of the OTP tests.
+- [x] J3a AWS: OTP flow proved end to end on production (19 Nov 12:58 to 13:0x UTC) with test user 2 (`testuser+1@pulserehab.app`): forgot-password mail `delivered` by Resend and received through Cloudflare subaddressing, `verify-reset-code` 200, `reset-password` 200, login with the new password 200. The new password is in `.env` as `PULSE_TEST_USER_2_PASSWORD`.
+- [ ] J4 S: routine script, run from the owner's machine with `.env`: login, daily check-in, read insights, browse the forum, log every failure with the route and status: dry run against a local server passes.
+- [ ] J5 S: more test users (2 to 3) with different habits, only after J4 works on user 1.
+- [ ] J6 S: analytics on the server side: which numbers (active users, check-ins per day, AI job failures, signups) and where they are read. Test users excluded by J3. Client-side analytics: to check whether one exists.
+- [ ] J7 S: admin dashboard shows the J6 numbers and the test users' own run results. Needs its own design pass first.
 
 ## Log
 
