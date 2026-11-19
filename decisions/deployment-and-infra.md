@@ -413,3 +413,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Putting the server and client into the compose file too (would need a new blue/green swap and rollback).
 
 **Source:** Terminal, 18 Nov 2026, answer to the design question
+
+## 19/11/2026 — Real routine test users in production; passwords in .env only
+
+**Decision:** Add a few real (not guest, not mocked) test accounts in production that perform routine actions to simulate real use and find bugs while volume is low. Their passwords are kept in a gitignored .env outside git, not in Secrets Manager.
+
+**Why over alternatives:** Owner does not want extra secrets that cost money in Secrets Manager just for test-user passwords; guest accounts are removed by the retention service so they cannot run continuously.
+
+**Rejected:** Secrets Manager entries for the test passwords (extra cost); guest accounts (deleted by guestRetentionService).
+
+**Source:** Owner, terminal, 19 Nov 2026
