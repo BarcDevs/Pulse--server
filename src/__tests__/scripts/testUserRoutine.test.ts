@@ -59,7 +59,7 @@ const okRoutes = (insightsStatus: () => string): Routes => ({
     'GET /profile': { status: 200 },
     'GET /recovery-goals': { status: 200 },
     'GET /forum/posts/categories': { status: 200 },
-    'GET /forum/posts': { status: 200, body: { data: [{ id: 'p1' }] } },
+    'GET /forum/posts': { status: 200, body: { data: { items: [{ id: 'p1' }] } } },
     'GET /forum/recommendations': { status: 200 },
     'GET /forum/posts/p1': { status: 200 },
     'GET /forum/posts/p1/replies': { status: 200 }

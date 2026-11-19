@@ -18,6 +18,7 @@ export type TestUser = {
 }
 
 export type StepResult = {
+    at: string
     user: number
     step: string
     method: string
@@ -147,6 +148,7 @@ const createSession = ({
             detail = String(json.message ?? '').slice(0, DETAIL_MAX_LENGTH)
 
         results.push({
+            at: deps.now().toISOString(),
             user: user.id,
             step,
             method,
@@ -219,7 +221,7 @@ const runUser = async (options: SessionOptions): Promise<StepResult[]> => {
     const posts = await get('forum posts', '/forum/posts')
     await get('forum recommendations', '/forum/recommendations')
 
-    const post = firstItem(posts.json.data, 'posts')
+    const post = firstItem(posts.json.data, 'items')
 
     if (post?.id) {
         await get('forum post', `/forum/posts/${String(post.id)}`)
@@ -247,6 +249,7 @@ const waitForInsights = async (
     }
 
     session.results.push({
+        at: deps.now().toISOString(),
         user: Number(session.results[0]?.user ?? 0),
         step: 'insights ready',
         method: 'GET',
@@ -296,7 +299,7 @@ const main = async () => {
     )
 
     for (const result of results)
-        console.info(JSON.stringify({ at: new Date().toISOString(), ...result }))
+        console.info(JSON.stringify(result))
 
     const failed = results.filter(result => !result.ok)
 
