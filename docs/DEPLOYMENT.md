@@ -13,7 +13,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | AWS account | `110015905368` (Bardevs) |
 | Server ASG | `pulse-server-asg` (min=max=1, `subnet-0efbb5ecf1bd12185`), launch template `pulse-server-lt` (`lt-02283631f77464afa`), `t3.micro`. Replaces a standalone instance — the ASG re-launches automatically on failure. |
 | Server fixed private IP | `172.31.16.100` — a dedicated secondary ENI (`eni-0a923c09357bb745b`) the ASG instance attaches to itself at boot (`scripts/deploy/asg-boot.sh`), so this address survives instance replacement. The client's `/api` proxy is baked to this IP. |
-| RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t3.micro`, encrypted, deletion-protected, not publicly accessible |
+| RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t4g.micro` (moved from `db.t3.micro` on 19 Nov 2026), encrypted, deletion-protected, not publicly accessible |
 | Domain | `pulserehab.app` (Cloudflare, proxied) → Cloudflare Tunnel → client EC2 (`cloudflared` container, outbound-only; token in `pulse/client/CLOUDFLARE_TUNNEL_TOKEN`). The client SG has no public 80/443 ingress. The client's Elastic IP `52.58.214.220` (`eipalloc-000be881665f41959`) is no longer on the request path. Client is the public front door, proxying `/api/:path*` to the server's fixed private IP over the private VPC. |
 | EC2 security group (server) | `sg-0c263224f1d77df26` — SSH (22) closed (shell access via SSM Session Manager), HTTP (80) from the client SG (`sg-02ad243011d768866`) only |
 | RDS security group | `sg-0d6e9cdd1a065d584` — Postgres (5432) restricted to the EC2 security group only, no public CIDR |
@@ -115,7 +115,7 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   `idleTimeoutMs` 30s, `statementTimeoutMs` 15s (set per session with `SET statement_timeout`
   on connect, so a runaway query is cancelled with `57014` instead of holding a connection).
   Each container uses up to `poolMax` connections and a redeploy briefly runs two, so keep
-  `2 x poolMax x instances` under the `db.t3.micro` `max_connections`.
+  `2 x poolMax x instances` under the `db.t4g.micro` `max_connections`.
 - **Slow queries**: any query over `database.slowQueryMs` (200ms) is logged as a `Slow database
   query` warning with SQL text (placeholders only) and duration, never bound values.
 - **`pg_trgm`**: forum search relies on GIN trigram indexes. The migration runs
