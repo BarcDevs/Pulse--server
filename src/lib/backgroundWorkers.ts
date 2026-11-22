@@ -1,5 +1,6 @@
 import { appConfig } from '../../config'
 import { scheduleAccountPurge } from '../services/accountDeletionService'
+import { isBrokerBackend, startCheckInAiConsumer } from '../services/checkInAiQueueService'
 import { startCheckInAiWorker } from '../services/checkInAiWorkerService'
 import { scheduleGuestPurge } from '../services/guestRetentionService'
 import { scheduleSupportTicketRetention } from '../services/supportTicketRetentionService'
@@ -19,6 +20,14 @@ export const startBackgroundWorkers = (): (() => Promise<void>) => {
     scheduleAccountPurge()
     scheduleGuestPurge()
     scheduleSupportTicketRetention()
+
+    // One kind of worker at a time: the polling worker and the broker consumer
+    // would both claim jobs
+    if (isBrokerBackend()) {
+        logger.info('Check-in AI jobs run through the broker')
+
+        return startCheckInAiConsumer()
+    }
 
     return startCheckInAiWorker()
 }

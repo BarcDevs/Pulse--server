@@ -19,3 +19,13 @@ export const CHECK_IN_AI_JOB_SWEEP_MS = 5 * minuteInMs
 export const CHECK_IN_AI_JOB_SWEEP_LOOKBACK_MS = dayInMs
 // A failed job is re-queued once its last update is older than this
 export const CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS = 5 * minuteInMs
+
+// Broker mode. A job published but still unclaimed after this long is published
+// again (the message was lost or the broker lost its queue)
+export const CHECK_IN_AI_JOB_REPUBLISH_AFTER_MS = 2 * minuteInMs
+// The sweeper leaves a row alone this long after its last update, so it does not
+// race the request that is publishing it right now
+export const CHECK_IN_AI_JOB_PUBLISH_GRACE_MS = 30 * secondInMs
+// How often the sweeper publishes waiting rows and logs the queue numbers
+export const CHECK_IN_AI_JOB_PUBLISH_SWEEP_MS = 30 * secondInMs
+export const CHECK_IN_AI_JOB_PUBLISH_BATCH = 100
