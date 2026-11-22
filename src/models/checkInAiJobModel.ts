@@ -33,6 +33,7 @@ export const enqueueJob = async (
             attempts: 0,
             lockedAt: null,
             lastError: null,
+            publishedAt: null,
             runAfter: CHECK_IN_AI_JOB_RUN_IMMEDIATELY
         }
     })
@@ -143,6 +144,7 @@ export const markJobRetry = async (
         SET "status" = 'PENDING',
             "lockedAt" = NULL,
             "lastError" = ${lastError},
+            "publishedAt" = NULL,
             "runAfter" = now() + ${CHECK_IN_AI_JOB_RETRY_DELAY_MS} * interval '1 millisecond',
             "updatedAt" = now()
         WHERE "id" = ${job.id}
@@ -197,6 +199,7 @@ export const requeueMissedJobs = async (
             "attempts" = 0,
             "lockedAt" = NULL,
             "lastError" = NULL,
+            "publishedAt" = NULL,
             "runAfter" = to_timestamp(0),
             "updatedAt" = now()
         FROM "DailyCheckIn" c
