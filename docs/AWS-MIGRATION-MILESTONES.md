@@ -107,7 +107,7 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase H: load test (after Phase F)
 
-- [ ] H1 S: fake model endpoint that copies real response timing and size: unit test shows delay and chunked output.
+- [x] H1 S (done 22 Nov, `scripts/load-test/fakeModelServer.ts`, run with `npx tsx scripts/load-test/fakeModelServer.ts --port=8089 --delay-ms=4000 --jitter-ms=1500 --response-chars=900`; the defaults are guesses and must be replaced with the real timing and size read from production logs before H4; the OpenAI provider calls a fixed URL, so using it needs a configurable base URL, added with H3): fake model endpoint that copies real response timing and size: unit test shows delay and chunked output.
 - [ ] H2 S: k6 script with many test users, a defined ramp, and a deploy during the load: dry run against a local server passes.
 - [ ] H3 AWS: clone of the box and a restored database in production mode [AWS go]: the clone serves traffic.
 - [ ] H4 AWS: run 1, record memory, queue depth, errors in the table in `docs/RABBITMQ-JOB-QUEUE.md` [AWS go]: bar is memory under 80%, no container killed, no failed requests.
