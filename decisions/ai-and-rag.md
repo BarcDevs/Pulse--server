@@ -96,3 +96,55 @@ either without that comparison.
 **Why over alternatives:** the sanitising is deterministic, so it beats asking the model again. The second attempt costs a call only when the first reply was unusable. A claim checker was rejected: it needs per-claim parsing and either misses lies or blocks true numbers.
 
 **How to apply:** any new place that stores AI text must call `sanitizeGeneratedText`; keep `INSIGHT_GENERATION_ATTEMPTS` small, since each attempt can walk the whole chain.
+
+## 18/11/2026 — Chat uses a provider API key; Bedrock stays Node-only
+
+**Decision:** The chat service authenticates to its model with a provider API key, not AWS credentials. Bedrock access stays limited to the Node side. This resolves the contradiction in the plan, which had said chat has no AWS credentials but also hinted at Claude through Bedrock.
+
+**Source:** user, auto-recorded: "The user answered: 'RabbitMQ data: the root disk is deleted when the box is replaced. Add a separate EBS disk kept after termination and attached at boot, or accept losing the queue on replacement bec"
+
+## 18/11/2026 — Chat needs guardrails: on topic, no forbidden medical advice
+
+**Decision:** The chat service must stay inside the app's purpose and must not give medical advice it is not allowed to give (diagnosis, medication or dose, treatment changes). The plan adds layered guardrails: scope and medical rules in the system prompt, a check on incoming messages with fixed replies for out-of-scope, medical-advice and crisis cases, a deterministic check on replies modelled on the existing check-in AI validator, a fixed bilingual test set run in the model evaluation, logs without message text, and a visible notice. Scope wording, crisis message and test pass bar are still to be set.
+
+**Why over alternatives:** Pulse is a recovery-support app, so free chat that drifts or gives medical advice is a safety risk, not only a quality issue. The server already blocks diagnostic wording for check-in AI, so chat should meet at least the same bar.
+
+**Source:** Terminal, 18 Nov 2026: guardrails so chat does not drift to unrelated topics or give forbidden medical advice
+
+## 18/11/2026 — RAG adds to the keyword recommendations, does not replace them
+
+**Decision:** Post recommendations after a check-in keep today's pipeline (candidates by activities, tags and key-issue terms, risky-post filter, popular fallback, weighted scoring, author fatigue, diverse top 5). RAG adds a second candidate source found by meaning and adds its similarity as one more scoring signal. The risky-post filter stays deterministic and runs on every candidate, including the ones found by vector search.
+
+**Why over alternatives:** The goal is matching by meaning, which keyword search misses, so RAG should contribute. The keyword and tag path stays for exact facets and because the safety filter must not depend on similarity scores.
+
+**Rejected:** Replacing the keyword pipeline with vector search only (loses exact facets and the deterministic safety filter); leaving RAG out of recommendations.
+
+**Source:** Terminal, 18 Nov 2026: today the recommendations use keywords, RAG should combine with it if useful, the idea is mostly semantic
+
+## 18/11/2026 — Chat sees a check-in summary only; check-in AI gets chat topics
+
+**Decision:** Chat receives only a short per-user check-in summary, the most relevant part, built by a background job after each check-in, sent by Node with each message. No raw check-in text goes to chat, Redis or logs. In return, check-in AI gets only the relevant chat topics, never chat history: chat extracts short topics, each with a label and a one-line paraphrased note (no quotes, no names, diagnoses or medication unless they are the topic), Node picks them up over the existing Node-to-chat path (chat never calls Node), stores them on the per-user memory record filtered by user id, and passes only tha
+
+**Why over alternatives:** The summary gives chat the context it needs without exposing raw check-ins, and relevant topics make check-in feedback fit the user's state, while chat history is mostly irrelevant.
+
+**Rejected:** Full check-in text to chat; sending chat history to check-in AI; a label-only topic (the note is needed so the topic is understood).
+
+**Source:** Artifact comment threads, 17 Nov 2026
+
+## 18/11/2026 — Chat uses provider prompt caching with a stable prompt prefix
+
+**Decision:** The chat service uses the model provider's own prompt caching to save tokens. Prompts are ordered with unchanging parts first and changing parts last: system prompt and rules, the per-user memory summary and topics, retrieved chunks, recent conversation, the new message. The start of each prompt is kept byte-identical between calls, and only the last few turns plus a running summary are sent. Discount, minimum prompt size and cache lifetime depend on the chosen provider and model and are not counted in the cost tables until read from the provider's pricing page.
+
+**Why over alternatives:** It cuts chat token cost without a new service, and it is separate from Redis.
+
+**Source:** Terminal, 18 Nov 2026
+
+## 18/11/2026 — RAG variant: pgvector on RDS with Bedrock embeddings, no Knowledge Bases
+
+**Decision:** The RAG process uses Bedrock Titan Text Embeddings for embeddings and stores vectors in pgvector on the existing RDS database (variant A), with the user id and a type on each row. Bedrock Knowledge Bases with OpenSearch Serverless was rejected. Only the Node server has Bedrock permission, on one embedding model. Steps: ingest through the job queue, embed, store, retrieve filtered by user id, augment, generate. The embedding price and Hebrew quality are still to be checked.
+
+**Why over alternatives:** Variant A costs about nothing extra, while Knowledge Bases with OpenSearch Serverless has a large minimum monthly cost.
+
+**Rejected:** Bedrock Knowledge Bases with OpenSearch Serverless ($0.339 per OCU-hour); a dedicated graph database.
+
+**Source:** Terminal and artifact comments, 17 Nov 2026

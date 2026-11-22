@@ -1,0 +1,143 @@
+# AWS migration and RabbitMQ: build milestones
+
+<!-- baseline: ee50f1712974412abc15a28c83da859f12509b0e -->
+
+Source plan: the "Pulse AWS Architecture Plan" artifact (v68), `docs/RABBITMQ-JOB-QUEUE.md`, `docs/RDS-CLASS-CHANGE-RUNBOOK.md`. Decisions: `decisions/deployment-and-infra.md` and `decisions/ai-and-rag.md`.
+
+Each milestone is about 5 minutes and can be shown working on its own. Tags:
+- **[local]** changes files in a repo or runs on this machine only. Nothing touches AWS.
+- **[AWS go]** applies a change to AWS or the live site. Never run without the owner's explicit go at that moment.
+- **[owner]** needs the owner's access or decision.
+
+Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--client`, **CH** = `pulse--chat` (new, later).
+
+**Order (decided 18 Nov):** the box migration ships first: phases A (without A6 and A7), B, E and F. Redis and RabbitMQ are added after it: A6 and D with Redis, A7 and C with RabbitMQ. The first migration box therefore runs cloudflared, the client and the server only. Phases G and H follow the migration. Database class change tonight: 11 p.m. local time, UTC+2, which is 21:00 UTC (confirmed 18 Nov).
+
+## Phase A: whole-box boot and compose (S) [local]
+
+- [x] A1 S: compose file with cloudflared, Redis and RabbitMQ (`scripts/deploy/compose/docker-compose.yml`), validated with `docker compose config`. The server and the client are not in it: they keep their blue/green deploy scripts and join the networks (design point, see the log).
+- [x] A2 S: two networks, `pulse_edge` and `pulse_internal` (`internal: true`, no internet): `config` shows cloudflared on edge and Redis and RabbitMQ on internal.
+- [x] A3 S: memory limits (cloudflared 64 MiB, Redis 128 MiB with a 100 MiB cache cap, RabbitMQ 256 MiB) and `restart: always`: `config` shows them.
+- [x] A4 S: healthchecks: Redis and RabbitMQ reported healthy in a local run; cloudflared's `tunnel ready` command exists in the pinned image, but it was not run against a real tunnel, so its healthy state is still unverified.
+- [x] A5 S: nothing publishes a host port: `config --profile broker` shows no `ports` for any service.
+- [x] A6 S: Redis service with a password, `maxmemory 100mb`, `allkeys-lru`: verified locally, an unauthenticated command gets `NOAUTH`, with the password it answers `PONG`, and `maxmemory` is 104857600 with policy `allkeys-lru`.
+- [x] A7 S: RabbitMQ `definitions.json` (vhost `/pulse`, three exchanges, queue, retry queue with a 10 second delay, dead-letter queue), `rabbitmq.conf` (watermark 192 MiB, disk limit 512 MiB) and `create-node-user.sh`: verified locally, the definitions load, the user `pulse_node` has no tags and may touch only names starting `pulse.`, `guest` is deleted, and a second run changes nothing. Idle memory was about 84 to 99 MiB in a local container, which is a first reading and not the box.
+- [ ] A8 owner: the tunnel is remotely managed (token from Secrets Manager), so its ingress rules live in Cloudflare and not in a file here. The rules to set are `client:3000` for pages and `/api/*` to `server:8080`; set them in Cloudflare only with the owner's go [owner].
+- [x] A9 S: `asg-boot.sh` runs the new `boot-stack.sh` (compose containers chosen by `/pulse/boot/profiles`, then the server and the client), and falls back to the old boot when the image lacks it: `bash -n` passes and tests with stubbed AWS calls cover the profile and tag choices. `shellcheck` is not installed here.
+- [x] A10 S: the server deploy writes `/pulse/last-good/server` after a good deploy (a failure only warns) and `boot-stack.sh` reads it, falling back to `latest`: tests with stubbed calls pass. The instance role still needs `ssm:PutParameter` and `ssm:GetParameter` on `/pulse/*`.
+- [x] A11 S: `pulse-network-rules.sh` with `print` and `apply`: default deny to the metadata address from every bridge except the server containers (fixed addresses on the edge network) and for host processes of every user but root; tests check the printed rules. Not applied anywhere.
+- [x] A12 S: the return-traffic rule in `asg-boot.sh` now also covers `br+`: `bash -n` passes. Not applied anywhere.
+- [x] A13 S: `acquire_deploy_lock` in the server deploy script (`flock`, waits up to 10 minutes): the test passes where `flock` exists and is skipped here (Git Bash has no `flock`). The client deploy script has the same change in the client repo (branch `feat/aws-migration-deploy`, worktree `pulse--client.wt/aws-deploy`), checked by hand.
+- [x] A14 S: `prune_old_images` removes only this repository's images beyond the newest four (two releases of two tags) and replaces the box-wide 24-hour prune: tests cover the selection. The client deploy script has the same change in the client repo (branch `feat/aws-migration-deploy`, worktree `pulse--client.wt/aws-deploy`), checked by hand.
+- [x] A15 S: `graceful_stop` (30 seconds) for the candidate and the previous container, and the candidate starts with `WORKERS_ENABLED=false`: tests pass.
+- [x] A16 S: `WORKERS_ENABLED` setting (default on) through the config package, with `startBackgroundWorkers` in `src/lib/backgroundWorkers.ts` and a test: with it off nothing starts and stop resolves. The deploy script does not set it for the candidate yet (a separate step).
+
+## Phase B: client image and tunnel routing (C)
+
+- [x] B1 C: `SERVER_URL` of the image build comes from the repository variable `SERVER_URL`, with today's private address as the fallback [local]: done 19 Nov, client commit 7a17d15e on `feat/aws-migration-deploy`. Checked by loading `next.config.mjs`: with `SERVER_URL=http://server:8080` the rewrite is `http://server:8080/api/:path*`. Merging changes nothing until the owner sets the variable (a GitHub setting, only with the owner's go). One image has one baked-in URL, so the old client box and the new one cannot share an image once the variable is set: B4 must decide this.
+- [ ] B2 C: replaced (19 Nov). The client is not a compose service (A1 decision), so this milestone becomes B5 below. Found while starting it: both deploy scripts still publish host ports (`-p 80:8080` for the server, `-p 127.0.0.1:80:3000` for the client) and do not join `pulse_edge`, but the tunnel ingress (`server:8080`, `client:3000`) and the metadata rules (A11, fixed addresses 172.30.0.10 and .11) assume they do.
+- [ ] B5 S: the server and client deploy scripts start their containers on `pulse_edge` with fixed addresses and a network alias (`server`, `client`), the candidate on the spare address, and the health check goes through the container address, not a host port [local]: tests with stubbed `docker` show the `docker run` arguments; a local run with Docker answers on `http://server:8080/api/status` from another container. Design approved 22 Nov (decisions D1-D5, see `decisions/deployment-and-infra.md`). The scripts create the networks (compose marks them external); fixed addresses: server `pulse-app` .10, candidate .11; client `pulse-client` .20, candidate .21; aliases only `server`/`client`; auto-assigned addresses come from `172.30.0.128/25`. Server swap with the candidate as a bridge: (0) lock, ensure networks, recover an interrupted run; (1) remove old candidate; (2) run candidate on .11 with `WORKERS_ENABLED=false`, no port; (3) health check through `docker exec` (`/api/status`, then `/api/ready`), on failure remove it and leave production alone; (4) reconnect the candidate with `--alias server`; (5) stop the old `pulse-app` gracefully, rename to `pulse-app-prev`; (6) run the new `pulse-app` on .10 with the alias, `-p 80:8080` and workers on; (7) healthy: stop the candidate, remove prev, prune, write last-good; (8) failed: rename prev back and start it, and if prev is gone the candidate keeps serving and the run fails loudly. Restart policy `unless-stopped`. Server keeps `-p 80:8080` until F9 (the old client box still sends `/api` to 172.31.16.100). Client gets an edge mode when `pulse_edge` exists; the old box is unchanged.
+- [x] B5-S1 S: `ensure_networks` in the server deploy script; S2 compose marks both networks external; S3 `boot-stack` calls `ensure_networks` first [local]: done 22 Nov (commits a15a427, c51a3ae, 85815f2); stubbed-docker tests pass and `docker compose config` accepts the file. Not deployed.
+- [x] B5-S4 S: `container_health_check` via `docker exec`; S5 `run_app_container` helper; S6 `attach_alias` [local]: done 22 Nov (commit ccabbb0), tests with stubbed `docker`.
+- [x] B5-S7 S: wire the full swap; S8 rollback tests; S9 interrupted-run recovery; S10 `unless-stopped` [local]: done 22 Nov (commits 4099225, 316f64e). `swap_server` and `recover_interrupted_run` in `ec2-redeploy.sh`, tested against a stateful fake `docker` (`src/__tests__/scripts/fixtures/fake-docker.sh`): happy path order, unhealthy candidate leaves production alone, unhealthy new container rolls back, no previous container keeps the candidate serving, interrupted run restores `pulse-app-prev`. Also: the old container gets `--restart=no` before it is stopped.
+- [x] B5-S11 S (done 22 Nov, Docker Desktop 29.9.3; result below the text): local Docker end-to-end probe: a container sends `GET http://server:8080/api/status` every 0.2 s before, during and after the swap; every answer must be 200. It also settles two open questions: a stopped `pulse-app-prev` still holding .10 when the new `pulse-app` claims it, and whether cloudflared-style keep-alive POSTs survive the drain [local]. Result: with a stand-in image (alpine, curl and busybox httpd on 8080, not the real server) the real `swap_server` ran twice on real Docker, the second time with the prober running: 346 requests, all 200, no gap; the new `pulse-app` started on .10 right after the old one stopped (a stopped container does not hold its address), and port 80 published. Not covered: keep-alive POSTs and the real server's SIGTERM drain (the stand-in does not drain), the real image's `curl`, and IMDSv2 from bridge containers. Those wait for G1 and F4 on the real box.
+- [x] B5-C1 C: client edge mode; C2 check tools in the image (`node -e fetch`); C3 edge run arguments (.20/.21, alias `client`, hardening flags); C4 fix the literal `
+` at line 122 [local]: done 22 Nov (client commits 67e3b653, 8f5af008 on `feat/aws-migration-deploy`). Edge mode is on when `pulse_edge` exists (created by boot-stack or the server deploy), so the client script does not create networks itself (a copy would switch the old client box into edge mode); it skips the host-network cloudflared. Checked with 5 stubbed tests and a real Docker run (346 probes of `client:3000` during two swaps, all 200). Node's `fetch` is in `node:24-alpine`, so no extra tool is needed in the image.
+- [x] B5-S12 S (done 22 Nov): docs (DEPLOYMENT.md and this file) [local].
+- [ ] B5-G1 AWS (each needs the owner's go): G1 merge S1-S10 and deploy; G2 F1 image rebuild; G3 apply the IMDS rules; G4 remove `-p 80:8080` after F9.
+- Open risks to watch: snapshot wait `timeout 900` inside the workflow `timeout 780`; Next standalone SIGTERM handling unknown; IMDSv2 hop limit for bridge containers unknown; client `ensure_tunnel` (line 119) would start a second host-network connector on the app box.
+- [ ] B3 owner: read the current tunnel routing in Cloudflare (dashboard or API) and paste what it shows into the plan [owner]: the page records the real ingress, not a guess.
+- [ ] B4 S: decide the routing that resolves on both boxes from B3's result [local]: a one-paragraph change note in the migration section.
+
+## Phase C: RabbitMQ and the Postgres pending row (S) [local]
+
+- [ ] C1 S: map the existing job table to the outbox states (pending, published, done, failed) in a short note: the note lists every status and the one column to add, if any.
+- [ ] C2 S: add the AMQP client dependency and broker settings through the config package, never `process.env`: typecheck passes.
+- [ ] C3 S: publisher with confirms and a timeout: unit test against a fake channel passes.
+- [ ] C4 S: consumer that acknowledges after the work, with retry delay and dead-letter declarations: unit test passes.
+- [ ] C5 S: idempotent insight and recommendations writes (the same check-in twice changes nothing): test passes.
+- [ ] C6 S: after a check-in save, create or keep the job row and publish its id; a publish failure is logged only, as today: test passes.
+- [ ] C7 S: sweeper republishes rows pending or published but not done after a timeout, and the existing `requeueMissedJobs` still creates missing rows: integration test passes.
+- [ ] C8 S: backend switch `JOB_BACKEND=postgres|rabbitmq`, default `postgres`: tests pass in both modes.
+- [ ] C9 S: consumer concurrency from config, default 2: test shows no more than 2 in flight.
+- [ ] C10 S: graceful shutdown stops consuming and finishes jobs in flight: test passes.
+- [ ] C11 S: integration test with a local broker, kill it mid-job and confirm the sweeper completes the job: passes.
+- [ ] C12 S: log lines for job age and queue depth, with no message content: a test checks no content is logged.
+- [ ] C13 S: move the memory-summary job onto the queue behind the same switch: test passes.
+
+## Phase D: Redis in the server (S) [local]
+
+- [ ] D1 S: Redis client from config, with the password and the 100 MiB cap documented: connects to the local container.
+- [ ] D2 S: rate-limit counters stored in Redis: a counter survives a server restart in a local test.
+- [ ] D3 S: cache-aside helper with an expiry on every key: unit test shows a hit, a miss and an expiry.
+- [ ] D4 S: first cached read (the profile read that today has a 30 second in-memory cache): the memory cache is replaced and the test passes.
+- [ ] D5 S: if Redis is down, reads fall back to Postgres and rate limiting does not crash the request: test passes.
+
+## Phase E: database class change (tonight, 23:00 local)
+
+- [x] E1 S: runbook written: `docs/RDS-CLASS-CHANGE-RUNBOOK.md`. Pending modifications none, backups kept 7 days (read 18 Nov).
+- [x] E2 owner: time offset confirmed 18 Nov: UTC+2, so 23:00 local is 21:00 UTC [owner].
+- [x] E3 AWS: `CREATE EXTENSION vector;` on a copy restored from the latest automated snapshot, then delete the copy [AWS go]: done 18 Nov, `vector 0.8.2` on PostgreSQL 17.10 and `db.t4g.micro`, the copy deleted, only `pulse-db` left.
+- [x] E4 AWS: manual snapshot [AWS go]: done 19 Nov 02:04 UTC as `pulse-db-before-t4g-2026-11-19` (the owner asked to run it early, not at 23:00); delete it on 26 Nov.
+- [x] E5 AWS: change the class to `db.t4g.micro` with apply-immediately [AWS go]: done 19 Nov, modify started 02:07:27 UTC, finished 02:11:39 UTC, nothing pending.
+- [x] E6 AWS: server reconnects, `prisma migrate status` clean, quiet error log, login and a check-in work [AWS go]: done 19 Nov 12:00 UTC. A guest session and a check-in on production returned 201 and the insight reached `ready` in about 12 seconds; the error log had 0 entries from 02:12 to 12:00 UTC.
+- [x] E7 S: update `docs/DEPLOYMENT.md` (class) [local]: done 19 Nov; the connection budget table waits for E8.
+- [x] E8 AWS: `SHOW max_connections` and write the budget table [AWS go]: done 19 Nov, `max_connections` 79 (3 reserved), budget table in `docs/DEPLOYMENT.md`: 38 of 79 in the worst case (a redeploy with the chat service present).
+
+## Phase F: box migration (apply steps, one at a time) [AWS go]
+
+- [ ] F1 rebuild the machine image with the new boot: new image id recorded.
+- [ ] F2 launch template version 8 with `t3.small` and the new image: version recorded, version 7 kept for rollback.
+- [ ] F3 instance refresh to the new template: the box boots, all compose services healthy, the site answers.
+- [ ] F4 run both: client container and second cloudflared connector on the app box, 30 minutes with no 404 from Node on page paths.
+- [ ] F5 drain the old box: stop its connector, one day with an error rate no worse than before and memory under 80%.
+- [ ] F6 shorten the API path: `/api/*` straight to Node, login works, and requests from two networks are counted separately by the limiters.
+- [ ] F7 prove recovery: terminate the app box once on purpose, the whole site is back within 10 minutes with no manual step.
+- [ ] F8 snapshot the client box volume, kept 7 days.
+- [ ] F9 delete the old client box, its Elastic IP, volume and security group: only after the new client is built and running successfully on the app box and has served all the traffic, and only with the owner's approval.
+
+## Phase G: monitoring (S) [local, then AWS go]
+
+- [ ] G1 S: CloudWatch agent config for memory and disk: file validates.
+- [ ] G2 S: the ten alarms as a script with the starting thresholds: script runs in dry-run mode and prints them.
+- [ ] G3 AWS: create the alarms and the agent config on the box [AWS go]: all ten in the console, memory metric arriving.
+- [ ] G4 owner: pick the outside uptime check (free service) [owner]: it alerts when the tunnel is down.
+- [ ] G5 S: Docker log rotation setting in the daemon config: file validates.
+
+## Phase H: load test (after Phase F)
+
+- [ ] H1 S: fake model endpoint that copies real response timing and size: unit test shows delay and chunked output.
+- [ ] H2 S: k6 script with many test users, a defined ramp, and a deploy during the load: dry run against a local server passes.
+- [ ] H3 AWS: clone of the box and a restored database in production mode [AWS go]: the clone serves traffic.
+- [ ] H4 AWS: run 1, record memory, queue depth, errors in the table in `docs/RABBITMQ-JOB-QUEUE.md` [AWS go]: bar is memory under 80%, no container killed, no failed requests.
+- [ ] H5 S: set the final consumer concurrency and the RabbitMQ memory limit from the reading [local].
+
+## Phase I: not split yet
+
+Chat day work is milestoned when it starts: the `pulse--chat` repository, the WebSocket on Node, the guardrails and their test set, prompt caching, the model evaluation, RAG ingest and retrieval, the vector search row-level security, and the second and third load test runs.
+
+## Phase J: routine test users, analytics and the admin dashboard (added 19 Nov, owner's request)
+
+Decision: `decisions/deployment-and-infra.md` (19 Nov): real accounts that do routine actions in production, passwords only in the gitignored `.env`, no Secrets Manager entry.
+
+- [x] J1 AWS: create test user 1 on production [AWS go]: done 19 Nov, signup 201 and login 200. Email `pulse-test-1@pulserehab.app`, password generated and written to `.env` as `PULSE_TEST_USER_1_PASSWORD`, never printed.
+- [x] J2 owner (19 Nov): done with plus addressing, not the subdomain. Rule `testuser@pulserehab.app` to the owner's inbox, plus Cloudflare's "Enable subaddressing" setting (off by default: with it off, a real OTP mail to `testuser+1@pulserehab.app` hard-bounced at Resend and left no entry in the Cloudflare activity log). After enabling it a test mail to `testuser+1@` arrived. Each test user is `testuser+N@pulserehab.app`. `testuser+1@pulserehab.app` is still on Resend's suppression list after the first bounce (a second mail at 12:49 UTC was `suppressed`): remove it in the Resend dashboard, or use `testuser+2@` and later addresses, which are not suppressed. The subdomain catch-all below is not needed. Original text (kept for the record): choose the mailbox for test users, so the OTP flows (confirm email, forgot password, email change) can be tested [owner]. Proposal: Cloudflare Email Routing on the subdomain `test.pulserehab.app` with one catch-all rule to the owner's inbox: no per-address entries, no spam from the main domain, free, real mail, Resend never sends to a dead address. The owner sets it up once in the Cloudflare dashboard (adds the subdomain's mail records and verifies the destination address); nothing is changed on the owner's account without the owner's go. Exclude rule for analytics: email ends with `@test.pulserehab.app`. Check that sending through Resend from the main domain is not affected. Until then no flow that sends mail may run for these users.
+- [ ] J3 S: one naming rule for test users, used by every exclude below: written in `docs/`. The rule is the email `testuser+N@pulserehab.app` (the mailbox from J2). Test user 1 was created earlier as `pulse-test-1@pulserehab.app`, which has no mailbox: change its email to `testuser+2@pulserehab.app` with the change-email flow, or leave it out of the OTP tests.
+- [x] J3a AWS: OTP flow proved end to end on production (19 Nov 12:58 to 13:0x UTC) with test user 2 (`testuser+1@pulserehab.app`): forgot-password mail `delivered` by Resend and received through Cloudflare subaddressing, `verify-reset-code` 200, `reset-password` 200, login with the new password 200. The new password is in `.env` as `PULSE_TEST_USER_2_PASSWORD`.
+- [x] J4 S: routine script, run from the owner's machine with `.env`: login, daily check-in, read insights, browse the forum, log every failure with the route and status: written 19 Nov as `scripts/test-users/routine.ts` with 8 tests (fake fetch, no network), commit a0167b4 on branch `feat/test-user-routine` (from `development`, not merged, not pushed). Run it with `npx tsx scripts/test-users/routine.ts [--user=2]`. The first real run on production waits for the owner's go.
+- [x] J4a S: scheduled run on the owner's machine (19 Nov): two Windows tasks, "Pulse test users routine noon" (12:00) and "Pulse test users routine evening" (18:00), started through `pythonw.exe` with `scripts/test-users/run-hidden.pyw` so no terminal window opens (the shared `run-hidden.py` failed under Task Scheduler because pythonw has no stdin). Results go to `logs/test-users/<date>.jsonl`, failed steps also to `logs/test-users/failures.jsonl`, in the main checkout (gitignored). It only runs while the machine is on and the owner is signed in. The tasks run from the worktree `pulse--server.wt/test-users` (branch `feat/test-user-routine`, commits d742b09, 3998462, 7a539be): after the branch is merged to `development`, point the tasks at the main checkout and remove the worktree. No push notification is sent on a failure; `scripts/monitor/ntfy.sh` can be wired in if the owner wants one.
+- [ ] J5 S: more test users (2 to 3) with different habits, only after J4 works on user 1.
+- [ ] J6 S: analytics on the server side: which numbers (active users, check-ins per day, AI job failures, signups) and where they are read. Test users excluded by J3. Client-side analytics: to check whether one exists.
+- [ ] J7 S: admin dashboard shows the J6 numbers and the test users' own run results. Needs its own design pass first.
+
+## Log
+
+_(append a dated line per completed step)_
+
+- 2026-11-18 (late): the client deploy script got the lock, own-repo prune (two tags), graceful stop and the last good tag, in a separate worktree of the client repo. Syntax checked and the helper functions tried by hand; the client repo has no shell tests yet. Not committed.
+- 2026-11-18 (evening): A4, A6 and A7 verified with Docker locally (containers, network and volume removed afterwards). Phase A is finished except the client repo's deploy script (A13 to A15 there).
+- 2026-11-18 (later): E3 done: pgvector checked on a temporary restored copy through the app box, then the copy was deleted. A9 to A15 done in the server repo with tests, A16 earlier. A4, A6 and A7 still need Docker, which is not running on this machine. Client deploy script (A13 to A15) not changed.
+- 2026-11-18: A1, A2, A3, A5 and A16 done on branch `feat/aws-migration-compose`, uncommitted. Typecheck and lint clean; 131 of 132 suites pass in one run and the one failure passes alone (a Jest cache read race); 2,391 tests pass. Dependencies installed with `npm ci --ignore-scripts`.
+- 2026-11-18: design point: the deploy scripts do blue/green swaps with `docker run`, so compose holds only the infrastructure containers, and boot runs compose first and then the server and client deploy scripts with the last good tags. To confirm.
+- 2026-11-18: the pgvector check on a restored copy is written into `docs/RDS-CLASS-CHANGE-RUNBOOK.md`, not run.
+- 2026-11-18: milestone list written, nothing implemented. E1 done: runbook written, read-only database checks made.

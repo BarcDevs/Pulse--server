@@ -29,7 +29,8 @@ const serverConfig: ServerConfig = {
 }
 
 const appConfig: AppConfig = {
-    start: config.get<string>('app.start')
+    start: config.get<string>('app.start'),
+    workersEnabled: config.get<boolean>('app.workersEnabled')
 }
 
 const authConfig: AuthConfig = {

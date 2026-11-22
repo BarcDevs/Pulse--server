@@ -15,6 +15,7 @@ export default [
             'build/**',
             'coverage/**',
             'prisma/**',
+            'scripts/prestart.cjs',
             '.idea/**',
             '*.config.{js,ts,mjs}'
         ]

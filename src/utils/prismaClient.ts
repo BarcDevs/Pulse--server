@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 
 import { PrismaPg } from '@prisma/adapter-pg'
 
-import { databaseConfig, isDev } from '../../config'
+import { databaseConfig, env, isDev } from '../../config'
 import { PrismaClient } from '../../prisma/generated/prisma/client'
 
 import logger from './logger'
@@ -76,9 +76,7 @@ export const getPrismaClient = (): PrismaClient => {
 
         client = baseClient
 
-        logger.info(
-            `Prisma client initialized. Database connected to ${isDev ? 'dev' : 'prod'} database`
-        )
+        logger.info(`Database connected (env: ${env})`)
     }
 
     return client

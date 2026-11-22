@@ -11,6 +11,7 @@ type ServerConfig = {
 
 type AppConfig = {
     start: string
+    workersEnabled: boolean
 }
 
 type DatabaseConfig = {

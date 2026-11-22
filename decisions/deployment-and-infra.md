@@ -156,6 +156,20 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 
 **How to apply:** rollout order matters. If the loopback-bound deploy goes out before the tunnel is live, the site goes down. The order is: create the tunnel, store the token and IAM → start `cloudflared` once via SSM → swap DNS (delete the apex A record, add the tunnel public hostname) → merge the client PR → remove SG 80/443 → set SSL mode to Full (strict) and Always Use HTTPS. The EIP stays attached for now (outbound, SSH) but is no longer on the request path.
 
+## 30/09/2026 — Routine runs on Sonnet 4.6, not 5 or 5.5
+
+**Decision:** The scheduled routine is set up on Sonnet 4.6 (not Sonnet 5 or 5.5) to save tokens, because it runs on the old tokenizer.
+
+**Why over alternatives:** Token saving on the old tokenizer.
+
+**Source:** Bar, typed in a Pulse server session on 2026-09-30: "ive set it up on sonnet 4.6 (not 5 or 5.5) to save tokens since it run on the old tokeniser"
+
+## 21/10/2026 — Use the separate AWS cost tool, not the AWS MCP
+
+**Decision:** To check actual AWS cost use the separate cost explorer tool (split out from the MCP), not the AWS MCP.
+
+**Source:** Bar, typed in a Pulse server session on 2026-10-21: "Use the tool, not the MCP. You separated from the MCP to check actual cost" and "No I remember we had the MCP and we split the cost explorer format
+
 ## 27/10/2026 — Watcher fixer merges release PR on green checks
 
 **Decision:** The fixer routine now merges the development to main release PR itself when every check is green, and pushes to the owner whenever a Deploy run waits for approval. The owner only approves the deploy. held-for-review stays as the review gate until the owner replaces it with rules.
@@ -197,5 +211,225 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Why over alternatives:** With hop limit 1 a container cannot reach the metadata service, so the winston CloudWatch transport gets no credentials. Owner approved the change in the session ('Just get it', then ran the commands by hand after the tool permission check blocked them). The role stays scoped: secrets read for the app plus write to /pulse/server-errors only.
 
 **Rejected:** Static write-only IAM keys in Secrets Manager (long-lived key to rotate, new secret in the deploy path); a host-side shipper tailing docker logs (new moving part on the instance).
+
+**Source:** user, auto-recorded: "recorded by the session"
+
+## 15/11/2026 — Client moves onto the server EC2 box, not S3
+
+**Decision:** The Next.js client container will run on the same EC2 box as the server, behind path routing, and the separate client EC2 instance goes away. The client is not moved to S3 + CloudFront and is not rewritten in another framework.
+
+**Why over alternatives:** The client is Next.js `output: 'standalone'` and needs Node at runtime (per-request CSP nonce in `src/proxy.ts`, cookie locale via `cookies()`, `/api` rewrites), so S3 needs a client refactor. The actual waste is the second box and its public IPv4; one shared box removes that with no client code change.
+
+**Rejected:** S3 + CloudFront static export now (client refactor, delays the chat work, about no extra saving once the box is sized for chat); keeping the separate client EC2 (keeps paying for the second box and IPv4).
+
+**Source:** Bar, AskUserQuestion answer in the aws-arch session, 2026-11-15
+
+## 15/11/2026 — FastAPI chat service: assistant first, design per inter-service report
+
+**Decision:** The FastAPI chat service starts as an AI assistant only, built so user-to-user chat can later be added as a feature of the same service. Its communication with the Node server follows `~/Claude/personal/teach/python-fastapi/report-interservice-python-nodejs.md`: Node owns auth, the main DB and the browser WebSocket; FastAPI owns chat logic, LLM calls and async jobs; REST/OpenAPI for sync calls, BullMQ over Redis for async, Redis Pub/Sub for real-time fan-out, M2M key plus `X-User-ID` for auth.
+
+**Why over alternatives:** User-to-user chat is a future possibility, not current scope. The report is the user's chosen source for the service-communication design; it does not cover AWS or deployment.
+
+**Source:** Bar, AskUserQuestion answers in the aws-arch session, 2026-11-15
+
+## 17/11/2026 — Stay on t3.small, no ARM (t4g.small) move
+
+**Decision:** The single app box stays on x86 t3.small. The planned step 2 move to t4g.small (ARM) is dropped. Switching later stays possible, since nothing in the layout blocks it.
+
+**Why over alternatives:** It saves $4.22 a month (about $51 a year), which does not justify three build pipelines (server, client, chat), an arm64 machine image, and production being the only ARM environment (dev PC and Render staging are x86). ARM support was checked from documentation only, never run.
+
+**Rejected:** t4g.small as a second step after the client move. t3.medium and t4g.medium were also rejected earlier as overkill.
+
+**Source:** Bar, comments on the AWS architecture artifact, 17 Nov 2026
+
+## 17/11/2026 — Move RDS to db.t4g.micro (confirmed)
+
+**Decision:** The RDS instance class changes from db.t3.micro to db.t4g.micro. Confirmed as part of the plan. The change itself is not run yet: it needs a maintenance window the user picks and a snapshot first.
+
+**Why over alternatives:** Saves about $1.76 a month with tax ($0.019 against $0.021 an hour), with no code change. Checked 17 Nov with the AWS CLI: db.t4g.micro is orderable for Postgres 17.10 in eu-central-1. AWS's extension table lists pgvector 0.8.2 on 17.10; still to confirm with CREATE EXTENSION vector on a restored copy. The database being on ARM while the app box stays on x86 is harmless, since the app reaches Postgres over the network.
+
+**Rejected:** Staying on db.t3.micro to avoid a few minutes of database downtime (total would be $57.50).
+
+**Source:** Bar, terminal, 17 Nov 2026
+
+## 17/11/2026 — Job queue is RabbitMQ, not SQS or BullMQ
+
+**Decision:** Background jobs run on a RabbitMQ container on the app box, used by Node only for now (chat consumes no jobs). Hard memory cap (256 MiB estimate, to be measured after the client move), data on a volume, internal network only, one Node user limited to its own queues. Replaces the earlier BullMQ-over-Redis decision and the SQS plan.
+
+**Why over alternatives:** Owner chose it on 17 Nov to gain experience in a broker that job listings often name, alongside a sound design. Jobs are rebuildable from Postgres, so losing the box's volume costs a delay, not data.
+
+**Rejected:** SQS (managed, no memory, but no broker experience); BullMQ on Redis (needs a second non-evicting Redis, weak Python client); Redis Streams (retries to be written by hand).
+
+**Source:** Artifact comment thread 687af3ff, 17 Nov 2026: "RabbitMQ it is, so I also gain experience along the way."
+
+## 18/11/2026 — Check-in AI moves onto RabbitMQ with a Postgres outbox
+
+**Decision:** Check-in AI feedback moves from the Postgres job table with its polling worker onto RabbitMQ. Each job keeps a pending row in Postgres as the record, RabbitMQ is the delivery channel, and a sweeper republishes rows still pending after a few minutes. Consumers are idempotent. The broker stays a single node on the app box. Not built yet: this is a plan decision.
+
+**Why over alternatives:** It is the highest-volume job and the one the load test stresses, so it gives real production experience with a broker (a goal of the owner) with the sweeper as the safety net, as the Postgres worker has today.
+
+**Rejected:** Leaving check-in AI on the Postgres table (works today but gives no broker experience); a local RabbitMQ only (nothing verifiable for a CV); multiple broker nodes (more machines and memory than the plan has).
+
+**Source:** Artifact comment thread 50b01dab, 18 Nov 2026: "Good. Record it in depth in a doc for the exp too"
+
+## 18/11/2026 — Apply the review fixes to the plan, except 8 and 9
+
+**Decision:** The plan takes the Opus review fixes as designed: compose boot with last-good image tags from Parameter Store, tunnel routing that works on both boxes, client rebuilt with SERVER_URL=http://server:8080, cloudflared on the edge network with a default-deny metadata block, a deploy lock, no Redis path for chat context, row-level security and iterative scans for vector search, tighter chat database roles, monitoring and backup retention with a restore test, explicit CPU credit mode, load test on a clone, and a 15-minute database change window. Finding 8 (RabbitMQ memory cap) stays a check after th
+
+**Why over alternatives:** The owner asked to fix every finding that does not conflict with their decisions, kept 8 as needs verification after the load test, and said the chat model is not chosen yet so 9 cannot name a provider.
+
+**Rejected:** Separate tables for private and shared vectors (conflicts with the single-store decision); shrinking the RabbitMQ cap or the box now (needs a measurement); naming OpenAI in the data-terms check (the chat model is not chosen).
+
+**Source:** Terminal, 18 Nov 2026: "About #9, we still to decide the model for chat since it needs a separate eval. Mark 8 as needs verification after load test"
+
+## 18/11/2026 — Chat transport is WebSocket on Node, not SSE
+
+**Decision:** The browser connects to the Node server over a WebSocket for chat. Node calls the chat service over HTTP with streaming, a separate internal link. Requirements on chat day: Origin and session check on each connection, size and rate limits per user, reconnect and resume built in because every server deploy cuts the connection.
+
+**Why over alternatives:** User-to-user chat is planned and needs a two-way connection, so building SSE for the assistant first would mean building twice. A check of the job-targeting repo found WebSocket in 5 job requirements (all nice-to-have) and SSE in none, so market demand is only a weak extra reason.
+
+**Rejected:** SSE plus POST for the assistant (simpler and safer now, but needs a second transport for user-to-user chat); FastAPI holding the browser WebSocket (Node already owns users and auth).
+
+**Source:** Terminal, 18 Nov 2026: "אז וובסוקט הוחלט"
+
+## 18/11/2026 — RabbitMQ on the app box now; chat uses a provider key
+
+**Decision:** RabbitMQ runs on the app box for now and a separate machine is decided only after the load test. The chat service uses its own model provider API key and holds no AWS credentials, so Bedrock stays Node-only for embeddings; the provider is chosen after the model evaluation. The fallback if memory exceeds 80% at the deploy peak is decided after the load test.
+
+**Why over alternatives:** Keeps cost at zero extra for now and keeps the wall around chat (no AWS credentials). The real memory reading decides whether the broker needs its own box.
+
+**Rejected:** Own t4g.micro for RabbitMQ now (about $7.01 a month, more to maintain); a Bedrock identity for chat (weakens the isolation); fixing a memory fallback before the test.
+
+**Source:** Terminal questions, 18 Nov 2026
+
+## 18/11/2026 — No separate disk for RabbitMQ, the sweeper rebuilds the queue
+
+**Decision:** RabbitMQ keeps its data on the instance root disk with no separate EBS volume. If the box is replaced, the queue is lost and the pending rows in Postgres plus the sweeper republish unfinished jobs. A separate volume stays an option if a job ever cannot be rebuilt from Postgres.
+
+**Why over alternatives:** Loss of the queue costs a delay, not data, so a separate volume adds an attach-at-boot step tied to one availability zone and one more thing that can fail at boot, for a small cost ($0.0952 per GB-month) that is not the deciding factor.
+
+**Rejected:** Separate EBS kept after termination, attached at boot.
+
+**Source:** Terminal, 18 Nov 2026: "Sweeper it is"
+
+## 18/11/2026 — Queue consumer concurrency starts at 2, tuned after load test
+
+**Decision:** The RabbitMQ consumers for check-in AI start with 2 jobs at once, the same as the polling worker today, set through config. The final number is chosen after the load test from real memory, provider rate-limit errors and queue depth.
+
+**Why over alternatives:** No real measurement exists yet for memory under a burst or for the provider's 429 limits, so a number chosen now would be a guess.
+
+**Rejected:** Fixing 4 or 10 now (unmeasured risk to memory, provider limits and database connections).
+
+**Source:** Terminal, 18 Nov 2026: "Decide after the load test"
+
+## 18/11/2026 — Cloudflare stays the front door, CloudFront not added
+
+**Decision:** Cloudflare stays the CDN and front door through the existing tunnel, and CloudFront is not added. The client stays on the same box as the server (S3 was rejected on 15 Nov). The ARM move (t4g.small) and a larger t3.medium were dropped from the plan.
+
+**Why over alternatives:** Keeping Cloudflare avoids a second CDN and cost, and the box has room for everything on a t3.small.
+
+**Rejected:** CloudFront in front of the box; S3 for the client; ARM t4g.small; t3.medium.
+
+**Source:** Artifact comments, 16 to 17 Nov 2026
+
+## 18/11/2026 — Redis is a firm part of the plan, with cache rules
+
+**Decision:** Redis runs as one more container on the internal network with a hard memory cap of 100 MiB and least-recently-used eviction. Uses, in order: rate-limit counters, chosen database reads (cache-aside), and live fan-out (Pub/Sub) when a second Node instance or user-to-user chat exists. Chat context does not go through Redis. Rules: every key expires, the cache is never the only copy, no health or check-in content in cached values, password set and no published port. Background jobs do not use Redis.
+
+**Why over alternatives:** Redis is chosen mainly for hands-on production experience, with efficiency second. Each use is placed where it does real work and covers a different Redis pattern.
+
+**Rejected:** Redis for chat user context (removed 18 Nov); BullMQ or Redis Streams for jobs (RabbitMQ chosen).
+
+**Source:** Artifact comments, 15 to 18 Nov 2026
+
+## 18/11/2026 — Database class change at 23:00 local time on migration day
+
+**Decision:** The RDS change from db.t3.micro to db.t4g.micro runs at 11 p.m. local time (UTC+3, 20:00 UTC) on migration day, after a snapshot, before the client box is deleted. Plan for about 15 minutes of downtime, check pending modifications first, and freeze deploys during the window. Not run yet.
+
+**Why over alternatives:** It is the owner's next maintenance window, and doing it before the only irreversible step keeps the database healthy before anything is deleted.
+
+**Source:** Artifact comments, 18 Nov 2026: "Local (utc+3)"
+
+## 18/11/2026 — Load test plan: three runs with a fake model, under 80% memory
+
+**Decision:** Memory under load is verified by a load test of 100 to 1,000 requests, with a deploy during the load, run three times: after the setup, after chat day, and after the RAG and pgvector work. Run on a clone of the box in production mode, with many test users and a named tool such as k6. The model is a fake endpoint that copies real response timing and size (a few seconds with spread, streamed in chunks), plus one small run on the free key to confirm the real path. Pass: memory under about 80% at peak, no container killed for memory, no failed requests. Chat's 200 MiB and RabbitMQ's 256 MiB cap st
+
+**Why over alternatives:** The memory reading was taken at near-zero traffic, and a fake model avoids burning the AI budget while matching the load a real model would put on the box.
+
+**Rejected:** Running against the production box; using the free key for the whole test (rate limits); testing only once.
+
+**Source:** Artifact comments, 18 Nov 2026
+
+## 18/11/2026 — AWS Activate credits are a task, not part of the plan
+
+**Decision:** Chasing the AWS Activate credits application is a task tracked in the second brain's daily file, not an item in the AWS architecture plan. The plan's cost numbers do not count credits.
+
+**Why over alternatives:** The application's outcome does not change the design, only the bill.
+
+**Source:** Terminal, 18 Nov 2026
+
+## 18/11/2026 — Keep Secrets Manager, no merge; trim two unused entries
+
+**Decision:** AWS Secrets Manager stays as the store, and merging the entries into one was declined. The Google OAuth client ID moves into the app config through the config package, with an environment variable still able to override it for staging. The unused Anthropic entry and the free Google AI entry are removed from Secrets Manager and from the deploy script. One entry is added for the service-to-service credential between Node and chat. These are plan decisions only: nothing has been changed in AWS.
+
+**Why over alternatives:** The client ID is public by design, an explicit list of entries on the role keeps permissions narrow, and each entry costs $0.40 a month, so unused ones go.
+
+**Rejected:** Merging the entries into one (declined by the owner on 17 Nov).
+
+**Source:** Artifact comments, 16 to 17 Nov 2026
+
+## 18/11/2026 — Old client box is deleted only after the new client runs successfully
+
+**Decision:** The old client EC2 instance, its Elastic IP, volume and security group are not deleted until the new client is built and running successfully on the app box and has served all the traffic. Deletion stays the last migration step and waits for the owner's approval.
+
+**Why over alternatives:** Deletion cannot be undone, and until the new client has carried all the traffic the old box is the way back.
+
+**Source:** Terminal, 18 Nov 2026: "מחיקת הקליינט: לא מוחקים לפני שהקליינט החדש בנוי ורץ בהצלחה"
+
+## 18/11/2026 — Proposed plan values approved; migration day tentatively 18 Nov
+
+**Decision:** The values proposed in the plan are approved: the chat repository name pulse--chat, the 10-minute recovery target in the prove-recovery step, the 7-day snapshot of the client box volume before deletion, and the starting alarm thresholds. Migration day is tentatively 18 Nov 2026 (today) and is not scheduled; implementation of the compose boot, rebuilt client image and tunnel routing comes first. No migration step has been run.
+
+**Why over alternatives:** The owner approved the proposed values and named the migration day as probably today, which means the date is a target, not an authorization to run infra changes.
+
+**Source:** Terminal, 18 Nov 2026: "ערכים מוצעים מאושרים"; migration day "כנראה היום"
+
+## 18/11/2026 — Box migration first, Redis and RabbitMQ after; DB window 21:00 UTC
+
+**Decision:** The box migration ships first (boot recovery with compose, the client move, t3.small, the database class change), and Redis and RabbitMQ are added after it, so the first migration box runs cloudflared, the client and the server only. The database class change is at 11 p.m. local time, UTC+2, which is 21:00 UTC (the owner first wrote UTC+3, then chose the machine's UTC+2). The build is split into milestones in docs/AWS-MIGRATION-MILESTONES.md and the database step has a runbook in docs/RDS-CLASS-CHANGE-RUNBOOK.md. Nothing has been applied to AWS.
+
+**Why over alternatives:** Smaller blast radius if step 1 fails, no cost change. The 21:00 UTC window does not overlap the 22:52 to 23:22 UTC automated backup window.
+
+**Rejected:** One combined migration with Redis and RabbitMQ in step 1.
+
+**Source:** Terminal, 18 Nov 2026, answers to the order and time offset questions
+
+## 18/11/2026 — Compose holds only the long-lived containers; server and client keep blue/green scripts
+
+**Decision:** The compose file defines the networks and the long-lived infrastructure containers (cloudflared now, Redis and RabbitMQ later under a broker profile). The server and the client are not in it: each keeps its own blue/green deploy script, with its health gate and rollback, and joins the networks. Boot runs compose first, then the server and client deploy scripts with the last good image tags read from Parameter Store. This refines the earlier plan wording that boot runs compose for everything.
+
+**Why over alternatives:** The existing deploy scripts swap containers with docker run and roll back on a failed health check, which compose does not give. Keeping them avoids rebuilding a tested mechanism during the migration.
+
+**Rejected:** Putting the server and client into the compose file too (would need a new blue/green swap and rollback).
+
+**Source:** Terminal, 18 Nov 2026, answer to the design question
+
+## 19/11/2026 — Real routine test users in production; passwords in .env only
+
+**Decision:** Add a few real (not guest, not mocked) test accounts in production that perform routine actions to simulate real use and find bugs while volume is low. Their passwords are kept in a gitignored .env outside git, not in Secrets Manager.
+
+**Why over alternatives:** Owner does not want extra secrets that cost money in Secrets Manager just for test-user passwords; guest accounts are removed by the retention service so they cannot run continuously.
+
+**Rejected:** Secrets Manager entries for the test passwords (extra cost); guest accounts (deleted by guestRetentionService).
+
+**Source:** Owner, terminal, 19 Nov 2026
+
+## 22/11/2026 — B5 deploy-script network wiring: bridge swap, D1-D5 approved
+
+**Decision:** Deploy scripts own pulse_edge/pulse_internal (compose treats them as external). Server swap uses the candidate as a bridge (fixed IPs server .10/.11, client .20/.21, aliases server/client) so workers never run twice and there is no gap. Restart policy unless-stopped instead of always. Server keeps -p 80:8080 until F9. Client gets edge mode, hardening flags and the .20/.21 addresses.
+
+**Why over alternatives:** Owner accepted all five recommendations (D1-D5) from the Opus B5 plan. Removes the current gap between stopping the old container and starting the new one; old client box still needs 172.31.16.100:80 until F9.
+
+**Rejected:** Promote the candidate and switch workers on at runtime (needs an app change, deferred); dropping -p 80:8080 now (breaks the old client box).
 
 **Source:** user, auto-recorded: "recorded by the session"

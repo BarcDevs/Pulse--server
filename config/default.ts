@@ -4,7 +4,8 @@ export default {
     // needs development.ts to opt in
     env: 'production',
     app: {
-        start: 'Server is running on {0}'
+        start: 'Server is running on {0}',
+        workersEnabled: true
     },
     server: {
         port: 3000,

@@ -61,3 +61,37 @@ describe('Logger', () => {
         })
     })
 })
+
+describe('Logger CloudWatch gating', () => {
+    const loadTransportCount = (
+        isProd: boolean,
+        logGroup: string
+    ) => {
+        let count = 0
+        jest.isolateModules(() => {
+            jest.doMock('../../../config', () => ({
+                isDev: false,
+                isProd,
+                loggingConfig: {
+                    dir: 'logs',
+                    cloudWatchErrorLogGroup: logGroup,
+                    cloudWatchRegion: 'eu-central-1'
+                }
+            }))
+            const isolated = require('../../utils/logger').default
+            count = isolated.transports.length
+        })
+        jest.dontMock('../../../config')
+        return count
+    }
+
+    it('ships to CloudWatch when APP_ENV is production', () => {
+        expect(loadTransportCount(true, '/pulse/server-errors'))
+            .toBe(4)
+    })
+
+    it('skips CloudWatch on staging (isProd false) even with a log group', () => {
+        expect(loadTransportCount(false, '/pulse/server-errors'))
+            .toBe(3)
+    })
+})

@@ -93,6 +93,9 @@ MVC layers: controller → service → model → Prisma (never skip layers)
 ## Testing
 Integration tests (`npm run test:integration`) need Postgres on `localhost:5433` — not running by default. Start it with `docker-compose -f docker-compose.test.yml up -d` before running them locally. CI provisions its own Postgres service, so this is local-only.
 
+## GitHub Actions
+**Never use the `pull_request_target` trigger** (GitHub blocks it globally as a supply-chain risk: it runs with secrets on untrusted PR code). Workflows here use `pull_request`, `push`, `workflow_run` or `workflow_dispatch` only. Do not add it to any workflow, routine or script, and do not suggest it as a fix; enforcement of release rules happens in the deploy workflow instead.
+
 ## Git & Commits
 **Read `GIT_RULES.md` before committing or when instructed to commit.** Do not skip it.
 Full rules there. Key constraint: never invoke `/commit` skill on small fixes, formatting, or docs changes — use plain `git commit` for those.

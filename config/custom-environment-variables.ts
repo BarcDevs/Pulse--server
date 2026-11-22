@@ -1,5 +1,11 @@
 export default {
     env: 'APP_ENV',
+    app: {
+        workersEnabled: {
+            __name: 'WORKERS_ENABLED',
+            __format: 'json'
+        }
+    },
     server: {
         port: 'PORT',
         origin: 'ORIGIN',

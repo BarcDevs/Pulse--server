@@ -13,11 +13,11 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | AWS account | `110015905368` (Bardevs) |
 | Server ASG | `pulse-server-asg` (min=max=1, `subnet-0efbb5ecf1bd12185`), launch template `pulse-server-lt` (`lt-02283631f77464afa`), `t3.micro`. Replaces a standalone instance — the ASG re-launches automatically on failure. |
 | Server fixed private IP | `172.31.16.100` — a dedicated secondary ENI (`eni-0a923c09357bb745b`) the ASG instance attaches to itself at boot (`scripts/deploy/asg-boot.sh`), so this address survives instance replacement. The client's `/api` proxy is baked to this IP. |
-| RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t3.micro`, encrypted, deletion-protected, not publicly accessible |
+| RDS instance | `pulse-db` — `pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432`, Postgres 17.10, `db.t4g.micro` (moved from `db.t3.micro` on 19 Nov 2026), encrypted, deletion-protected, not publicly accessible |
 | Domain | `pulserehab.app` (Cloudflare, proxied) → Cloudflare Tunnel → client EC2 (`cloudflared` container, outbound-only; token in `pulse/client/CLOUDFLARE_TUNNEL_TOKEN`). The client SG has no public 80/443 ingress. The client's Elastic IP `52.58.214.220` (`eipalloc-000be881665f41959`) is no longer on the request path. Client is the public front door, proxying `/api/:path*` to the server's fixed private IP over the private VPC. |
 | EC2 security group (server) | `sg-0c263224f1d77df26` — SSH (22) closed (shell access via SSM Session Manager), HTTP (80) from the client SG (`sg-02ad243011d768866`) only |
 | RDS security group | `sg-0d6e9cdd1a065d584` — Postgres (5432) restricted to the EC2 security group only, no public CIDR |
-| IAM role (EC2, server) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), ECR pull scoped to `pulse-server-app`, and `pulse-eni-attach` (attach/detach on the fixed ENI only, for the ASG boot script) |
+| IAM role (EC2, server) | `pulse-ec2-role` / instance profile `pulse-ec2-instance-profile` — `secretsmanager:GetSecretValue` on exactly the secrets below, `AmazonSSMManagedInstanceCore` (for SSM Run Command), ECR pull scoped to `pulse-server-app`, and `pulse-eni-attach` (attach/detach on the fixed ENI only, for the ASG boot script). **Pre-migration snapshot:** `ec2-redeploy.sh` runs `aws rds create-db-snapshot` + `aws rds wait db-snapshot-available` on `pulse-db` before applying any pending migration, so the role also needs `rds:CreateDBSnapshot` and `rds:DescribeDBSnapshots` (plus `rds:AddTagsToResource` if snapshots are tagged), scoped to the `pulse-db` instance and `snapshot:pre-migrate-*` ARNs. Without them the deploy aborts before migrating (by design) |
 | IAM role (GitHub Actions) | `pulse-server-gh-deploy-role` — assumable only via OIDC by `repo:BarcDevs/HealEase--server:ref:refs/heads/main`; scoped to ECR push on `pulse-server-app` and `ssm:SendCommand` on the `AWS-RunShellScript` document plus any instance tagged `Name=pulse-server` (so the ASG replacing the instance doesn't need a workflow change). No static AWS keys in GitHub. |
 | Error logs | CloudWatch log group `/pulse/server-errors` (eu-central-1, 14-day retention). The app ships error-level lines to it itself (`src/utils/cloudWatchErrorTransport.ts`, enabled by `logging.cloudWatchErrorLogGroup` in `config/production.ts`). `pulse-ec2-role` has inline policy `pulse-error-logs-write` (`logs:CreateLogStream`, `logs:PutLogEvents` on that group only). Needs the instance metadata hop limit at 2 so the container can reach the role credentials |
 | Error log reader | IAM user `pulse-log-reader`, inline policy `pulse-error-logs-read` (`logs:FilterLogEvents`, `GetLogEvents`, `DescribeLogStreams` on that group only). Its keys live in `.watchers/aws-log-reader.env` (untracked). Used by `scripts/monitor/pull-prod-logs.sh`; replaces the watcher's `ssm:SendCommand` pull |
@@ -80,10 +80,17 @@ plaintext connection, not a permissions problem.
    migration containing a `DROP`/`RENAME` (destructive changes ship manually under
    a maintenance window — expand/contract only for auto-deploy), then runs
    migrations from the `migrate` image, starts the new `runner` image as a
-   candidate on a staging port, gates it on **`/api/ready`** (a real DB query —
-   `/api/status` alone returns 200 even with a broken `DATABASE_URL`), and only
-   then swaps it into production. If the swapped-in container fails its own
-   health check, the previous container is restored automatically.
+   candidate (workers off) on the `pulse_edge` network at 172.30.0.11, gates it
+   on **`/api/ready`** (a real DB query — `/api/status` alone returns 200 even
+   with a broken `DATABASE_URL`) through `docker exec`, and only then swaps it
+   into production. The swap has no gap: the candidate takes the network alias
+   `server` first, the old container is stopped gracefully, the new `pulse-app`
+   starts at 172.30.0.10 with workers on (port 80 stays published until the old
+   client box is gone), and the candidate goes once it is healthy. If the
+   swapped-in container fails its own health check, the previous container is
+   restored automatically; a run that died half way is repaired at the start of
+   the next one. The script creates `pulse_edge` and `pulse_internal` itself when
+   missing (compose only joins them). Details: `AWS-MIGRATION-MILESTONES.md`, B5.
 4. The workflow polls the SSM command status and fails the job (with stderr surfaced)
    if the redeploy or health check fails.
 5. A final step curls `https://pulserehab.app/api/status` through Cloudflare as an
@@ -115,7 +122,22 @@ Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[Ins
   `idleTimeoutMs` 30s, `statementTimeoutMs` 15s (set per session with `SET statement_timeout`
   on connect, so a runaway query is cancelled with `57014` instead of holding a connection).
   Each container uses up to `poolMax` connections and a redeploy briefly runs two, so keep
-  `2 x poolMax x instances` under the `db.t3.micro` `max_connections`.
+  `2 x poolMax x instances` under the `db.t4g.micro` `max_connections`.
+- **Connection budget** (read on 19 Nov 2026 from the live instance: `max_connections` 79,
+  `superuser_reserved_connections` 3, `shared_buffers` 184,648 kB; 2 `pulse_app` connections idle).
+  Worst case is a redeploy, when two containers of a service hold their pools at once:
+
+  | Who | Normal | During a redeploy |
+  |---|---|---|
+  | Node server (`poolMax` 10) | 10 | 20 |
+  | Chat service (planned, pool 5) | 5 | 10 |
+  | Migrations and admin (`pulse_admin`) | 1 | 2 |
+  | Ad hoc, monitoring, backups | 3 | 3 |
+  | Reserved for superuser | 3 | 3 |
+  | **Total** | **22** | **38** |
+
+  38 of 79 leaves about 41 spare. Re-read `SHOW max_connections` after any class change: RDS
+  derives it from the instance memory.
 - **Slow queries**: any query over `database.slowQueryMs` (200ms) is logged as a `Slow database
   query` warning with SQL text (placeholders only) and duration, never bound values.
 - **`pg_trgm`**: forum search relies on GIN trigram indexes. The migration runs

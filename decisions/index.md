@@ -40,6 +40,12 @@ Whether/where to use RAG or embeddings, AI provider fallback strategy, and the i
 | 10/10/2026 | Fallback: gemini-3.1-flash-lite preferred over claude-sonnet-5-5; Anthropic dropped from the prod chain |
 | 11/10/2026 | Considering Bedrock Knowledge Bases instead of pgvector/Qdrant for RAG (not decided) |
 | 13/10/2026 | AI text sanitised in code (dashes, curly quotes); an invalid insight is regenerated once before the template |
+| 18/11/2026 | Chat uses a provider API key; Bedrock stays Node-only |
+| 18/11/2026 | Chat needs guardrails: on topic, no forbidden medical advice |
+| 18/11/2026 | RAG adds to the keyword recommendations, does not replace them |
+| 18/11/2026 | Chat sees a check-in summary only; check-in AI gets chat topics |
+| 18/11/2026 | Chat uses provider prompt caching with a stable prompt prefix |
+| 18/11/2026 | RAG variant: pgvector on RDS with Bedrock embeddings, no Knowledge Bases |
 
 ## Deployment & Infra — [[decisions/deployment-and-infra]]
 AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-causing (Render → AWS).
@@ -54,11 +60,36 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 26/09/2026 | Keep production on RDS, not Neon — private in-VPC DB; ~$15/mo saving not worth the architecture trade-off |
 | 26/09/2026 | Cost impact of ASG + Elastic IP calculated: ~$0/mo change (EIP replaces the auto-assigned IPv4 already billed) |
 | 26/09/2026 | Corrected topology (domain → client public IP → server private IP); revised IP-stability/ASG plan pending go-ahead |
+| 30/09/2026 | Routine runs on Sonnet 4.6, not 5 or 5.5 |
+| 21/10/2026 | Use the separate AWS cost tool, not the AWS MCP |
 | 27/10/2026 | Watcher fixer merges release PR on green checks |
 | 28/10/2026 | Fixer holds on Client-Impact and times out unreviewed releases |
 | 28/10/2026 | Risky releases held by a needs-review label at the PR phase |
 | 28/10/2026 | Held needs-review PRs carry a what-changed summary |
 | 28/10/2026 | Instance metadata hop limit 2 so the container reads the instance role |
+| 15/11/2026 | Client moves onto the server EC2 box, not S3 |
+| 15/11/2026 | FastAPI chat service: assistant first, design per inter-service report |
+| 17/11/2026 | Stay on t3.small, no ARM (t4g.small) move |
+| 17/11/2026 | Move RDS to db.t4g.micro (confirmed) |
+| 17/11/2026 | Job queue is RabbitMQ, not SQS or BullMQ |
+| 18/11/2026 | Check-in AI moves onto RabbitMQ with a Postgres outbox |
+| 18/11/2026 | Apply the review fixes to the plan, except 8 and 9 |
+| 18/11/2026 | Chat transport is WebSocket on Node, not SSE |
+| 18/11/2026 | RabbitMQ on the app box now; chat uses a provider key |
+| 18/11/2026 | No separate disk for RabbitMQ, the sweeper rebuilds the queue |
+| 18/11/2026 | Queue consumer concurrency starts at 2, tuned after load test |
+| 18/11/2026 | Cloudflare stays the front door, CloudFront not added |
+| 18/11/2026 | Redis is a firm part of the plan, with cache rules |
+| 18/11/2026 | Database class change at 23:00 local time on migration day |
+| 18/11/2026 | Load test plan: three runs with a fake model, under 80% memory |
+| 18/11/2026 | AWS Activate credits are a task, not part of the plan |
+| 18/11/2026 | Keep Secrets Manager, no merge; trim two unused entries |
+| 18/11/2026 | Old client box is deleted only after the new client runs successfully |
+| 18/11/2026 | Proposed plan values approved; migration day tentatively 18 Nov |
+| 18/11/2026 | Box migration first, Redis and RabbitMQ after; DB window 21:00 UTC |
+| 18/11/2026 | Compose holds only the long-lived containers; server and client keep blue/green scripts |
+| 19/11/2026 | Real routine test users in production; passwords in .env only |
+| 22/11/2026 | B5 deploy-script network wiring: bridge swap, D1-D5 approved |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
@@ -94,9 +125,12 @@ Repo tooling decisions — git hooks, husky wiring, commit conventions.
 |---|---|
 | 07/09/2026 | Root cause of lost post-commit version-bump hook: `.husky` gitignored + husky never wired up |
 | 30/09/2026 | Error-watcher records: `docs/prod-errors/` index + files, on a local `monitor/records` branch amended each run and shipped only with a fix |
+| 30/09/2026 | Scheduler runs the full /review on its change before creating a PR |
 | 11/10/2026 | Error-watcher checkpoint lives in an untracked file; `index.md` gets it only when records are committed, so quiet runs need no git writes |
 | 18/10/2026 | AWS error watcher files GitHub issues; a separate fixer routine publishes a plan, waits for the owner's `approved` label, then fixes |
 | 18/10/2026 | The fixer routine treats every issue the same, whoever filed it (owner-authored, no label needed); one plan/approval/fix path |
 | 18/10/2026 | Public repo: issues carry a short summary only, details stay local; others' issues only notify the owner, who hands one over with an `@claude` comment |
 | 21/10/2026 | One shared fixer routine with a profile per repo; watchers only file issues; client-breaking or migration fixes are held for the owner's `ship-ok`; cross-repo work uses a linked issue |
+| 21/10/2026 | Routines report to Bar through ntfy: the fallback after remote control did not work |
+| 22/10/2026 | Questions to the user go on a question artifact answered by comment |
 | 28/10/2026 | The Prisma client is generated by `pretypecheck`, `pretest` and `pretest:integration`, with a dummy `DEV_DATABASE_URL` default |

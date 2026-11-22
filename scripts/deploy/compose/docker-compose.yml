@@ -1,0 +1,135 @@
+# Infrastructure containers for the single app box (draft, 18 Nov 2026, not deployed).
+#
+# Scope: this file defines the networks and the long-lived infrastructure
+# containers. The server and the client are NOT defined here: each keeps its own
+# blue/green deploy script (scripts/deploy/ec2-redeploy.sh in each repo), which
+# starts its container with `--network pulse_edge` (the server is also connected
+# to pulse_internal with `docker network connect`). That keeps the tested swap,
+# health gate and rollback of those scripts.
+#
+# Networks:
+#   pulse_edge      cloudflared, client, server. Has outbound internet.
+#   pulse_internal  server, Redis, RabbitMQ (and chat later). `internal: true`,
+#                   so nothing on it can reach the internet, and nothing from
+#                   the internet or the client can reach it.
+#
+# Every service sits behind a profile, so nothing starts by accident:
+#   tunnel  cloudflared. Not started on a new box until the tunnel routing has
+#           been changed for it (a second connector on the same tunnel would
+#           send page traffic to the server's port).
+#   broker  Redis and RabbitMQ, added after the first migration.
+# boot-stack.sh reads the profiles to start from the Parameter Store value
+# /pulse/boot/profiles (for example "tunnel,broker"); absent means none.
+#
+# Secrets are never written here. The boot or deploy script exports them into
+# the shell just before `docker compose up`, read from Secrets Manager:
+#   TUNNEL_TOKEN, REDIS_PASSWORD (compose), RABBITMQ_NODE_PASSWORD (passed to create-node-user.sh)
+# No service publishes a host port.
+
+name: pulse
+
+# The deploy scripts own both networks (ensure_networks in boot-stack.sh and in
+# each ec2-redeploy.sh) and compose only joins them, so a compose run never
+# recreates a network the server container is attached to. Fixed subnets let the
+# metadata rules name the server containers by address (pulse-network-rules.sh):
+# pulse_edge 172.30.0.0/24 (server .10, candidate .11, client .20, candidate .21;
+# addresses Docker picks itself come from 172.30.0.128/25) and pulse_internal
+# 172.30.1.0/24. The VPC is 172.31.0.0/16, so there is no overlap.
+networks:
+  edge:
+    name: pulse_edge
+    external: true
+  internal:
+    name: pulse_internal
+    external: true
+
+services:
+  cloudflared:
+    profiles:
+      - tunnel
+    image: cloudflare/cloudflared:2026.10.3
+    command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN must be exported by the boot script}
+    networks:
+      - edge
+    restart: always
+    mem_limit: 64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # The readiness command is cloudflared's own. Not yet run against a real
+    # tunnel: check that it reports healthy on the first start.
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "localhost:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  redis:
+    profiles:
+      - broker
+    image: redis:7.4-alpine
+    command: >
+      sh -c 'exec redis-server
+      --requirepass "$$REDIS_PASSWORD"
+      --maxmemory 100mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be exported by the boot script}
+    networks:
+      - internal
+    restart: always
+    mem_limit: 128m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  rabbitmq:
+    profiles:
+      - broker
+    image: rabbitmq:4.0-alpine
+    hostname: pulse-rabbitmq
+    networks:
+      - internal
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/conf.d/20-pulse.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/create-node-user.sh:/etc/rabbitmq/create-node-user.sh:ro
+    restart: always
+    mem_limit: 256m
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    # No default user is created here. The vhost and queues come from
+    # definitions.json, and create-node-user.sh adds the one application user
+    # (RABBITMQ_NODE_PASSWORD) after the first start.
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  rabbitmq-data:
+    name: pulse_rabbitmq_data

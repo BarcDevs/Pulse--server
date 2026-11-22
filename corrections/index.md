@@ -74,6 +74,7 @@ A claim stated to the user (cost, status) without actually checking/verifying it
 | 20/10/2026 | Wrote the fix before the regression test; tests come first, seen failing, then the fix |
 | 20/10/2026 | Asked before pushing `development` although the fixer routine's ship step already does it |
 | 20/10/2026 | Edited files with ad-hoc Node scripts (silent no-op replaces, blocked run); use the Edit tool |
+| 15/11/2026 | "Test it" on a plan claim meant docs, not builds |
 
 ## Dev Workflow — [[corrections/dev-workflow]]
 Auto-recorded corrections.
@@ -83,6 +84,7 @@ Auto-recorded corrections.
 | 27/10/2026 | Check issue labels before advising on unmerged issue branches |
 | 28/10/2026 | Watcher asks mid-fix design questions in an artifact, not needs-human |
 | 28/10/2026 | Commit type chosen mechanically as feat, bumping minor |
+| 19/11/2026 | Commit finished work before starting the next change |
 
 ## Working Style — [[corrections/working-style]]
 Auto-recorded corrections.
@@ -97,3 +99,18 @@ Auto-recorded corrections.
 | Date | Entry |
 |---|---|
 | 02/11/2026 | Don't add a new endpoint when an existing flow can be reused |
+
+## Feature Design — [[corrections/feature-design]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 08/11/2026 | Launch-funnel links must use the /start page, not the root |
+
+## Claude Behavior — [[corrections/claude-behavior]]
+Auto-recorded corrections.
+
+| Date | Entry |
+|---|---|
+| 18/11/2026 | Don't present my own design as the user's decision |
+| 18/11/2026 | OPEN means open for the user, not a check Claude carries out |

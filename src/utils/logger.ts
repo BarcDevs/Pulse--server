@@ -1,7 +1,11 @@
 import path from 'path'
 import winston from 'winston'
 
-import { isDev, loggingConfig } from '../../config'
+import {
+    isDev,
+    isProd,
+    loggingConfig
+} from '../../config'
 
 import { CloudWatchErrorTransport } from './cloudWatchErrorTransport'
 
@@ -39,7 +43,9 @@ const transports: winston.transport[] = [
     })
 ]
 
-if (loggingConfig.cloudWatchErrorLogGroup) {
+// isProd comes from APP_ENV, so Render staging (NODE_ENV=production,
+// APP_ENV=staging) has no AWS credentials and must not ship
+if (isProd && loggingConfig.cloudWatchErrorLogGroup) {
     transports.push(
         new CloudWatchErrorTransport({
             logGroupName: loggingConfig.cloudWatchErrorLogGroup,

@@ -1,5 +1,8 @@
 name: Deploy
 
+# Never add a pull_request_target trigger to any workflow (GitHub blocks it globally
+# as a supply-chain risk). Allowed triggers: pull_request, push, workflow_run,
+# workflow_dispatch.
 on:
   workflow_run:
     workflows: [CI]
