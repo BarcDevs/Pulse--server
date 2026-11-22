@@ -16,7 +16,11 @@ import logger from '../utils/logger'
 import { generateInsightForCheckIn } from './insightGenerationService'
 import { generateRecommendationsSafely } from './recommendationsService'
 
-const runJob = async (job: ClaimedCheckInAiJob): Promise<void> => {
+export type RunJobOutcome = 'done' | 'retry' | 'dead'
+
+// Runs one claimed job and records the result. The outcome tells a broker
+// consumer how to settle its message; the polling worker ignores it.
+export const runJob = async (job: ClaimedCheckInAiJob): Promise<RunJobOutcome> => {
     try {
         // Throws on infrastructure errors so the job is retried; an AI failure
         // never throws here, the insight service stores the template fallback.
@@ -33,6 +37,8 @@ const runJob = async (job: ClaimedCheckInAiJob): Promise<void> => {
             holdsClaim
         )
         await jobModel.markJobDone(job)
+
+        return 'done'
     } catch (err: unknown) {
         const loggable = toLoggableError(err)
         const reason = [loggable.name, loggable.code]
@@ -48,10 +54,15 @@ const runJob = async (job: ClaimedCheckInAiJob): Promise<void> => {
             error: loggable
         })
 
-        if (exhausted)
+        if (exhausted) {
             await jobModel.markJobFailed(job, reason)
-        else
-            await jobModel.markJobRetry(job, reason)
+
+            return 'dead'
+        }
+
+        await jobModel.markJobRetry(job, reason)
+
+        return 'retry'
     }
 }
 

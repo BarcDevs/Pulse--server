@@ -1,8 +1,17 @@
 import { PROFILE_CONTEXT_TTL_MS } from '../../constants/profileContextCache'
 import * as profileModel from '../../models/profileModel'
+import { createFakeRedis } from '../setup/fakeRedis'
 import { prismaMock } from '../setup/jestSetup'
 
+const mockRedis = createFakeRedis()
+
+jest.mock('../../lib/redis/redisClient', () => ({
+    getRedisClient: () => mockRedis
+}))
+
 describe('profile context cache', () => {
+    beforeEach(() => mockRedis.clear())
+
     const profile = {
         id: 'profile-id',
         timezone: 'Asia/Jerusalem'

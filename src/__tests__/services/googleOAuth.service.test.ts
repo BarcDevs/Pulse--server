@@ -48,6 +48,10 @@ jest.mock('../../../config', () => ({
     }
 }))
 
+jest.mock('../../lib/redis/redisClient', () => ({
+    getRedisClient: () => null
+}))
+
 jest.mock('../../models/authModel', () => ({
     ...jest.requireActual('../../models/authModel'),
     getUserByEmailAnyStatus: jest.fn(),

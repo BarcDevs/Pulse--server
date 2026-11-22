@@ -16,12 +16,13 @@ export type ClaimedCheckInAiJob = {
     lockedAt: Date
 }
 
-// One row per check-in: re-submitting the same day's check-in re-queues the row
+// One row per check-in: re-submitting the same day's check-in re-queues the row.
+// Returns the job id, which is what the broker message carries.
 export const enqueueJob = async (
     checkInId: string,
     userId: string
-): Promise<void> => {
-    await Prisma.checkInAiJob.upsert({
+): Promise<string> => {
+    const job = await Prisma.checkInAiJob.upsert({
         where: { checkInId },
         create: {
             checkInId,
@@ -33,9 +34,13 @@ export const enqueueJob = async (
             attempts: 0,
             lockedAt: null,
             lastError: null,
+            publishedAt: null,
             runAfter: CHECK_IN_AI_JOB_RUN_IMMEDIATELY
-        }
+        },
+        select: { id: true }
     })
+
+    return job.id
 }
 
 const staleCutoff = (staleMs: number) =>
@@ -143,6 +148,7 @@ export const markJobRetry = async (
         SET "status" = 'PENDING',
             "lockedAt" = NULL,
             "lastError" = ${lastError},
+            "publishedAt" = NULL,
             "runAfter" = now() + ${CHECK_IN_AI_JOB_RETRY_DELAY_MS} * interval '1 millisecond',
             "updatedAt" = now()
         WHERE "id" = ${job.id}
@@ -197,6 +203,7 @@ export const requeueMissedJobs = async (
             "attempts" = 0,
             "lockedAt" = NULL,
             "lastError" = NULL,
+            "publishedAt" = NULL,
             "runAfter" = to_timestamp(0),
             "updatedAt" = now()
         FROM "DailyCheckIn" c
@@ -205,4 +212,88 @@ export const requeueMissedJobs = async (
             AND j."updatedAt" < ${staleCutoff(failedAfterMs)}
             AND c."createdAt" > ${lookbackCutoff}
     `
+}
+
+// Same claim as claimNextJob, but for the job a broker message names. runAfter is
+// not checked: the broker's retry queue decides when a retried message returns.
+// A RUNNING job is taken over only when its claim is stale, so a duplicate
+// message for a job another consumer is working on does nothing.
+export const claimJobById = async (
+    jobId: string,
+    staleMs: number
+): Promise<ClaimedCheckInAiJob | null> => {
+    const [job] = await Prisma.$queryRaw<ClaimedCheckInAiJob[]>`
+        UPDATE "CheckInAiJob"
+        SET "status" = 'RUNNING',
+            "lockedAt" = now(),
+            "attempts" = "attempts" + 1,
+            "updatedAt" = now()
+        WHERE "id" = ${jobId}
+            AND (
+                "status" = 'PENDING'
+                OR (
+                    "status" = 'RUNNING'
+                    AND "lockedAt" < ${staleCutoff(staleMs)}
+                )
+            )
+        RETURNING "id", "checkInId", "userId", "attempts", "lockedAt"
+    `
+
+    return job ?? null
+}
+
+// Only a row still waiting is marked; a job already claimed keeps its state.
+export const markJobPublished = async (jobId: string): Promise<void> => {
+    await Prisma.$executeRaw`
+        UPDATE "CheckInAiJob"
+        SET "publishedAt" = now()
+        WHERE "id" = ${jobId}
+            AND "status" = 'PENDING'
+    `
+}
+
+// Rows the sweeper must (re)publish: waiting, due, and either never published or
+// published longer ago than republishAfterMs without anybody claiming them (the
+// message was lost). graceMs keeps it away from a row the request path is
+// publishing right now.
+export const findJobIdsToPublish = async (
+    limit: number,
+    republishAfterMs: number,
+    graceMs: number
+): Promise<string[]> => {
+    const rows = await Prisma.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "CheckInAiJob"
+        WHERE "status" = 'PENDING'
+            AND "runAfter" <= now()
+            AND "updatedAt" < ${staleCutoff(graceMs)}
+            AND (
+                "publishedAt" IS NULL
+                OR "publishedAt" < ${staleCutoff(republishAfterMs)}
+            )
+        ORDER BY "createdAt"
+        LIMIT ${limit}
+    `
+
+    return rows.map(row => row.id)
+}
+
+// Numbers for the log line: how many jobs wait and how old the oldest is.
+export const getQueueStats = async (): Promise<{
+    waiting: number
+    oldestWaitingSeconds: number
+}> => {
+    const [stats] = await Prisma.$queryRaw<{
+        waiting: bigint
+        oldest: number | null
+    }[]>`
+        SELECT count(*) AS waiting,
+            extract(epoch FROM now() - min("createdAt")) AS oldest
+        FROM "CheckInAiJob"
+        WHERE "status" = 'PENDING'
+    `
+
+    return {
+        waiting: Number(stats?.waiting ?? 0),
+        oldestWaitingSeconds: Math.round(Number(stats?.oldest ?? 0))
+    }
 }

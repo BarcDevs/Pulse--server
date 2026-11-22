@@ -26,6 +26,20 @@ Rejected, with the reason:
 - The worker runs the insight generation and then the recommendations step for the same check-in.
 - The worker and the purge schedulers start when the server listens, which matters for the deploy candidate (see section 6).
 
+## 2a. The job table as the outbox (C1, 23 Nov)
+
+The table `CheckInAiJob` already is the outbox: one row per check-in (`checkInId` is unique), written by `enqueueJob` and read by `claimNextJob`. Its statuses map to the four outbox states like this:
+
+| Outbox state | Today's row | How the code tells |
+|---|---|---|
+| pending | `status = PENDING`, `publishedAt` is null | not yet on the broker, or waiting for its retry time (`runAfter`) |
+| published | `status = PENDING`, `publishedAt` is set | the broker confirmed the message; no consumer has claimed it |
+| running | `status = RUNNING`, `lockedAt` set | a consumer (or the polling worker) holds the claim |
+| done | `status = DONE` | finished, claim released |
+| failed | `status = FAILED`, `lastError` set | attempts used up; the sweeper re-queues it after `CHECK_IN_AI_JOB_FAILED_RETRY_AFTER_MS` |
+
+One column is added: `publishedAt TIMESTAMP(3) NULL`. No new enum value, so the existing polling worker and its indexes keep working unchanged and `JOB_BACKEND=postgres` stays valid. The migration only adds a nullable column (not destructive, so the deploy gate lets it through). `enqueueJob` and the retry path set `publishedAt` back to null, so a re-submitted or retried row is published again.
+
 ## 3. Design
 
 Flow for one job:

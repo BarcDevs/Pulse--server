@@ -6,7 +6,7 @@ set -euo pipefail
 #
 #   1. Brings up the long-lived containers from the compose file baked into the
 #      machine image. Which ones is decided by the Parameter Store value
-#      /pulse/boot/profiles (comma separated: tunnel, broker). Absent or empty
+#      /pulse/boot/profiles (comma separated: tunnel, redis, broker; broker is Redis and RabbitMQ). Absent or empty
 #      means none, so a new box never starts a second tunnel connector before the
 #      tunnel routing has been changed for it.
 #   2. Starts the server, then the client, each through its own blue/green deploy
@@ -79,8 +79,20 @@ start_infrastructure() {
             export TUNNEL_TOKEN
             ;;
     esac
+    case ",$profiles," in
+        *,redis,*|*,broker,*)
+            REDIS_PASSWORD=$(aws secretsmanager get-secret-value --region "$REGION"                 --secret-id pulse/app/REDIS_PASSWORD --query SecretString --output text)
+            export REDIS_PASSWORD
+            ;;
+    esac
+    case ",$profiles," in
+        *,broker,*)
+            RABBITMQ_NODE_PASSWORD=$(aws secretsmanager get-secret-value --region "$REGION"                 --secret-id pulse/app/RABBITMQ_NODE_PASSWORD --query SecretString --output text)
+            export RABBITMQ_NODE_PASSWORD
+            ;;
+    esac
     COMPOSE_PROFILES="$profiles" docker compose -f "$COMPOSE_DIR/docker-compose.yml" up -d
-    unset TUNNEL_TOKEN
+    unset TUNNEL_TOKEN REDIS_PASSWORD RABBITMQ_NODE_PASSWORD
 }
 
 if [ -n "${BOOT_SOURCE_ONLY:-}" ]; then

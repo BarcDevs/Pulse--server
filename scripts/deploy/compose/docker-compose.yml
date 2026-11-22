@@ -74,6 +74,7 @@ services:
 
   redis:
     profiles:
+      - redis
       - broker
     image: redis:7.4-alpine
     command: >

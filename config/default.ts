@@ -28,6 +28,35 @@ export default {
         statementTimeoutMs: 15000,
         slowQueryMs: 200
     },
+    // Redis cache and rate-limit counters. An empty host means Redis is off and
+    // the server keeps its in-process counters and caches (the default, so a box
+    // without the broker profile runs as before). The container caps its memory
+    // at 100 MiB with allkeys-lru, so every key must be able to be lost.
+    redis: {
+        host: '',
+        port: 6379,
+        password: '',
+        connectTimeoutMs: 1000,
+        commandTimeoutMs: 300,
+        keyPrefix: 'pulse:'
+    },
+    // RabbitMQ job queue. An empty host means no broker: jobs run on the Postgres
+    // polling worker. Messages carry job ids only, never health content.
+    rabbitmq: {
+        host: '',
+        port: 5672,
+        vhost: '/pulse',
+        user: 'pulse_node',
+        password: '',
+        publishTimeoutMs: 2000,
+        reconnectDelayMs: 2000
+    },
+    // postgres: the polling worker (today's behaviour). rabbitmq: jobs are
+    // published to the broker and consumed from it; the table stays the record.
+    jobs: {
+        backend: 'postgres',
+        consumerConcurrency: 2
+    },
     // Resend SMTP: user is always "resend", the password is the API key
     // (EMAIL_PASSWORD, the only env-provided email value)
     email: {

@@ -30,6 +30,8 @@ import type { CheckInQuery } from '../types/query'
 import { toLoggableError } from '../utils/loggableError'
 import logger from '../utils/logger'
 
+import { isBrokerBackend, tryPublishJob } from './checkInAiQueueService'
+
 // The check-in is already saved when this runs: a queue failure must not fail
 // the request. Without a job the check-in simply reads as 'ready' with no insights.
 const queueAiJob = async (
@@ -37,7 +39,11 @@ const queueAiJob = async (
     userId: string
 ): Promise<void> => {
     try {
-        await checkInAiJobModel.enqueueJob(checkInId, userId)
+        const jobId = await checkInAiJobModel.enqueueJob(checkInId, userId)
+
+        // Not awaited: the row is the record, publishing only speeds it up, and
+        // the sweeper publishes what this misses
+        if (jobId && isBrokerBackend()) void tryPublishJob(jobId)
     } catch (err: unknown) {
         logger.error('Failed to queue check-in AI job', {
             userId,

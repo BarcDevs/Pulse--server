@@ -19,6 +19,13 @@ jest.mock('../../routes/profileRoute', () => 'profileRoute')
 jest.mock('../../routes/recoveryGoalRoute', () => 'recoveryGoalRoute')
 jest.mock('../../routes/supportRoute', () => 'supportRoute')
 jest.mock('../../routes/userRoute', () => 'userRoute')
+jest.mock('../../utils/logger', () => ({
+    __esModule: true,
+    default: { info: jest.fn(), error: jest.fn(), warn: jest.fn() }
+}))
+jest.mock('../../lib/redis/rateLimitStore', () => ({
+    createRateLimitStore: () => undefined
+}))
 
 describe('/dev route gating', () => {
     afterEach(() => {

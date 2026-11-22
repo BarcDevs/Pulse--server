@@ -17,6 +17,25 @@ export default {
     auth: {
         jwtSecret: 'JWT_SECRET'
     },
+    rabbitmq: {
+        host: 'RABBITMQ_HOST',
+        password: 'RABBITMQ_NODE_PASSWORD'
+    },
+    jobs: {
+        backend: 'JOB_BACKEND',
+        consumerConcurrency: {
+            __name: 'JOB_CONSUMER_CONCURRENCY',
+            __format: 'number'
+        }
+    },
+    redis: {
+        host: 'REDIS_HOST',
+        port: {
+            __name: 'REDIS_PORT',
+            __format: 'number'
+        },
+        password: 'REDIS_PASSWORD'
+    },
     email: {
         emailPass: 'EMAIL_PASSWORD',
         supportEmail: 'SUPPORT_EMAIL'

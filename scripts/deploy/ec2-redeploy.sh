@@ -305,6 +305,8 @@ SUPPORT_READER_SECRET=$(aws secretsmanager get-secret-value --region "$REGION" -
 if [ -z "$SUPPORT_READER_SECRET" ]; then
     echo "WARNING: pulse/app/SUPPORT_READER_SECRET not readable - GET /support/claude/tickets will reject every request." >&2
 fi
+# Optional: without it the server starts with Redis off (in-process counters, no cache)
+REDIS_PASSWORD=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/REDIS_PASSWORD --query SecretString --output text 2>/dev/null || true)
 
 # Expand/contract gate: destructive migrations (see is_destructive_sql) must ship in a separate release after the code that stops reading
 # them, applied manually under a maintenance window. Auto-deploy refuses them
@@ -361,6 +363,11 @@ RUN_ARGS=(
     -e SUPPORT_READER_SECRET="$SUPPORT_READER_SECRET"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
+
+# Redis runs as the compose service `redis` on pulse_internal, where the server container is joined
+if [ -n "$REDIS_PASSWORD" ]; then
+    RUN_ARGS+=(-e REDIS_HOST=redis -e REDIS_PASSWORD="$REDIS_PASSWORD")
+fi
 
 if swap_server; then
     prune_old_images "$ECR/$REPO" 4
