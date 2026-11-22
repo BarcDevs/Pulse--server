@@ -158,16 +158,100 @@ run_app_container() {
     shift 2
     docker run -d --name "$name" --network pulse_edge --ip "$ip" \
         "${RUN_ARGS[@]}" "$@" \
-        "$ECR/$REPO:runner-$IMAGE_TAG" > /dev/null
-    docker network connect pulse_internal "$name"
+        "$ECR/$REPO:runner-$IMAGE_TAG" > /dev/null || return 1
+    docker network connect pulse_internal "$name" || return 1
 }
 
 # A running container cannot gain an alias, so it is reconnected: the same fixed
 # address, now with the alias.
 attach_alias() {
     local name="$1" ip="$2" alias="$3"
-    docker network disconnect pulse_edge "$name"
-    docker network connect --ip "$ip" --alias "$alias" pulse_edge "$name"
+    docker network disconnect pulse_edge "$name" || return 1
+    docker network connect --ip "$ip" --alias "$alias" pulse_edge "$name" || return 1
+}
+
+is_running() {
+    [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null)" = "true" ]
+}
+
+# A run that died between stopping the old container and starting the new one
+# leaves pulse-app stopped (or gone) and pulse-app-prev holding the last good
+# container. Put it back before anything else removes it.
+recover_interrupted_run() {
+    if ! is_running pulse-app && docker inspect pulse-app-prev > /dev/null 2>&1; then
+        echo "Interrupted earlier deploy: restoring pulse-app-prev as pulse-app."
+        docker rm -f pulse-app 2>/dev/null || true
+        docker rename pulse-app-prev pulse-app || return 1
+        docker start pulse-app > /dev/null || return 1
+    fi
+}
+
+# Zero-gap swap with the candidate as a bridge (see AWS-MIGRATION-MILESTONES.md B5):
+#   candidate (.11, workers off) passes the health check and takes the alias, the
+#   old container is stopped gracefully, the new pulse-app (.10, workers on, port
+#   80) starts, and only when it is healthy the candidate and the old one go.
+# Workers never run in two containers at once. Returns 1 on any failure; a failed
+# candidate leaves production untouched, a failed new container is rolled back.
+swap_server() {
+    local direct=""
+    recover_interrupted_run || return 1
+    # pulse-app is down and only the candidate still serves: do not remove it
+    if ! is_running pulse-app && is_running pulse-app-candidate; then
+        direct=1
+        echo "pulse-app is not running and the candidate is serving: starting pulse-app without a new candidate."
+    fi
+
+    if [ -z "$direct" ]; then
+        echo "Starting candidate container on pulse_edge..."
+        docker rm -f pulse-app-candidate 2>/dev/null || true
+        # WORKERS_ENABLED=false: the candidate must not claim jobs or start the
+        # purge schedulers.
+        run_app_container pulse-app-candidate 172.30.0.11 -e WORKERS_ENABLED=false || return 1
+        if ! container_health_check pulse-app-candidate; then
+            echo "Candidate container failed health check — leaving the current production container untouched." >&2
+            docker logs --tail 100 pulse-app-candidate >&2 || true
+            docker rm -f pulse-app-candidate 2>/dev/null || true
+            return 1
+        fi
+        echo "Candidate healthy. Taking over the server alias and swapping..."
+        attach_alias pulse-app-candidate 172.30.0.11 server || return 1
+        # Idempotent: a leftover prev from an interrupted run must not block the rename.
+        docker rm -f pulse-app-prev 2>/dev/null || true
+        if docker inspect pulse-app > /dev/null 2>&1; then
+            docker rename pulse-app pulse-app-prev || return 1
+            # A restart policy would bring the stopped old container back after a Docker restart
+            docker update --restart=no pulse-app-prev > /dev/null 2>&1 || true
+            graceful_stop pulse-app-prev
+        fi
+    fi
+
+    run_app_container pulse-app 172.30.0.10 --restart=unless-stopped --network-alias server -p 80:8080 || true
+    if is_running pulse-app && container_health_check pulse-app; then
+        echo "Deploy succeeded, container healthy."
+        graceful_stop pulse-app-candidate
+        docker rm -f pulse-app-candidate 2>/dev/null || true
+        docker rm -f pulse-app-prev 2>/dev/null || true
+        return 0
+    fi
+
+    echo "New production container failed its health check — rolling back to the previous image." >&2
+    docker logs --tail 100 pulse-app >&2 || true
+    docker rm -f pulse-app 2>/dev/null || true
+    if docker rename pulse-app-prev pulse-app 2>/dev/null; then
+        docker update --restart=unless-stopped pulse-app > /dev/null 2>&1 || true
+        docker start pulse-app > /dev/null 2>&1 || true
+        if container_health_check pulse-app; then
+            docker rm -f pulse-app-candidate 2>/dev/null || true
+            echo "Rolled back to previous container. NOTE: if migrations ran this deploy, the rolled-back code is now running against the new schema — check for expand/contract violations manually." >&2
+        else
+            echo "Rolled back container did not become healthy — the candidate (if any) still serves. Check EC2 manually." >&2
+        fi
+    elif is_running pulse-app-candidate; then
+        echo "No previous container to roll back to — the candidate keeps serving without workers. Check EC2 manually." >&2
+    else
+        echo "No previous container to roll back to — production is down. Check EC2 manually." >&2
+    fi
+    return 1
 }
 
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
@@ -175,6 +259,7 @@ if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
 fi
 
 acquire_deploy_lock
+ensure_networks
 
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR"
 
@@ -277,54 +362,10 @@ RUN_ARGS=(
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
 
-echo "Starting candidate container on a staging port..."
-docker rm -f pulse-app-candidate 2>/dev/null || true
-# WORKERS_ENABLED=false: the candidate is only health checked, so it must not
-# claim jobs or start the purge schedulers.
-docker run -d --name pulse-app-candidate -p 127.0.0.1:8081:8080 \
-    "${RUN_ARGS[@]}" \
-    -e WORKERS_ENABLED=false \
-    "$ECR/$REPO:runner-$IMAGE_TAG"
-
-if ! health_check 8081; then
-    echo "Candidate container failed health check — leaving the current production container untouched." >&2
-    docker logs --tail 100 pulse-app-candidate >&2 || true
-    docker rm -f pulse-app-candidate 2>/dev/null || true
-    exit 1
-fi
-
-echo "Candidate healthy. Swapping into production..."
-graceful_stop pulse-app-candidate
-docker rm -f pulse-app-candidate
-
-# Idempotent swap: clear any stale leftover from an interrupted previous run
-# before renaming, so a wedged pulse-app-prev can never block this deploy.
-docker rm -f pulse-app-prev 2>/dev/null || true
-if docker inspect pulse-app > /dev/null 2>&1; then
-    docker rename pulse-app pulse-app-prev
-    graceful_stop pulse-app-prev
-fi
-
-docker run -d --name pulse-app --restart=always -p 80:8080 \
-    "${RUN_ARGS[@]}" \
-    "$ECR/$REPO:runner-$IMAGE_TAG"
-
-if health_check 80; then
-    echo "Deploy succeeded, container healthy."
-    docker rm -f pulse-app-prev 2>/dev/null || true
+if swap_server; then
     prune_old_images "$ECR/$REPO" 4
     write_last_good server "$IMAGE_TAG" \
         || echo "WARNING: could not record the last good tag in Parameter Store." >&2
     exit 0
-fi
-
-echo "New production container failed its health check — rolling back to the previous image." >&2
-docker logs --tail 100 pulse-app >&2 || true
-docker rm -f pulse-app 2>/dev/null || true
-if docker rename pulse-app-prev pulse-app 2>/dev/null; then
-    docker start pulse-app > /dev/null 2>&1 || true
-    echo "Rolled back to previous container. NOTE: if migrations ran this deploy, the rolled-back code is now running against the new schema — check for expand/contract violations manually." >&2
-else
-    echo "No previous container to roll back to — production is down. Check EC2 manually." >&2
 fi
 exit 1

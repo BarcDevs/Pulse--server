@@ -176,6 +176,95 @@ describe('ec2-redeploy.sh deploy helpers', () => {
         })
     })
 
+    describe('swap_server', () => {
+        const fakeDocker = toPosix('./fixtures/fake-docker.sh')
+        const swap = (seed: string, unhealthy = '') => runRedeploy(
+            `source "${fakeDocker}"; RUN_ARGS=(--cap-drop ALL); ${seed}; if swap_server 2>/dev/null; then echo "swap 0"; else echo "swap 1"; fi; for c in pulse-app pulse-app-prev pulse-app-candidate; do echo "$c=$(fake_state $c)"; done; fake_log`,
+            undefined,
+            { FAKE_UNHEALTHY: unhealthy }
+        )
+        const oldServing = 'fake_seed pulse-app "running old"'
+
+        it('swaps with the candidate as a bridge and leaves only the new container', () => {
+            const out = swap(oldServing).stdout
+            const at = (text: string) => out.indexOf(text)
+
+            expect(out).toContain('swap 0')
+            expect(out).toContain('pulse-app=running new')
+            expect(out).toContain('pulse-app-prev=absent')
+            expect(out).toContain('pulse-app-candidate=absent')
+            expect(at('--name pulse-app-candidate --network pulse_edge --ip 172.30.0.11')).toBeLessThan(at('docker network connect --ip 172.30.0.11 --alias server pulse_edge pulse-app-candidate'))
+            expect(at('docker network connect --ip 172.30.0.11 --alias server')).toBeLessThan(at('docker rename pulse-app pulse-app-prev'))
+            expect(at('docker rename pulse-app pulse-app-prev')).toBeLessThan(at('--name pulse-app --network pulse_edge --ip 172.30.0.10'))
+            expect(out).toContain('--restart=unless-stopped --network-alias server -p 80:8080')
+            expect(out).toContain('-e WORKERS_ENABLED=false')
+            expect(out).toContain('docker update --restart=no pulse-app-prev')
+        })
+
+        it('leaves production untouched when the candidate is unhealthy', () => {
+            const out = swap(oldServing, 'pulse-app-candidate').stdout
+
+            expect(out).toContain('swap 1')
+            expect(out).toContain('pulse-app=running old')
+            expect(out).toContain('pulse-app-candidate=absent')
+            expect(out).not.toContain('docker rename')
+        })
+
+        it('rolls back to the previous container when the new one is unhealthy', () => {
+            const out = swap(oldServing, 'pulse-app').stdout
+
+            expect(out).toContain('swap 1')
+            expect(out).toContain('pulse-app=running old')
+            expect(out).toContain('pulse-app-prev=absent')
+            expect(out).toContain('pulse-app-candidate=absent')
+            expect(out).toContain('docker update --restart=unless-stopped pulse-app')
+        })
+
+        it('keeps the candidate serving when the new container fails and there is no previous one', () => {
+            const out = swap('fake_seed pulse-app-candidate "running new"', 'pulse-app').stdout
+
+            expect(out).toContain('swap 1')
+            expect(out).toContain('pulse-app-candidate=running new')
+            expect(out).not.toContain('--name pulse-app-candidate --network')
+        })
+
+        it('does not remove a running candidate when pulse-app is down', () => {
+            const out = swap('fake_seed pulse-app-candidate "running new"').stdout
+
+            expect(out).toContain('swap 0')
+            expect(out).toContain('pulse-app=running new')
+            expect(out).toContain('pulse-app-candidate=absent')
+            expect(out).not.toContain('docker rm -f pulse-app-candidate\ndocker run')
+        })
+    })
+
+    describe('recover_interrupted_run', () => {
+        const fakeDocker = toPosix('./fixtures/fake-docker.sh')
+        const recover = (seed: string) => runRedeploy(
+            `source "${fakeDocker}"; ${seed}; recover_interrupted_run 2>/dev/null; for c in pulse-app pulse-app-prev; do echo "$c=$(fake_state $c)"; done`
+        ).stdout
+
+        it('restores the previous container when pulse-app is gone', () => {
+            const out = recover('fake_seed pulse-app-prev "stopped old"')
+
+            expect(out).toContain('pulse-app=running old')
+            expect(out).toContain('pulse-app-prev=absent')
+        })
+
+        it('restores it when pulse-app exists but is stopped', () => {
+            const out = recover('fake_seed pulse-app "stopped new"; fake_seed pulse-app-prev "stopped old"')
+
+            expect(out).toContain('pulse-app=running old')
+        })
+
+        it('does nothing while pulse-app is running', () => {
+            const out = recover('fake_seed pulse-app "running new"; fake_seed pulse-app-prev "stopped old"')
+
+            expect(out).toContain('pulse-app=running new')
+            expect(out).toContain('pulse-app-prev=stopped old')
+        })
+    })
+
     describe('acquire_deploy_lock', () => {
         const lockFile = path.join(
             process.env.TMPDIR ?? process.env.TEMP ?? '/tmp',
