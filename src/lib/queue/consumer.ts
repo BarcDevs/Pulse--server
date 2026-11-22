@@ -51,7 +51,11 @@ export const startConsumer = (options: ConsumerOptions): RunningConsumer => {
     let consumerTag: string | null = null
     const inFlight = new Set<Promise<void>>()
 
-    const settle = (current: Channel, message: ConsumeMessage, outcome: JobOutcome) => {
+    const settle = (
+        current: Channel,
+        message: ConsumeMessage,
+        outcome: JobOutcome
+    ) => {
         if (outcome === 'done') {
             current.ack(message)
         } else if (outcome === 'retry') {
