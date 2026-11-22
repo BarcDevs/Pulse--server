@@ -21,7 +21,7 @@ IMAGE_TAG="${1:?image tag required}"
 # cannot be trusted to gate a swap.
 health_check() {
     local port="$1"
-    for i in $(seq 1 15); do
+    for i in $(seq 1 60); do
         if curl -sf --max-time 5 "http://localhost:$port/api/status" > /dev/null \
            && curl -sf --max-time 10 "http://localhost:$port/api/ready" > /dev/null; then
             return 0
@@ -139,7 +139,7 @@ ensure_networks() {
 # Same two gates as health_check above.
 container_health_check() {
     local name="$1"
-    for i in $(seq 1 15); do
+    for i in $(seq 1 60); do
         if docker exec "$name" curl -sf --max-time 5 http://127.0.0.1:8080/api/status > /dev/null \
            && docker exec "$name" curl -sf --max-time 10 http://127.0.0.1:8080/api/ready > /dev/null; then
             return 0

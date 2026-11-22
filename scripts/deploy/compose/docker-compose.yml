@@ -50,7 +50,10 @@ services:
     image: cloudflare/cloudflared:2026.10.3
     command: tunnel --no-autoupdate --metrics 0.0.0.0:2000 run
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN must be exported by the boot script}
+      # Compose interpolates every service, even one whose profile is off, so a
+      # required-variable check here would stop a boot that starts only another
+      # profile. An empty token makes cloudflared exit with a clear error instead.
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     networks:
       - edge
     restart: always
@@ -74,14 +77,15 @@ services:
       - broker
     image: redis:7.4-alpine
     command: >
-      sh -c 'exec redis-server
+      sh -c 'test -n "$$REDIS_PASSWORD" || { echo "REDIS_PASSWORD is empty" >&2; exit 1; };
+      exec redis-server
       --requirepass "$$REDIS_PASSWORD"
       --maxmemory 100mb
       --maxmemory-policy allkeys-lru
       --save ""
       --appendonly no'
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be exported by the boot script}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - internal
     restart: always

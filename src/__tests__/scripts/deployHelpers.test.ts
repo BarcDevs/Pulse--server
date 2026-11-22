@@ -139,11 +139,11 @@ describe('ec2-redeploy.sh deploy helpers', () => {
             expect(result.stdout).toContain('docker exec pulse-app-candidate curl -sf --max-time 10 http://127.0.0.1:8080/api/ready')
         })
 
-        it('fails after 15 tries when the container never answers', () => {
+        it('fails after 60 tries when the container never answers', () => {
             const result = run('return 1')
 
             expect(result.stdout).toContain('status 1')
-            expect(result.stdout.match(/api\/status/g)).toHaveLength(15)
+            expect(result.stdout.match(/api\/status/g)).toHaveLength(60)
         })
 
         it('does not call ready while status fails', () => {
