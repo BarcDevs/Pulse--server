@@ -32,6 +32,21 @@ type RedisConfig = {
     keyPrefix: string
 }
 
+type RabbitMqConfig = {
+    host: string
+    port: number
+    vhost: string
+    user: string
+    password: string
+    publishTimeoutMs: number
+    reconnectDelayMs: number
+}
+
+type JobsConfig = {
+    backend: string
+    consumerConcurrency: number
+}
+
 type EmailConfig = {
     host: string
     port: number
@@ -97,8 +112,10 @@ export type {
     EmailConfig,
     EnvConfig,
     GoogleOAuthConfig,
+    JobsConfig,
     LaunchFunnelConfig,
     LoggingConfig,
+    RabbitMqConfig,
     RedisConfig,
     ServerConfig,
     SupportReaderConfig

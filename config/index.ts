@@ -10,7 +10,9 @@ import type {
     EnvConfig,
     GoogleOAuthConfig,
     LaunchFunnelConfig,
+    JobsConfig,
     LoggingConfig,
+    RabbitMqConfig,
     RedisConfig,
     ServerConfig,
     SupportReaderConfig
@@ -68,6 +70,21 @@ const redisConfig: RedisConfig = {
     connectTimeoutMs: config.get<number>('redis.connectTimeoutMs'),
     commandTimeoutMs: config.get<number>('redis.commandTimeoutMs'),
     keyPrefix: config.get<string>('redis.keyPrefix')
+}
+
+const rabbitMqConfig: RabbitMqConfig = {
+    host: config.get<string>('rabbitmq.host'),
+    port: config.get<number>('rabbitmq.port'),
+    vhost: config.get<string>('rabbitmq.vhost'),
+    user: config.get<string>('rabbitmq.user'),
+    password: config.get<string>('rabbitmq.password'),
+    publishTimeoutMs: config.get<number>('rabbitmq.publishTimeoutMs'),
+    reconnectDelayMs: config.get<number>('rabbitmq.reconnectDelayMs')
+}
+
+const jobsConfig: JobsConfig = {
+    backend: config.get<string>('jobs.backend'),
+    consumerConcurrency: config.get<number>('jobs.consumerConcurrency')
 }
 
 const emailConfig: EmailConfig = {
@@ -155,8 +172,10 @@ export {
     googleOAuthConfig,
     isDev,
     isProd,
+    jobsConfig,
     launchFunnelConfig,
     loggingConfig,
+    rabbitMqConfig,
     redisConfig,
     serverConfig,
     supportReaderConfig

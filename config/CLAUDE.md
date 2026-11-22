@@ -1,7 +1,7 @@
 # Config Directory Rules
 
 ## Environment Variables
-- **NEVER** use `process.env` directly — always use exported config objects
+- Do not use `process.env` directly — always use exported config objects
 - `config/ErrorFactory.ts` is the **only** place where `config.get()` is called
 - All config is accessed via typed exports from `config/ErrorFactory.ts`
 

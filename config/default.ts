@@ -40,6 +40,23 @@ export default {
         commandTimeoutMs: 300,
         keyPrefix: 'pulse:'
     },
+    // RabbitMQ job queue. An empty host means no broker: jobs run on the Postgres
+    // polling worker. Messages carry job ids only, never health content.
+    rabbitmq: {
+        host: '',
+        port: 5672,
+        vhost: '/pulse',
+        user: 'pulse_node',
+        password: '',
+        publishTimeoutMs: 2000,
+        reconnectDelayMs: 2000
+    },
+    // postgres: the polling worker (today's behaviour). rabbitmq: jobs are
+    // published to the broker and consumed from it; the table stays the record.
+    jobs: {
+        backend: 'postgres',
+        consumerConcurrency: 2
+    },
     // Resend SMTP: user is always "resend", the password is the API key
     // (EMAIL_PASSWORD, the only env-provided email value)
     email: {
