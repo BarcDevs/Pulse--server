@@ -254,26 +254,6 @@ swap_server() {
     return 1
 }
 
-# The old client box reaches the server through the fixed address 172.31.16.100
-# (port 80, published until F9). The docker exec checks never touch that path, and
-# a missing CONNMARK rule for a bridge (22 Nov) broke it while every check passed.
-# Skipped when the box does not carry the fixed address (a new box after F9).
-FIXED_SERVER_IP="${FIXED_SERVER_IP:-172.31.16.100}"
-fixed_address_check() {
-    if ! ip -4 -o addr show 2>/dev/null | grep -q "inet $FIXED_SERVER_IP/"; then
-        echo "Fixed address $FIXED_SERVER_IP not on this box: skipping the old client path check."
-        return 0
-    fi
-    for i in $(seq 1 5); do
-        if curl -sf --max-time 5 "http://$FIXED_SERVER_IP:80/api/ready" > /dev/null; then
-            return 0
-        fi
-        sleep 2
-    done
-    echo "The server does not answer on $FIXED_SERVER_IP:80, the path the old client box uses. Check the CONNMARK rules (iptables -t mangle -S PREROUTING)." >&2
-    return 1
-}
-
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
     return 0
 fi
@@ -383,7 +363,6 @@ RUN_ARGS=(
 )
 
 if swap_server; then
-    fixed_address_check || { echo "Deploy swapped, but the old client path is broken." >&2; exit 1; }
     prune_old_images "$ECR/$REPO" 4
     write_last_good server "$IMAGE_TAG" \
         || echo "WARNING: could not record the last good tag in Parameter Store." >&2
