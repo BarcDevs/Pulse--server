@@ -335,6 +335,30 @@ describe('boot-stack.sh', () => {
         expect(out.indexOf('pulse_internal')).toBeLessThan(out.indexOf('docker compose'))
     })
 
+    it('reads only the secrets its profiles need', () => {
+        const stub = 'aws() { for a in "$@"; do case "$a" in pulse/*) echo "secret $a" >&2;; esac; done; echo token-value; }; docker() { :; }'
+
+        const tunnelOnly = runBoot(stub, 'start_infrastructure "tunnel"').stderr
+        const redisOnly = runBoot(stub, 'start_infrastructure "redis"').stderr
+        const broker = runBoot(stub, 'start_infrastructure "broker"').stderr
+
+        expect(tunnelOnly).toContain('pulse/app/CLOUDFLARE_TUNNEL_TOKEN')
+        expect(tunnelOnly).not.toContain('REDIS_PASSWORD')
+        expect(redisOnly).toContain('pulse/app/REDIS_PASSWORD')
+        expect(redisOnly).not.toContain('RABBITMQ_NODE_PASSWORD')
+        expect(broker).toContain('pulse/app/REDIS_PASSWORD')
+        expect(broker).toContain('pulse/app/RABBITMQ_NODE_PASSWORD')
+    })
+
+    it('does not leave the passwords in the environment after compose', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; docker() { :; }',
+            'start_infrastructure "tunnel,broker"; echo "left:${TUNNEL_TOKEN:-}${REDIS_PASSWORD:-}${RABBITMQ_NODE_PASSWORD:-}"'
+        )
+
+        expect(result.stdout.trim()).toBe('left:')
+    })
+
     it('starts compose with the named profiles', () => {
         const result = runBoot(
             'aws() { echo token-value; }; docker() { echo "docker $* profiles=${COMPOSE_PROFILES:-}"; }',
