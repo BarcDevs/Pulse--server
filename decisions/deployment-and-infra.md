@@ -423,3 +423,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Secrets Manager entries for the test passwords (extra cost); guest accounts (deleted by guestRetentionService).
 
 **Source:** Owner, terminal, 19 Nov 2026
+
+## 22/11/2026 — B5 deploy-script network wiring: bridge swap, D1-D5 approved
+
+**Decision:** Deploy scripts own pulse_edge/pulse_internal (compose treats them as external). Server swap uses the candidate as a bridge (fixed IPs server .10/.11, client .20/.21, aliases server/client) so workers never run twice and there is no gap. Restart policy unless-stopped instead of always. Server keeps -p 80:8080 until F9. Client gets edge mode, hardening flags and the .20/.21 addresses.
+
+**Why over alternatives:** Owner accepted all five recommendations (D1-D5) from the Opus B5 plan. Removes the current gap between stopping the old container and starting the new one; old client box still needs 172.31.16.100:80 until F9.
+
+**Rejected:** Promote the candidate and switch workers on at runtime (needs an app change, deferred); dropping -p 80:8080 now (breaks the old client box).
+
+**Source:** user, auto-recorded: "recorded by the session"

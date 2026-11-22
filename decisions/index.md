@@ -89,6 +89,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 18/11/2026 | Box migration first, Redis and RabbitMQ after; DB window 21:00 UTC |
 | 18/11/2026 | Compose holds only the long-lived containers; server and client keep blue/green scripts |
 | 19/11/2026 | Real routine test users in production; passwords in .env only |
+| 22/11/2026 | B5 deploy-script network wiring: bridge swap, D1-D5 approved |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.
