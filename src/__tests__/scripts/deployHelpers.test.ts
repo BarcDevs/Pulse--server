@@ -128,6 +128,54 @@ describe('ec2-redeploy.sh deploy helpers', () => {
         })
     })
 
+    describe('container_health_check', () => {
+        const run = (stub: string) => runRedeploy(`sleep() { :; }; log=$(mktemp); docker() { echo "docker $*" >> "$log"; ${stub}; }; if container_health_check pulse-app-candidate; then echo "status 0"; else echo "status 1"; fi; cat "$log"`)
+
+        it('checks status then ready inside the container', () => {
+            const result = run('return 0')
+
+            expect(result.stdout).toContain('status 0')
+            expect(result.stdout).toContain('docker exec pulse-app-candidate curl -sf --max-time 5 http://127.0.0.1:8080/api/status')
+            expect(result.stdout).toContain('docker exec pulse-app-candidate curl -sf --max-time 10 http://127.0.0.1:8080/api/ready')
+        })
+
+        it('fails after 15 tries when the container never answers', () => {
+            const result = run('return 1')
+
+            expect(result.stdout).toContain('status 1')
+            expect(result.stdout.match(/api\/status/g)).toHaveLength(15)
+        })
+
+        it('does not call ready while status fails', () => {
+            const result = run('return 1')
+
+            expect(result.stdout).not.toContain('api/ready')
+        })
+    })
+
+    describe('run_app_container', () => {
+        it('starts on pulse_edge at the fixed address, then joins pulse_internal', () => {
+            const result = runRedeploy('RUN_ARGS=(--cap-drop ALL); log=$(mktemp); docker() { echo "docker $*" >> "$log"; }; run_app_container pulse-app 172.30.0.10 --network-alias server --restart=unless-stopped -p 80:8080; cat "$log"')
+            const lines = result.stdout.trim().split('\n')
+
+            expect(lines[0]).toBe(
+                'docker run -d --name pulse-app --network pulse_edge --ip 172.30.0.10 --cap-drop ALL --network-alias server --restart=unless-stopped -p 80:8080 110015905368.dkr.ecr.eu-central-1.amazonaws.com/pulse-server-app:runner-test-tag'
+            )
+            expect(lines[1]).toBe('docker network connect pulse_internal pulse-app')
+        })
+    })
+
+    describe('attach_alias', () => {
+        it('reconnects with the same address and the alias', () => {
+            const result = runRedeploy('log=$(mktemp); docker() { echo "docker $*" >> "$log"; }; attach_alias pulse-app-candidate 172.30.0.11 server; cat "$log"')
+
+            expect(result.stdout.trim().split('\n')).toEqual([
+                'docker network disconnect pulse_edge pulse-app-candidate',
+                'docker network connect --ip 172.30.0.11 --alias server pulse_edge pulse-app-candidate'
+            ])
+        })
+    })
+
     describe('acquire_deploy_lock', () => {
         const lockFile = path.join(
             process.env.TMPDIR ?? process.env.TEMP ?? '/tmp',

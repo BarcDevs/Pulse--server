@@ -134,6 +134,42 @@ ensure_networks() {
         || docker network create --internal --subnet 172.30.1.0/24 pulse_internal > /dev/null
 }
 
+# Health check from inside the container (curl is in the image), so it does not
+# need a published host port: the candidate runs on pulse_edge with no port.
+# Same two gates as health_check above.
+container_health_check() {
+    local name="$1"
+    for i in $(seq 1 15); do
+        if docker exec "$name" curl -sf --max-time 5 http://127.0.0.1:8080/api/status > /dev/null \
+           && docker exec "$name" curl -sf --max-time 10 http://127.0.0.1:8080/api/ready > /dev/null; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+# Starts an app container on pulse_edge at a fixed address, then joins it to
+# pulse_internal (a container can only start on one network). Extra arguments
+# (restart policy, alias, published port, WORKERS_ENABLED) come after the two
+# fixed ones. Needs RUN_ARGS, ECR, REPO and IMAGE_TAG.
+run_app_container() {
+    local name="$1" ip="$2"
+    shift 2
+    docker run -d --name "$name" --network pulse_edge --ip "$ip" \
+        "${RUN_ARGS[@]}" "$@" \
+        "$ECR/$REPO:runner-$IMAGE_TAG" > /dev/null
+    docker network connect pulse_internal "$name"
+}
+
+# A running container cannot gain an alias, so it is reconnected: the same fixed
+# address, now with the alias.
+attach_alias() {
+    local name="$1" ip="$2" alias="$3"
+    docker network disconnect pulse_edge "$name"
+    docker network connect --ip "$ip" --alias "$alias" pulse_edge "$name"
+}
+
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
     return 0
 fi
