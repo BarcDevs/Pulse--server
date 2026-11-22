@@ -1,0 +1,27 @@
+{
+    "agent": {
+        "metrics_collection_interval": 60,
+        "run_as_user": "cwagent"
+    },
+    "metrics": {
+        "namespace": "CWAgent",
+        "append_dimensions": {
+            "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+        },
+        "aggregation_dimensions": [
+            ["AutoScalingGroupName"]
+        ],
+        "metrics_collected": {
+            "mem": {
+                "measurement": ["mem_used_percent"],
+                "metrics_collection_interval": 60
+            },
+            "disk": {
+                "measurement": ["used_percent"],
+                "resources": ["/"],
+                "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs", "overlay"],
+                "metrics_collection_interval": 300
+            }
+        }
+    }
+}
