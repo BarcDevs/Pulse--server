@@ -26,6 +26,10 @@ describe('monitoring files', () => {
             expect(agent.metrics.aggregation_dimensions).toEqual([['AutoScalingGroupName']])
         })
 
+        it('runs as root, because the host firewall drops the metadata service for every other user', () => {
+            expect(agent.agent.run_as_user).toBe('root')
+        })
+
         it('keeps to the two metrics the cost table counts', () => {
             const collected = agent.metrics.metrics_collected
             const measurements = Object.values<{ measurement: string[] }>(collected)
