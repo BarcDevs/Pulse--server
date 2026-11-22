@@ -265,6 +265,30 @@ describe('ec2-redeploy.sh deploy helpers', () => {
         })
     })
 
+    describe('fixed_address_check', () => {
+        const run = (stubs: string) => runRedeploy(`sleep() { :; }; ${stubs}; if fixed_address_check 2>&1; then echo "rc 0"; else echo "rc 1"; fi`).stdout
+
+        it('skips when the box does not carry the fixed address', () => {
+            const out = run('ip() { echo "2: ens5 inet 172.31.18.251/20"; }; curl() { return 1; }')
+
+            expect(out).toContain('skipping')
+            expect(out).toContain('rc 0')
+        })
+
+        it('passes when the fixed address answers', () => {
+            const out = run('ip() { echo "3: ens6 inet 172.31.16.100/20"; }; curl() { return 0; }')
+
+            expect(out).toContain('rc 0')
+        })
+
+        it('fails when the fixed address is on the box but does not answer', () => {
+            const out = run('ip() { echo "3: ens6 inet 172.31.16.100/20"; }; curl() { return 1; }')
+
+            expect(out).toContain('old client box uses')
+            expect(out).toContain('rc 1')
+        })
+    })
+
     describe('acquire_deploy_lock', () => {
         const lockFile = path.join(
             process.env.TMPDIR ?? process.env.TEMP ?? '/tmp',
