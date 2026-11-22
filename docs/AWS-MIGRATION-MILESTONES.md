@@ -86,7 +86,7 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase F: box migration (apply steps, one at a time) [AWS go]
 
-- [ ] F1 rebuild the machine image with the new boot: new image id recorded.
+- [x] F1 rebuild the machine image with the new boot: new image id recorded: done 22 Nov, `ami-07ef87ee23248340b` (`pulse-app-base-20261122`), owner approved F1 only. Built on a temporary box (`i-0dc1f0712b6ae7a2e`, launched from the current image `ami-000672e5d9f671209` with no user data, no ENI, outside the ASG, terminated afterwards), so the live box was not touched. Contents added: Docker Compose plugin v2.29.7 (sha256 checked), 1 GiB swap file in fstab, `amazon-cloudwatch-agent` with the G1 config, enabled, `/etc/docker/daemon.json` (log rotation), `/opt/pulse/` with `redeploy.sh`, `boot-stack.sh`, `client-redeploy.sh` (client edge mode), `pulse-network-rules.sh`, the compose folder and the RabbitMQ files (all md5 verified, LF, `bash -n` ok, `docker compose config` ok). Not set up here: the CloudWatch agent's IAM permission `cloudwatch:PutMetricData` on the instance role (G3), and the user data `asg-boot.sh`, which goes into launch template version 8 (F2). The old image and launch template version 7 stay for rollback.
 - [ ] F2 launch template version 8 with `t3.small` and the new image: version recorded, version 7 kept for rollback.
 - [ ] F3 instance refresh to the new template: the box boots, all compose services healthy, the site answers.
 - [ ] F4 run both: client container and second cloudflared connector on the app box, 30 minutes with no 404 from Node on page paths.
