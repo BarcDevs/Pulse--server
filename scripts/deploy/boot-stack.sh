@@ -56,8 +56,18 @@ server_boot_tag() {
     printf '%s' "$tag"
 }
 
+# The compose file marks both networks external, so they must exist before
+# `docker compose up`. Keep in sync with ensure_networks in ec2-redeploy.sh.
+ensure_networks() {
+    docker network inspect pulse_edge > /dev/null 2>&1 \
+        || docker network create --subnet 172.30.0.0/24 --ip-range 172.30.0.128/25 pulse_edge > /dev/null
+    docker network inspect pulse_internal > /dev/null 2>&1 \
+        || docker network create --internal --subnet 172.30.1.0/24 pulse_internal > /dev/null
+}
+
 start_infrastructure() {
     local profiles="$1"
+    ensure_networks
     if [ -z "$profiles" ]; then
         echo "No boot profiles set: starting no compose containers."
         return 0

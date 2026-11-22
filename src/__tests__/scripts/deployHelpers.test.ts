@@ -186,9 +186,21 @@ describe('boot-stack.sh', () => {
         expect(result.stdout).not.toContain('docker compose')
     })
 
+    it('creates the networks before compose starts', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; docker() { echo "docker $*" >&2; if [ "$1 $2" = "network inspect" ]; then return 1; fi; }',
+            'start_infrastructure "broker"'
+        )
+        const out = result.stderr
+
+        expect(out).toContain('network create --subnet 172.30.0.0/24 --ip-range 172.30.0.128/25 pulse_edge')
+        expect(out).toContain('network create --internal --subnet 172.30.1.0/24 pulse_internal')
+        expect(out.indexOf('pulse_internal')).toBeLessThan(out.indexOf('docker compose'))
+    })
+
     it('starts compose with the named profiles', () => {
         const result = runBoot(
-            'aws() { echo token-value; }; docker() { echo "docker $* profiles=$COMPOSE_PROFILES"; }',
+            'aws() { echo token-value; }; docker() { echo "docker $* profiles=${COMPOSE_PROFILES:-}"; }',
             'start_infrastructure "tunnel,broker"'
         )
 
