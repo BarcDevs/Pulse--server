@@ -28,21 +28,20 @@
 
 name: pulse
 
-# Fixed subnets so the metadata rules can name the server containers by address
-# (pulse-network-rules.sh): the server is 172.30.0.10 and its deploy candidate
-# 172.30.0.11 on pulse_edge. The VPC is 172.31.0.0/16, so there is no overlap.
+# The deploy scripts own both networks (ensure_networks in boot-stack.sh and in
+# each ec2-redeploy.sh) and compose only joins them, so a compose run never
+# recreates a network the server container is attached to. Fixed subnets let the
+# metadata rules name the server containers by address (pulse-network-rules.sh):
+# pulse_edge 172.30.0.0/24 (server .10, candidate .11, client .20, candidate .21;
+# addresses Docker picks itself come from 172.30.0.128/25) and pulse_internal
+# 172.30.1.0/24. The VPC is 172.31.0.0/16, so there is no overlap.
 networks:
   edge:
     name: pulse_edge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/24
+    external: true
   internal:
     name: pulse_internal
-    internal: true
-    ipam:
-      config:
-        - subnet: 172.30.1.0/24
+    external: true
 
 services:
   cloudflared:
