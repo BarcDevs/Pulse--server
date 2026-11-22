@@ -433,3 +433,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Promote the candidate and switch workers on at runtime (needs an app change, deferred); dropping -p 80:8080 now (breaks the old client box).
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 22/11/2026 — B4: second Cloudflare tunnel for the new app box
+
+**Decision:** The new app box gets its own tunnel with its own routes (pages to client:3000, /api/* to server:8080), tested on a temporary hostname first. At cutover the DNS record of pulserehab.app moves from the old tunnel to the new one; rollback is moving it back. The old tunnel keeps its single route (pulserehab.app to http://localhost:80) until F9.
+
+**Why over alternatives:** A route is shared by every connector of a tunnel: a second connector on the new box cannot resolve localhost:80, and the new names do not resolve on the old box. Costs one more secret in Secrets Manager (about 0.47 USD a month with tax).
+
+**Rejected:** One tunnel with the route changed at cutover: the site is down if anything fails in between, and rolling back needs a manual route edit.
+
+**Source:** user, auto-recorded: "recorded by the session"
