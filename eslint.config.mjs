@@ -16,6 +16,8 @@ export default [
             'coverage/**',
             'prisma/**',
             'scripts/prestart.cjs',
+            // Runs in k6 (its own globals and module system), not in Node
+            'scripts/load-test/checkInLoad.js',
             '.idea/**',
             '*.config.{js,ts,mjs}'
         ]
