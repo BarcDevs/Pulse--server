@@ -7,12 +7,12 @@ import {
     splitIntoChunks
 } from '../../../scripts/load-test/fakeModelServer'
 
-const request = (port: number) => new Promise<{ status: number, chunks: Buffer[], ms: number }>((resolve, reject) => {
+const request = (port: number) => new Promise<{ status: number, chunks: Buffer[], ms: number, headers: http.IncomingHttpHeaders }>((resolve, reject) => {
     const started = Date.now()
     const chunks: Buffer[] = []
     const call = http.request({ port, method: 'POST', path: '/v1/chat/completions' }, response => {
         response.on('data', chunk => chunks.push(chunk))
-        response.on('end', () => resolve({ status: response.statusCode ?? 0, chunks, ms: Date.now() - started }))
+        response.on('end', () => resolve({ status: response.statusCode ?? 0, chunks, ms: Date.now() - started, headers: response.headers }))
     })
     call.on('error', reject)
     call.end('{}')
@@ -65,7 +65,8 @@ describe('fake model server', () => {
             const result = await request(port)
             const body = JSON.parse(Buffer.concat(result.chunks).toString('utf8'))
 
-            expect(result.chunks.length).toBeGreaterThan(1)
+            expect(result.headers['transfer-encoding']).toBe('chunked')
+            expect(result.headers['content-length']).toBeUndefined()
             expect(body.choices[0].message.content).toHaveLength(2000)
         })
     })
