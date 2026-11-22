@@ -98,11 +98,11 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase G: monitoring (S) [local, then AWS go]
 
-- [ ] G1 S: CloudWatch agent config for memory and disk: file validates.
-- [ ] G2 S: the ten alarms as a script with the starting thresholds: script runs in dry-run mode and prints them.
+- [x] G1 S: CloudWatch agent config for memory and disk: file validates [local]: done 22 Nov, `scripts/deploy/monitoring/cloudwatch-agent.json` (`mem_used_percent` and disk `used_percent` for `/`, dimension `AutoScalingGroupName`, the two metrics the cost table counts). Not installed on the box yet.
+- [x] G2 S: the alarms as a script with the starting thresholds: script runs in dry-run mode and prints them [local]: done 22 Nov, `scripts/deploy/monitoring/create-alarms.sh`, dry run by default, `--apply` needs `INSTANCE_ID`. It holds nine CloudWatch alarms; the tenth of the plan, the outside tunnel uptime check, is not a CloudWatch alarm and comes with G4. Not yet covered: the "container killed for memory, at once" part of the memory alarm (needs a log metric filter) and RDS credit maxima are for t3.small (576) and t4g.micro (288), so recheck them if either class changes. The three RabbitMQ alarms read custom metrics (`Pulse/RabbitMQ`) that Phase C must publish; until then they treat missing data as fine.
 - [ ] G3 AWS: create the alarms and the agent config on the box [AWS go]: all ten in the console, memory metric arriving.
 - [ ] G4 owner: pick the outside uptime check (free service) [owner]: it alerts when the tunnel is down.
-- [ ] G5 S: Docker log rotation setting in the daemon config: file validates.
+- [x] G5 S: Docker log rotation setting in the daemon config: file validates [local]: done 22 Nov, `scripts/deploy/docker-daemon.json` (`json-file`, 10m, 3 files). It reaches the box with the image rebuild (F1); it is not installed anywhere yet.
 
 ## Phase H: load test (after Phase F)
 
