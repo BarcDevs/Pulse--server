@@ -122,6 +122,18 @@ write_last_good() {
         --value "$2" --type String --overwrite > /dev/null
 }
 
+# Creates the two app networks when missing. The deploy scripts own them (the
+# compose file marks both external), with fixed subnets so the metadata rules can
+# name the server containers by address. Addresses Docker picks on its own come
+# from 172.30.0.128/25 only, so the fixed ones (.10, .11, .20, .21) never collide.
+# Keep in sync with boot-stack.sh and the client's ec2-redeploy.sh.
+ensure_networks() {
+    docker network inspect pulse_edge > /dev/null 2>&1 \
+        || docker network create --subnet 172.30.0.0/24 --ip-range 172.30.0.128/25 pulse_edge > /dev/null
+    docker network inspect pulse_internal > /dev/null 2>&1 \
+        || docker network create --internal --subnet 172.30.1.0/24 pulse_internal > /dev/null
+}
+
 if [ -n "${REDEPLOY_SOURCE_ONLY:-}" ]; then
     return 0
 fi

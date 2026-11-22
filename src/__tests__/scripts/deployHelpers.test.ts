@@ -104,6 +104,30 @@ describe('ec2-redeploy.sh deploy helpers', () => {
         })
     })
 
+    describe('ensure_networks', () => {
+        const stub = (existing: string) => `log=$(mktemp); docker() { echo "docker $*" >> "$log"; if [ "$1 $2" = "network inspect" ]; then case " ${existing} " in *" $3 "*) return 0;; esac; return 1; fi; }; ensure_networks; cat "$log"`
+
+        it('creates both networks with fixed subnets when missing', () => {
+            const result = runRedeploy(stub(''))
+
+            expect(result.stdout).toContain('docker network create --subnet 172.30.0.0/24 --ip-range 172.30.0.128/25 pulse_edge')
+            expect(result.stdout).toContain('docker network create --internal --subnet 172.30.1.0/24 pulse_internal')
+        })
+
+        it('creates nothing when both exist', () => {
+            const result = runRedeploy(stub('pulse_edge pulse_internal'))
+
+            expect(result.stdout).not.toContain('network create')
+        })
+
+        it('creates only the missing one', () => {
+            const result = runRedeploy(stub('pulse_edge'))
+
+            expect(result.stdout).toContain('network create --internal')
+            expect(result.stdout).not.toContain('--ip-range')
+        })
+    })
+
     describe('acquire_deploy_lock', () => {
         const lockFile = path.join(
             process.env.TMPDIR ?? process.env.TEMP ?? '/tmp',
