@@ -16,6 +16,10 @@ describe('CORS localhost allowance', () => {
             (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => void =
             () => {}
 
+        jest.doMock('../../lib/redis/rateLimitStore', () => ({
+            createRateLimitStore: () => undefined
+        }))
+
         jest.doMock('cors', () => (options: {
             origin: typeof originHandler
         }) => {

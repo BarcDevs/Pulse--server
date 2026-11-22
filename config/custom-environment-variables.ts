@@ -17,6 +17,14 @@ export default {
     auth: {
         jwtSecret: 'JWT_SECRET'
     },
+    redis: {
+        host: 'REDIS_HOST',
+        port: {
+            __name: 'REDIS_PORT',
+            __format: 'number'
+        },
+        password: 'REDIS_PASSWORD'
+    },
     email: {
         emailPass: 'EMAIL_PASSWORD',
         supportEmail: 'SUPPORT_EMAIL'

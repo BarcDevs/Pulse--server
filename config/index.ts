@@ -11,6 +11,7 @@ import type {
     GoogleOAuthConfig,
     LaunchFunnelConfig,
     LoggingConfig,
+    RedisConfig,
     ServerConfig,
     SupportReaderConfig
 } from '../src/types/configType'
@@ -58,6 +59,15 @@ const databaseConfig: DatabaseConfig = {
         'database.statementTimeoutMs'
     ),
     slowQueryMs: config.get<number>('database.slowQueryMs')
+}
+
+const redisConfig: RedisConfig = {
+    host: config.get<string>('redis.host'),
+    port: config.get<number>('redis.port'),
+    password: config.get<string>('redis.password'),
+    connectTimeoutMs: config.get<number>('redis.connectTimeoutMs'),
+    commandTimeoutMs: config.get<number>('redis.commandTimeoutMs'),
+    keyPrefix: config.get<string>('redis.keyPrefix')
 }
 
 const emailConfig: EmailConfig = {
@@ -147,6 +157,7 @@ export {
     isProd,
     launchFunnelConfig,
     loggingConfig,
+    redisConfig,
     serverConfig,
     supportReaderConfig
 }

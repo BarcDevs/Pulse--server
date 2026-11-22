@@ -23,6 +23,15 @@ type DatabaseConfig = {
     slowQueryMs: number
 }
 
+type RedisConfig = {
+    host: string
+    port: number
+    password: string
+    connectTimeoutMs: number
+    commandTimeoutMs: number
+    keyPrefix: string
+}
+
 type EmailConfig = {
     host: string
     port: number
@@ -90,6 +99,7 @@ export type {
     GoogleOAuthConfig,
     LaunchFunnelConfig,
     LoggingConfig,
+    RedisConfig,
     ServerConfig,
     SupportReaderConfig
 }

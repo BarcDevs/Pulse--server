@@ -28,6 +28,18 @@ export default {
         statementTimeoutMs: 15000,
         slowQueryMs: 200
     },
+    // Redis cache and rate-limit counters. An empty host means Redis is off and
+    // the server keeps its in-process counters and caches (the default, so a box
+    // without the broker profile runs as before). The container caps its memory
+    // at 100 MiB with allkeys-lru, so every key must be able to be lost.
+    redis: {
+        host: '',
+        port: 6379,
+        password: '',
+        connectTimeoutMs: 1000,
+        commandTimeoutMs: 300,
+        keyPrefix: 'pulse:'
+    },
     // Resend SMTP: user is always "resend", the password is the API key
     // (EMAIL_PASSWORD, the only env-provided email value)
     email: {
