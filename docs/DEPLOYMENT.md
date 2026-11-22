@@ -80,10 +80,17 @@ plaintext connection, not a permissions problem.
    migration containing a `DROP`/`RENAME` (destructive changes ship manually under
    a maintenance window — expand/contract only for auto-deploy), then runs
    migrations from the `migrate` image, starts the new `runner` image as a
-   candidate on a staging port, gates it on **`/api/ready`** (a real DB query —
-   `/api/status` alone returns 200 even with a broken `DATABASE_URL`), and only
-   then swaps it into production. If the swapped-in container fails its own
-   health check, the previous container is restored automatically.
+   candidate (workers off) on the `pulse_edge` network at 172.30.0.11, gates it
+   on **`/api/ready`** (a real DB query — `/api/status` alone returns 200 even
+   with a broken `DATABASE_URL`) through `docker exec`, and only then swaps it
+   into production. The swap has no gap: the candidate takes the network alias
+   `server` first, the old container is stopped gracefully, the new `pulse-app`
+   starts at 172.30.0.10 with workers on (port 80 stays published until the old
+   client box is gone), and the candidate goes once it is healthy. If the
+   swapped-in container fails its own health check, the previous container is
+   restored automatically; a run that died half way is repaired at the start of
+   the next one. The script creates `pulse_edge` and `pulse_internal` itself when
+   missing (compose only joins them). Details: `AWS-MIGRATION-MILESTONES.md`, B5.
 4. The workflow polls the SSM command status and fails the job (with stderr surfaced)
    if the redeploy or health check fails.
 5. A final step curls `https://pulserehab.app/api/status` through Cloudflare as an
