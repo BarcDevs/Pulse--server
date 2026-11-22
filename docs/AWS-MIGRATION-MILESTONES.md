@@ -68,11 +68,11 @@ Repos: **S** = `pulse--server` (code and `scripts/deploy`), **C** = `pulse--clie
 
 ## Phase D: Redis in the server (S) [local]
 
-- [ ] D1 S: Redis client from config, with the password and the 100 MiB cap documented: connects to the local container.
-- [ ] D2 S: rate-limit counters stored in Redis: a counter survives a server restart in a local test.
-- [ ] D3 S: cache-aside helper with an expiry on every key: unit test shows a hit, a miss and an expiry.
-- [ ] D4 S: first cached read (the profile read that today has a 30 second in-memory cache): the memory cache is replaced and the test passes.
-- [ ] D5 S: if Redis is down, reads fall back to Postgres and rate limiting does not crash the request: test passes.
+- [x] D1 S: Redis client from config, with the password and the 100 MiB cap documented: connects to the local container. Done 23 Nov (branch `feat/redis-cache`): `ioredis` 6.0.0 (dep-scanner: ALLOW), config block `redis` (host empty means Redis is off; env `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`), client in `src/lib/redis/redisClient.ts` (no offline queue, one try per command, 300 ms command timeout). Checked against a local Redis container with a password and `maxmemory 104857600`: set, get, ping and expiry work. The 100 MiB cap and `allkeys-lru` are set by the compose file, so every key must be able to be lost.
+- [x] D2 S: rate-limit counters stored in Redis: a counter survives a server restart in a local test. Done 23 Nov: every limiter in `rateLimiting.ts` has its own Redis store (`rate-limit-redis` 6.0.2, dep-scanner: WARN only for a peer version, so `express-rate-limit` went to 8.7.5); with an empty host the limiters keep their in-process counters. Local test against a real container (`REDIS_TEST_HOST`, skipped in CI): a counter reached 3 across a simulated restart, and two limiters kept separate counters.
+- [x] D3 S: cache-aside helper with an expiry on every key: unit test shows a hit, a miss and an expiry. Done 23 Nov: `cacheAside` and `invalidateCache` in `src/lib/redis/cache.ts`; the expiry is a required positive whole number of seconds and goes on every key. Tests show a hit, a miss, an expiry and an invalidation.
+- [x] D4 S: first cached read (the profile read that today has a 30 second in-memory cache): the memory cache is replaced and the test passes. Done 23 Nov: `findProfileContext` reads through `cacheAside` (30 s, key `profile-context:<userId>`) and `updateProfile` deletes the key; the in-process map (`profileContextCache.ts`) is gone. Until Redis runs in production this read goes to Postgres every time, as the plan says.
+- [x] D5 S: if Redis is down, reads fall back to Postgres and rate limiting does not crash the request: test passes. Done 23 Nov: reads fall back to the loader when Redis is off, not connected, slow or failing, and the failure is logged once; the rate-limit store counts in memory while Redis does not answer. Unit tests cover each case. Whole unit suite: 2523 passed.
 
 ## Phase E: database class change (tonight, 23:00 local)
 

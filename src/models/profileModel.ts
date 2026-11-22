@@ -1,8 +1,17 @@
 import type { Profile } from '../../prisma/generated/prisma/client'
 import { VALID_ACTIVITY_PREFERENCE_SLUGS } from '../constants/activityPreferences'
 import { VALID_HEALTH_INTEREST_SLUGS } from '../constants/healthInterests'
-import * as profileContextCache from '../lib/cache/profileContextCache'
+import {
+    PROFILE_CONTEXT_CACHE_KEY_PREFIX,
+    PROFILE_CONTEXT_TTL_SECONDS
+} from '../constants/profileContextCache'
+import { cacheAside, invalidateCache } from '../lib/redis/cache'
 import Prisma from '../utils/prismaClient'
+
+type ProfileContext = {
+    id: string
+    timezone: string
+}
 
 type ProfileData = Partial<
     Pick<
@@ -38,22 +47,15 @@ export const getProfileByUserId = async (
 // anonymousParticipation here: it changes with every post or reply choice.
 export const findProfileContext = async (
     userId: string
-): Promise<profileContextCache.ProfileContext | null> => {
-    const cached = profileContextCache.get(userId)
-
-    if (cached)
-        return cached
-
-    const profile = await Prisma.profile.findUnique({
-        where: { userId },
-        select: { id: true, timezone: true }
-    })
-
-    if (profile)
-        profileContextCache.set(userId, profile)
-
-    return profile
-}
+): Promise<ProfileContext | null> =>
+    cacheAside<ProfileContext>(
+        `${PROFILE_CONTEXT_CACHE_KEY_PREFIX}${userId}`,
+        PROFILE_CONTEXT_TTL_SECONDS,
+        () => Prisma.profile.findUnique({
+            where: { userId },
+            select: { id: true, timezone: true }
+        })
+    )
 
 export const updateProfile = async (
     userId: string,
@@ -64,7 +66,7 @@ export const updateProfile = async (
         data
     })
 
-    profileContextCache.invalidate(userId)
+    await invalidateCache(`${PROFILE_CONTEXT_CACHE_KEY_PREFIX}${userId}`)
 
     return profile
 }

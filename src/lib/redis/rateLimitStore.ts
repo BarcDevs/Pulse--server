@@ -1,4 +1,8 @@
-import type { ClientRateLimitInfo, Options, Store } from 'express-rate-limit'
+import type {
+    ClientRateLimitInfo,
+    Options,
+    Store
+} from 'express-rate-limit'
 import { MemoryStore } from 'express-rate-limit'
 import type { RedisReply } from 'rate-limit-redis'
 import RedisStore from 'rate-limit-redis'
