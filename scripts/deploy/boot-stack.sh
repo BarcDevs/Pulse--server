@@ -75,7 +75,7 @@ start_infrastructure() {
     case ",$profiles," in
         *,tunnel,*)
             TUNNEL_TOKEN=$(aws secretsmanager get-secret-value --region "$REGION" \
-                --secret-id pulse/app/CLOUDFLARE_TUNNEL_TOKEN --query SecretString --output text)
+                --secret-id CLOUDFLARE_TUNNEL_TOKEN --query SecretString --output text)
             export TUNNEL_TOKEN
             ;;
     esac
