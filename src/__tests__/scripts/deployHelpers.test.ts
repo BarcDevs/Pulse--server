@@ -350,6 +350,37 @@ describe('boot-stack.sh', () => {
         expect(broker).toContain('pulse/app/RABBITMQ_NODE_PASSWORD')
     })
 
+    it('creates the broker application user after compose, once the broker answers', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; sleep() { :; }; docker() { echo "docker $*"; }',
+            'start_infrastructure "broker"'
+        )
+        const out = result.stdout
+
+        expect(out).toContain('exec -T -e RABBITMQ_NODE_PASSWORD rabbitmq sh /etc/rabbitmq/create-node-user.sh')
+        expect(out.indexOf('up -d')).toBeLessThan(out.indexOf('create-node-user.sh'))
+    })
+
+    it('waits for the broker and warns instead of failing when it never answers', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; sleep() { :; }; docker() { case "$*" in *rabbitmq-diagnostics*) return 1;; esac; echo "docker $*"; }',
+            'start_infrastructure "broker"; echo "rc=$?"'
+        )
+
+        expect(result.stdout).toContain('rc=0')
+        expect(result.stdout).not.toContain('create-node-user.sh')
+        expect(result.stderr).toContain('did not answer')
+    })
+
+    it('does not touch the broker without the broker profile', () => {
+        const result = runBoot(
+            'aws() { echo token-value; }; docker() { echo "docker $*"; }',
+            'start_infrastructure "tunnel,redis"'
+        )
+
+        expect(result.stdout).not.toContain('rabbitmq')
+    })
+
     it('does not leave the passwords in the environment after compose', () => {
         const result = runBoot(
             'aws() { echo token-value; }; docker() { :; }',

@@ -41,7 +41,7 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | `pulse/app/RESEND_API_KEY` | Resend API key (sending access), passed as `EMAIL_PASSWORD`; SMTP host/port/user/from live in `config/default.ts` |
 | `pulse/app/LAUNCH_FUNNEL_SECRET` | Raw shared secret (min 16 chars) preflight sends as `Authorization: Bearer` to `GET /launch-funnel`; must equal preflight's `PULSE_FUNNEL_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. The EC2 role needs `secretsmanager:GetSecretValue` on it |
 | `pulse/app/REDIS_PASSWORD` | Raw password of the Redis container. Optional for the server: when the secret exists the deploy script passes `REDIS_HOST=redis` and `REDIS_PASSWORD` to it. Read at boot for the profiles `redis` and `broker`. Created 23 Nov |
-| `pulse/app/RABBITMQ_NODE_PASSWORD` | Raw password of the RabbitMQ application user (`pulse_node`). Read at boot for the profile `broker`. Not created yet: needed before the broker is turned on. The role policy `pulse-secret-read` already lists it |
+| `pulse/app/RABBITMQ_NODE_PASSWORD` | Raw password of the RabbitMQ application user (`pulse_node`). Read at boot for the profile `broker`, which also creates that user on the broker (a replaced box starts with an empty broker volume). Created 23 Nov |
 | `pulse/app/SUPPORT_READER_SECRET` | Raw shared secret (min 16 chars) the Claude support-ticket reader sends as `Authorization: Bearer` to `GET /support/claude/tickets` and `GET /support/claude/tickets/:ticketId` (the only routes that accept it); passed as `SUPPORT_READER_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. **IAM:** add this secret's ARN to the `secretsmanager:GetSecretValue` resources of `pulse-ec2-role` before the first deploy that should serve it, or the redeploy script cannot read it. Create it with a fresh random value, for example `openssl rand -hex 32` |
 
 `GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
@@ -216,7 +216,7 @@ Server settings (all optional; the defaults keep today's behaviour):
 |---|---|
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Empty host: Redis off (in-process rate-limit counters, no cache). The deploy script sets host and password when the secret `pulse/app/REDIS_PASSWORD` exists |
 | `RABBITMQ_HOST`, `RABBITMQ_NODE_PASSWORD` | Empty host: no broker |
-| `JOB_BACKEND` | `postgres` (default, the polling worker) or `rabbitmq`. `rabbitmq` without a broker host is ignored, so jobs never lose their worker |
+| `JOB_BACKEND` | `postgres` (default, the polling worker) or `rabbitmq`. `rabbitmq` without a broker host is ignored, so jobs never lose their worker. In production the deploy script reads it from the Parameter Store value `/pulse/job-backend` (anything but `rabbitmq` counts as `postgres`) and passes it, with `RABBITMQ_HOST=rabbitmq` and `RABBITMQ_NODE_PASSWORD`, only when the secret `pulse/app/RABBITMQ_NODE_PASSWORD` exists. To go back to the polling worker: set the value to `postgres` and redeploy |
 | `JOB_CONSUMER_CONCURRENCY` | Jobs in flight at once (default 2) |
 
 Failure behaviour: with Redis down the cache reads Postgres and the rate limiters count in memory (logged once per outage). With the broker down the check-in still saves, the job row stays pending, and the sweeper publishes it when the broker is back. To go back to the polling worker, unset `JOB_BACKEND` and redeploy. The queue's design and the load test table are in `docs/RABBITMQ-JOB-QUEUE.md`.

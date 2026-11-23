@@ -308,6 +308,15 @@ fi
 # Optional: without it the server starts with Redis off (in-process counters, no cache)
 REDIS_PASSWORD=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/REDIS_PASSWORD --query SecretString --output text 2>/dev/null || true)
 
+# Optional: without it the server starts without a broker (jobs stay on the Postgres worker)
+RABBITMQ_NODE_PASSWORD=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/app/RABBITMQ_NODE_PASSWORD --query SecretString --output text 2>/dev/null || true)
+# Which worker runs the AI jobs: postgres (default) or rabbitmq. A Parameter Store value, so
+# it can be flipped back without a deploy; anything else counts as postgres.
+JOB_BACKEND=$(aws ssm get-parameter --region "$REGION" --name /pulse/job-backend --query Parameter.Value --output text 2>/dev/null || true)
+if [ "$JOB_BACKEND" != "rabbitmq" ]; then
+    JOB_BACKEND="postgres"
+fi
+
 # Expand/contract gate: destructive migrations (see is_destructive_sql) must ship in a separate release after the code that stops reading
 # them, applied manually under a maintenance window. Auto-deploy refuses them
 # outright — the previous container can't be rolled back to a schema that no
@@ -367,6 +376,11 @@ RUN_ARGS=(
 # Redis runs as the compose service `redis` on pulse_internal, where the server container is joined
 if [ -n "$REDIS_PASSWORD" ]; then
     RUN_ARGS+=(-e REDIS_HOST=redis -e REDIS_PASSWORD="$REDIS_PASSWORD")
+fi
+
+# RabbitMQ is the compose service `rabbitmq` on pulse_internal
+if [ -n "$RABBITMQ_NODE_PASSWORD" ]; then
+    RUN_ARGS+=(-e RABBITMQ_HOST=rabbitmq -e RABBITMQ_NODE_PASSWORD="$RABBITMQ_NODE_PASSWORD" -e JOB_BACKEND="$JOB_BACKEND")
 fi
 
 if swap_server; then
