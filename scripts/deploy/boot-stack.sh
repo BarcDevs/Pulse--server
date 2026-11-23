@@ -65,6 +65,23 @@ ensure_networks() {
         || docker network create --internal --subnet 172.30.1.0/24 pulse_internal > /dev/null
 }
 
+# The broker keeps its users on its data volume, which a replaced box does not
+# have, so the application user is created again at every boot: wait until the
+# broker answers, then run the script that adds the user (safe to repeat).
+# Needs RABBITMQ_NODE_PASSWORD exported.
+create_broker_user() {
+    local compose="docker compose -f $COMPOSE_DIR/docker-compose.yml"
+    local attempt
+    for attempt in $(seq 1 45); do
+        if $compose exec -T rabbitmq rabbitmq-diagnostics -q ping > /dev/null 2>&1; then
+            $compose exec -T -e RABBITMQ_NODE_PASSWORD rabbitmq sh /etc/rabbitmq/create-node-user.sh
+            return 0
+        fi
+        sleep 2
+    done
+    echo "WARNING: the broker did not answer, its application user was not created." >&2
+}
+
 start_infrastructure() {
     local profiles="$1"
     ensure_networks
@@ -92,6 +109,9 @@ start_infrastructure() {
             ;;
     esac
     COMPOSE_PROFILES="$profiles" docker compose -f "$COMPOSE_DIR/docker-compose.yml" up -d
+    case ",$profiles," in
+        *,broker,*) create_broker_user ;;
+    esac
     unset TUNNEL_TOKEN REDIS_PASSWORD RABBITMQ_NODE_PASSWORD
 }
 
