@@ -186,7 +186,7 @@ export function userFlow(data) {
         for (let attempt = 0; attempt < INSIGHT_POLL_TRIES; attempt += 1) {
             sleep(INSIGHT_POLL_MS / 1000)
             const poll = http.get(`${API}/check-in?limit=1`, headersFor(session))
-            const items = poll.json('data.checkIns')
+            const items = poll.json('data')
 
             if (items && items[0] && items[0].insightsStatus === 'ready') {
                 insightReadySeconds.add((Date.now() - started) / 1000)

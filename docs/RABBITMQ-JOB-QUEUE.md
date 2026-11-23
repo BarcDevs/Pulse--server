@@ -62,7 +62,7 @@ Consumer concurrency (18 Nov): starts at 2 jobs at once, the same as the polling
 ## 4. Broker setup and hardening (to build)
 
 - One container on the app box, internal Docker network only, no published port, management plugin off.
-- Memory: the plan gives it 256 MiB as an estimate. The review (finding 8, not yet checked) says the watermark is a flow-control threshold and not a hard cap, and suggests a container limit near 384 MiB with a watermark near 200 MiB. Measure real use first and set the numbers from the reading.
+- Memory (set from the H4 load test, 23 Nov): container limit 384 MiB, watermark 256 MiB, `vm_memory_calculation_strategy = allocated`. With the default `rss` strategy the memory alarm switched on and off every few minutes at about 70 MB of use, with and without load, and each switch blocked publishers; the live box showed it too. With `allocated` the clone had no alarm in 7.5 minutes idle. Peak use under load was 123 MiB by `docker stats`.
 - Data on a volume. Checked 18 Nov with the AWS CLI (read-only): the launch template `pulse-server-lt` (v7) has no block device mapping of its own, so instances use the machine image's mapping: one 30 GiB gp3 root volume with `DeleteOnTermination: true`, and the running instance has no other volume. A Docker volume on this disk survives a container restart, a reboot and a stop, but is deleted when the instance is terminated, which is what the Auto Scaling group does on a replacement or an instance refresh. Decided 18 Nov: no separate disk. The pending rows in Postgres and the sweeper rebuild the queue after a box replacement, so losing it costs a delay, not data. A separate EBS volume with `DeleteOnTermination: false`, attached at boot like the fixed network interface in `asg-boot.sh`, was priced at $0.0952 per GB-month (about $0.48 for 5 GB, before tax) and stays an option if a job ever cannot be rebuilt from Postgres.
 - A definitions file that creates a vhost and a Node user limited to its own queues. The default user the image creates is an administrator and must not be used by the app.
 - Erlang cookie and distribution ports not reachable from outside the network.
@@ -82,13 +82,17 @@ Consumer concurrency (18 Nov): starts at 2 jobs at once, the same as the polling
 - The CPU of the broker's runtime on a burstable instance: watch the credit balance.
 - Publishing from the request path: use a timeout and fall back to the sweeper, never fail the check-in.
 
-## 7. Load test (not run yet)
+## 7. Load test (H4, run 23 Nov on a clone)
 
 Plan: 1,000 check-ins with a deploy during the load, on a clone of the production layout in production mode, with a fake model endpoint that copies real response timing and size. Pass bar: memory under about 80% at peak, no container killed for memory, no failed requests, and all jobs done or in the dead-letter queue with a recorded reason.
 
 | Run | Date | Setup | Peak memory | Queue depth peak | Jobs done | Dead-lettered | Notes |
 |---|---|---|---|---|---|---|---|
-| 1 | not run | | | | | | |
+| 1 | 23 Nov | concurrency 2, no proxy, 40 virtual users, 1,500 seeded users, fake model 4 s + up to 1.5 s | box 997 MB of 1.9 GB, rabbitmq 127 MiB, app 370 MiB | 147 | 217 | 0 | Queue grew all run (2 consumers could not keep up). Deploy in the load not clean: the runner hit the box over port 80 only. 3.0% requests failed, most from the poll check reading the wrong field (script bug, fixed) |
+| 2 | 23 Nov | as run 1 but behind a proxy like the tunnel, 60 users, concurrency 12 | app 257 MiB, rabbitmq 126 MiB | 0 | | 0 | Login failed: cookies were not sent (runner could not reach port 8081). No result |
+| 3 | 23 Nov | concurrency 12, proxy, 60 users, deploy at 4.5 min | app 393 MiB, rabbitmq 126 MiB, box 1,004 MB | 7 | 323 | 0 | The deploy gave 25 answers of 502 and 14 of 499. Cause: Docker keeps an alias in DNS until the container exits, the app closes its listener on SIGTERM at once. Fix: `leave_edge` takes the old container off the edge network before it is stopped |
+| 4 | 23 Nov | as run 3, with `leave_edge`, poll field fixed | app 402 MiB, rabbitmq 122 MiB, box 1,083 MB (630 MB free) | 53 | | 0 | 1 answer of 502, 15 of 499 (60 s timeouts), 16 of 21,874 requests failed; 2 of 1,563 probes failed; insight ready median 33 s, max 70 s, 11 over 120 s. Broker memory alarm fired (found to be the `rss` bug above) |
+| 5 | 23 Nov | as run 4 with limit 384 MiB, watermark 256 MiB | app 396 MiB, rabbitmq 123 MiB, box 1,045 MB (669 MB free) | 59 | | 0 | 0 answers of 5xx at the swap, 2 of 22,134 requests failed (0.01%), 0 of 1,680 probes failed, insight ready median 33 s, p95 59 s, 12 over 120 s. No container killed, no restarts, dead-letter queue empty. The alarm still fired once with `rss` (fixed after the run) |
 
 ## 8. Experience log
 
@@ -101,8 +105,8 @@ Fill a row only when the step has actually happened, with the date and where the
 | Check-in AI consuming from the queue | not yet | |
 | Outbox row and sweeper in place | not yet | |
 | Dead-letter alarm firing in a test | not yet | |
-| Load test run with measured results | not yet | |
-| Broker memory settings changed after a real reading | not yet | |
+| Load test run with measured results | 23 Nov | Section 7, runs 1 to 5, k6 script `scripts/load-test/checkInLoad.js` |
+| Broker memory settings changed after a real reading | 23 Nov | This file section 4 and section 7 runs 4 and 5; `rabbitmq.conf` and `docker-compose.yml` |
 
 ## 9. CV lines (empty until the work is live)
 

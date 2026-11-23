@@ -115,7 +115,7 @@ services:
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./rabbitmq/create-node-user.sh:/etc/rabbitmq/create-node-user.sh:ro
     restart: always
-    mem_limit: 256m
+    mem_limit: 384m
     cap_drop:
       - ALL
     cap_add:

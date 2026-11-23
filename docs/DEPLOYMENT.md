@@ -217,7 +217,7 @@ Server settings (all optional; the defaults keep today's behaviour):
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Empty host: Redis off (in-process rate-limit counters, no cache). The deploy script sets host and password when the secret `pulse/app/REDIS_PASSWORD` exists |
 | `RABBITMQ_HOST`, `RABBITMQ_NODE_PASSWORD` | Empty host: no broker |
 | `JOB_BACKEND` | `postgres` (default, the polling worker) or `rabbitmq`. `rabbitmq` without a broker host is ignored, so jobs never lose their worker. In production the deploy script reads it from the Parameter Store value `/pulse/job-backend` (anything but `rabbitmq` counts as `postgres`) and passes it, with `RABBITMQ_HOST=rabbitmq` and `RABBITMQ_NODE_PASSWORD`, only when the secret `pulse/app/RABBITMQ_NODE_PASSWORD` exists. To go back to the polling worker: set the value to `postgres` and redeploy |
-| `JOB_CONSUMER_CONCURRENCY` | Jobs in flight at once (default 2) |
+| `JOB_CONSUMER_CONCURRENCY` | Jobs in flight at once through the broker (default 12, from the load test) |
 
 Failure behaviour: with Redis down the cache reads Postgres and the rate limiters count in memory (logged once per outage). With the broker down the check-in still saves, the job row stays pending, and the sweeper publishes it when the broker is back. To go back to the polling worker, unset `JOB_BACKEND` and redeploy. The queue's design and the load test table are in `docs/RABBITMQ-JOB-QUEUE.md`.
 
