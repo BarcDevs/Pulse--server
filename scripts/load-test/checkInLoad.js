@@ -34,6 +34,8 @@ const PEAK_VUS = Number(__ENV.PEAK_VUS || USERS)
 const INSIGHT_POLL_MS = 3000
 const INSIGHT_POLL_TRIES = 40
 const SETUP_ONLY = __ENV.SETUP_ONLY === '1'
+// Users made beforehand with scripts/load-test/seedUsersSql.cjs: skip the sign-up calls
+const SKIP_SIGNUP = __ENV.SKIP_SIGNUP === '1'
 
 const insightReadySeconds = new Trend('insight_ready_seconds')
 const insightNeverReady = new Counter('insight_never_ready')
@@ -86,6 +88,11 @@ export function setup() {
     const emails = []
 
     for (let index = 1; index <= USERS; index += 1) {
+        if (SKIP_SIGNUP) {
+            emails.push(emailOf(index))
+            continue
+        }
+
         const response = http.post(
             `${API}/auth/signup`,
             JSON.stringify({
