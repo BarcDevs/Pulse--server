@@ -18,6 +18,8 @@ export default [
             'scripts/prestart.cjs',
             // Runs in k6 (its own globals and module system), not in Node
             'scripts/load-test/checkInLoad.js',
+            // A plain Node script that prints SQL for the clone database
+            'scripts/load-test/seedUsersSql.cjs',
             '.idea/**',
             '*.config.{js,ts,mjs}'
         ]
