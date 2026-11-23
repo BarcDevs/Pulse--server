@@ -55,7 +55,8 @@ export default {
     // published to the broker and consumed from it; the table stays the record.
     jobs: {
         backend: 'postgres',
-        consumerConcurrency: 2
+        // Set from the H4 load test: 12 jobs at once kept up with 2.4 check-ins a second
+        consumerConcurrency: 12
     },
     // Resend SMTP: user is always "resend", the password is the API key
     // (EMAIL_PASSWORD, the only env-provided email value)

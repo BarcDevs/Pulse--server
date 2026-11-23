@@ -34,6 +34,8 @@ const PEAK_VUS = Number(__ENV.PEAK_VUS || USERS)
 const INSIGHT_POLL_MS = 3000
 const INSIGHT_POLL_TRIES = 40
 const SETUP_ONLY = __ENV.SETUP_ONLY === '1'
+// Users made beforehand with scripts/load-test/seedUsersSql.cjs: skip the sign-up calls
+const SKIP_SIGNUP = __ENV.SKIP_SIGNUP === '1'
 
 const insightReadySeconds = new Trend('insight_ready_seconds')
 const insightNeverReady = new Counter('insight_never_ready')
@@ -86,6 +88,11 @@ export function setup() {
     const emails = []
 
     for (let index = 1; index <= USERS; index += 1) {
+        if (SKIP_SIGNUP) {
+            emails.push(emailOf(index))
+            continue
+        }
+
         const response = http.post(
             `${API}/auth/signup`,
             JSON.stringify({
@@ -111,6 +118,8 @@ export function setup() {
     return { emails }
 }
 
+// The server sets Secure cookies in production, which k6 does not send back over plain
+// http (the clone has no TLS), so the cookies are read from the login answer and sent by hand
 const login = (email, address) => {
     const response = http.post(
         `${API}/auth/login`,
@@ -120,9 +129,12 @@ const login = (email, address) => {
     check(response, { 'login 200': (r) => r.status === 200 })
     if (response.status !== 200) return null
 
+    const cookie = Object.keys(response.cookies)
+        .map((name) => `${name}=${response.cookies[name][0].value}`)
+        .join('; ')
     const body = response.json()
 
-    return (body && body.data && body.data._csrf) || null
+    return { csrf: (body && body.data && body.data._csrf) || '', cookie }
 }
 
 const checkInBody = () => ({
@@ -139,19 +151,23 @@ export function userFlow(data) {
     // USERS must be at least the number of rounds the run will start.
     const index = ((__ITER * PEAK_VUS + (__VU - 1)) % data.emails.length) + 1
     const address = addressOf(index)
-    const headersFor = (csrf) => jsonHeaders({ 'X-Forwarded-For': address, 'x-csrf-token': csrf || '' })
+    const headersFor = (session) => jsonHeaders({
+        'X-Forwarded-For': address,
+        'x-csrf-token': session.csrf,
+        Cookie: session.cookie
+    })
 
     // k6 keeps cookies per virtual user, so the session cookie is carried along
-    const csrf = login(data.emails[index - 1], address)
-    if (!csrf) {
+    const session = login(data.emails[index - 1], address)
+    if (!session) {
         sleep(5)
 
         return
     }
 
     group('read', () => {
-        http.get(`${API}/auth/me`, headersFor(csrf))
-        http.get(`${API}/check-in?limit=1`, headersFor(csrf))
+        http.get(`${API}/auth/me`, headersFor(session))
+        http.get(`${API}/check-in?limit=1`, headersFor(session))
     })
 
     group('check-in', () => {
@@ -161,7 +177,7 @@ export function userFlow(data) {
         const created = http.post(
             `${API}/check-in`,
             JSON.stringify(checkInBody()),
-            { ...headersFor(csrf), responseCallback: http.expectedStatuses({ min: 200, max: 299 }, 400) }
+            { ...headersFor(session), responseCallback: http.expectedStatuses({ min: 200, max: 299 }, 400) }
         )
         check(created, { 'check-in saved or already done today': (r) => (r.status >= 200 && r.status < 300) || r.status === 400 })
 
@@ -169,8 +185,8 @@ export function userFlow(data) {
 
         for (let attempt = 0; attempt < INSIGHT_POLL_TRIES; attempt += 1) {
             sleep(INSIGHT_POLL_MS / 1000)
-            const poll = http.get(`${API}/check-in?limit=1`, headersFor(csrf))
-            const items = poll.json('data.checkIns')
+            const poll = http.get(`${API}/check-in?limit=1`, headersFor(session))
+            const items = poll.json('data')
 
             if (items && items[0] && items[0].insightsStatus === 'ready') {
                 insightReadySeconds.add((Date.now() - started) / 1000)
@@ -182,13 +198,13 @@ export function userFlow(data) {
     })
 
     group('browse', () => {
-        http.get(`${API}/check-in/stats`, headersFor(csrf))
-        http.get(`${API}/check-in/progress-insights`, headersFor(csrf))
-        http.get(`${API}/profile`, headersFor(csrf))
-        http.get(`${API}/recovery-goals`, headersFor(csrf))
-        http.get(`${API}/forum/posts/categories`, headersFor(csrf))
-        http.get(`${API}/forum/posts`, headersFor(csrf))
-        http.get(`${API}/forum/recommendations`, headersFor(csrf))
+        http.get(`${API}/check-in/stats`, headersFor(session))
+        http.get(`${API}/check-in/progress-insights`, headersFor(session))
+        http.get(`${API}/profile`, headersFor(session))
+        http.get(`${API}/recovery-goals`, headersFor(session))
+        http.get(`${API}/forum/posts/categories`, headersFor(session))
+        http.get(`${API}/forum/posts`, headersFor(session))
+        http.get(`${API}/forum/recommendations`, headersFor(session))
     })
 
     sleep(5 + Math.random() * 10)

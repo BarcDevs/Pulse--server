@@ -1,4 +1,6 @@
 import { spawnSync } from 'child_process'
+import fs from 'fs'
+import os from 'os'
 import path from 'path'
 
 const toPosix = (relative: string) => path
@@ -71,6 +73,25 @@ describe('ec2-redeploy.sh deploy helpers', () => {
         })
     })
 
+    describe('leave_edge', () => {
+        it('disconnects the container from the edge network only, so queued jobs can still finish', () => {
+            // the helper discards both streams, so the stub writes to a file
+            const logPath = toPosix(path.join(os.tmpdir(), `leave-edge-${process.pid}.log`))
+            const result = runRedeploy(`docker() { echo "docker $*" > ${logPath}; }; leave_edge pulse-app-prev`)
+            const logged = fs.readFileSync(logPath, 'utf8').trim()
+            fs.rmSync(logPath)
+
+            expect(result.status).toBe(0)
+            expect(logged).toBe('docker network disconnect pulse_edge pulse-app-prev')
+        })
+
+        it('does not fail when the container is already gone', () => {
+            const result = runRedeploy('docker() { return 1; }; leave_edge pulse-app-prev')
+
+            expect(result.status).toBe(0)
+        })
+    })
+
     describe('last good tag', () => {
         it('names the Parameter Store entry per service', () => {
             const result = runRedeploy('last_good_param_name server')
@@ -87,6 +108,13 @@ describe('ec2-redeploy.sh deploy helpers', () => {
             expect(result.stderr).toContain('--name /pulse/last-good/server')
             expect(result.stderr).toContain('--value abc123')
             expect(result.stderr).toContain('--overwrite')
+        })
+
+        it('writes nothing when PULSE_SKIP_LAST_GOOD is set, so a load-test clone cannot change the production tag', () => {
+            const result = runRedeploy('export PULSE_SKIP_LAST_GOOD=1; aws() { echo "aws $*" >&2; }; write_last_good server abc123')
+
+            expect(result.status).toBe(0)
+            expect(result.stderr).not.toContain('put-parameter')
         })
     })
 
