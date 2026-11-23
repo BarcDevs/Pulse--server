@@ -91,6 +91,7 @@ AWS EC2/RDS architecture, cost/capacity decisions, and infra-migration root-caus
 | 19/11/2026 | Real routine test users in production; passwords in .env only |
 | 22/11/2026 | B5 deploy-script network wiring: bridge swap, D1-D5 approved |
 | 22/11/2026 | B4: second Cloudflare tunnel for the new app box |
+| 23/11/2026 | J5-J7 move to a separate goal after the migration |
 
 ## Database & Performance — [[decisions/database-and-performance]]
 Indexing, pool/timeout and counter decisions for the Postgres layer, what was rejected, and the follow-ups chosen.

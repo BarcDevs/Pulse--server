@@ -443,3 +443,13 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** One tunnel with the route changed at cutover: the site is down if anything fails in between, and rolling back needs a manual route edit.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 23/11/2026 — J5-J7 move to a separate goal after the migration
+
+**Decision:** The owner chose to move milestones J5, J6 and J7 (more test users, server analytics, admin dashboard) out of the AWS migration into a separate goal that starts after the migration is closed. C13 (memory-summary job on the queue) is closed as not applicable because no such job exists in the server.
+
+**Why over alternatives:** They are product work, not migration; J7 needs its own design pass first.
+
+**Rejected:** Continuing J5 and J6 inside the migration now.
+
+**Source:** user, auto-recorded: "recorded by the session"
