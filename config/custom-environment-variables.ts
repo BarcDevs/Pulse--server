@@ -53,6 +53,7 @@ export default {
         googleModel: 'GOOGLE_MODEL',
         openaiModel: 'OPENAI_MODEL',
         openaiApiKey: 'OPENAI_API_KEY',
+        openaiBaseUrl: 'OPENAI_BASE_URL',
         anthropicApiKey: 'ANTHROPIC_API_KEY',
         googleApiKey: 'GOOGLE_AI_API_KEY',
         googleFreeApiKey: 'GOOGLE_FREE_AI_API_KEY',

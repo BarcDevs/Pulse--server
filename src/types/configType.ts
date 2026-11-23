@@ -77,6 +77,7 @@ type AIConfig = {
     googleModel: string
     openaiModel: string
     openaiApiKey: string
+    openaiBaseUrl: string
     anthropicApiKey: string
     googleApiKey: string
     googleFreeApiKey: string
