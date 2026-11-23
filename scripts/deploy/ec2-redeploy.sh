@@ -111,6 +111,15 @@ graceful_stop() {
     docker stop -t "${2:-30}" "$1" > /dev/null 2>&1 || true
 }
 
+# Takes a container off the edge network before it is stopped. Docker keeps a
+# container's alias in DNS until it has exited, and the app closes its listener on
+# SIGTERM at once, so for the drain time a share of new requests to `server` went to
+# a container that no longer accepted them (25 answers of 502 in the load test, H4).
+# The internal network stays, so queued jobs still finish.
+leave_edge() {
+    docker network disconnect pulse_edge "$1" > /dev/null 2>&1 || true
+}
+
 # Last good image tag per service, kept in Parameter Store so a replaced box
 # boots the version that last passed its health check, never an untested "latest".
 last_good_param_name() {
@@ -225,6 +234,7 @@ swap_server() {
             docker rename pulse-app pulse-app-prev || return 1
             # A restart policy would bring the stopped old container back after a Docker restart
             docker update --restart=no pulse-app-prev > /dev/null 2>&1 || true
+            leave_edge pulse-app-prev
             graceful_stop pulse-app-prev
         fi
     fi
@@ -232,6 +242,7 @@ swap_server() {
     run_app_container pulse-app 172.30.0.10 --restart=unless-stopped --network-alias server -p 80:8080 || true
     if is_running pulse-app && container_health_check pulse-app; then
         echo "Deploy succeeded, container healthy."
+        leave_edge pulse-app-candidate
         graceful_stop pulse-app-candidate
         docker rm -f pulse-app-candidate > /dev/null 2>&1 || true
         docker rm -f pulse-app-prev > /dev/null 2>&1 || true
