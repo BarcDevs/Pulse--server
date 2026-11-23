@@ -14,37 +14,74 @@ import { getRedisClient } from './redisClient'
 // Counts in Redis while it answers and in this process while it does not, so a
 // dead Redis never fails a request and never switches limiting off. Counters
 // kept in memory while Redis is down start again from zero when it returns.
+//
+// The Redis store is built on first use, once the client is connected. Building
+// it while the client is still connecting makes it load its Lua script too early
+// (the client has no offline queue) and that rejection reached nobody, which
+// stopped the process at start-up.
 export class ResilientStore implements Store {
     private warned = false
+    private primary: Store | null = null
+    private options: Options | null = null
 
     constructor(
-        private readonly primary: Store,
+        private readonly createPrimary: () => Store | null,
         private readonly fallback: Store
     ) {}
 
     localKeys = false
 
     init(options: Options) {
-        this.primary.init?.(options)
+        this.options = options
         this.fallback.init?.(options)
+    }
+
+    // Null while Redis is not usable; the caller then counts in memory.
+    private async getPrimary(): Promise<Store | null> {
+        if (this.primary) return this.primary
+
+        const store = this.createPrimary()
+        if (!store) return null
+
+        try {
+            if (this.options) await store.init?.(this.options)
+        } catch (error) {
+            this.warn(error as Error)
+
+            return null
+        }
+
+        this.primary = store
+
+        return store
+    }
+
+    private warn(error: Error) {
+        if (this.warned) return
+
+        this.warned = true
+        logger.warn(
+            `Rate limit store: Redis unavailable, counting in memory (${error.message})`
+        )
     }
 
     private async withFallback<T>(
         useStore: (store: Store) => Promise<T> | T
     ): Promise<T> {
         try {
-            const result = await useStore(this.primary)
-            this.warned = false
-            return result
-        } catch (error) {
-            if (!this.warned) {
-                this.warned = true
-                logger.warn(
-                    `Rate limit store: Redis unavailable, counting in memory (${(error as Error).message})`
-                )
+            const primary = await this.getPrimary()
+
+            if (primary) {
+                const result = await useStore(primary)
+                this.warned = false
+
+                return result
             }
-            return useStore(this.fallback)
+        } catch (error) {
+            this.warn(error as Error)
         }
+
+        return useStore(this.fallback)
     }
 
     get(key: string): Promise<ClientRateLimitInfo | undefined> {
@@ -70,11 +107,15 @@ export const createRateLimitStore = (name: string): Store | undefined => {
     const client = getRedisClient()
     if (!client) return undefined
 
-    const primary = new RedisStore({
-        prefix: `rl:${name}:`,
-        sendCommand: (...args: string[]) =>
-            client.call(args[0], ...args.slice(1)) as Promise<RedisReply>
-    })
+    const createPrimary = (): Store | null => {
+        if (client.status !== 'ready') return null
 
-    return new ResilientStore(primary, new MemoryStore())
+        return new RedisStore({
+            prefix: `rl:${name}:`,
+            sendCommand: (...args: string[]) =>
+                client.call(args[0], ...args.slice(1)) as Promise<RedisReply>
+        })
+    }
+
+    return new ResilientStore(createPrimary, new MemoryStore())
 }

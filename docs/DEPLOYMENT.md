@@ -40,6 +40,8 @@ Full history of the ASG/fixed-IP migration (why, and how each step was done/veri
 | `pulse/app/GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `pulse/app/RESEND_API_KEY` | Resend API key (sending access), passed as `EMAIL_PASSWORD`; SMTP host/port/user/from live in `config/default.ts` |
 | `pulse/app/LAUNCH_FUNNEL_SECRET` | Raw shared secret (min 16 chars) preflight sends as `Authorization: Bearer` to `GET /launch-funnel`; must equal preflight's `PULSE_FUNNEL_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. The EC2 role needs `secretsmanager:GetSecretValue` on it |
+| `pulse/app/REDIS_PASSWORD` | Raw password of the Redis container. Optional for the server: when the secret exists the deploy script passes `REDIS_HOST=redis` and `REDIS_PASSWORD` to it. Read at boot for the profiles `redis` and `broker`. Created 23 Nov |
+| `pulse/app/RABBITMQ_NODE_PASSWORD` | Raw password of the RabbitMQ application user (`pulse_node`). Read at boot for the profile `broker`. Not created yet: needed before the broker is turned on. The role policy `pulse-secret-read` already lists it |
 | `pulse/app/SUPPORT_READER_SECRET` | Raw shared secret (min 16 chars) the Claude support-ticket reader sends as `Authorization: Bearer` to `GET /support/claude/tickets` and `GET /support/claude/tickets/:ticketId` (the only routes that accept it); passed as `SUPPORT_READER_SECRET`. Optional for deploys: when unreadable the endpoint returns 401 to everyone. **IAM:** add this secret's ARN to the `secretsmanager:GetSecretValue` resources of `pulse-ec2-role` before the first deploy that should serve it, or the redeploy script cannot read it. Create it with a fresh random value, for example `openssl rand -hex 32` |
 
 `GOOGLE_REDIRECT_URI` is not a secret — passed as a plain (non-Secrets-Manager) env
@@ -203,3 +205,20 @@ catches a capability-related boot failure before it replaces the live container.
 - `staging.pulserehab.app` — not yet configured.
 - AWS Activate / startup credits — domain and AWS account are both recent, worth
   applying once there's a concrete product description to submit.
+
+## Redis and RabbitMQ on the app box (added 23 Nov)
+
+Both run as compose services on the app box (`scripts/deploy/compose/docker-compose.yml`) on the internal network, reachable from the server container as `redis` and `rabbitmq`. Which ones start at boot is the Parameter Store value `/pulse/boot/profiles` (comma separated: `tunnel`, `redis`, `broker`; `broker` means Redis and RabbitMQ). The boot script reads only the secrets its profiles need and does not leave them in the environment.
+
+Server settings (all optional; the defaults keep today's behaviour):
+
+| Setting | Meaning |
+|---|---|
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | Empty host: Redis off (in-process rate-limit counters, no cache). The deploy script sets host and password when the secret `pulse/app/REDIS_PASSWORD` exists |
+| `RABBITMQ_HOST`, `RABBITMQ_NODE_PASSWORD` | Empty host: no broker |
+| `JOB_BACKEND` | `postgres` (default, the polling worker) or `rabbitmq`. `rabbitmq` without a broker host is ignored, so jobs never lose their worker |
+| `JOB_CONSUMER_CONCURRENCY` | Jobs in flight at once (default 2) |
+
+Failure behaviour: with Redis down the cache reads Postgres and the rate limiters count in memory (logged once per outage). With the broker down the check-in still saves, the job row stays pending, and the sweeper publishes it when the broker is back. To go back to the polling worker, unset `JOB_BACKEND` and redeploy. The queue's design and the load test table are in `docs/RABBITMQ-JOB-QUEUE.md`.
+
+A box replacement restores the whole stack from the machine image (current: `ami-0a662cc6e8e347cb4`, launch template `pulse-server-lt` v11); a measured recovery took 3 minutes 43 seconds with no manual step (milestone F7). The Parameter Store values `/pulse/last-good/server` (the bare commit sha, the script adds `runner-`) and `/pulse/last-good/client` must exist.

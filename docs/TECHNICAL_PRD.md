@@ -282,7 +282,8 @@ Google AI API (for insight generation)
 - **Database**: PostgreSQL with Prisma ORM
 - **Auth**: JWT in HTTP-only cookies + CSRF tokens
 - **Async Jobs**: `CheckInAiJob` table in PostgreSQL, worker started with the server (`src/services/checkInAiWorker.ts`), atomic claiming with `FOR UPDATE SKIP LOCKED`, two attempts with a 10 s retry delay (`runAfter`); a sweep every 5 minutes re-queues check-ins of the last 24 h that have no job or a job `FAILED` for over 5 minutes; SQS and socket push are planned for scale (`scaling-todo.md`)
-- **Caching**: Session/token caching via Redis (future optimization)
+- **Caching and rate limits**: Redis through `ioredis`, switched on by `REDIS_HOST` (empty means off). Every rate limiter keeps its counter in Redis under its own prefix and counts in memory while Redis does not answer; the profile read (`findProfileContext`) goes through a cache-aside helper (`src/lib/redis/cache.ts`) with a required expiry on every key and a fallback to Postgres. Redis runs as a container capped at 100 MiB with `allkeys-lru`, so every key must be able to be lost.
+- **Job queue (optional)**: `JOB_BACKEND=rabbitmq` sends the check-in AI job through RabbitMQ (`src/lib/queue/`, `src/services/checkInAiQueueService.ts`): publish with broker confirmation after the check-in is saved (not awaited), a consumer that acknowledges after the work with a retry queue and a dead-letter queue, and a sweeper that publishes rows the broker never got. The `CheckInAiJob` row stays the record (new column `publishedAt`). Default `postgres` keeps the polling worker above.
 
 ---
 
@@ -805,8 +806,8 @@ Fallback to deterministic template if AI fails
 - Guidance and support resources
 
 ### Phase 6: Async Job Pipeline (Future Infrastructure)
-- Bull queue for background insight generation
-- Redis caching for improved performance
+- Background insight generation: built on RabbitMQ behind `JOB_BACKEND` (see the Async Jobs entry above), not Bull
+- Redis caching: built (see Caching above)
 - Scheduled daily insight batches by timezone
 
 ---
