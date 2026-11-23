@@ -28,7 +28,7 @@ export class OpenAIProvider extends AIProvider {
         this.validateConfiguration()
 
         const response = await fetch(
-            'https://api.openai.com/v1/chat/completions',
+            `${aiConfig.openaiBaseUrl}/chat/completions`,
             {
                 method: 'POST',
                 headers: {

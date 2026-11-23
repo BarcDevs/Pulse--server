@@ -121,6 +121,7 @@ const aiConfig: AIConfig = {
     googleModel: config.get<string>('ai.googleModel'),
     openaiModel: config.get<string>('ai.openaiModel'),
     openaiApiKey: config.get<string>('ai.openaiApiKey'),
+    openaiBaseUrl: config.get<string>('ai.openaiBaseUrl'),
     anthropicApiKey: config.get<string>('ai.anthropicApiKey'),
     googleApiKey: config.get<string>('ai.googleApiKey'),
     googleFreeApiKey: config.get<string>('ai.googleFreeApiKey'),

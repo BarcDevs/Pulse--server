@@ -81,6 +81,8 @@ export default {
         googleModel: 'gemini-3.1-pro-preview',
         openaiModel: 'gpt-6.1-sol',
         openaiApiKey: '',
+        // Chat completions endpoint. Only the load test changes it, to point at the fake model server
+        openaiBaseUrl: 'https://api.openai.com/v1',
         anthropicApiKey: '',
         googleApiKey: '',
         googleFreeApiKey: '',
