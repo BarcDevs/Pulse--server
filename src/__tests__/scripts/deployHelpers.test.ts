@@ -88,6 +88,13 @@ describe('ec2-redeploy.sh deploy helpers', () => {
             expect(result.stderr).toContain('--value abc123')
             expect(result.stderr).toContain('--overwrite')
         })
+
+        it('writes nothing when PULSE_SKIP_LAST_GOOD is set, so a load-test clone cannot change the production tag', () => {
+            const result = runRedeploy('export PULSE_SKIP_LAST_GOOD=1; aws() { echo "aws $*" >&2; }; write_last_good server abc123')
+
+            expect(result.status).toBe(0)
+            expect(result.stderr).not.toContain('put-parameter')
+        })
     })
 
     describe('graceful_stop', () => {

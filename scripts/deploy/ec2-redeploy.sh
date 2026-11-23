@@ -117,7 +117,11 @@ last_good_param_name() {
     printf '/pulse/last-good/%s' "$1"
 }
 
+# PULSE_SKIP_LAST_GOOD=1 keeps a load-test clone from overwriting the production tag
 write_last_good() {
+    if [ -n "${PULSE_SKIP_LAST_GOOD:-}" ]; then
+        return 0
+    fi
     aws ssm put-parameter --region "$REGION" --name "$(last_good_param_name "$1")" \
         --value "$2" --type String --overwrite > /dev/null
 }
@@ -269,7 +273,8 @@ docker pull "$ECR/$REPO:migrate-$IMAGE_TAG"
 DB_CREDS=$(aws secretsmanager get-secret-value --region "$REGION" --secret-id pulse/rds/master-credentials --query SecretString --output text)
 DB_USER=$(echo "$DB_CREDS" | jq -r '.username | @uri')
 DB_PASS=$(echo "$DB_CREDS" | jq -r '.password | @uri')
-DB_HOST_URL="pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com:5432/pulse?uselibpqcompat=true&sslmode=verify-full&sslrootcert=/etc/ssl/rds-global-bundle.pem"
+# PULSE_DB_HOST points a load-test clone at its own database; production never sets it
+DB_HOST_URL="${PULSE_DB_HOST:-pulse-db.cpwwgeuy62ph.eu-central-1.rds.amazonaws.com}:5432/pulse?uselibpqcompat=true&sslmode=verify-full&sslrootcert=/etc/ssl/rds-global-bundle.pem"
 # Master user: migrations only (they need DDL)
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$DB_HOST_URL"
 
@@ -372,6 +377,13 @@ RUN_ARGS=(
     -e SUPPORT_READER_SECRET="$SUPPORT_READER_SECRET"
     -e GOOGLE_REDIRECT_URI="https://pulserehab.app/api/$API_VERSION/auth/google/callback"
 )
+
+# Extra docker run arguments, for a load-test clone only (for example the fake model endpoint);
+# production never sets PULSE_EXTRA_RUN_ARGS
+if [ -n "${PULSE_EXTRA_RUN_ARGS:-}" ]; then
+    read -r -a EXTRA_RUN_ARGS <<< "$PULSE_EXTRA_RUN_ARGS"
+    RUN_ARGS+=("${EXTRA_RUN_ARGS[@]}")
+fi
 
 # Redis runs as the compose service `redis` on pulse_internal, where the server container is joined
 if [ -n "$REDIS_PASSWORD" ]; then
