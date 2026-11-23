@@ -43,6 +43,8 @@ The frontend is installable as a PWA (manifest, icons, install dialog). That is 
 | ORM | Prisma |
 | Authentication | JWT + bcrypt |
 | AI | Google Gemini API |
+| Cache and rate limits | Redis (optional: `REDIS_HOST`; off means in-process counters and no cache) |
+| Job queue | Postgres polling worker (default) or RabbitMQ (`JOB_BACKEND=rabbitmq`, optional) |
 | Monitoring | Sentry |
 | Deployment | AWS EC2 + RDS (production), Render (staging) |
 
