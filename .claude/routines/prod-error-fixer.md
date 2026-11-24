@@ -413,7 +413,7 @@ request, revise the plan to address it):
 Dependabot's own PRs (author `app/dependabot`, head branch `dependabot/...`) are merged into
 `development` by this routine without a plan or an `approved` label; the owner's standing decision
 is that a dependabot bump with green CI needs no review, major versions included. The deploy
-approval is the gate. Only dependabot-authored PRs: a PR from anyone else is never touched here.
+ship rules are the gate: a bump that touches runtime dependencies, the lockfile or `package.json` is held with `needs-review` at the release PR, and only `uses:` lines in workflow files are exempt. Only dependabot-authored PRs: a PR from anyone else is never touched here.
 Do every step below that you can; a blocked step is left to the owner and reported (see "Blocked
 steps"), never forced or worked around.
 
@@ -511,6 +511,15 @@ everything on `development` not yet on `main`." If the push or `gh` fails, notif
 (the fixes stay merged on `development`). Last, for each issue that just shipped, run "Cross-repo
 tasks" below.
 
+### Ship rules at the release PR (#81)
+
+After opening or commenting on the release PR, and again whenever new commits reach it (the owner's earlier clearance never covers newer commits):
+
+1. **Last deployed commit.** The newest `aws-production` deployment whose newest status is `success`: `gh api "repos/$REPO/deployments?environment=aws-production&per_page=30"`, then each one's `statuses`, same as the `classify` job in `deploy.yml`. None found: label the PR `needs-review`, comment "no last deployed commit", stop.
+2. **Classify with the deployed tools.** Check that commit out in a scratch worktree (`git -C "$MAIN" worktree add <scratch>/last <LAST>`), `npm ci --ignore-scripts` there, write the PR body and all its comments to a file, and from that worktree run `REPO_DIR="$MAIN" LAST_DEPLOYED_SHA=<LAST> HEAD_SHA=$(git -C "$MAIN" rev-parse origin/development) PR_TEXT_FILE=<file> npx tsx scripts/deploy/classify-release/pr-cli.ts`. It prints one JSON line `{"hold": bool, "comment": "<markdown>"}`. A last deployed commit without that script (the first rollout), or any error, counts as hold. Remove the scratch worktree afterwards.
+3. **Label and comment.** `hold` true: `gh pr edit <n> --add-label needs-review`; false: remove it if present. Post `comment` on the PR every time (held or auto), so a wrong auto result is visible.
+4. **Never clear it yourself.** Only the owner removing `needs-review` or adding `ship-ok` counts, and the deploy checks the actor. Merging the PR stays free: a held release merges but does not deploy until cleared.
+
 ### Release PR: merge it, do not leave it open
 
 A shipped fix is not shipped until it is on `main`, so this routine merges the release PR itself (the
@@ -518,7 +527,7 @@ owner's `open pr` rule: open it and merge it if every check is green). After ope
 (`gh pr checks <n> --repo $REPO --watch`, at most 15 minutes; do not poll in a loop). All checks passed:
 `gh pr merge <n> --repo $REPO --merge`, then confirm `state` is `MERGED`. Any check failed or still pending after the wait,
 or the PR is not mergeable: do not merge, say "release PR not merged: <why>" in the notification and the phone push; the next
-run retries. Merging only queues the Deploy workflow, which still waits for the owner's approval click on the
+run retries. Merging only queues the Deploy workflow: the ship rules decide whether it deploys by itself or waits (`needs-review`), and until the owner removes the required reviewer it also waits for the approval click on the
 `aws-production` environment: never approve it, and never touch an older waiting Deploy run. After the merge, find the Deploy run it queued
 (`gh run list --repo $REPO --workflow Deploy --branch main --limit 5 --json databaseId,status,headSha`, matching the merge
 commit; allow a few minutes for CI to finish first, one re-check at most) and the push below says it is waiting for approval. The PR carries only what is on

@@ -1,0 +1,18 @@
+{
+    "categories": [
+        "migrations",
+        "deploy-path",
+        "startup-deletes",
+        "auth-security",
+        "config-env",
+        "ai",
+        "runtime-deps",
+        "routes-schemas-responses",
+        "response-contract",
+        "build-inputs"
+    ],
+    "textRules": [
+        "client-impact",
+        "breaking-change"
+    ]
+}

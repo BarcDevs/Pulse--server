@@ -23,16 +23,108 @@ permissions:
   contents: read
 
 jobs:
+  classify:
+    name: Classify the release (ship rules, #81)
+    runs-on: ubuntu-latest
+    # No continue-on-error anywhere in this job: a crash fails the job, the deploy job needs it,
+    # and so a failed classification can never deploy.
+    permissions:
+      contents: read
+      deployments: read
+      pull-requests: read
+      issues: read
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main') }}
+    outputs:
+      hold: ${{ steps.classify.outputs.hold }}
+      cleared: ${{ steps.clearance.outputs.cleared }}
+    env:
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout the release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+          fetch-depth: 0
+          path: release
+
+      - name: Find the last deployed sha
+        id: last
+        run: |
+          set -euo pipefail
+          # The newest aws-production deployment whose newest status is success. A skipped
+          # deploy job still concludes success, so a run conclusion is never used.
+          LAST=""
+          while read -r id sha; do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" --jq '.[0].state // ""')
+            if [ "$state" = "success" ]; then LAST="$sha"; break; fi
+          done < <(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=aws-production&per_page=30" --jq '.[] | "\(.id) \(.sha)"')
+          if [ -z "$LAST" ]; then
+            echo "No successful aws-production deployment found: the release is held."
+            exit 1
+          fi
+          echo "sha=$LAST" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the rules from the last deployed sha
+        run: |
+          set -euo pipefail
+          # Rules come from what is already deployed, never from the release being judged.
+          git -C release worktree add "$GITHUB_WORKSPACE/last" "${{ steps.last.outputs.sha }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install the last deployed tools
+        working-directory: last
+        run: npm ci --ignore-scripts
+
+      - name: Collect the pull request text
+        run: |
+          set -euo pipefail
+          PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$DEPLOY_SHA/pulls" --jq 'if length == 1 then .[0].number else "" end')
+          if [ -z "$PR" ]; then
+            # No single pull request: the classifier reads this as a non-none client impact and holds.
+            echo "Client impact: no single pull request found for this commit" > "$RUNNER_TEMP/pr-text.txt"
+          else
+            {
+              gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.body // ""'
+              gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --jq '.[].body'
+            } > "$RUNNER_TEMP/pr-text.txt"
+          fi
+
+      - name: Classify
+        id: classify
+        working-directory: last
+        env:
+          REPO_DIR: ${{ github.workspace }}/release
+          LAST_DEPLOYED_SHA: ${{ steps.last.outputs.sha }}
+          MAIN_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          PR_TEXT_FILE: ${{ runner.temp }}/pr-text.txt
+        run: npx tsx scripts/deploy/classify-release/cli.ts
+
+      - name: Check the owner's clearance
+        id: clearance
+        working-directory: last
+        env:
+          REPO_DIR: ${{ github.workspace }}/release
+          OWNER_LOGIN: BarcDevs
+        run: npx tsx scripts/deploy/classify-release/clearance-cli.ts
+
   deploy:
     name: Build, push, and roll out to EC2
     runs-on: ubuntu-latest
     # Waits for the owner's approval click (required reviewer on this environment); the
     # deploy role's trust policy only accepts tokens from this environment
+    needs: classify
     environment: aws-production
     # The repo is public and CI also runs on fork pull requests, and a fork branch can be named
     # `main`, so the `branches` filter above is not enough. Only deploy a CI run that was a push
     # to this repository's own main branch.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main')) && (needs.classify.outputs.hold == 'false' || needs.classify.outputs.cleared == 'true') }}
 
     env:
       DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
@@ -142,4 +234,15 @@ jobs:
 
       - name: Verify live
         run: |
-          curl -sf https://pulserehab.app/api/status
+          curl -sf https://pulserehab.app/api/ready
+
+      # Push on every release that shipped without the owner's click. A missing secret or an ntfy
+      # outage never fails a deploy that already succeeded.
+      - name: Notify the owner of the auto-ship
+        if: ${{ needs.classify.outputs.hold == 'false' }}
+        continue-on-error: true
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          [ -n "$NTFY_TOPIC" ] || exit 0
+          curl -sf -H "Title: Pulse server auto-shipped" -d "Release ${DEPLOY_SHA:0:7} passed the ship rules and is live." "https://ntfy.sh/$NTFY_TOPIC"
