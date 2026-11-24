@@ -234,4 +234,15 @@ jobs:
 
       - name: Verify live
         run: |
-          curl -sf https://pulserehab.app/api/status
+          curl -sf https://pulserehab.app/api/ready
+
+      # Push on every release that shipped without the owner's click. A missing secret or an ntfy
+      # outage never fails a deploy that already succeeded.
+      - name: Notify the owner of the auto-ship
+        if: ${{ needs.classify.outputs.hold == 'false' }}
+        continue-on-error: true
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          [ -n "$NTFY_TOPIC" ] || exit 0
+          curl -sf -H "Title: Pulse server auto-shipped" -d "Release ${DEPLOY_SHA:0:7} passed the ship rules and is live." "https://ntfy.sh/$NTFY_TOPIC"

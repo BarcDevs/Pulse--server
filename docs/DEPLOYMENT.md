@@ -95,11 +95,23 @@ plaintext connection, not a permissions problem.
    missing (compose only joins them). Details: `AWS-MIGRATION-MILESTONES.md`, B5.
 4. The workflow polls the SSM command status and fails the job (with stderr surfaced)
    if the redeploy or health check fails.
-5. A final step curls `https://pulserehab.app/api/status` through Cloudflare as an
+5. A final step curls `https://pulserehab.app/api/ready` through Cloudflare as an
    end-to-end check.
 
 So: merge to `main` (through the usual CI-gated `aws-deploy` → `development` → `main`
-hops — see `GIT_RULES.md`) and the redeploy happens automatically. Nothing to do by hand.
+hops — see `GIT_RULES.md`) and the redeploy happens automatically unless the ship rules below hold it. Nothing to do by hand.
+
+### Ship rules (#81)
+
+A `classify` job runs before every deploy and decides whether the release ships by itself or is held for the owner. The deploy job runs only when its `hold` output is exactly the string `false`, or the owner cleared the release.
+
+- **Range:** the diff from the last deployed commit (the newest `aws-production` deployment whose newest status is `success`, never a run conclusion) to the release commit. The release must be the head of `main` and the last deployed commit must be its ancestor, so an old re-run cannot roll back. `workflow_dispatch` from any ref but `main` is always held.
+- **Rules come from the last deployed commit**, checked out beside the release, so a release cannot weaken its own check. Code: `scripts/deploy/classify-release/` (rules in `rules.ts`, golden fixtures, the required-guards manifest `ship-guards.json`).
+- **Held when** the diff touches: migrations and schema; the deploy path; the startup jobs that delete data (and everything they import); auth and security; config and env mapping; AI config, providers, prompts and their callers; the lockfile; routes, schemas and responses; the response contract; build inputs (`package.json`, `tsconfig.json`, `public/`, `.claude/routines/`). Also held: a `Client impact:` line that is not `none` (commit, PR body or PR comment), any `BREAKING CHANGE`, no single pull request for the commit, and any classifier error. The rule files live under `scripts/deploy/`, so editing them is held too. Dependabot commits that change only `uses:` lines in workflow files are exempt.
+- **Held release:** the fixer labels the release PR `needs-review` and comments what changed, which rule matched, the new behaviour and the client impact. It deploys only after the owner removes `needs-review` or adds `ship-ok` after the PR head commit. A bot's label change never counts, and a new `needs-review` cancels an earlier clearance.
+- **Auto release:** deploys with no click, checks `/api/ready`, and sends an ntfy push (repository secret `NTFY_TOPIC`; no secret, no push).
+- **Still manual (owner):** removing the required-reviewer rule from the `aws-production` environment, after the IAM trust policy of `pulse-server-gh-deploy-role` is checked. Keep its branch policy (`main` only).
+- **Limit:** on a `workflow_run` trigger the workflow file is the release's own `deploy.yml`. A release that rewrites the gate in that file is held by the PR-phase label, not by the deploy-time check.
 
 ### Manual redeploy (fallback, e.g. CI/CD itself is broken)
 
