@@ -71,13 +71,33 @@ jobs:
           # Rules come from what is already deployed, never from the release being judged.
           git -C release worktree add "$GITHUB_WORKSPACE/last" "${{ steps.last.outputs.sha }}"
 
+      - name: Pick the tools
+        id: tools
+        run: |
+          set -euo pipefail
+          # Normal case: the tools come from the last deployed commit. First rollout only: that
+          # commit predates this gate (its deploy.yml has no classify job), so it has no tools; then
+          # the release's own copy is used and the release is always held. Once a deployed commit
+          # carries the gate, missing tools fail the job instead.
+          if [ -f last/scripts/deploy/classify-release/cli.ts ]; then
+            echo "dir=last" >> "$GITHUB_OUTPUT"
+            echo "bootstrap=false" >> "$GITHUB_OUTPUT"
+          elif ! grep -q '^  classify:' last/.github/workflows/deploy.yml; then
+            echo "First rollout: the last deployed commit has no ship rules. Using the release's tools and holding."
+            echo "dir=release" >> "$GITHUB_OUTPUT"
+            echo "bootstrap=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "The last deployed commit has the gate but not its tools: held."
+            exit 1
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
-      - name: Install the last deployed tools
-        working-directory: last
+      - name: Install the tools
+        working-directory: ${{ steps.tools.outputs.dir }}
         run: npm ci --ignore-scripts
 
       - name: Collect the pull request text
@@ -96,7 +116,7 @@ jobs:
 
       - name: Classify
         id: classify
-        working-directory: last
+        working-directory: ${{ steps.tools.outputs.dir }}
         env:
           REPO_DIR: ${{ github.workspace }}/release
           LAST_DEPLOYED_SHA: ${{ steps.last.outputs.sha }}
@@ -104,11 +124,17 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REF: ${{ github.ref }}
           PR_TEXT_FILE: ${{ runner.temp }}/pr-text.txt
-        run: npx tsx scripts/deploy/classify-release/cli.ts
+        run: |
+          if [ "${{ steps.tools.outputs.bootstrap }}" = "true" ]; then
+            echo "hold=true" >> "$GITHUB_OUTPUT"
+            echo "hold=true (first rollout)"
+          else
+            npx tsx scripts/deploy/classify-release/cli.ts
+          fi
 
       - name: Check the owner's clearance
         id: clearance
-        working-directory: last
+        working-directory: ${{ steps.tools.outputs.dir }}
         env:
           REPO_DIR: ${{ github.workspace }}/release
           OWNER_LOGIN: BarcDevs
