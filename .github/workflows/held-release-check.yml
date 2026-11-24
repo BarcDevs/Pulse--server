@@ -1,0 +1,63 @@
+name: Held release check
+
+# Never add a pull_request_target trigger to any workflow (GitHub blocks it globally
+# as a supply-chain risk). Allowed triggers: pull_request, push, workflow_run,
+# workflow_dispatch.
+#
+# A release PR to main carrying `needs-review` must not merge until the owner clears it
+# (`ship-ok`, or removing the label). Make "Held release check" a required status check on
+# main so that holds for admins and the routines alike.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  held-release-check:
+    name: Held release check
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      OWNER_LOGIN: BarcDevs
+    steps:
+      # The tools come from the base branch so a PR cannot edit the check that judges it. The very
+      # first PR that adds the check has no base copy and falls back to its own.
+      - name: Checkout the base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Checkout the pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+
+      - name: Pick the tools
+        id: tools
+        run: |
+          if [ -f base/scripts/deploy/classify-release/held-check-cli.ts ]; then
+            echo "dir=base" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=head" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install the tools
+        working-directory: ${{ steps.tools.outputs.dir }}
+        run: npm ci --ignore-scripts
+
+      - name: Check the hold
+        working-directory: ${{ steps.tools.outputs.dir }}
+        run: npx tsx scripts/deploy/classify-release/held-check-cli.ts
