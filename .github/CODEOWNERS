@@ -1,0 +1,6 @@
+# The deploy gate and the files that judge a release. A pull request to main that changes any of
+# these needs the owner's approval, so a release cannot rewrite its own gate (docs/DEPLOYMENT.md,
+# "Ship rules"). The release PRs are opened by the routines' account, never by the owner, so the
+# owner can approve them.
+/.github/ @BarcDevs
+/scripts/deploy/ @BarcDevs

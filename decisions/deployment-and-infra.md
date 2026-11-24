@@ -453,3 +453,11 @@ Ran a repeatable SSM-driven curl loop against the box (`/diagnose` discipline) a
 **Rejected:** Continuing J5 and J6 inside the migration now.
 
 **Source:** user, auto-recorded: "recorded by the session"
+
+## 23/11/2026 — Issue #81 is separate work; snapshot deletions are Claude's job
+
+**Decision:** Issue #81 (replace the production deploy approval with ship rules) is separate work, not part of the AWS migration; the existing aws-production gate stays. Deleting the RDS snapshot pulse-db-before-t4g-2026-11-19 (on 26 Nov) and the EC2 snapshot snap-05ddbee6502a0a018 (on 29 Nov) is Claude's job, the go is already given.
+
+**Why over alternatives:** Owner answer 23 Nov: "עבודה נפרדת, לא חלק מהמיגרציה"; for the snapshots: "תפקיד שלך". Also confirmed: old tunnel pulse-client and the bare CLOUDFLARE_TUNNEL_TOKEN secret were already deleted on 22 Nov, UptimeRobot confirmed.
+
+**Source:** user, auto-recorded: "recorded by the session"
