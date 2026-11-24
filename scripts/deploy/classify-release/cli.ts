@@ -3,7 +3,12 @@ import { appendFileSync, readFileSync } from 'node:fs'
 
 import { classifySafely } from './classify'
 
+// Runs from a checkout of the LAST DEPLOYED sha (so a release cannot weaken its own rules),
+// against the release checkout in REPO_DIR.
+const repoDir = process.env.REPO_DIR ?? process.cwd()
+
 const git = (...args: string[]): string => execFileSync('git', args, {
+    cwd: repoDir,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024
 })
@@ -14,10 +19,22 @@ const requireEnv = (name: string): string => {
     return value
 }
 
+const assertShippable = (last: string, sha: string) => {
+    if (requireEnv('EVENT_NAME') === 'workflow_dispatch' && requireEnv('REF') !== 'refs/heads/main') {
+        throw new Error('workflow_dispatch from a ref other than main is always held')
+    }
+    if (sha !== requireEnv('MAIN_SHA')) throw new Error('the release is not the head of main')
+    try {
+        git('merge-base', '--is-ancestor', last, sha)
+    } catch {
+        throw new Error('the last deployed sha is not an ancestor of the release (rollback or unrelated history)')
+    }
+}
+
 const result = classifySafely(() => {
     const last = requireEnv('LAST_DEPLOYED_SHA')
     const sha = requireEnv('DEPLOY_SHA')
-    const prTextFile = requireEnv('PR_TEXT_FILE')
+    assertShippable(last, sha)
     const range = `${last}..${sha}`
     return {
         changedFiles: git(
@@ -32,7 +49,7 @@ const result = classifySafely(() => {
             '--format=%B%x00',
             range
         ).split('\0').map((text) => text.trim()).filter(Boolean),
-        prTexts: [readFileSync(prTextFile, 'utf8')]
+        prTexts: [readFileSync(requireEnv('PR_TEXT_FILE'), 'utf8')]
     }
 })
 
