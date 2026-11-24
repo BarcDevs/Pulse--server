@@ -26,7 +26,7 @@ jobs:
   classify:
     name: Classify the release (ship rules, #81)
     runs-on: ubuntu-latest
-    # No continue-on-error anywhere in this job: a crash fails the job, the deploy job needs it,
+    # No continue-on-error on any step but the held-release push: a crash fails the job, the deploy job needs it,
     # and so a failed classification can never deploy.
     permissions:
       contents: read
@@ -139,6 +139,23 @@ jobs:
           REPO_DIR: ${{ github.workspace }}/release
           OWNER_LOGIN: BarcDevs
         run: npx tsx scripts/deploy/classify-release/clearance-cli.ts
+
+      # A held release is merged, so no open pull request shows it. Push the owner a link to
+      # the PR and the run. Also fires when the job itself failed, which holds the release too.
+      - name: Tell the owner the release is held
+        if: ${{ always() && steps.clearance.outputs.cleared != 'true' && steps.classify.outputs.hold != 'false' }}
+        continue-on-error: true
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -n "$NTFY_TOPIC" ] || exit 0
+          PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$DEPLOY_SHA/pulls" --jq '.[0].number // ""' 2>/dev/null || true)
+          PR_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/${PR:-}"
+          [ -n "$PR" ] || PR_URL="$RUN_URL"
+          curl -sf -H "Title: Pulse server release held" -H "Click: $PR_URL" \
+            -d "Release ${DEPLOY_SHA:0:7} is held. Add ship-ok to the PR (or remove needs-review) to deploy it. Run: $RUN_URL" \
+            "https://ntfy.sh/$NTFY_TOPIC"
 
   deploy:
     name: Build, push, and roll out to EC2
