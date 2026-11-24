@@ -111,7 +111,7 @@ A `classify` job runs before every deploy and decides whether the release ships 
 - **Held release:** the fixer labels the release PR `needs-review` and comments what changed, which rule matched, the new behaviour and the client impact. It deploys only after the owner removes `needs-review` or adds `ship-ok` after the PR head commit. A bot's label change never counts, and a new `needs-review` cancels an earlier clearance.
 - **Auto release:** deploys with no click, checks `/api/ready`, and sends an ntfy push (repository secret `NTFY_TOPIC`; no secret, no push).
 - **Still manual (owner):** removing the required-reviewer rule from the `aws-production` environment, after the IAM trust policy of `pulse-server-gh-deploy-role` is checked. Keep its branch policy (`main` only).
-- **Limit:** on a `workflow_run` trigger the workflow file is the release's own `deploy.yml`. A release that rewrites the gate in that file is held by the PR-phase label, not by the deploy-time check.
+- **The gate cannot judge itself.** On a `workflow_run` trigger the workflow file is the release's own `deploy.yml`, so a release that rewrites it also rewrites the check. `.github/CODEOWNERS` therefore makes the owner the required reviewer of `/.github/` and `/scripts/deploy/`, and `main`'s branch protection requires code-owner review. The release PRs are opened by the routines' account, so the owner can approve them (GitHub does not let anyone approve their own PR). A release that touches those paths cannot merge to `main` without the owner's approval.
 
 ### Manual redeploy (fallback, e.g. CI/CD itself is broken)
 
