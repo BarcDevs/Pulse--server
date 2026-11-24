@@ -518,12 +518,13 @@ After opening or commenting on the release PR, and again whenever new commits re
 1. **Last deployed commit.** The newest `aws-production` deployment whose newest status is `success`: `gh api "repos/$REPO/deployments?environment=aws-production&per_page=30"`, then each one's `statuses`, same as the `classify` job in `deploy.yml`. None found: label the PR `needs-review`, comment "no last deployed commit", stop.
 2. **Classify with the deployed tools.** Check that commit out in a scratch worktree (`git -C "$MAIN" worktree add <scratch>/last <LAST>`), `npm ci --ignore-scripts` there, write the PR body and all its comments to a file, and from that worktree run `REPO_DIR="$MAIN" LAST_DEPLOYED_SHA=<LAST> HEAD_SHA=$(git -C "$MAIN" rev-parse origin/development) PR_TEXT_FILE=<file> npx tsx scripts/deploy/classify-release/pr-cli.ts`. It prints one JSON line `{"hold": bool, "comment": "<markdown>"}`. A last deployed commit without that script (the first rollout), or any error, counts as hold. Remove the scratch worktree afterwards.
 3. **Label and comment.** `hold` true: `gh pr edit <n> --add-label needs-review`; false: remove it if present. Post `comment` on the PR every time (held or auto), so a wrong auto result is visible.
-4. **Never clear it yourself.** Only the owner removing `needs-review` or adding `ship-ok` counts, and the deploy checks the actor. Merging the PR stays free: a held release merges but does not deploy until cleared.
+4. **Never clear it yourself, and never merge it while it is held.** Only the owner removing `needs-review` or adding `ship-ok` counts, and the deploy checks the actor. A release PR carrying `needs-review` stays open until the owner clears it: it is not merged, by this routine or by anyone acting for the owner without their say-so, so it stays on the owner's open PR list. Send one push naming the PR (`S#<n>` style link) when it is held. Once the owner has cleared it, merge it as usual. The deploy-time check is a backstop for a PR merged some other way, not the plan.
 
 ### Release PR: merge it, do not leave it open
 
 A shipped fix is not shipped until it is on `main`, so this routine merges the release PR itself (the
-owner's `open pr` rule: open it and merge it if every check is green). After opening or commenting on it, wait for its checks
+owner's `open pr` rule: open it and merge it if every check is green), **except a PR labelled `needs-review`
+(see "Ship rules at the release PR"): that one stays open for the owner, whatever its checks say.** After opening or commenting on it, wait for its checks
 (`gh pr checks <n> --repo $REPO --watch`, at most 15 minutes; do not poll in a loop). All checks passed:
 `gh pr merge <n> --repo $REPO --merge`, then confirm `state` is `MERGED`. Any check failed or still pending after the wait,
 or the PR is not mergeable: do not merge, say "release PR not merged: <why>" in the notification and the phone push; the next
