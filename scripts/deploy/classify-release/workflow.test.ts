@@ -24,7 +24,15 @@ describe('deploy workflow guards', () => {
 
     it('takes the rules from the last deployed sha, not the release', () => {
         expect(classifyJob).toContain('worktree add "$GITHUB_WORKSPACE/last"')
-        expect(classifyJob).toMatch(/working-directory: last[\s\S]*cli\.ts/)
+        expect(classifyJob).toContain('echo "dir=last" >> "$GITHUB_OUTPUT"')
+        expect(classifyJob).toMatch(/working-directory: \$\{\{ steps\.tools\.outputs\.dir \}\}[\s\S]*cli\.ts/)
+    })
+
+    it('uses the release tools only while the last deployed commit has no classify job, and then always holds', () => {
+        expect(classifyJob).toContain("grep -q '^  classify:' last/.github/workflows/deploy.yml")
+        expect(classifyJob).toContain('echo "dir=release" >> "$GITHUB_OUTPUT"')
+        expect(classifyJob).toMatch(/bootstrap\.outputs|steps\.tools\.outputs\.bootstrap[\s\S]*hold=true/)
+        expect(classifyJob).toMatch(/has the gate but not its tools: held\.[\s\S]*exit 1/)
     })
 
     it('uses no pull_request_target trigger', () => {
